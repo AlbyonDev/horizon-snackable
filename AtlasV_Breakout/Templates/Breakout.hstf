@@ -53,14 +53,16 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
                                 "packageOrRemoteId": "26904326832536512",
                                 "ingestionId": "13950728289577081780",
                                 "targetId": "2149638574"
-                            }
+                            },
+                            "width": 0,
+                            "height": 0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -245,7 +247,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -359,7 +361,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -401,7 +403,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CameraPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "cameraMode": "Custom",
                             "fieldOfView": 10.0
@@ -458,13 +460,15 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "xaml": {
                                 "packageOrRemoteId": "26904326832536512",
                                 "ingestionId": "12561620966062076308",
                                 "targetId": "2149638574"
                             },
+                            "width": 0,
+                            "height": 0,
                             "vrPanelWidth": 10.0,
                             "vrPanelHeight": 18.0,
                             "vrLayoutWidth": 900,
@@ -503,14 +507,16 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
                                 "packageOrRemoteId": "26904326832536512",
                                 "ingestionId": "14898148021174257138",
                                 "targetId": "2149638574"
-                            }
+                            },
+                            "width": 0,
+                            "height": 0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -557,14 +563,16 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
                                 "packageOrRemoteId": "26904326832536512",
                                 "ingestionId": "16644555637827624427",
                                 "targetId": "2149638574"
-                            }
+                            },
+                            "width": 0,
+                            "height": 0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -651,7 +659,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {

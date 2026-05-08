@@ -3,6 +3,19 @@
     "version": 1,
     "data": {
         "id": "10708560532978033864",
-        "pipelineVersion": 1
+        "pipelineVersion": 1,
+        "assetBuilderSettings": [
+            {
+                "class": "horizon::audio_fmod::SoundAssetBuilderSettings",
+                "version": 10002,
+                "data": {
+                    "target": "sound",
+                    "format": "Vorbis",
+                    "quality": "Default",
+                    "resamplingMode": "Optimize Sample Rate",
+                    "desiredSampleRate": 48000
+                }
+            }
+        ]
     }
 }
