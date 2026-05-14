@@ -29,7 +29,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SpawnPointPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "stateEnabled": true,
                             "allowStart": true
@@ -109,7 +109,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::ColliderBoxPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "halfExtents": {
                                 "x": 0.5,
@@ -123,7 +123,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 8,
+                        "version": 9,
                         "data": {
                             "type": "StaticCollision"
                         }
@@ -148,7 +148,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {

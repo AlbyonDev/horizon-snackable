@@ -156,6 +156,72 @@ tasks:
       - name: Chaque élément - ligne pointillés horizontale + texte configurable
         status: done
 
+  - name: Export to JavaScript (index.html)
+    status: done
+    summary: Full standalone HTML5 Canvas port of TIME STOP - single index.html with all game logic, physics, scoring, UI, and VFX. No networked features. Assets referenced by relative path to Textures/ folder.
+    files:
+      - index.html
+
+  - name: Fix index.html Discrepancies
+    status: done
+    summary: Fixed 5 parity issues - score color, grade layout, fonts, freeze fade, grade drift animation
+    files: [index.html]
+    subtasks:
+      - name: Score text color #9A6721
+        status: done
+      - name: Grade feedback layout (grade left, score right, above line)
+        status: done
+      - name: Font replacement (Bangers/Roboto instead of Arial)
+        status: done
+      - name: Freeze hold + fade (not instant hide)
+        status: done
+      - name: Grade animation upward drift + fade
+        status: done
+
+  - name: Fix index.html Round 2 Discrepancies
+    status: done
+    summary: Fixed logo size, added red deadline line + hint banner on title screen, objects vanish on slice, fixed sequential activation bug
+    files: [index.html]
+    subtasks:
+      - name: Title screen - logo size match MHS + red deadline line + hint banner
+        status: done
+      - name: Gameplay - objects disappear immediately when slice VFX plays
+        status: done
+      - name: Gameplay - objects activate one at a time (1s apart) not all at once
+        status: done
+
+  - name: Fix index.html Round 3 Discrepancies
+    status: done
+    summary: Center text now 200px with black stroke outline + pop animation, score display resized to match MHS, dead frozenStates code removed
+    files: [index.html]
+    subtasks:
+      - name: Center text bigger + black stroke outline + character spacing
+        status: done
+      - name: Center text pop animation on each change
+        status: done
+      - name: Score display bigger (571x185, font 150px, y=200)
+        status: done
+      - name: Clean up dead frozenStates code
+        status: done
+
+  - name: Fix Game Over Screen
+    status: done
+    summary: Game over board now matches MHS - correct aspect ratio (929:1104), dark brown text, YOUR SCORE label, fade-in + slide-up animation
+    files: [index.html]
+    subtasks:
+      - name: Match GameOverBoard aspect ratio and layout from MHS
+        status: done
+
+  - name: Fix Freeze Feedback + Ball VFX
+    status: done
+    summary: Freeze feedback now has black outlines, bounce+fly animation (1.25s), persists across rounds. Game over overlay is radial vignette.
+    files: [index.html]
+    subtasks:
+      - name: Freeze feedback - outlines, proper animation, persist across rounds
+        status: done
+      - name: Game over overlay - radial vignette instead of flat red
+        status: done
+
 chopping_block:
   disabled_systems: []
   temp_scaffolding: []
