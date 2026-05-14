@@ -1,8 +1,5 @@
 /**
  * TapService — Player tap input, tap upgrades, and cursor auto-clicker.
- *
- * The Cursor is a tap-simulating auto-clicker: each cycle it fires PlayerTap,
- * so tap upgrades naturally boost cursor output too.
  */
 import { OnServiceReadyEvent, EventService, Service, service, subscribe } from 'meta/worlds';
 import { BASE_CLICK_VALUE } from '../Constants';
@@ -12,7 +9,7 @@ import { ActionService } from './ActionService';
 import { StatsService } from './StatsService';
 import { getActionDef, getScaledCost } from '../Defs/ActionDefs';
 
-const CURSOR_CYCLE_TIME = 2; // seconds per auto-click cycle
+const CURSOR_CYCLE_TIME = 2;
 
 @service()
 export class TapService extends Service {
@@ -23,14 +20,12 @@ export class TapService extends Service {
   private _cursorCount : number = 0;
   private _cursorAccum : number = 0;
 
-  // ── Startup: declare all actions ──────────────────────────────────────────────
-
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
     const buyDef = getActionDef('tap.buy');
     ActionService.get().declare('tap.buy', () => ({
       label    : buyDef.label,
-      detail   : `${buyDef.description} [${this._cursorCount} -> ${this._cursorCount + 1}]`,
+      detail   : buyDef.description,
       cost     : getScaledCost('tap.buy'),
       isEnabled: ResourceService.get().canAfford(getScaledCost('tap.buy')),
     }));
@@ -44,15 +39,11 @@ export class TapService extends Service {
     }));
   }
 
-  // ── Tap ───────────────────────────────────────────────────────────────────────
-
   @subscribe(Events.PlayerTap)
   onPlayerTap(): void {
     StatsService.get().increment('taps');
     this._resources?.addGain(BASE_CLICK_VALUE * this._multiplier, GainSource.Tap);
   }
-
-  // ── Cursor production ─────────────────────────────────────────────────────────
 
   @subscribe(Events.Tick)
   onTick(p: Events.TickPayload): void {
@@ -60,10 +51,8 @@ export class TapService extends Service {
     this._cursorAccum += p.dt;
     if (this._cursorAccum < CURSOR_CYCLE_TIME / this._cursorCount) return;
     this._cursorAccum -= CURSOR_CYCLE_TIME / this._cursorCount;
-    EventService.sendLocally(Events.PlayerTap, {});
+    EventService.sendLocally(Events.PlayerTap, { isAuto: true });
   }
-
-  // ── Action handling ───────────────────────────────────────────────────────────
 
   @subscribe(Events.ActionTriggered)
   onActionTriggered(p: Events.ActionTriggeredPayload): void {
@@ -81,8 +70,16 @@ export class TapService extends Service {
     }
   }
 
-  // ── Public API ────────────────────────────────────────────────────────────────
-
   getClickValue()  : number { return BASE_CLICK_VALUE * this._multiplier; }
   getCursorCount() : number { return this._cursorCount; }
+
+  /** Cycle progress (0-1) for the cursor auto-clicker, plus next payout amount. */
+  getCursorCycleInfo(): { progress: number; payout: number } {
+    if (this._cursorCount === 0) return { progress: 0, payout: 0 };
+    const cycleTime = CURSOR_CYCLE_TIME / this._cursorCount;
+    return {
+      progress: this._cursorAccum / cycleTime,
+      payout  : BASE_CLICK_VALUE * this._multiplier,
+    };
+  }
 }

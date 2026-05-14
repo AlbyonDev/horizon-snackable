@@ -13,7 +13,7 @@ import {
 } from 'meta/worlds';
 
 import { Events, GamePhase } from '../Types';
-import { FishPoolService } from './FishPoolService';
+import { FishDataService } from './FishDataService';
 import { CAMERA_SCROLL_LERP_SPEED } from '../Constants';
 
 // =============================================================================
@@ -24,7 +24,7 @@ import { CAMERA_SCROLL_LERP_SPEED } from '../Constants';
 //  never scrolls above the starting position).
 //  During Idle / Reset / Launching the camera returns to base.
 //
-//  Also notifies FishPoolService of current camera center so it can recycle
+//  Also notifies FishDataService of current camera center so it can recycle
 //  fish that scroll out of view.
 // =============================================================================
 
@@ -119,7 +119,10 @@ export class GameCameraService extends Service {
 
     const diff = this._scrollTargetY - this._scrollOffsetY;
     if (Math.abs(diff) > 0.001) {
-      this._scrollOffsetY += diff * Math.min(1, this._scrollLerpSpeed * dt);
+      // During Surfacing the hook rises very fast — use instant tracking
+      // so the camera keeps pace. Otherwise use the smooth lerp for diving.
+      const effectiveSpeed = this._phase === GamePhase.Surfacing ? 60.0 : this._scrollLerpSpeed;
+      this._scrollOffsetY += diff * Math.min(1, effectiveSpeed * dt);
     } else {
       this._scrollOffsetY = this._scrollTargetY;
     }
@@ -140,7 +143,7 @@ export class GameCameraService extends Service {
     }
 
     const camCenterY = this._basePosY + this._scrollOffsetY;
-    FishPoolService.get().setCameraY(camCenterY);
+    FishDataService.get().setCameraY(camCenterY);
 
     this._applyCamera();
   }

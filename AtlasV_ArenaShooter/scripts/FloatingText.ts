@@ -3,8 +3,8 @@
 import {
   DrawingCommandsBuilder,
   SolidBrush,
+  Color,
 } from 'meta/worlds';
-import { Color } from 'meta/platform_api';
 import type { FloatingTextEntry } from './Types';
 import {
   MAX_FLOATING_TEXTS,

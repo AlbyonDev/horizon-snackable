@@ -1,6 +1,8 @@
 BEGIN_DESCRIPTION
-Unlit depth gradient shader. Colors each pixel based on world Y position,
-creating an underwater gradient from surface turquoise to deep-sea blue.
+Unlit underwater depth gradient. Three-color gradient with non-linear curve,
+animated multi-layer caustics that fade with depth, soft horizontal current
+bands, and scintillating plankton particles. Fully cyclic (sin/cos based) so
+the effect repeats seamlessly for an endless vertical scroller.
 END_DESCRIPTION
 
 BEGIN_OPTIONS
@@ -8,23 +10,165 @@ BEGIN_OPTIONS
 END_OPTIONS
 
 BEGIN_PROPERTIES
-  topColor("Top Color", Color) = (0.251, 0.878, 0.816, 1.0)
-  bottomColor("Bottom Color", Color) = (0.039, 0.086, 0.157, 1.0)
-  topY("Top Y", Float) = 5.0
-  bottomY("Bottom Y", Float) = -40.0
+  // Intro phase (surface -> deep base), one-time gradient.
+  surfaceColor("Surface Color (match image)", Color) = (0, 0.0666, 0.3686, 1.0)
+  deepBaseColor("Deep Base Color", Color)            = (0.05, 0.12, 0.30, 1.0)
+  introTopY("Intro Top Y (image bottom)", Float)     = -5.35
+  introBottomY("Intro Bottom Y", Float)              = -65.0
+  introCurve("Intro Curve", Float)                   = 1.4
+
+  // Cyclic phase (below introBottomY): blend between two abyssal hues.
+  cyclicColorA("Cyclic Color A", Color) = (0.05, 0.12, 0.30, 1.0)
+  cyclicColorB("Cyclic Color B", Color) = (0.10, 0.06, 0.22, 1.0)
+  cycleLength("Cycle Length (m)", Float) = 80.0
+
+  causticColor("Caustic Color", Color)= (0.7, 1.0, 0.95, 1.0)
+  planktonColor("Plankton Color", Color)= (0.8, 1.0, 0.95, 1.0)
+
+  causticStrength("Caustic Strength", Float) = 0.15
+  causticScale("Caustic Scale", Float)       = 0.55
+  causticSpeed("Caustic Speed", Float)       = 0.6
+  causticFadeIn("Caustic Fade In (0..1)", Float)   = 0.08
+  causticDepthFade("Caustic Depth Fade (0..1)", Float) = 0.55
+  causticDeepFloor("Caustic Deep Floor (0..1)", Float) = 0.18
+
+  bandStrength("Current Band Strength", Float) = 0.06
+  bandFrequency("Current Band Frequency", Float) = 0.35
+  bandSpeed("Current Band Speed", Float) = 0.15
+
+  planktonStrength("Plankton Strength", Float) = 0.4
+  planktonScale("Plankton Scale", Float) = 18.0
+  planktonSpeed("Plankton Drift Speed", Float) = 0.25
+  planktonThreshold("Plankton Threshold (0..1)", Float) = 0.998
+
+  // Side vignette: gentle darkening on the left/right edges to frame play area.
+  vignetteStrength("Vignette Strength (0..1)", Float) = 0.35
+  vignetteInner("Vignette Inner X (half-width clear)", Float) = 3.0
+  vignetteOuter("Vignette Outer X (half-width fully dark)", Float) = 5.5
+  vignetteFadeIn("Vignette Fade In (0..1)", Float) = 0.12
 END_PROPERTIES
 
 BEGIN_SURFACE
 
+// 2D hash for cheap pseudo-noise (used for plankton scintillation).
+// Stronger mixing than the classic dot-trick to avoid axis-aligned resonance.
+float hash21(vec2 p)
+{
+  vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+// Smooth value noise via bilinear interpolation of hashed corners.
+float valueNoise(vec2 p)
+{
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f); // smoothstep
+  float a = hash21(i);
+  float b = hash21(i + vec2(1.0, 0.0));
+  float c = hash21(i + vec2(0.0, 1.0));
+  float d = hash21(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+// Caustic layer: soft animated underwater shimmer. Three crossed sine fields
+// summed (not multiplied) for a smoother, less contrasty result. Cyclic.
+float causticLayer(vec2 p, float t, float angle)
+{
+  float ca = cos(angle);
+  float sa = sin(angle);
+  vec2 q = vec2(p.x * ca - p.y * sa, p.x * sa + p.y * ca);
+  float a = sin(q.x * 1.7 + t * 1.3);
+  float b = sin(q.y * 1.9 - t * 1.1);
+  float c = sin((q.x + q.y) * 1.3 + t * 0.7);
+  float v = (a + b + c) / 3.0;     // smooth average -> no pinched hot spots
+  v = v * 0.5 + 0.5;               // [0..1]
+  return smoothstep(0.35, 0.85, v); // soft highlight, not sharp
+}
+
 void surfaceFunction(inout Surface s, inout SurfaceData d)
 {
-  float worldY = d.worldSpacePosition.y;
-  float t = clamp((matParams.topY - worldY) / (matParams.topY - matParams.bottomY), 0.0, 1.0);
-  vec3 color = mix(matParams.topColor.rgb, matParams.bottomColor.rgb, t);
+  float time   = getTime();
+  vec3  wpos   = d.worldSpacePosition.xyz;
+  float worldY = wpos.y;
+
+  // ---- 1. Two-phase gradient ----
+  // Phase 1 (intro): surfaceColor -> deepBaseColor between introTopY and introBottomY.
+  // Phase 2 (cyclic): below introBottomY, oscillate between cyclicColorA and cyclicColorB
+  //                   on a sine wave of period cycleLength meters. Never ends.
+  float tIntro = clamp((matParams.introTopY - worldY) / (matParams.introTopY - matParams.introBottomY), 0.0, 1.0);
+  tIntro = pow(tIntro, matParams.introCurve);
+  vec3 introColor = mix(matParams.surfaceColor.rgb, matParams.deepBaseColor.rgb, smoothstep(0.0, 1.0, tIntro));
+
+  // Distance below the intro end (positive value when in the cyclic zone).
+  float depthBelow = max(matParams.introBottomY - worldY, 0.0);
+  // 0..1 ping-pong between A and B with sine -> smooth, no seam.
+  float cyclePhase = sin((depthBelow / max(matParams.cycleLength, 0.0001)) * 6.2831853) * 0.5 + 0.5;
+  vec3 cyclicColor = mix(matParams.cyclicColorA.rgb, matParams.cyclicColorB.rgb, cyclePhase);
+
+  // Blend: 0 above introBottomY (pure intro), 1 well below it (pure cyclic).
+  // Smoothstep over a few meters for a seamless handoff.
+  float cyclicBlend = smoothstep(matParams.introBottomY, matParams.introBottomY - 8.0, worldY);
+  vec3 color = mix(introColor, cyclicColor, cyclicBlend);
+
+  float tRaw = tIntro; // reused below for masks (caustics fade, bands, plankton)
+
+  // ---- 2. Soft horizontal current bands (thermoclines) ----
+  // sin on worldY shifted by time = bands gently scroll upward.
+  float band = sin(worldY * matParams.bandFrequency + time * matParams.bandSpeed)
+             + 0.5 * sin(worldY * matParams.bandFrequency * 2.3 - time * matParams.bandSpeed * 0.7);
+  band *= 0.5; // normalize roughly to [-1..1]
+  // Bands are stronger in the mid zone, fade near top & bottom.
+  float bandMask = smoothstep(0.0, 0.3, tRaw) * smoothstep(1.0, 0.6, tRaw);
+  color += band * matParams.bandStrength * bandMask;
+
+  // ---- 3. Animated caustics (two crossed layers) ----
+  // The background plane lies in the XY plane (vertical), so wpos.z is constant.
+  // Use X and Y to drive the caustic field -> 2D interlaced pattern, no vertical streaks.
+  vec2 cuv = vec2(wpos.x, wpos.y) * matParams.causticScale;
+  float ctime = time * matParams.causticSpeed;
+  float c1 = causticLayer(cuv,                         ctime,        0.0);
+  float c2 = causticLayer(cuv * 1.35 + vec2(7.3, 2.1), ctime * 0.85, 0.7);
+  float caustic = c1 * 0.6 + c2 * 0.4;
+  // Depth mask: fade-in from the image junction (so we don't slice the joint),
+  // peak in the upper zone, and keep a small floor at depth (a hint of life).
+  float fadeIn  = smoothstep(0.0, matParams.causticFadeIn, tRaw);              // 0 at jonction -> 1 quickly
+  float fadeOut = smoothstep(matParams.causticDepthFade, 0.0, tRaw);            // 1 near top -> 0 in deep
+  float surfaceMask = fadeIn * fadeOut;
+  // Lerp between the surface peak and a constant deep-floor (e.g. 0.15).
+  float causticDepthMask = mix(matParams.causticDeepFloor, 1.0, surfaceMask);
+  color += matParams.causticColor.rgb * caustic * matParams.causticStrength * causticDepthMask;
+
+  // ---- 4. Plankton / floating particles ----
+  // Hash a 2D grid cell to scatter specks. Drift in BOTH X and Y (different
+  // speeds) so no static column artifact can persist on a narrow vertical plane.
+  vec2 puv = vec2(
+    wpos.x + time * matParams.planktonSpeed * 0.37,
+    wpos.y + time * matParams.planktonSpeed
+  ) * matParams.planktonScale;
+  vec2 cell = floor(puv);
+  float n = hash21(cell);
+  // Twinkle: per-cell phase oscillation for a sparkle effect.
+  float twinkle = 0.5 + 0.5 * sin(time * 3.0 + hash21(cell + 11.7) * 6.2831853);
+  float spark = smoothstep(matParams.planktonThreshold, 1.0, n) * twinkle;
+  // Plankton present everywhere except right at the surface jonction
+  // (so it stays active in the cyclic deep zone too).
+  float planktonMask = smoothstep(0.05, 0.4, tRaw);
+  color += matParams.planktonColor.rgb * spark * matParams.planktonStrength * planktonMask;
+
+  // ---- 5. Side vignette ----
+  // Darken the color toward the screen edges to frame the gameplay column.
+  // smoothstep over |wpos.x| from inner (clear) to outer (max darkening).
+  float vig = smoothstep(matParams.vignetteInner, matParams.vignetteOuter, abs(wpos.x));
+  // Fade-in from the image junction so the vignette doesn't slice the joint.
+  float vigFadeIn = smoothstep(0.0, matParams.vignetteFadeIn, tRaw);
+  color *= 1.0 - vig * matParams.vignetteStrength * vigFadeIn;
+
   s.baseColor = color;
-  s.emissive = vec3(0,0,0);
-  s.metallic = 0.0;
-  s.roughness = 0.0;
+  s.emissive  = vec3(0.0);
+  s.metallic  = 0.0;
+  s.roughness = 1.0;
 }
 
 END_SURFACE

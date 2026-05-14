@@ -5,15 +5,23 @@
     "dependencies": [
         {
             "name": "meta/worlds_sdk",
-            "version": "*"
+            "version": "development"
         },
         {
             "name": "meta/editor_starter_kit",
-            "version": "1.13.2"
+            "version": "1.12.1"
         },
         {
             "name": "meta/assistant",
             "version": "*"
+        },
+        {
+            "name": "meta/worlds_sdk_experimental",
+            "version": "development"
+        },
+        {
+            "name": "meta/worlds_sdk_provisional",
+            "version": "development"
         }
     ]
 }

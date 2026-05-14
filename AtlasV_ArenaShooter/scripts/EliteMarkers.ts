@@ -1,29 +1,27 @@
 // Arena Vermin — Elite Enemy DrawingSurface Markers
-// Draws floating gold markers above elite enemies for high visibility.
+// Draws a pulsing ground indicator (ellipse) beneath elite enemies.
 
 import type { DrawingCommandsBuilder } from 'meta/worlds';
-import { SolidBrush, Pen } from 'meta/worlds';
-import { Color } from 'meta/platform_api';
+import { SolidBrush, Pen, Color } from 'meta/worlds';
 import type { EnemyState, CameraState, CameraShakeState } from './Types';
 import { worldToScreen, wrapRelative } from './IsoRenderer';
 import { getEnemyDims } from './SpriteUpdater';
 import {
   CANVAS_W, CANVAS_H, WORLD_W, WORLD_H, ELITE_SCALE,
+  ELITE_GLOW_COLORS,
 } from './Constants';
 
-// Module-level resources (avoid creating inside loops)
-const goldBrush = new SolidBrush(Color.fromHex('#FFD700'));
-const goldPen = new Pen(goldBrush, 2);
-const goldRingBrush = new SolidBrush(new Color(1, 0.84, 0, 0.5));
-const goldRingPen = new Pen(goldRingBrush, 2);
-const brightGoldBrush = new SolidBrush(new Color(1, 0.9, 0.2, 0.8));
+/** Parse hex color to {r,g,b} in 0-1 range */
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const h = hex.replace('#', '');
+  return {
+    r: parseInt(h.substring(0, 2), 16) / 255,
+    g: parseInt(h.substring(2, 4), 16) / 255,
+    b: parseInt(h.substring(4, 6), 16) / 255,
+  };
+}
 
-// Diamond shape path centered at origin, ~12px tall
-const DIAMOND_PATH = 'M 0 -7 L 5 0 L 0 7 L -5 0 Z';
-// Small crown shape (3 points) centered at origin
-const CROWN_PATH = 'M -6 3 L -4 -3 L -2 0 L 0 -5 L 2 0 L 4 -3 L 6 3 Z';
-
-/** Draw floating elite markers above elite enemies on the DrawingSurface. */
+/** Draw ground indicator beneath elite enemies on the DrawingSurface. */
 export function drawEliteMarkers(
   builder: DrawingCommandsBuilder,
   enemies: EnemyState[],
@@ -48,35 +46,38 @@ export function drawEliteMarkers(
     const screenY = sy - camera.offsetY + screenCY + shakeY;
 
     // Cull off-screen
-    if (screenX < -50 || screenX > CANVAS_W + 50 || screenY < -50 || screenY > CANVAS_H + 50) continue;
+    if (screenX < -80 || screenX > CANVAS_W + 80 || screenY < -80 || screenY > CANVAS_H + 80) continue;
 
     const dims = getEnemyDims(enemy.enemyType);
-    const scaledH = dims.h * ELITE_SCALE;
+    const scaledW = dims.w * ELITE_SCALE;
 
-    // Position marker above the enemy sprite
-    const markerBaseY = screenY - scaledH - 12;
-    // Vertical bob animation
-    const bobY = Math.sin(gameTime * 4) * 3;
-    const markerY = markerBaseY + bobY;
+    // Ground indicator: a pulsing, glowing ellipse beneath the enemy
+    const colorHex = ELITE_GLOW_COLORS[enemy.enemyType] || ELITE_GLOW_COLORS[0];
+    const rgb = hexToRgb(colorHex);
 
-    // Draw a rotating gold diamond marker
-    builder.pushTranslate({x: screenX, y: markerY});
-    const spinAngle = gameTime * 90; // 90 deg/sec spin
-    builder.pushRotate(spinAngle, {x: 0, y: 0});
-    builder.drawPath(goldBrush, goldPen, DIAMOND_PATH);
-    builder.pop(); // rotate
-    builder.pop(); // translate
+    // Pulsing animation
+    const pulse = 0.5 + 0.5 * Math.sin(gameTime * 3.5);
+    const baseRx = scaledW * 0.4;
+    const baseRy = baseRx * 0.35;
+    const rxPulse = baseRx + pulse * 4;
+    const ryPulse = baseRy + pulse * 2;
 
-    // Draw a small crown above the diamond
-    builder.pushTranslate({x: screenX, y: markerY - 12});
-    builder.drawPath(brightGoldBrush, null, CROWN_PATH);
-    builder.pop(); // translate
+    // Position at the feet of the enemy (screenY is the foot position)
+    const groundY = screenY - 2; // slightly above exact foot to align with shadow
 
-    // Draw a pulsing elliptical ring around the enemy body center
-    const ringCenterY = screenY - scaledH / 2;
-    const ringRadius = dims.w * ELITE_SCALE * 0.5 + 4 + Math.sin(gameTime * 3) * 2;
-    builder.drawEllipse(null, goldRingPen,
-      {x: screenX, y: ringCenterY},
-      {x: ringRadius, y: ringRadius * 0.6});
+    // Outer glow ring
+    const outerAlpha = 0.3 + 0.15 * pulse;
+    const outerBrush = new SolidBrush(new Color(rgb.r, rgb.g, rgb.b, outerAlpha * 0.4));
+    const outerPen = new Pen(new SolidBrush(new Color(rgb.r, rgb.g, rgb.b, outerAlpha)), 2.5);
+    builder.drawEllipse(outerBrush, outerPen,
+      {x: screenX, y: groundY},
+      {x: rxPulse, y: ryPulse});
+
+    // Inner brighter ring
+    const innerAlpha = 0.5 + 0.3 * pulse;
+    const innerPen = new Pen(new SolidBrush(new Color(rgb.r, rgb.g, rgb.b, innerAlpha)), 1.5);
+    builder.drawEllipse(null, innerPen,
+      {x: screenX, y: groundY},
+      {x: rxPulse * 0.6, y: ryPulse * 0.6});
   }
 }

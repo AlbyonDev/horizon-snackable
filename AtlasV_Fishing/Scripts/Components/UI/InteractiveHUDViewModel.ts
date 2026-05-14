@@ -2,6 +2,7 @@ import {
   Component,
   CustomUiComponent,
   EventService,
+  LocalEvent,
   NetworkingService,
   OnEntityDestroyEvent,
   OnEntityStartEvent,
@@ -45,6 +46,11 @@ export const interactiveBuyHookEvent = new UiEvent(
   InteractiveHUDBuyHookPayload,
 );
 
+export const onOpenFishCollectionEvent = new UiEvent('InteractiveHUD-onOpenFishCollection');
+
+/** LocalEvent relay — broadcast when the XAML fish collection button is pressed */
+export const OpenFishCollectionRequested = new LocalEvent('InteractiveHUD-OpenFishCollectionRequested');
+
 // ─── ViewModel ──────────────────────────────────────────────────────────────
 @uiViewModel()
 export class InteractiveHUDData extends UiViewModel {
@@ -71,10 +77,17 @@ export class InteractiveHUDData extends UiViewModel {
   hookCurrentValue: string = '';
   hookNextValue: string = '';
 
+  /** Collection progress text e.g. "3/31" */
+  collectionProgressText: string = '0/31';
+
+  /** Collection button visibility (used when overlay opens/closes) */
+  isCollectionBtnVisible: boolean = true;
+
   override readonly events = {
     castPressed: interactiveCastPressedEvent,
     buyLine: interactiveBuyLineEvent,
     buyHook: interactiveBuyHookEvent,
+    onOpenFishCollection: onOpenFishCollectionEvent,
   };
 }
 
@@ -133,6 +146,13 @@ export class InteractiveHUDViewModel extends Component {
     EventService.sendLocally(Events.BuyUpgrade, { upgrade: 'hook' });
   }
 
+  @subscribe(onOpenFishCollectionEvent)
+  private _onOpenFishCollection(): void {
+    if (NetworkingService.get().isServerContext()) return;
+    console.log('[InteractiveHUDViewModel] Relaying OpenFishCollectionRequested');
+    EventService.sendLocally(OpenFishCollectionRequested, {});
+  }
+
   // ── Phase visibility ─────────────────────────────────────────────────────
   @subscribe(Events.PhaseChanged)
   private _onPhase(p: Events.PhaseChangedPayload): void {
@@ -168,6 +188,22 @@ export class InteractiveHUDViewModel extends Component {
   }
 
   // ── Show / Hide with isVisible gating ────────────────────────────────────
+  // -- Collection button helpers (called by FishCollectionUIComponent) --
+  /** Called by FishCollectionUIComponent to update the progress text on the button */
+  public updateProgressText(text: string): void {
+    this._vm.collectionProgressText = text;
+  }
+
+  /** Hide the collection button (called when collection overlay is opened) */
+  public hideCollectionButton(): void {
+    this._vm.isCollectionBtnVisible = false;
+  }
+
+  /** Show the collection button (called when collection overlay is closed) */
+  public showCollectionButton(): void {
+    this._vm.isCollectionBtnVisible = true;
+  }
+
   /** Show: set isVisible=true FIRST so XAML can render, then trigger animation */
   private _showHUD(): void {
     if (this._hideTimerId !== null) {

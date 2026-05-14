@@ -4,14 +4,16 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       mc:Ignorable="d"
-      Background="Transparent" d:DesignWidth="2000" d:DesignHeight="4000"
-      IsHitTestVisible="False">
+      d:DesignWidth="2000" d:DesignHeight="4000">
 
     <Page.Resources>
-        <!-- ── Color Palette ──────────────────────────────────────── -->
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- ─── Color Palette ──────────────────────────────────────────────────── -->
         <SolidColorBrush x:Key="WhiteBorder" Color="#FFFFFFFF"/>
         <SolidColorBrush x:Key="BlackBorder" Color="#FF000000"/>
         <SolidColorBrush x:Key="Gold" Color="#FFFFC857"/>
+
 
         <!-- ══ Gold Counter Show Animation ══════════════════ -->
         <Storyboard x:Key="GoldShowAnimation">
@@ -73,7 +75,7 @@
     <!-- ═══ Main Layout ═══════════════════════════════════════ -->
     <Grid>
         <!-- ── Gold Counter (Top Center) ─── wrapped in GoldCounterPanel ── -->
-        <Grid x:Name="GoldCounterPanel" Opacity="0" RenderTransformOrigin="0.5,0.5">
+        <Grid x:Name="GoldCounterPanel" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
                 <TranslateTransform x:Name="GoldCounterTranslate" Y="-150"/>
             </Grid.RenderTransform>
@@ -87,59 +89,44 @@
                 </b:DataTrigger>
             </b:Interaction.Triggers>
 
-            <Grid HorizontalAlignment="Center"
+            <Grid HorizontalAlignment="Left"
                   VerticalAlignment="Top"
-                  Margin="0,120,0,0">
-                <!-- Drop shadow offset below -->
-                <Border CornerRadius="72"
-                        Padding="54,24,66,24"
-                        Opacity="0.4"
-                        Margin="0,10,0,0"
-                        VerticalAlignment="Top">
-                    <Border.Background>
-                        <SolidColorBrush Color="#FF000000"/>
-                    </Border.Background>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Opacity="0">
-                        <Image Source="Textures/gold_icon.png" Width="120" Height="120" Margin="0,0,30,0"/>
-                        <TextBlock Text="{Binding goldAmount}" FontSize="120" FontWeight="Bold"/>
+                  Height="285"
+                  Margin="40,120,0,0">
+                <!-- Drop shadow behind -->
+                <Border CornerRadius="80,80,80,80"
+                        Background="#96000000"
+                        Margin="0,15,0,0"
+                        Height="175"
+                        VerticalAlignment="Center"/>
+
+                <!-- Main shape matching collection button style -->
+                <Border CornerRadius="80,80,80,80"
+                        BorderThickness="4,4,4,4"
+                        BorderBrush="#FF4186C5"
+                        Background="#FF14599E"
+                        Height="175"
+                        VerticalAlignment="Center">
+
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                Margin="54,0,66,0">
+                        <Image Source="Textures/gold_icon.png"
+                               Width="120" Height="120"
+                               Margin="0,0,30,0"/>
+                        <TextBlock Text="{Binding goldAmount}"
+                                   FontSize="120"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource Gold}"
+                                   Stroke="#FF000000"
+                                   StrokeThickness="6"
+                                   VerticalAlignment="Center"/>
                     </StackPanel>
-                </Border>
-
-                <!-- Outer white border -->
-                <Border CornerRadius="72"
-                        BorderBrush="{StaticResource WhiteBorder}"
-                        BorderThickness="8"
-                        Background="Transparent"
-                        VerticalAlignment="Top">
-
-                    <!-- Inner black border -->
-                    <Border CornerRadius="64"
-                            BorderBrush="{StaticResource BlackBorder}"
-                            BorderThickness="5"
-                            Padding="54,24,66,24">
-                        <Border.Background>
-                            <SolidColorBrush Color="#EE0C1B33"/>
-                        </Border.Background>
-
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Image Source="Textures/gold_icon.png"
-                                   Width="120" Height="120"
-                                   Margin="0,0,30,0"/>
-                            <TextBlock Text="{Binding goldAmount}"
-                                       FontSize="120"
-                                       FontWeight="Bold"
-                                       Foreground="{StaticResource Gold}"
-                                       Stroke="#FF000000"
-                                       StrokeThickness="6"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
                 </Border>
             </Grid>
         </Grid>
 
         <!-- ── Depth Counter (Top Center, same position as Gold) ── -->
-        <Grid x:Name="DepthCounterPanel" Opacity="0" RenderTransformOrigin="0.5,0.5">
+        <Grid x:Name="DepthCounterPanel" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
                 <TranslateTransform x:Name="DepthCounterTranslate" Y="-150"/>
             </Grid.RenderTransform>
@@ -153,9 +140,7 @@
                 </b:DataTrigger>
             </b:Interaction.Triggers>
 
-            <Grid HorizontalAlignment="Center"
-                  VerticalAlignment="Top"
-                  Margin="0,120,0,0">
+            <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="40,0,0,100">
                 <!-- Drop shadow -->
                 <Border CornerRadius="72"
                         Padding="54,24,66,24"
@@ -212,10 +197,20 @@
                                        Stroke="#FF000000"
                                        StrokeThickness="6"
                                        VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding maxDepthText}"
+                                       FontSize="72"
+                                       FontWeight="SemiBold"
+                                       Foreground="#AA00E5FF"
+                                       Stroke="#FF000000"
+                                       StrokeThickness="4"
+                                       VerticalAlignment="Center"
+                                       Margin="16,0,0,0"/>
                         </StackPanel>
                     </Border>
                 </Border>
             </Grid>
         </Grid>
+
+
     </Grid>
 </Page>

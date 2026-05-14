@@ -18,8 +18,6 @@ export class InterestService extends Service {
 
   private readonly _resources = Service.injectWeak(ResourceService);
 
-  // ── Startup: declare all actions ──────────────────────────────────────────────
-
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
     const unlockDef = getActionDef('interest.unlock');
@@ -39,15 +37,16 @@ export class InterestService extends Service {
     }));
 
     const intDef = getActionDef('interest.interval');
-    ActionService.get().declare('interest.interval', () => ({
-      label    : intDef.label,
-      detail   : `${intDef.description} [${this._interval}s -> ${Math.max(10, this._interval - 10)}s]`,
-      cost     : getScaledCost('interest.interval'),
-      isEnabled: ResourceService.get().canAfford(getScaledCost('interest.interval')),
-    }));
+    ActionService.get().declare('interest.interval', () => {
+      const next = parseFloat((this._interval * 0.8).toFixed(1));
+      return {
+        label    : intDef.label,
+        detail   : `${intDef.description} [${parseFloat(this._interval.toFixed(1))}s -> ${next}s]`,
+        cost     : getScaledCost('interest.interval'),
+        isEnabled: ResourceService.get().canAfford(getScaledCost('interest.interval')),
+      };
+    });
   }
-
-  // ── Passive payout ────────────────────────────────────────────────────────────
 
   @subscribe(Events.Tick)
   onTick(p: Events.TickPayload): void {
@@ -59,17 +58,14 @@ export class InterestService extends Service {
     if (gold <= 0) return;
     this._resources?.addGain(gold * this._rate, GainSource.Interest);
     StatsService.get().increment('interest.payout');
-    // StatsChanged → ActionService.refreshDeclared() reveals upgrades when payout threshold met
   }
-
-  // ── Action handling ───────────────────────────────────────────────────────────
 
   @subscribe(Events.ActionTriggered)
   onActionTriggered(p: Events.ActionTriggeredPayload): void {
     if (!p.id.startsWith('interest.')) return;
 
     if (p.id === 'interest.unlock') {
-      if (!ResourceService.get().buy(p.id)) return;
+      ResourceService.get().buy(p.id);
       return;
     }
 
@@ -82,19 +78,15 @@ export class InterestService extends Service {
 
     if (p.id === 'interest.interval') {
       if (!ResourceService.get().buy(p.id)) return;
-      this._interval = Math.max(10, this._interval - 10);
+      this._interval = parseFloat((this._interval * 0.8).toFixed(1));
       ActionService.get().refreshDeclared();
     }
   }
-
-  // ── Public queries ────────────────────────────────────────────────────────────
 
   isPurchased()      : boolean { return this._isPurchased(); }
   getRate()          : number  { return this._rate; }
   getInterval()      : number  { return this._interval; }
   getTimeUntilNext() : number  { return Math.max(0, this._interval - this._accum); }
-
-  // ── Private ───────────────────────────────────────────────────────────────────
 
   private _isPurchased(): boolean {
     return StatsService.get().get('interest.unlock') > 0;

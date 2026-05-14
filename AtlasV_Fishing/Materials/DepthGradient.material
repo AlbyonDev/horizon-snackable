@@ -47,6 +47,63 @@
                     -5.0
                 ]
             }
+        },
+        {
+            "name": "planktonThreshold",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.9980000257492065
+                ]
+            }
+        },
+        {
+            "name": "vignetteOuter",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    5.5
+                ]
+            }
+        },
+        {
+            "name": "vignetteStrength",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.75
+                ]
+            }
+        },
+        {
+            "name": "vignetteInner",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    4.0
+                ]
+            }
+        },
+        {
+            "name": "surfaceColor",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.0,
+                    0.062745101749897,
+                    0.364705890417099,
+                    1.0
+                ]
+            }
+        },
+        {
+            "name": "causticStrength",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.15000000596046449
+                ]
+            }
         }
     ],
     "shaderAssetId": {

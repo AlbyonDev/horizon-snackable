@@ -5,7 +5,7 @@ import { TextureAsset } from 'meta/worlds';
 
 // Hero sprites
 export const heroBodyTexture: TextureAsset = new TextureAsset("@assets/CharacterMain.png");
-export const heroSwordTexture: TextureAsset = new TextureAsset("@assets/Weapon01.png");
+export const heroSwordTexture: TextureAsset = new TextureAsset("@assets/sword.png");
 export const heroWeapon02Texture: TextureAsset = new TextureAsset("@assets/Weapon02.png");
 export const heroWeapon03Texture: TextureAsset = new TextureAsset("@assets/Weapon03.png");
 

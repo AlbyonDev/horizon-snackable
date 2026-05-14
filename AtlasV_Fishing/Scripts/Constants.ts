@@ -44,16 +44,27 @@ export const HOOK_COLLECT_RADIUS = 0.9;    // collision radius multiplier (× fi
 export const LINE_THICKNESS = 0.04;        // X/Z scale of the line mesh cube
 
 // ─── Surface physics ─────────────────────────────────────────────────────────
-export const SURFACE_SPEED       = 30.0;  // units/s upward during Surfacing
+export const SURFACE_SPEED       = 30.0;  // units/s upward during Surfacing (max, at deep dives)
 
 // ─── Launch physics (reward anim) ────────────────────────────────────────────
-export const LAUNCH_VY_MIN       = 12.0;  // min upward velocity per fish
-export const LAUNCH_VY_MAX       = 18.0;  // max upward velocity per fish
+export const LAUNCH_VY_MIN       = 12.0;  // min upward velocity per fish (max scale)
+export const LAUNCH_VY_MAX       = 18.0;  // max upward velocity per fish (max scale)
 export const LAUNCH_VX_SPREAD    =  4.0;  // ± horizontal spread
 export const LAUNCH_GRAVITY      = -9.0;  // gravity applied during launch arc
 export const LAUNCH_STAGGER      =  0.08; // seconds between each fish launch
-export const LAUNCH_EXIT_Y       = 10.0;  // Y above which a fish is considered "collected"
+export const LAUNCH_EXIT_Y       = 10.0;  // Y above which a fish is considered "collected" (apex-or-Y, whichever first)
+export const LAUNCH_ANCHOR_X     =  0.0;  // X where the hook docks at reeling-end and fish are launched from
+
+// Hook spring-back during Launching — pseudo-physics return to idle position
+export const HOOK_RETURN_STIFFNESS = 18.0; // spring constant pulling hook toward idle
+export const HOOK_RETURN_DAMPING   =  4.5; // damping coefficient (lower = more bounce)
 export const LAUNCH_TIMEOUT      =  4.0;  // max seconds before AllFishCollected fires regardless
+
+// ─── Depth-based intensity scaling ───────────────────────────────────────────
+// Surfacing speed and launch velocity scale with how deep the dive went.
+// Shallow dives feel gentle; deep dives (with line upgrades) feel violent.
+export const DEPTH_SCALE_MIN     =  0.4;  // intensity factor at zero depth
+export const DEPTH_SCALE_FULL_AT = 40.0;  // dive depth (units) at which factor reaches 1.0
 
 // ─── Camera ───────────────────────────────────────────────────────────────────
 export const HALF_SCREEN_WORLD_HEIGHT  = 8.0;  // half-height of viewport in world units
@@ -71,18 +82,33 @@ export const RESET_DELAY  = 0.5;
 
 // ─── Fish pool ────────────────────────────────────────────────────────────────
 // Pool counts per rarity (× number of species per rarity = total entities)
-// common: 6 species × 7 = 42  rare: 6 × 5 = 30  legendary: 6 × 3 = 18  → 90 total
-export const POOL_COUNT_COMMON    = 5;
-export const POOL_COUNT_RARE      = 3;
-export const POOL_COUNT_LEGENDARY = 1;
+// common: 6 species × 5 = 30  rare: 6 × 3 = 18  legendary: 6 × 1 = 6  → 54 total
+export const POOL_COUNT_COMMON    = 8;
+export const POOL_COUNT_RARE      = 5;
+export const POOL_COUNT_LEGENDARY = 2;
 export const POOL_PARK_Y          = 1000; // world Y used to park off-screen pool entities
 
-// Recycle margin: fish this far above camTop are teleported below camBottom
-export const POOL_RECYCLE_MARGIN  = 3.0;
-// Interval between activating a new fish from the bench (seconds)
-export const POOL_SPAWN_INTERVAL  = 0.3;
-// Number of fish activated immediately at game start to fill the visible area
-export const POOL_BURST_COUNT     = 10;
+// Slot-based spawning
+// The region below camBottom is divided into POOL_SLOT_COUNT equal slots.
+// Each slot is checked every frame; vacant slots get a fish activated below camBottom.
+export const POOL_SLOT_COUNT      = 9;    // number of vertical slots to maintain
+export const POOL_SLOT_SPREAD     = 28.0; // total Y range below camBottom covered by slots (world units)
+/**
+ * How far a hooked-slot's fish can drift from its assigned slotY before the slot
+ * is considered "vacated" (even if the fish is still within the global buffer).
+ * Prevents the bug where a fish spawned far above the camera holds its slot for
+ * 5–8 seconds while it drifts toward bufferTop, starving downstream spawns.
+ */
+export const POOL_SLOT_DRIFT_MAX  = 6.0;
+export const POOL_SLOT_TOLERANCE  = 1.5;  // minimum vertical distance between active fish (prevents stacking)
+export const POOL_BENCH_MARGIN    = 8.0;  // extra Y below the slot zone when parking a benched fish
+export const POOL_SCALE_VARIANCE  = 0.12; // ± scale randomisation on re-activation (e.g. 0.12 → ±12%)
+/**
+ * Compresses each species' [sizeMin, sizeMax] range toward its mean.
+ * 1.0 = full range as defined in FishDefs.ts; 0.0 = always the mean.
+ * Lowering this makes small fish less tiny and big fish less huge.
+ */
+export const FISH_SIZE_RANGE_COMPRESSION = 0.6;
 
 // ─── Bubbles ─────────────────────────────────────────────────────────────────
 export const BUBBLE_POOL_SIZE       = 40;
@@ -113,6 +139,9 @@ export const HOOK_BUBBLE_X_JITTER         = 0.3;   // ± random X offset for nat
 
 // ─── Flash ────────────────────────────────────────────────────────────────────
 export const FLASH_DUR = 0.22;
+
+// Brief hit-stop after the dive-end flash, before the hook starts surfacing.
+export const SURFACE_FREEZE_MS = 180;
 
 // ─── Upgrades ─────────────────────────────────────────────────────────────────
 // All upgrade formulas use level n (1-based, n=0 means no upgrade bought yet).

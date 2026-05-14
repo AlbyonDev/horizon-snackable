@@ -4,8 +4,8 @@ import {
   DrawingCommandsBuilder,
   SolidBrush,
   Pen,
+  Color,
 } from 'meta/worlds';
-import { Color } from 'meta/platform_api';
 import {
   PIXELS_PER_UNIT, WORLD_W, WORLD_H,
   CANVAS_W, CANVAS_H,

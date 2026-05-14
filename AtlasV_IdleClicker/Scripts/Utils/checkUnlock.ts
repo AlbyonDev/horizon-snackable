@@ -5,8 +5,7 @@ import { ResourceService } from '../Services/ResourceService';
  * Returns true if all conditions in the unlock map are satisfied.
  *
  * Special key:
- *   'gold' — checks current gold on hand (ResourceService), not cumulative.
- *            Use this to make a button appear exactly when the player can afford it.
+ *   'gold' — current gold on hand (ResourceService), not cumulative.
  * All other keys are StatsService counters.
  */
 export function isUnlocked(unlock?: Readonly<Record<string, number>>): boolean {

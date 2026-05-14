@@ -1,20 +1,24 @@
-/**
- * Assets.ts — Single source of truth for ALL TemplateAsset references.
- *
- * Workflow:
- *   1. Create a new .hstf template in Horizon Studio.
- *   2. Add an entry here.
- *   3. Reference it from the relevant Def or component — never via @property().
- */
-import { TemplateAsset } from 'meta/worlds';
+import { TextureAsset } from 'meta/worlds';
 
-export namespace Assets {
+// Title screen sprites
+export const titleBackgroundTexture: TextureAsset = new TextureAsset("@sprites/title_background.png");
+export const titleLogoTexture: TextureAsset = new TextureAsset("@sprites/title_logo.png");
 
-  // ── Generators ────────────────────────────────────────────────────────────
-  // Add one entry per generator type that has a scene visual.
-  // export const CursorTemplate = new TemplateAsset('../Templates/Generators/Cursor.hstf');
+// Currency / world
+export const currencyIcon: TextureAsset = new TextureAsset('@sprites/icon_gem_resource.png');
+export const cursorIcon: TextureAsset = new TextureAsset('@sprites/pickaxe_cursor.png');
 
-  // ── UI / FX ───────────────────────────────────────────────────────────────
-  // DISABLED: 3D floating text replaced by pure XAML 2D system (FloatingTextUIComponent)
-  // export const FloatingTextTemplate = new TemplateAsset('../Templates/GameplayObjects/FloatingText.hstf');
-}
+// Shop / Upgrade icons (one shared TextureAsset per literal — the SDK requires
+// string-literal constructor args, and reusing instances avoids re-allocation
+// on every shop rebuild)
+export const iconTabMining: TextureAsset = new TextureAsset('@sprites/icon_tab_mining.png');
+export const iconTabUpgrade: TextureAsset = new TextureAsset('@sprites/icon_tab_upgrade.png');
+export const iconTabCoins: TextureAsset = new TextureAsset('@sprites/icon_tab_coins.png');
+export const iconCritical: TextureAsset = new TextureAsset('@sprites/icon_critical.png');
+export const iconFrenzy: TextureAsset = new TextureAsset('@sprites/icon_frenzy.png');
+export const iconVault: TextureAsset = new TextureAsset('@sprites/icon_vault.png');
+export const iconIncome: TextureAsset = new TextureAsset('@sprites/icon_income.png');
+
+// Specific generator / item icons
+export const iconShrine: TextureAsset = new TextureAsset('@sprites/icon_shrine.png');
+export const iconMine: TextureAsset = new TextureAsset('@sprites/icon_mine.png');

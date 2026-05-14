@@ -14,8 +14,6 @@ import {
   DrawingCommandsBuilder,
   SolidBrush,
   Pen,
-} from 'meta/worlds';
-import {
   Color,
   OnEntityCreateEvent,
   OnEntityStartEvent,
@@ -23,7 +21,7 @@ import {
   Component,
   component,
   subscribe,
-} from 'meta/platform_api';
+} from 'meta/worlds';
 import type { OnWorldUpdateEventPayload } from 'meta/platform_api';
 import {
   FocusedInteractionService,
@@ -44,12 +42,12 @@ import {
 } from './ArenaVerminViewModel';
 import {
   CANVAS_W, CANVAS_H,
-  HERO_SPEED, HERO_HP,
+  HERO_SPEED, HERO_HP, HERO_BODY_W, HERO_BODY_H,
   HERO_HURT_FLASH_DUR,
   JOY_DEAD_ZONE, JOY_MAX_ZONE, JOY_RADIUS, JOY_FADE_TIME, JOY_FADE_ALPHA,
   WORLD_W, WORLD_H, PIXELS_PER_UNIT,
   SLASH_DURATION, SLASH_ARC_HALF_ANGLE, SLASH_RADIUS, SLASH_WIDTH,
-  SLASH_SCALE_START, SLASH_SCALE_END,
+  SLASH_COLOR_INNER, SLASH_COLOR_GLOW,
   PICKUP_COLLECTION_RADIUS,
   PICKUP_MAGNET_RADIUS,
   PICKUP_MAGNET_MAX_SPEED,
@@ -61,11 +59,16 @@ import {
   HEALTH_DROP_CHANCE, HEALTH_RESTORE_AMOUNT,
   GUNNER_PROJECTILE_DMG,
   GAS_RAT_CLOUD_DAMAGE, GAS_RAT_CLOUD_RADIUS, GAS_RAT_CLOUD_DURATION,
+  GAS_RAT_CLOUD_SPAWN_FORWARD,
   calcXpToNext, HUD_WAVE_ANNOUNCE_DUR,
   DEATH_FADE_END,
   ELITE_LOOT_MULT, ELITE_WARNING_DURATION,
   BOSS_GEM_DROP, BOSS_COIN_DROP, BOSS_COIN_CHANCE, BOSS_WARNING_DURATION,
   GRUNT_HP,
+  HERO_IFRAME_DUR,
+  XP_PER_GEM,
+  ELITE_SCALE,
+  DUST_SPAWN_INTERVAL,
 } from './Constants';
 import { PickupType, EnemyType, WeaponId } from './Types';
 import type {
@@ -76,10 +79,12 @@ import type {
   ProjectileState, GasCloudState, SpriteEffect,
   DroneState, UpgradeOption, DroneProjectileState,
   MinigunState, MinigunBulletState,
-  DamageCircleState, DamageCirclePulseVFX,
+  DamageCircleState,
+  MuzzleFlash,
 } from './Types';
-import { worldToScreen, drawTileGrid, clampCoord } from './IsoRenderer';
-import { updateParticles, drawParticles, spawnHitSparks, spawnCritSparks, spawnDeathExplosion, spawnImpactEffect, spawnCritiqueEffect, spawnSplashEffect, updateSpriteEffects, drawSpriteEffects, drawSpriteEffectsBase, drawSpriteEffectsCrit } from './ParticleSystem';
+import { worldToScreen, drawTileGrid, clampCoord, wrapRelative } from './IsoRenderer';
+import { getEnemyDims } from './SpriteUpdater';
+import { updateParticles, drawParticles, spawnHitSparks, spawnCritSparks, spawnDeathExplosion, spawnImpactEffect, spawnCritiqueEffect, spawnSplashEffect, updateSpriteEffects, drawSpriteEffects, drawSpriteEffectsBase, drawSpriteEffectsCrit, spawnDustTrail, spawnMuzzleFlash, updateMuzzleFlashes, drawMuzzleFlashes } from './ParticleSystem';
 import { updateFloatingTexts, drawFloatingTexts, spawnDamageNumber, spawnCritLabel } from './FloatingText';
 import { autoAttackUpdate, applyContactDamage } from './CombatSystem';
 import type { AutoAttackState } from './CombatSystem';
@@ -88,7 +93,8 @@ import {
   triggerCameraShake, updateCameraShake,
 } from './AnimationSystem';
 import { spawnEnemyWithHp, spawnEnemyOfType, updateEnemyAI, updateEnemyTimers, removeFinishedEnemies, despawnRemainingEnemies } from './EnemySystem';
-import { updateHeroSprites, updateEnemySprites } from './SpriteUpdater';
+import { createSpritePool, updateHeroSprites, updateEnemySprites } from './SpriteUpdater';
+import { CharacterSpriteViewModel } from './CharacterSpriteViewModel';
 import { initWaveSystem, startWaveSystem, updateWaveSystem } from './WaveSystem';
 import { spawnProjectile, updateProjectiles, drawProjectiles } from './ProjectileSystem';
 import { spawnGasCloud, updateGasClouds, drawGasClouds } from './GasCloudSystem';
@@ -96,8 +102,8 @@ import { spawnPickup, updatePickups, drawPickups } from './PickupSystem';
 import { coinCountTexture, ennemiCountTexture, levelBarTexture, timerBoardTexture, waveBarContourTexture, waveBarInTexture, pauseButtonTexture, cartoucheTexture } from './Assets';
 import { UpgradeSystem } from './UpgradeSystem';
 import { initDrones, updateDrones, drawDrones, updateDroneProjectiles, drawDroneProjectiles } from './DroneWeapon';
-import { initMinigun, updateMinigun, updateMinigunBullets, drawMinigunBullets } from './MinigunWeapon';
-import { initDamageCircle, updateDamageCircle, updateDamageCirclePulses, drawDamageCirclePulses } from './DamageCircleWeapon';
+import { initMinigun, updateMinigun, updateMinigunBullets, drawMinigunBullets, drawHeroMinigun } from './MinigunWeapon';
+import { initDamageCircle, updateDamageCircle, drawDamageCircle } from './DamageCircleWeapon';
 import { drawEliteMarkers } from './EliteMarkers';
 
 // Game states
@@ -116,6 +122,7 @@ export class ArenaVerminComponent extends Component {
   private viewModel: ArenaVerminViewModel = new ArenaVerminViewModel();
   private builder: DrawingCommandsBuilder = new DrawingCommandsBuilder();
   private critBuilder: DrawingCommandsBuilder = new DrawingCommandsBuilder();
+  private spritePool: CharacterSpriteViewModel[] = [];
 
   private gameState: GameState = GameState.Title;
   private lastTime: number = 0;
@@ -128,6 +135,7 @@ export class ArenaVerminComponent extends Component {
   };
   private heroHp: number = HERO_HP;
   private heroHurtFlashTimer: number = 0;
+  private heroIFrameTimer: number = 0;
   private heroDying: boolean = false;
   private heroDeathTimer: number = 0;
 
@@ -159,6 +167,14 @@ export class ArenaVerminComponent extends Component {
   private spriteEffects: SpriteEffect[] = [];
   private floatingTexts: FloatingTextEntry[] = [];
   private slashEffects: SlashEffect[] = [];
+  private muzzleFlashes: MuzzleFlash[] = [];
+
+  // Motion trail — ring buffer of recent hero screen positions (world coords)
+  private static readonly TRAIL_LEN = 6;
+  private trailPositions: Array<{x: number; y: number}> = [];
+
+  // Dust trail spawn timer (frame-rate independent)
+  private dustSpawnTimer: number = 0;
 
   // === Milestone 3 state ===
   private waveState: WaveState = initWaveSystem();
@@ -177,11 +193,10 @@ export class ArenaVerminComponent extends Component {
   private drones: DroneState[] = [];
   private droneProjectiles: DroneProjectileState[] = [];
   private droneLevel: number = 0;
-  private minigunState: MinigunState = { lastFireTime: -999 };
+  private minigunState: MinigunState = { lastFireTime: -999, recoilTimer: 0 };
   private minigunBullets: MinigunBulletState[] = [];
   private minigunLevel: number = 0;
-  private damageCircleState: DamageCircleState = { lastPulseTime: -999 };
-  private damageCirclePulses: DamageCirclePulseVFX[] = [];
+  private damageCircleState: DamageCircleState = { angle: 0, hitCooldownMap: new Map() };
   private damageCircleLevel: number = 0;
   private isLevelUpScreen: boolean = false;
   private pendingUpgrades: UpgradeOption[] = [];
@@ -196,6 +211,8 @@ export class ArenaVerminComponent extends Component {
     if (customUi != null) {
       customUi.dataContext = this.viewModel;
     }
+    // Create the sprite pool and assign to viewModel
+    this.spritePool = createSpritePool(this.viewModel);
     this.render();
   }
 
@@ -388,6 +405,21 @@ export class ArenaVerminComponent extends Component {
   private updateGameLogic(dt: number): void {
     this.gameTime += dt;
     this.updateHero(dt);
+
+    // Dust trail particles (spawn behind hero while moving)
+    this.dustSpawnTimer -= dt;
+    if (this.dustSpawnTimer <= 0 && this.hero.isMoving) {
+      // Compute hero screen position for particle spawning
+      const { sx, sy } = worldToScreen(this.hero.x, this.hero.y);
+      const heroScreenX = sx - this.camera.offsetX + CANVAS_W / 2;
+      const heroScreenY = sy - this.camera.offsetY + CANVAS_H / 2;
+      spawnDustTrail(this.particles, heroScreenX, heroScreenY, this.hero.vx, this.hero.vy);
+      this.dustSpawnTimer = DUST_SPAWN_INTERVAL;
+    } else if (this.dustSpawnTimer <= 0) {
+      // Not moving, just reset timer so it fires immediately when movement resumes
+      this.dustSpawnTimer = 0;
+    }
+
     updateEnemyAI(this.enemies, this.hero, dt);
     updateEnemyTimers(this.enemies, dt);
 
@@ -415,7 +447,6 @@ export class ArenaVerminComponent extends Component {
       this.gasClouds = [];
       this.droneProjectiles = [];
       this.minigunBullets = [];
-      this.damageCirclePulses = [];
 
       // Auto-vacuum all remaining pickups toward hero
       for (const pickup of this.pickups) {
@@ -465,27 +496,49 @@ export class ArenaVerminComponent extends Component {
         enemy.burstShotDelay -= dt;
         if (enemy.burstShotDelay <= 0) {
           const barrelOffsetX = 0.3 * enemy.facing;
-          spawnProjectile(this.projectiles, enemy.x + barrelOffsetX, enemy.y, this.hero.x, this.hero.y, GUNNER_PROJECTILE_DMG);
+          const muzzleX = enemy.x + barrelOffsetX;
+          const muzzleY = enemy.y;
+          spawnProjectile(this.projectiles, muzzleX, muzzleY, this.hero.x, this.hero.y, GUNNER_PROJECTILE_DMG);
+          spawnMuzzleFlash(this.muzzleFlashes, muzzleX, muzzleY, 0.85, '#FFB060');
           enemy.fireBurstCount--;
           enemy.burstShotDelay = 0.12; // 120ms between burst shots
         }
       }
-      // Gas Rat cloud spawning
+      // Gas Rat cloud spawning — gasSpawnFlag is now set at the apex of the
+      // throw wind-up by EnemySystem. Spawn the cloud at the canister's world
+      // position (forward of the rat in its facing direction), and emit a
+      // small splash puff there for visual punctuation.
       if (enemy.enemyType === EnemyType.GasRat && enemy.gasSpawnFlag) {
-        spawnGasCloud(this.gasClouds, enemy.x, enemy.y, GAS_RAT_CLOUD_RADIUS, GAS_RAT_CLOUD_DAMAGE, GAS_RAT_CLOUD_DURATION);
+        const cloudX = enemy.x + GAS_RAT_CLOUD_SPAWN_FORWARD * enemy.facing;
+        const cloudY = enemy.y;
+        spawnGasCloud(this.gasClouds, cloudX, cloudY, GAS_RAT_CLOUD_RADIUS, GAS_RAT_CLOUD_DAMAGE, GAS_RAT_CLOUD_DURATION);
+        // Small puff at the canister muzzle to sell the release.
+        const { sx, sy } = worldToScreen(cloudX, cloudY);
+        const puffScreenX = sx - this.camera.offsetX + CANVAS_W / 2;
+        const puffScreenY = sy - this.camera.offsetY + CANVAS_H / 2;
+        spawnSplashEffect(this.spriteEffects, puffScreenX, puffScreenY);
         enemy.gasSpawnFlag = false;
       }
     }
 
-    // Update projectiles
-    const projectileHits = updateProjectiles(this.projectiles, dt, this.hero.x, this.hero.y, 0.8);
-    for (const hit of projectileHits) {
-      this.heroHp -= hit.damage;
-      this.heroHurtFlashTimer = HERO_HURT_FLASH_DUR;
-      if (this.heroHp < 0) this.heroHp = 0;
+    // Tick iframe timer
+    if (this.heroIFrameTimer > 0) {
+      this.heroIFrameTimer -= dt;
+      if (this.heroIFrameTimer < 0) this.heroIFrameTimer = 0;
     }
 
-    // Update gas clouds
+    // Update projectiles
+    const projectileHits = updateProjectiles(this.projectiles, dt, this.hero.x, this.hero.y, 0.8);
+    if (this.heroIFrameTimer <= 0) {
+      for (const hit of projectileHits) {
+        this.heroHp -= hit.damage;
+        this.heroHurtFlashTimer = HERO_HURT_FLASH_DUR;
+        this.heroIFrameTimer = HERO_IFRAME_DUR;
+        if (this.heroHp < 0) this.heroHp = 0;
+      }
+    }
+
+    // Update gas clouds (gas ignores iframes — it's a DoT, not a hit)
     const gasHits = updateGasClouds(this.gasClouds, dt, this.hero.x, this.hero.y, this.gameTime);
     for (const hit of gasHits) {
       this.heroHp -= hit.damage;
@@ -521,17 +574,19 @@ export class ArenaVerminComponent extends Component {
         this.dropLoot(result.target.x, result.target.y, result.target.enemyType, result.target.isElite);
       }
 
-      // Slash VFX
+      // Slash VFX — centered on hero position
       const { sx: tsx, sy: tsy } = worldToScreen(result.target.x, result.target.y);
       const targetScreenX = tsx - this.camera.offsetX + screenCX;
       const targetScreenY = tsy - this.camera.offsetY + screenCY;
-      const slashDx = targetScreenX - screenCX;
-      const slashDy = targetScreenY - screenCY;
+      // Hero screen position (center of hero body)
+      const { sx: hsx2, sy: hsy2 } = worldToScreen(this.hero.x, this.hero.y);
+      const heroSlashX = hsx2 - this.camera.offsetX + screenCX;
+      const heroSlashY = hsy2 - this.camera.offsetY + screenCY - HERO_BODY_H / 2;
+      const slashDx = targetScreenX - heroSlashX;
+      const slashDy = targetScreenY - heroSlashY;
       const slashAngle = Math.atan2(slashDy, slashDx) * (180 / Math.PI);
-      const midX = (screenCX + targetScreenX) / 2;
-      const midY = (screenCY + targetScreenY) / 2;
       this.slashEffects.push({
-        x: midX, y: midY,
+        x: heroSlashX, y: heroSlashY,
         angleDeg: slashAngle,
         timer: 0,
         duration: SLASH_DURATION,
@@ -541,11 +596,14 @@ export class ArenaVerminComponent extends Component {
       triggerCameraShake(this.cameraShake);
     }
 
-    // Contact damage
-    const contactDmg = applyContactDamage(this.hero, this.enemies, dt, this.gameTime);
+    // Contact damage (gated by iframes)
+    const contactDmg = this.heroIFrameTimer <= 0
+      ? applyContactDamage(this.hero, this.enemies, dt, this.gameTime)
+      : 0;
     if (contactDmg > 0) {
       this.heroHp -= contactDmg;
       this.heroHurtFlashTimer = HERO_HURT_FLASH_DUR;
+      this.heroIFrameTimer = HERO_IFRAME_DUR;
       if (this.heroHp < 0) this.heroHp = 0;
     }
 
@@ -573,7 +631,7 @@ export class ArenaVerminComponent extends Component {
     const pickupEvents = updatePickups(this.pickups, dt, this.hero.x, this.hero.y, collectionRadius, PICKUP_MAGNET_RADIUS);
     for (const evt of pickupEvents) {
       if (evt.type === PickupType.GreenGem) {
-        this.stats.xp += 3;
+        this.stats.xp += XP_PER_GEM;
         this.checkLevelUp();
       } else if (evt.type === PickupType.HealthHeart) {
         // Heal the hero (capped at max)
@@ -598,7 +656,7 @@ export class ArenaVerminComponent extends Component {
 
     // Drone weapon update
     if (this.droneLevel > 0) {
-      updateDrones(this.drones, this.hero.x, this.hero.y, this.enemies, dt, this.droneLevel, this.gameTime, this.droneProjectiles);
+      updateDrones(this.drones, this.hero.x, this.hero.y, this.enemies, dt, this.droneLevel, this.gameTime, this.droneProjectiles, this.muzzleFlashes);
       const droneHits = updateDroneProjectiles(this.droneProjectiles, dt, this.enemies);
       for (const hit of droneHits) {
         const enemy = this.enemies[hit.enemyIndex];
@@ -616,7 +674,7 @@ export class ArenaVerminComponent extends Component {
 
     // Minigun weapon update
     if (this.minigunLevel > 0) {
-      updateMinigun(this.minigunState, this.hero.x, this.hero.y, this.enemies, dt, this.minigunLevel, this.gameTime, this.minigunBullets);
+      updateMinigun(this.minigunState, this.hero.x, this.hero.y, this.hero.facing, this.enemies, dt, this.minigunLevel, this.gameTime, this.minigunBullets, this.muzzleFlashes);
       const minigunHits = updateMinigunBullets(this.minigunBullets, dt, this.enemies);
       for (const hit of minigunHits) {
         const enemy = this.enemies[hit.enemyIndex];
@@ -632,12 +690,11 @@ export class ArenaVerminComponent extends Component {
       }
     }
 
-    // Damage circle weapon update
+    // Damage circle weapon update — orbiting sprite that damages on overlap.
     if (this.damageCircleLevel > 0) {
       const circleHits = updateDamageCircle(
         this.damageCircleState, this.hero.x, this.hero.y,
         this.enemies, dt, this.damageCircleLevel, this.gameTime,
-        this.damageCirclePulses,
       );
       for (const hit of circleHits) {
         const enemy = this.enemies[hit.enemyIndex];
@@ -651,11 +708,11 @@ export class ArenaVerminComponent extends Component {
           this.dropLoot(enemy.x, enemy.y, enemy.enemyType, enemy.isElite);
         }
       }
-      updateDamageCirclePulses(this.damageCirclePulses, dt);
     }
 
     updateParticles(this.particles, this.rings, dt);
     updateSpriteEffects(this.spriteEffects, dt);
+    updateMuzzleFlashes(this.muzzleFlashes, dt);
     updateFloatingTexts(this.floatingTexts, dt);
     updateCameraShake(this.cameraShake, dt);
     this.updateCamera();
@@ -897,6 +954,7 @@ export class ArenaVerminComponent extends Component {
     };
     this.heroHp = HERO_HP;
     this.heroHurtFlashTimer = 0;
+    this.heroIFrameTimer = 0;
     this.heroDying = false;
     this.heroDeathTimer = 0;
     this.camera = { offsetX: 0, offsetY: 0 };
@@ -910,6 +968,7 @@ export class ArenaVerminComponent extends Component {
     this.floatingTexts = [];
     this.slashEffects = [];
     this.spriteEffects = [];
+    this.dustSpawnTimer = 0;
     this.waveState = initWaveSystem();
     this.pickups = [];
     this.projectiles = [];
@@ -928,11 +987,11 @@ export class ArenaVerminComponent extends Component {
     this.drones = [];
     this.droneProjectiles = [];
     this.droneLevel = 0;
-    this.minigunState = { lastFireTime: -999 };
+    this.minigunState = { lastFireTime: -999, recoilTimer: 0 };
     this.minigunBullets = [];
     this.minigunLevel = 0;
-    this.damageCircleState = { lastPulseTime: -999 };
-    this.damageCirclePulses = [];
+    this.muzzleFlashes = [];
+    this.damageCircleState = { angle: 0, hitCooldownMap: new Map() };
     this.damageCircleLevel = 0;
     this.isLevelUpScreen = false;
     this.pendingUpgrades = [];
@@ -1078,6 +1137,16 @@ export class ArenaVerminComponent extends Component {
       this.hero.facing = this.joystick.dirX > 0 ? 1 : -1;
     }
     this.hero.animTime += dt;
+
+    // Record position for motion trail — only while moving
+    if (this.hero.isMoving) {
+      this.trailPositions.push({ x: this.hero.x, y: this.hero.y });
+      if (this.trailPositions.length > ArenaVerminComponent.TRAIL_LEN) {
+        this.trailPositions.shift();
+      }
+    } else {
+      this.trailPositions = [];
+    }
   }
 
   private updateCamera(): void {
@@ -1115,9 +1184,17 @@ export class ArenaVerminComponent extends Component {
 
     this.viewModel.drawCommands = this.builder.build();
 
-    // Crit effects overlay (rendered above XAML sprites)
+    // Crit effects overlay (rendered above XAML sprites). The visible hero
+    // minigun and muzzle flashes draw here so they sit above the character
+    // sprites instead of being hidden behind them.
     this.critBuilder.clear();
     if (this.gameState === GameState.Playing || this.gameState === GameState.Paused) {
+      if (this.minigunLevel > 0) {
+        drawHeroMinigun(this.critBuilder, this.minigunState, this.hero.x, this.hero.y, this.hero.facing, this.camera, this.minigunLevel);
+      }
+      if (this.muzzleFlashes.length > 0) {
+        drawMuzzleFlashes(this.critBuilder, this.muzzleFlashes, this.camera);
+      }
       drawSpriteEffectsCrit(this.critBuilder, this.spriteEffects);
     }
     this.viewModel.critDrawCommands = this.critBuilder.build();
@@ -1139,6 +1216,16 @@ export class ArenaVerminComponent extends Component {
     drawGasClouds(this.builder, this.gasClouds, this.camera, this.hero.x, this.hero.y);
     drawProjectiles(this.builder, this.projectiles, this.camera, this.hero.x, this.hero.y);
 
+    // 2.55 Damage circle aura — disc centered on hero, sized to the level's
+    // damage radius. Draws below characters so the hero stands on top of it.
+    if (this.damageCircleLevel > 0) {
+      drawDamageCircle(this.builder, this.damageCircleState, this.hero.x, this.hero.y, this.camera, this.damageCircleLevel);
+    }
+
+    // 2.6 Character shadows and motion trail (below sprites, above ground effects)
+    this.drawMotionTrail();
+    this.drawShadows();
+
     // 3. Pickups (above ground, below characters)
     drawPickups(this.builder, this.pickups, this.camera, this.gameTime);
 
@@ -1150,7 +1237,8 @@ export class ArenaVerminComponent extends Component {
       }
     }
 
-    // 3.6 Minigun bullets
+    // 3.6 Minigun bullets (ground-layer; visible hero gun draws on the crit
+    // overlay below so it sits above the XAML hero sprite).
     if (this.minigunLevel > 0 && this.minigunBullets.length > 0) {
       drawMinigunBullets(this.builder, this.minigunBullets, this.camera);
     }
@@ -1158,10 +1246,7 @@ export class ArenaVerminComponent extends Component {
     // 3.7 Elite enemy markers (DrawingSurface floating indicators)
     drawEliteMarkers(this.builder, this.enemies, this.camera, this.cameraShake, this.hero.x, this.hero.y, this.gameTime);
 
-    // 3.8 Damage circle pulse VFX
-    if (this.damageCircleLevel > 0 && this.damageCirclePulses.length > 0) {
-      drawDamageCirclePulses(this.builder, this.damageCirclePulses, this.camera);
-    }
+    // 3.8 (damage circle now drawn on the crit overlay below — see render())
 
     // 4. Slash VFX
     this.drawSlashEffects();
@@ -1182,11 +1267,11 @@ export class ArenaVerminComponent extends Component {
 
     // 8. Update XAML sprite overlays (hero + enemies)
     updateHeroSprites(
-      this.viewModel, this.hero, this.camera,
+      this.spritePool, this.hero, this.camera,
       this.attackSwing, this.heroHurtFlashTimer, this.cameraShake,
       this.heroDying, this.heroDeathTimer
     );
-    updateEnemySprites(this.viewModel, this.enemies, this.camera, this.cameraShake, this.hero.x, this.hero.y, this.gameTime);
+    updateEnemySprites(this.spritePool, this.viewModel, this.enemies, this.camera, this.cameraShake, this.hero.x, this.hero.y);
   }
 
   private drawJoystick(): void {
@@ -1218,41 +1303,103 @@ export class ArenaVerminComponent extends Component {
     }
   }
 
+  private drawMotionTrail(): void {
+    const len = this.trailPositions.length;
+    if (len === 0) return;
+    const screenCX = CANVAS_W / 2;
+    const screenCY = CANVAS_H / 2;
+    for (let i = 0; i < len; i++) {
+      const pos = this.trailPositions[i];
+      const age = (len - i) / ArenaVerminComponent.TRAIL_LEN; // 1 = oldest, ~0 = newest
+      const alpha = (1 - age) * 0.18;
+      const rx = HERO_BODY_W * 0.35 * (1 - age * 0.4);
+      const ry = HERO_BODY_H * 0.12 * (1 - age * 0.4);
+      const { sx, sy } = worldToScreen(pos.x, pos.y);
+      const sx2 = sx - this.camera.offsetX + screenCX;
+      const sy2 = sy - this.camera.offsetY + screenCY - HERO_BODY_H * 0.5;
+      const brush = new SolidBrush(new Color(0.4, 0.7, 1.0, alpha));
+      this.builder.drawEllipse(brush, null, {x: sx2, y: sy2}, {x: rx, y: ry});
+    }
+  }
+
+  private drawShadows(): void {
+    const screenCX = CANVAS_W / 2;
+    const screenCY = CANVAS_H / 2;
+    const shadowBrush = new SolidBrush(new Color(0, 0, 0, 0.28));
+
+    // Hero shadow — sprite bottom is at screenY, but the PNG has ~10px of padding
+    // below the feet, so visual feet sit at screenY - 10.
+    const { sx: hsx, sy: hsy } = worldToScreen(this.hero.x, this.hero.y);
+    const heroScreenX = hsx - this.camera.offsetX + screenCX;
+    const heroScreenY = hsy - this.camera.offsetY + screenCY;
+    const HERO_FOOT_OFFSET = -10;
+    this.builder.drawEllipse(shadowBrush, null,
+      {x: heroScreenX, y: heroScreenY + HERO_FOOT_OFFSET},
+      {x: 18, y: 7});
+
+    // Enemy shadows — same foot-offset logic (sprites also have bottom padding)
+    const ENEMY_FOOT_OFFSET = -8;
+    for (const enemy of this.enemies) {
+      if (enemy.isDead || enemy.isSpawning) continue;
+      const wrappedX = wrapRelative(enemy.x, this.hero.x, WORLD_W);
+      const wrappedY = wrapRelative(enemy.y, this.hero.y, WORLD_H);
+      const { sx, sy } = worldToScreen(wrappedX, wrappedY);
+      const eScreenX = sx - this.camera.offsetX + screenCX;
+      const eScreenY = sy - this.camera.offsetY + screenCY;
+      if (eScreenX < -50 || eScreenX > CANVAS_W + 50 || eScreenY < -50 || eScreenY > CANVAS_H + 50) continue;
+
+      const dims = getEnemyDims(enemy.enemyType);
+      const scale = enemy.isElite ? ELITE_SCALE : 1;
+      const shadowRx = dims.w * scale * 0.28;
+      const shadowRy = dims.w * scale * 0.10;
+      this.builder.drawEllipse(shadowBrush, null,
+        {x: eScreenX, y: eScreenY + ENEMY_FOOT_OFFSET},
+        {x: shadowRx, y: shadowRy});
+    }
+  }
+
   private drawSlashEffects(): void {
     for (const slash of this.slashEffects) {
       const t = slash.timer / slash.duration;
-      const scaleT = t < 0.33 ? t / 0.33 : 1;
-      const scale = SLASH_SCALE_START + (SLASH_SCALE_END - SLASH_SCALE_START) * scaleT;
-      const alpha = 1 - t;
+      const alpha = (1 - t) * (1 - t);
 
-      const halfAngle = SLASH_ARC_HALF_ANGLE * (Math.PI / 180);
-      const innerR = SLASH_RADIUS - SLASH_WIDTH / 2;
-      const outerR = SLASH_RADIUS + SLASH_WIDTH / 2;
+      // Arc trail centered on hero, sweeping around the attack direction.
+      // Built as a ring segment: outer arc forward, inner arc back, closed at tips.
+      const outerR = SLASH_RADIUS;
+      const innerR = SLASH_RADIUS - SLASH_WIDTH;
+      const halfSwing = SLASH_ARC_HALF_ANGLE * (Math.PI / 180);
 
-      const ax1 = outerR * Math.cos(-halfAngle);
-      const ay1 = outerR * Math.sin(-halfAngle);
-      const ax2 = outerR * Math.cos(halfAngle);
-      const ay2 = outerR * Math.sin(halfAngle);
-      const ix1 = innerR * Math.cos(halfAngle);
-      const iy1 = innerR * Math.sin(halfAngle);
-      const ix2 = innerR * Math.cos(-halfAngle);
-      const iy2 = innerR * Math.sin(-halfAngle);
+      // Start/end angles relative to local x-axis (we'll rotate the whole thing)
+      const a0 = -halfSwing;
+      const a1 =  halfSwing;
 
-      const crescentPath = `M ${ax1.toFixed(1)} ${ay1.toFixed(1)} `
-        + `A ${outerR.toFixed(1)} ${outerR.toFixed(1)} 0 0 1 ${ax2.toFixed(1)} ${ay2.toFixed(1)} `
-        + `L ${ix1.toFixed(1)} ${iy1.toFixed(1)} `
-        + `A ${innerR.toFixed(1)} ${innerR.toFixed(1)} 0 0 0 ${ix2.toFixed(1)} ${iy2.toFixed(1)} Z`;
+      // Points on outer and inner arcs at both ends
+      const ox0 = outerR * Math.cos(a0);  const oy0 = outerR * Math.sin(a0);
+      const ox1 = outerR * Math.cos(a1);  const oy1 = outerR * Math.sin(a1);
+      const ix0 = innerR * Math.cos(a0);  const iy0 = innerR * Math.sin(a0);
+      const ix1 = innerR * Math.cos(a1);  const iy1 = innerR * Math.sin(a1);
 
-      const r = 1;
-      const g = 0.85 + 0.15 * (1 - t);
-      const b = 0.5 * (1 - t);
-      const slashBrush = new SolidBrush(new Color(r, g, b, 0.8 * alpha));
+      const largeArc = halfSwing > Math.PI / 2 ? 1 : 0;
 
+      // Ring-segment path: outer arc CW, close tip, inner arc CCW, close tip
+      const n = (v: number) => v.toFixed(1);
+      const arcPath =
+        `M ${n(ox0)} ${n(oy0)} ` +
+        `A ${outerR} ${outerR} 0 ${largeArc} 1 ${n(ox1)} ${n(oy1)} ` +
+        `L ${n(ix1)} ${n(iy1)} ` +
+        `A ${innerR} ${innerR} 0 ${largeArc} 0 ${n(ix0)} ${n(iy0)} ` +
+        `Z`;
+
+      const innerCol = Color.fromHex(SLASH_COLOR_INNER);
+      const glowCol  = Color.fromHex(SLASH_COLOR_GLOW);
+      const slashBrush = new SolidBrush(new Color(innerCol.r, innerCol.g, innerCol.b, 0.82 * alpha));
+      const glowBrush  = new SolidBrush(new Color(glowCol.r,  glowCol.g,  glowCol.b,  0.40 * alpha));
+      const glowPen    = new Pen(glowBrush, 7);
+
+      // Translate to hero center (waist), rotate so arc faces the attack direction
       this.builder.pushTranslate({x: slash.x, y: slash.y});
       this.builder.pushRotate(slash.angleDeg, {x: 0, y: 0});
-      this.builder.pushScale({x: scale, y: scale}, {x: 0, y: 0});
-      this.builder.drawPath(slashBrush, null, crescentPath);
-      this.builder.pop();
+      this.builder.drawPath(slashBrush, glowPen, arcPath);
       this.builder.pop();
       this.builder.pop();
     }

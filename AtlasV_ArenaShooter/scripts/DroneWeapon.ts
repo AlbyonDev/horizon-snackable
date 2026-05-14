@@ -3,9 +3,9 @@
 // Drones orbit the hero and fire aimed projectiles at nearby enemies.
 
 import type { DrawingCommandsBuilder } from 'meta/worlds';
-import { ImageBrush, SolidBrush, Pen } from 'meta/worlds';
-import { Color } from 'meta/platform_api';
-import type { CameraState, EnemyState, DroneState, DroneProjectileState } from './Types';
+import { ImageBrush, SolidBrush, Pen, Color } from 'meta/worlds';
+import type { CameraState, EnemyState, DroneState, DroneProjectileState, MuzzleFlash } from './Types';
+import { spawnMuzzleFlash } from './ParticleSystem';
 import { worldToScreen } from './IsoRenderer';
 import {
   DRONE_LEVELS, DRONE_HIT_RADIUS, DRONE_SPRITE_SIZE,
@@ -51,6 +51,7 @@ export function updateDrones(
   level: number,
   gameTime: number,
   droneProjectiles: DroneProjectileState[],
+  muzzleFlashes: MuzzleFlash[],
 ): void {
   if (level <= 0 || drones.length === 0) return;
 
@@ -102,6 +103,8 @@ export function updateDrones(
           age: 0,
           damage: data.damage,
         });
+        // Drones get a smaller cyan flash to match their projectile color.
+        spawnMuzzleFlash(muzzleFlashes, droneX, droneY, 0.7, '#5DEFF6');
         drone.lastFireTime = gameTime;
       }
     }

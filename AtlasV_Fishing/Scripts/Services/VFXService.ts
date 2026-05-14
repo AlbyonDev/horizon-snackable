@@ -15,6 +15,7 @@ import {
 } from 'meta/worlds';
 
 import { Events } from '../Types';
+import { SURFACE_FREEZE_MS } from '../Constants';
 import { GameCameraService } from './GameCameraService';
 
 // =============================================================================
@@ -138,6 +139,7 @@ export class VFXService extends Service {
     this.flash(0.22, 0.4, 0.9, 1.0);
     this.shake(0.25, 0.10);
     this.haptic('light');
+    this.freeze(SURFACE_FREEZE_MS);
   }
 
   @subscribe(Events.FishCollected)

@@ -29,7 +29,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SpawnPointPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "stateEnabled": true,
                             "allowStart": true
@@ -99,7 +99,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::ColliderBoxPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "halfExtents": {
                                 "x": 0.5,
@@ -113,7 +113,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 8,
+                        "version": 9,
                         "data": {
                             "type": "StaticCollision"
                         }
@@ -138,7 +138,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -224,7 +224,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CameraPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "fieldOfView": 45.0
                         }
@@ -249,14 +249,14 @@
                                 "z": -26.030000686645509
                             },
                             "localRotation": {
-                                "x": 1.570451021194458,
+                                "x": 1.5707963705062867,
                                 "y": 0.0,
                                 "z": 0.0
                             },
                             "localScale": {
-                                "x": 10.739997863769532,
-                                "y": 1.9999995231628419,
-                                "z": 24.85999870300293
+                                "x": 10.739999771118164,
+                                "y": 2.0,
+                                "z": 30.859207153320314
                             }
                         }
                     },
@@ -301,7 +301,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -383,7 +383,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -663,6 +663,37 @@
             "attributes": []
         },
         {
+            "id": "c4183a53-d2ee-4594-b7f2-b466e1479117",
+            "name": "New Entity",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": -5.349667549133301,
+                                "z": -1.0100014209747315
+                            },
+                            "localRotation": {
+                                "x": 1.570451021194458,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 10.739998817443848,
+                                "y": 2.000000476837158,
+                                "z": 24.860008239746095
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
             "id": "72b3b67b-6d4f-463a-a6f2-4bf4a7ee0415",
             "name": "Sky",
             "components": [
@@ -729,7 +760,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -775,7 +806,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -783,6 +814,8 @@
                                 "ingestionId": "7485258819522067733",
                                 "targetId": "2149638574"
                             },
+                            "width": 0,
+                            "height": 0,
                             "panelVisibility": true
                         }
                     },
@@ -818,7 +851,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -826,7 +859,11 @@
                                 "ingestionId": "9342409214743278146",
                                 "targetId": "2149638574"
                             },
-                            "isInteractable": false
+                            "width": 0,
+                            "height": 0,
+                            "panelVisibility": true,
+                            "isInteractable": false,
+                            "renderOrderOffset": 0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -877,8 +914,12 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
-                        "data": {}
+                        "version": 15,
+                        "data": {
+                            "width": 0,
+                            "height": 0,
+                            "panelVisibility": true
+                        }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 },
@@ -912,7 +953,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -920,6 +961,9 @@
                                 "ingestionId": "13372736643571434094",
                                 "targetId": "2149638574"
                             },
+                            "width": 0,
+                            "height": 0,
+                            "panelVisibility": true,
                             "isInteractable": true
                         }
                     },
@@ -931,6 +975,107 @@
                         "definitionAsset": {
                             "packageOrRemoteId": "26220234944285836",
                             "ingestionId": "18072767856663307312",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "382b5d93-a41c-46a7-88f8-92526170cce4",
+            "name": "FishSpriteRenderer",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 15,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26220234944285836",
+                                "ingestionId": "12193907569075097388",
+                                "targetId": "2149638574"
+                            },
+                            "panelVisibility": true,
+                            "renderOrderOffset": -5
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "FishSpriteRenderer",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26220234944285836",
+                            "ingestionId": "3601965031592114251",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "HookedFishAnimator",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26220234944285836",
+                            "ingestionId": "7239808581558702907",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "fe0c619f-3e5c-491f-aeee-faffe4f1bcb5",
+            "name": "FishCollectionUI",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 15,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26220234944285836",
+                                "ingestionId": "3860700079257485843",
+                                "targetId": "2149638574"
+                            },
+                            "panelVisibility": true,
+                            "isInteractable": true,
+                            "renderOrderOffset": 10
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "FishCollectionUIComponent",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26220234944285836",
+                            "ingestionId": "14265331919041102680",
                             "targetId": "4237980480"
                         },
                         "data": {}
@@ -979,6 +1124,11 @@
         },
         {
             "relationshipType": "RelationChildOf",
+            "source": "c4183a53-d2ee-4594-b7f2-b466e1479117",
+            "destination": "1293a97b-0174-449b-b0a8-12baafd20dd3"
+        },
+        {
+            "relationshipType": "RelationChildOf",
             "source": "72b3b67b-6d4f-463a-a6f2-4bf4a7ee0415",
             "destination": "1293a97b-0174-449b-b0a8-12baafd20dd3"
         },
@@ -1005,6 +1155,16 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "cb4f343f-dab8-4fc2-bdd9-42e64bd339f8",
+            "destination": "0400f1fe-065e-4d84-a3bd-86c89fab5c60"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "382b5d93-a41c-46a7-88f8-92526170cce4",
+            "destination": "0400f1fe-065e-4d84-a3bd-86c89fab5c60"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "fe0c619f-3e5c-491f-aeee-faffe4f1bcb5",
             "destination": "0400f1fe-065e-4d84-a3bd-86c89fab5c60"
         }
     ]

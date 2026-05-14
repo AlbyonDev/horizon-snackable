@@ -4,7 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       mc:Ignorable="d"
-      Background="Transparent" d:DesignWidth="2000" d:DesignHeight="4000">
+      Background="Transparent" d:DesignWidth="1080" d:DesignHeight="1920">
 
     <Page.Resources>
         <!-- ── Color Palette ──────────────────────────────────────── -->
@@ -134,6 +134,46 @@
                              Storyboard.TargetProperty="Opacity"
                              From="0" To="1" Duration="0:0:0.15" BeginTime="0:0:0.3"/>
 
+            <!-- ── CollBtnPanel (COLLECTION): stagger +0.0s (first to appear, top-right) ── -->
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CollBtnScale"
+                                           Storyboard.TargetProperty="ScaleX" BeginTime="0:0:0">
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.1">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <BackEase EasingMode="EaseOut" Amplitude="0.4"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.35" Value="1.0">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <QuadraticEase EasingMode="EaseOut"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CollBtnScale"
+                                           Storyboard.TargetProperty="ScaleY" BeginTime="0:0:0">
+                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.1">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <BackEase EasingMode="EaseOut" Amplitude="0.4"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+                <EasingDoubleKeyFrame KeyTime="0:0:0.35" Value="1.0">
+                    <EasingDoubleKeyFrame.EasingFunction>
+                        <QuadraticEase EasingMode="EaseOut"/>
+                    </EasingDoubleKeyFrame.EasingFunction>
+                </EasingDoubleKeyFrame>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimation Storyboard.TargetName="CollBtnTranslate"
+                             Storyboard.TargetProperty="Y"
+                             From="-80" To="0" Duration="0:0:0.35" BeginTime="0:0:0">
+                <DoubleAnimation.EasingFunction>
+                    <BackEase EasingMode="EaseOut" Amplitude="0.5"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="CollBtnPanel"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0" To="1" Duration="0:0:0.15" BeginTime="0:0:0"/>
+
             <!-- ── ShopBtn2Panel (HOOK): stagger +0.4s ── -->
             <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ShopBtn2Scale"
                                            Storyboard.TargetProperty="ScaleX" BeginTime="0:0:0.4">
@@ -256,6 +296,32 @@
             <DoubleAnimation Storyboard.TargetName="CastButtonPanel"
                              Storyboard.TargetProperty="Opacity"
                              To="0" Duration="0:0:0.3" BeginTime="0:0:0.2"/>
+
+            <!-- ── CollBtnPanel exits last +0.25s ── -->
+            <DoubleAnimation Storyboard.TargetName="CollBtnScale"
+                             Storyboard.TargetProperty="ScaleX"
+                             To="0" Duration="0:0:0.25" BeginTime="0:0:0.25">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="CollBtnScale"
+                             Storyboard.TargetProperty="ScaleY"
+                             To="0" Duration="0:0:0.25" BeginTime="0:0:0.25">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="CollBtnTranslate"
+                             Storyboard.TargetProperty="Y"
+                             To="-80" Duration="0:0:0.25" BeginTime="0:0:0.25">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="CollBtnPanel"
+                             Storyboard.TargetProperty="Opacity"
+                             To="0" Duration="0:0:0.25" BeginTime="0:0:0.25"/>
         </Storyboard>
 
         <!-- ── Cast Button Template (premium buzzer + 3D press) ────── -->
@@ -536,6 +602,87 @@
                 </Grid>
             </Grid>
         </ControlTemplate>
+        <!-- ── Collection Button Template (rounded pill with icon + shadow) ────── -->
+        <ControlTemplate x:Key="CollectionButtonTemplate" TargetType="Button">
+            <Grid Height="285" Width="475">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal">
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="CollFaceTranslate"
+                                                 Storyboard.TargetProperty="Y"
+                                                 To="0" Duration="0:0:0.35">
+                                    <DoubleAnimation.EasingFunction>
+                                        <ElasticEase Springiness="3" Oscillations="1" EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="CollFaceScale"
+                                                 Storyboard.TargetProperty="ScaleX"
+                                                 To="1" Duration="0:0:0.35">
+                                    <DoubleAnimation.EasingFunction>
+                                        <ElasticEase Springiness="3" Oscillations="1" EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="CollFaceScale"
+                                                 Storyboard.TargetProperty="ScaleY"
+                                                 To="1" Duration="0:0:0.35">
+                                    <DoubleAnimation.EasingFunction>
+                                        <ElasticEase Springiness="3" Oscillations="1" EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </VisualState>
+                        <VisualState x:Name="MouseOver"/>
+                        <VisualState x:Name="Pressed">
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetName="CollFaceTranslate"
+                                                 Storyboard.TargetProperty="Y"
+                                                 To="9" Duration="0:0:0.08">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="CollFaceScale"
+                                                 Storyboard.TargetProperty="ScaleX"
+                                                 To="0.95" Duration="0:0:0.08">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="CollFaceScale"
+                                                 Storyboard.TargetProperty="ScaleY"
+                                                 To="0.95" Duration="0:0:0.08">
+                                    <DoubleAnimation.EasingFunction>
+                                        <QuadraticEase EasingMode="EaseOut"/>
+                                    </DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </VisualState>
+                        <VisualState x:Name="Disabled"/>
+                    </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+
+                <!-- Shadow (dark rect offset below) -->
+
+                <!-- Face group (moves + scales on press) -->
+                <Grid x:Name="CollFaceGroup" RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="CollFaceScale" ScaleX="1" ScaleY="1"/>
+                            <TranslateTransform x:Name="CollFaceTranslate" Y="0"/>
+                        </TransformGroup>
+                    </Grid.RenderTransform>
+                    <Border Height="175" VerticalAlignment="Center" Background="#96000000" Margin="0,15,0,0" CornerRadius="80,80,80,80"/>
+                    <Border VerticalAlignment="Center" Height="175" CornerRadius="80,80,80,80" BorderThickness="4,4,4,4" BorderBrush="#FF4186C5" Background="#FF14599E"/>
+                    <Grid VerticalAlignment="Center">
+                        <Image Source="Textures/journal_icon.png" Grid.Column="0" Stretch="Uniform" VerticalAlignment="Top" HorizontalAlignment="Left" Width="200" Height="200" Margin="50,-50,0,0"/>
+                        <ContentPresenter Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,50,0"/>
+                    </Grid>
+
+                    <!-- Main shape: very rounded border with fill and thin border -->
+                </Grid>
+            </Grid>
+        </ControlTemplate>
     </Page.Resources>
 
     <!-- ═══ Main Layout ═══════════════════════════════════════ -->
@@ -552,6 +699,24 @@
                     <b:ControlStoryboardAction Storyboard="{StaticResource HUDHideAnimation}"/>
                 </b:DataTrigger>
             </b:Interaction.Triggers>
+
+            <!-- ── Collection Button (Top-Right) ── wrapped in CollBtnPanel ── -->
+            <Grid x:Name="CollBtnPanel" Opacity="0" RenderTransformOrigin="0.5,0.5"
+                  HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,120,40,0">
+                <Grid.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform x:Name="CollBtnScale" ScaleX="0" ScaleY="0"/>
+                        <TranslateTransform x:Name="CollBtnTranslate" Y="-80"/>
+                    </TransformGroup>
+                </Grid.RenderTransform>
+
+                <Button Template="{StaticResource CollectionButtonTemplate}"
+                        Command="{Binding Path=events.onOpenFishCollection}">
+                    <TextBlock Text="{Binding collectionProgressText}" FontWeight="Bold"
+                               Foreground="White" VerticalAlignment="Center"
+                               Stroke="#FF000000" StrokeThickness="4" FontSize="72"/>
+                </Button>
+            </Grid>
 
             <!-- ── Central Cast Button ─── wrapped in CastButtonPanel ── -->
             <Grid x:Name="CastButtonPanel" Opacity="0" RenderTransformOrigin="0.5,0.5">

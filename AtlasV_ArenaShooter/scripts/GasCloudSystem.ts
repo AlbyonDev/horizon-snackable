@@ -5,8 +5,7 @@
 import type { GasCloudState } from './Types';
 import type { CameraState } from './Types';
 import type { DrawingCommandsBuilder } from 'meta/worlds';
-import { SolidBrush } from 'meta/worlds';
-import { Color } from 'meta/platform_api';
+import { SolidBrush, Color } from 'meta/worlds';
 import {
   GAS_CLOUD_COLOR, GAS_CLOUD_OPACITY, GAS_CLOUD_TICK_INTERVAL,
   CANVAS_W, CANVAS_H, PIXELS_PER_UNIT,

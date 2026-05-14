@@ -12,9 +12,9 @@ import {
   WORLD_W, WORLD_H, CANVAS_W, CANVAS_H,
 } from './Constants';
 import { worldToScreen } from './IsoRenderer';
-import { missileTexture } from './Assets';
+import { cartoucheTexture } from './Assets';
 
-const missileBrush = new ImageBrush(missileTexture);
+const projectileBrush = new ImageBrush(cartoucheTexture);
 
 /** Spawn a projectile from enemyPos aimed at heroPos (direct direction, no wrapping). */
 export function spawnProjectile(
@@ -112,14 +112,7 @@ export function drawProjectiles(
     // Cull off-screen
     if (screenX < -20 || screenX > CANVAS_W + 20 || screenY < -20 || screenY > CANVAS_H + 20) continue;
 
-    // Calculate rotation angle from velocity (in degrees, clockwise for screen coords)
-    const angleDeg = Math.atan2(p.vy, p.vx) * (180 / Math.PI);
-
-    // Draw rotated missile sprite
-    builder.pushTranslate({x: screenX, y: screenY});
-    builder.pushRotate(angleDeg, {x: 0, y: 0});
-    builder.drawRect(missileBrush, null, {x: -halfSize, y: -halfSize * 0.6, width: size, height: size * 0.6});
-    builder.pop(); // rotate
-    builder.pop(); // translate
+    // Draw cartouche sprite (no rotation — projectile is a non-rotating bullet shape)
+    builder.drawRect(projectileBrush, null, {x: screenX - halfSize, y: screenY - halfSize * 0.6, width: size, height: size * 0.6});
   }
 }

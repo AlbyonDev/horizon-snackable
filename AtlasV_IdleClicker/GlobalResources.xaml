@@ -1,0 +1,198 @@
+<ResourceDictionary
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Shared capsule-clip progress bar for gen income rows (fixed teal fill). -->
+  <ControlTemplate x:Key="GenProgressBarTemplate" TargetType="ProgressBar">
+    <Grid x:Name="TrackPart">
+      <Border Background="#0A1019" CornerRadius="3"/>
+      <Border x:Name="PART_Indicator" HorizontalAlignment="Left" ClipToBounds="True">
+        <Border Width="{Binding ActualWidth, ElementName=TrackPart}" HorizontalAlignment="Left" CornerRadius="3" Background="#FF2ECC71">
+          <Border CornerRadius="3">
+            <Border.Background>
+              <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#50FFFFFF" Offset="0"/>
+                <GradientStop Color="#00FFFFFF" Offset="1"/>
+              </LinearGradientBrush>
+            </Border.Background>
+          </Border>
+        </Border>
+      </Border>
+    </Grid>
+  </ControlTemplate>
+
+  <DataTemplate x:Key="UpgradeTab">
+    <Button Command="{Binding Path=DataContext.events.shopZoneTabClicked, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" CommandParameter="{Binding Path=label}" Height="74" Width="74">
+      <Button.Template>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="TabBorder" Background="#FF141C28" Height="74" Width="74">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+              <Border Margin="0,0,0,2" Height="44" HorizontalAlignment="Center" Width="44">
+                <Border.Background>
+                  <ImageBrush ImageSource="{Binding Path=icon}" Stretch="Uniform"/>
+                </Border.Background>
+              </Border>
+              <TextBlock x:Name="TabLabel" FontWeight="DemiBold" Text="{Binding Path=label}" FontSize="10" Foreground="#80FFFFFF" HorizontalAlignment="Center"/>
+            </StackPanel>
+          </Border>
+          <ControlTemplate.Triggers>
+            <DataTrigger Value="True" Binding="{Binding Path=isActive}">
+              <Setter TargetName="TabBorder" Property="Background">
+                <Setter.Value>
+                  <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF1A3A5C" Offset="0"/>
+                    <GradientStop Color="#FF0F2840" Offset="1"/>
+                  </LinearGradientBrush>
+                </Setter.Value>
+              </Setter>
+              <Setter TargetName="TabLabel" Property="Foreground" Value="#FF2ECC71"/>
+            </DataTrigger>
+            <Trigger Property="IsPressed" Value="True">
+              <Setter TargetName="TabBorder" Property="RenderTransform">
+                <Setter.Value>
+                  <ScaleTransform ScaleY="0.95" ScaleX="0.95"/>
+                </Setter.Value>
+              </Setter>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Button.Template>
+    </Button>
+  </DataTemplate>
+  <DataTemplate x:Key="UpgradeRow">
+    <Border Padding="10" BorderBrush="#FF232C3A" Background="#FF17202D" BorderThickness="1" CornerRadius="0,0,0,0" Margin="0">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="56"/>
+          <ColumnDefinition/>
+          <ColumnDefinition Width="0.4*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Column="0" VerticalAlignment="Center">
+          <Border Height="48" Width="48" Background="#FF154EBD" CornerRadius="5,5,5,5" BorderThickness="1,1,1,1" BorderBrush="#FF4192F1">
+            <Border CornerRadius="5,5,5,5" BorderThickness="1,1,1,1">
+              <Border.Background>
+                <ImageBrush ImageSource="{Binding Path=icon}" Stretch="Uniform"/>
+              </Border.Background>
+            </Border>
+          </Border>
+          <Border MinWidth="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" Padding="2,0,2,0" Height="20" BorderThickness="1,1,1,1" Margin="4,0,2,0" CornerRadius="1,5,1,5" BorderBrush="#FF000000" Background="#C8574C4C">
+            <Border.Visibility>
+              <Binding Path="hasCount">
+                <Binding.Converter>
+                  <BooleanToVisibilityConverter/>
+                </Binding.Converter>
+              </Binding>
+            </Border.Visibility>
+            <TextBlock FontWeight="Bold" Text="{Binding Path=countText}" FontSize="11" Foreground="#FFFFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"/>
+          </Border>
+        </Grid>
+        <StackPanel Margin="10,0,6,0" VerticalAlignment="Center" Grid.Column="1">
+          <TextBlock FontWeight="Bold" Text="{Binding Path=name}" FontSize="15" Foreground="#FFFFFFFF"/>
+          <TextBlock Text="{Binding Path=description}" Foreground="#60FFFFFF" Margin="0,2,0,0" FontSize="13" TextWrapping="Wrap"/>
+          <Border Margin="0,5,0,0" Height="16" CornerRadius="3" BorderBrush="#FF000000" BorderThickness="1">
+            <Border.Visibility>
+              <Binding Path="showGenProgress">
+                <Binding.Converter><BooleanToVisibilityConverter/></Binding.Converter>
+              </Binding>
+            </Border.Visibility>
+            <Grid>
+              <ProgressBar Minimum="0" Maximum="100" Value="{Binding Path=genProgressPercent}"
+                           VerticalAlignment="Stretch"
+                           Template="{StaticResource GenProgressBarTemplate}"/>
+              <TextBlock Text="{Binding Path=genProgressText}"
+                         FontSize="11" FontWeight="Bold"
+                         Foreground="#FFFFFFFF" Stroke="#FF000000" StrokeThickness="1"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+          </Border>
+        </StackPanel>
+        <Button Height="54" VerticalAlignment="Center" IsEnabled="{Binding Path=canAfford}" Grid.Column="2"
+                Command="{Binding Path=DataContext.events.shopItemBuy, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+                CommandParameter="{Binding Path=actionId}" HorizontalAlignment="Right" MinWidth="75">
+          <Button.Template>
+            <ControlTemplate TargetType="Button">
+              <Border x:Name="BuyBorderOuter" BorderBrush="#20000000" BorderThickness="0,0,0,2" CornerRadius="7,7,7,7">
+                <Border BorderBrush="#44FFFFFF" BorderThickness="0,1,0,0" CornerRadius="7,7,7,7">
+                  <Border x:Name="BuyBorder" Padding="4,2" CornerRadius="7,7,7,7">
+                    <Border.Background>
+                      <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#FF74BF16" Offset="0"/>
+                        <GradientStop Offset="1" Color="#FF294E00"/>
+                      </LinearGradientBrush>
+                    </Border.Background>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                      <Border Margin="0,0,3,0" VerticalAlignment="Center" Width="20" Height="20">
+                        <Border.Visibility>
+                          <Binding Path="showCurrencyIcon">
+                            <Binding.Converter><BooleanToVisibilityConverter/></Binding.Converter>
+                          </Binding>
+                        </Border.Visibility>
+                        <Border.Background>
+                          <ImageBrush ImageSource="{Binding Path=currencyIcon}" Stretch="Uniform"/>
+                        </Border.Background>
+                      </Border>
+                      <TextBlock x:Name="BuyText" FontWeight="Bold" Text="{Binding Path=priceLabel}" Foreground="#FFFFFFFF" Stroke="#FF000000" FontSize="20" TextAlignment="Center"/>
+                    </StackPanel>
+                  </Border>
+                </Border>
+              </Border>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                  <Setter TargetName="BuyBorder" Property="Background" Value="#553d2c2c"/>
+                  <Setter TargetName="BuyText" Property="Foreground" Value="#55FFFFFF"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                  <Setter TargetName="BuyBorderOuter" Property="RenderTransform">
+                    <Setter.Value>
+                      <ScaleTransform ScaleY="0.95" ScaleX="0.95"/>
+                    </Setter.Value>
+                  </Setter>
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+      </Grid>
+    </Border>
+  </DataTemplate>
+  <DataTemplate x:Key="UpgradeBox">
+    <Border Padding="6,4" Background="#FF0F1A25" BorderThickness="2" CornerRadius="6,6,6,6" Margin="3,4,3,0" VerticalAlignment="Stretch" Visibility="{Binding Path=isVisible, Converter={StaticResource BoolToVis}}">
+      <Border.BorderBrush>
+        <SolidColorBrush Color="{Binding Path=borderColor}"/>
+      </Border.BorderBrush>
+      <Grid VerticalAlignment="Stretch">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="1*"/>
+          <RowDefinition Height="16"/>
+        </Grid.RowDefinitions>
+        <Grid Row="0" VerticalAlignment="Center">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="1*"/>
+          </Grid.ColumnDefinitions>
+          <Border CornerRadius="4,4,4,4" Margin="0,0,6,0" Height="30" Width="30" Grid.Column="0">
+            <Border.Background>
+              <ImageBrush ImageSource="{Binding Path=icon}" Stretch="Uniform"/>
+            </Border.Background>
+          </Border>
+          <StackPanel Margin="0,0,-4,0" VerticalAlignment="Center" Grid.Column="1">
+            <TextBlock StrokeThickness="1" FontWeight="DemiBold" Text="{Binding Path=title}" FontSize="13" Stroke="#FF000000" Foreground="#FFFFFFFF"/>
+            <TextBlock StrokeThickness="1" FontWeight="Bold" Text="{Binding Path=value}" FontSize="10" Stroke="#FF000000" TextTrimming="CharacterEllipsis" Margin="0,1,0,0">
+              <TextBlock.Foreground>
+                <SolidColorBrush Color="{Binding Path=valueColor}"/>
+              </TextBlock.Foreground>
+            </TextBlock>
+          </StackPanel>
+        </Grid>
+        <Grid Row="1" VerticalAlignment="Stretch" Visibility="{Binding Path=progressVisible, Converter={StaticResource BoolToVis}}">
+          <Border BorderBrush="#FF000000" BorderThickness="1" CornerRadius="4,4,4,4">
+            <Grid>
+              <ProgressBar Minimum="0" Value="{Binding Path=progressPercent}" Maximum="100" Template="{StaticResource UpgradeProgressBarTemplate}" VerticalAlignment="Stretch"/>
+              <TextBlock StrokeThickness="1" FontWeight="DemiBold" Text="{Binding Path=progressText}" FontSize="11" Stroke="#FF000000" Foreground="#FFFFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+          </Border>
+        </Grid>
+      </Grid>
+    </Border>
+  </DataTemplate>
+</ResourceDictionary>

@@ -17,6 +17,7 @@ import { Events, HUDEvents } from '../../Types';
 import { GamePhase } from '../../Types';
 import { FishCollectionService } from '../../Services/FishCollectionService';
 import { FISH_DEFS } from '../../FishDefs';
+import { hookMaxFishAtLevel } from '../../Constants';
 
 const TOTAL_FISH_COUNT = FISH_DEFS.length;
 const XP_BAR_WIDTH     = 868; // 880 - 12 (margins), must match XAML
@@ -31,6 +32,7 @@ export class FishingHUDData extends UiViewModel {
   progressBarVisible: boolean = false;
   fishProgressText  : string  = `0/${TOTAL_FISH_COUNT}`;
   isSwipeHintVisible: string  = 'False';
+  fishCountText     : string  = '0/1';
 }
 
 @component()
@@ -40,6 +42,8 @@ export class FishingHUDViewModel extends Component {
   private _ui: Maybe<CustomUiComponent> = null;
   private _isDiving  = false;
   private _isTouching = false;
+  private _hookedCount = 0;
+  private _maxFish = 1;
 
   @subscribe(OnEntityStartEvent)
   onStart(): void {
@@ -47,6 +51,7 @@ export class FishingHUDViewModel extends Component {
     this._ui = this.entity.getComponent(CustomUiComponent);
     if (this._ui) this._ui.dataContext = this._vm;
     this._updateProgressBar();
+    this._updateFishCount();
   }
 
   @subscribe(Events.FishCaught)
@@ -75,10 +80,46 @@ export class FishingHUDViewModel extends Component {
     this._vm.fishProgressText = `${discovered}/${TOTAL_FISH_COUNT}`;
   }
 
+  // --- Fish count tracking ---
+
+  @subscribe(Events.FishHooked)
+  onFishHooked(_p: Events.FishHookedPayload): void {
+    this._hookedCount++;
+    this._updateFishCount();
+  }
+
+  @subscribe(Events.UpgradesChanged)
+  onUpgradesChanged(p: Events.UpgradesChangedPayload): void {
+    this._maxFish = p.maxFish;
+    this._updateFishCount();
+  }
+
+  @subscribe(Events.ProgressLoaded)
+  onProgressLoaded(p: Events.ProgressLoadedPayload): void {
+    this._maxFish = hookMaxFishAtLevel(p.hookLevel);
+    this._updateFishCount();
+  }
+
+  private _updateFishCount(): void {
+    this._vm.fishCountText = `${this._hookedCount}/${this._maxFish}`;
+  }
+
+  // --- Phase & swipe hint ---
+
   @subscribe(Events.PhaseChanged)
   onPhaseChanged(p: Events.PhaseChangedPayload): void {
     this._isDiving = p.phase === GamePhase.Diving;
     this._updateSwipeHint();
+
+    // Show HUD during Diving and Surfacing phases
+    const showHud = p.phase === GamePhase.Diving || p.phase === GamePhase.Surfacing;
+    this._vm.isHudVisible = showHud ? 'True' : 'False';
+
+    // Reset hooked count and depth when entering Diving phase (new run)
+    if (p.phase === GamePhase.Diving) {
+      this._hookedCount = 0;
+      this._updateFishCount();
+    }
   }
 
   @subscribe(OnFocusedInteractionInputStartedEvent)
@@ -96,4 +137,5 @@ export class FishingHUDViewModel extends Component {
   private _updateSwipeHint(): void {
     this._vm.isSwipeHintVisible = (this._isDiving && !this._isTouching) ? 'True' : 'False';
   }
+
 }

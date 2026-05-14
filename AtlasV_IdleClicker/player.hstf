@@ -1,8 +1,8 @@
 {
-    "version": 5,
+    "version": 6,
     "entities": [
         {
-            "id": "caee5e13-7582-4a0d-87e9-88d772898010",
+            "id": "98ec6850-19ba-40d6-a3c0-fcbc0f804737",
             "name": "Player",
             "type": {
                 "packageOrRemoteId": "24149709574657735",
@@ -19,34 +19,12 @@
                                 "class": "horizon::platform_api::PlayerPlatformComponent",
                                 "version": 14,
                                 "data": {
-                                    "translationEnabled": false,
-                                    "rotationEnabled": false,
-                                    "locomotionSpeed": 1.0,
-                                    "sprintMultiplier": 1.0,
-                                    "jumpSpeed": 0.0,
-                                    "maxStepHeight": 0.0,
-                                    "slopeLimitDegrees": 0.0,
-                                    "massWhenPushing": 0.0,
-                                    "pushingExtendedRange": 0.0,
-                                    "useCustomGravity": true,
-                                    "scale": 0.019999999552965165
+                                    "scale": 0.0
                                 }
-                            }
-                        },
-                        {
-                            "dataType": "horizon::DataDefinitionAsset",
-                            "data": {
-                                "class": "horizon::platform_api::AvatarAnimatorPlatformComponent",
-                                "version": 1,
-                                "data": null
                             }
                         }
                     ],
                     "attributes": []
-                },
-                {
-                    "sourceId": "989a5d78-6092-46ea-b633-751d7e31222e",
-                    "components": null
                 }
             ],
             "attributes": []

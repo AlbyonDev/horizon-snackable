@@ -20,7 +20,7 @@ import { Events } from '../Types';
 //  BubblePool
 //
 //  Pre-instantiates POOL_SIZE bubble entities at service start. Keeps inactive
-//  bubbles disabled. SimpleFishController calls acquire(x, y) to activate one,
+//  bubbles disabled. FishDataService calls acquire(x, y) to activate one,
 //  BubbleController calls release(entity) when it reaches the surface.
 // =============================================================================
 

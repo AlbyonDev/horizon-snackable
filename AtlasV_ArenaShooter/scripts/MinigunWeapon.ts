@@ -3,20 +3,20 @@
 // Higher levels fire multiple bullets with angular spread.
 
 import type { DrawingCommandsBuilder } from 'meta/worlds';
-import { SolidBrush, Pen } from 'meta/worlds';
-import { Color } from 'meta/platform_api';
-import type { CameraState, EnemyState, MinigunState, MinigunBulletState } from './Types';
+import { ImageBrush } from 'meta/worlds';
+import type { CameraState, EnemyState, MinigunState, MinigunBulletState, MuzzleFlash } from './Types';
+import { spawnMuzzleFlash } from './ParticleSystem';
 import { worldToScreen } from './IsoRenderer';
 import {
   MINIGUN_LEVELS, MINIGUN_BULLET_SPEED, MINIGUN_BULLET_MAX_AGE,
-  MINIGUN_BULLET_RADIUS, MINIGUN_BULLET_SIZE_PX,
-  MINIGUN_BULLET_COLOR, MINIGUN_BULLET_GLOW_COLOR,
+  MINIGUN_BULLET_RADIUS,
   CANVAS_W, CANVAS_H,
+  HERO_MINIGUN_MUZZLE_DX, HERO_MINIGUN_MUZZLE_DY,
+  HERO_MINIGUN_RECOIL_DUR, HERO_MINIGUN_RECOIL_PX,
+  HERO_MINIGUN_W, HERO_MINIGUN_H,
+  HERO_MINIGUN_HAND_OFFSET_X, HERO_MINIGUN_HAND_OFFSET_Y,
 } from './Constants';
-
-const bulletFillBrush = new SolidBrush(Color.fromHex(MINIGUN_BULLET_COLOR));
-const bulletGlowBrush = new SolidBrush(Color.fromHex(MINIGUN_BULLET_GLOW_COLOR));
-const bulletGlowPen = new Pen(bulletGlowBrush, 2);
+import { cartoucheTexture, heroWeapon02Texture } from './Assets';
 
 export interface MinigunHitResult {
   enemyIndex: number;
@@ -25,21 +25,28 @@ export interface MinigunHitResult {
 
 /** Initialize minigun state for the current level. */
 export function initMinigun(level: number): MinigunState {
-  return { lastFireTime: -999 };
+  return { lastFireTime: -999, recoilTimer: 0 };
 }
 
-/** Update minigun: fire bullets at nearest enemy based on fire rate and level. */
+/** Update minigun: fire bullets at nearest enemy based on fire rate and level.
+ *  Spawns muzzle flashes and bullets from the gun's visible muzzle position
+ *  (offset from hero feet by HERO_MINIGUN_MUZZLE_DX/DY in facing direction). */
 export function updateMinigun(
   state: MinigunState,
   heroX: number,
   heroY: number,
+  heroFacing: number,
   enemies: EnemyState[],
   dt: number,
   level: number,
   gameTime: number,
   bullets: MinigunBulletState[],
+  muzzleFlashes: MuzzleFlash[],
 ): void {
   if (level <= 0) return;
+  if (state.recoilTimer > 0) {
+    state.recoilTimer = Math.max(0, state.recoilTimer - dt);
+  }
 
   const data = MINIGUN_LEVELS[level - 1];
   const fireInterval = 1.0 / data.fireRate;
@@ -74,11 +81,17 @@ export function updateMinigun(
     const baseDirX = dx / dist;
     const baseDirY = dy / dist;
 
+    // Bullets and muzzle flash spawn from the gun's visible muzzle, not the
+    // hero's feet. The minigun is on the off-hand side, so muzzle X is in
+    // the facing direction (hero turns to face target via heroFacing).
+    const muzzleX = heroX + HERO_MINIGUN_MUZZLE_DX * heroFacing;
+    const muzzleY = heroY + HERO_MINIGUN_MUZZLE_DY;
+
     if (data.bulletCount === 1) {
       // Single bullet, no spread
       bullets.push({
-        x: heroX,
-        y: heroY,
+        x: muzzleX,
+        y: muzzleY,
         vx: baseDirX * MINIGUN_BULLET_SPEED,
         vy: baseDirY * MINIGUN_BULLET_SPEED,
         age: 0,
@@ -90,15 +103,14 @@ export function updateMinigun(
       const baseAngle = Math.atan2(baseDirY, baseDirX);
 
       for (let b = 0; b < data.bulletCount; b++) {
-        // Distribute bullets evenly across the spread range
-        const t = data.bulletCount === 1 ? 0 : (b / (data.bulletCount - 1)) * 2 - 1; // -1 to 1
+        const t = data.bulletCount === 1 ? 0 : (b / (data.bulletCount - 1)) * 2 - 1;
         const angle = baseAngle + t * spreadRad;
         const dirX = Math.cos(angle);
         const dirY = Math.sin(angle);
 
         bullets.push({
-          x: heroX,
-          y: heroY,
+          x: muzzleX,
+          y: muzzleY,
           vx: dirX * MINIGUN_BULLET_SPEED,
           vy: dirY * MINIGUN_BULLET_SPEED,
           age: 0,
@@ -107,6 +119,8 @@ export function updateMinigun(
       }
     }
 
+    spawnMuzzleFlash(muzzleFlashes, muzzleX, muzzleY, 1.0, '#FFE070');
+    state.recoilTimer = HERO_MINIGUN_RECOIL_DUR;
     state.lastFireTime = gameTime;
   }
 }
@@ -156,7 +170,60 @@ export function updateMinigunBullets(
   return hits;
 }
 
-/** Draw minigun bullets on the DrawingSurface, oriented along their velocity. */
+// Pre-create bullet brush from cartouche sprite
+const bulletBrush = new ImageBrush(cartoucheTexture);
+// Hero minigun sprite brush — shares Weapon02 with the gunner mouse (the
+// gunner-mouse alias in Assets.ts also points at heroWeapon02Texture).
+const heroMinigunBrush = new ImageBrush(heroWeapon02Texture);
+
+/** Draw the visible hero minigun sprite (no rotation; mirrors with facing).
+ *  Anchored at the hero's off-hand offset, with a brief recoil kick when firing. */
+export function drawHeroMinigun(
+  builder: DrawingCommandsBuilder,
+  state: MinigunState,
+  heroX: number,
+  heroY: number,
+  heroFacing: number,
+  camera: CameraState,
+  level: number,
+): void {
+  if (level <= 0) return;
+
+  const { sx, sy } = worldToScreen(heroX, heroY);
+  const screenCX = CANVAS_W / 2;
+  const screenCY = CANVAS_H / 2;
+  const screenX = sx - camera.offsetX + screenCX;
+  const screenY = sy - camera.offsetY + screenCY;
+
+  // Recoil: brief horizontal kick opposite to facing direction. We can't rotate
+  // (per art direction), so we just translate the gun back a few pixels.
+  let recoilX = 0;
+  if (state.recoilTimer > 0) {
+    const t = state.recoilTimer / HERO_MINIGUN_RECOIL_DUR; // 1→0
+    recoilX = -HERO_MINIGUN_RECOIL_PX * t * heroFacing;
+  }
+
+  // Hand anchor mirrors with facing.
+  const handX = screenX + HERO_MINIGUN_HAND_OFFSET_X * heroFacing + recoilX;
+  const handY = screenY + HERO_MINIGUN_HAND_OFFSET_Y;
+
+  // Cull off-screen
+  if (handX < -60 || handX > CANVAS_W + 60 || handY < -60 || handY > CANVAS_H + 60) return;
+
+  // Draw — mirror horizontally with facing using a scale push (no rotation).
+  builder.pushTranslate({ x: handX, y: handY });
+  builder.pushScale({ x: heroFacing, y: 1 }, { x: 0, y: 0 });
+  builder.drawRect(heroMinigunBrush, null, {
+    x: -HERO_MINIGUN_W / 2,
+    y: -HERO_MINIGUN_H / 2,
+    width: HERO_MINIGUN_W,
+    height: HERO_MINIGUN_H,
+  });
+  builder.pop(); // scale
+  builder.pop(); // translate
+}
+
+/** Draw minigun bullets on the DrawingSurface using cartouche sprite. */
 export function drawMinigunBullets(
   builder: DrawingCommandsBuilder,
   bullets: MinigunBulletState[],
@@ -164,11 +231,9 @@ export function drawMinigunBullets(
 ): void {
   const screenCX = CANVAS_W / 2;
   const screenCY = CANVAS_H / 2;
-  // Elongated bullet: 6px long, 3px wide (half-extents)
-  const bulletLenHalf = 6;
-  const bulletWidHalf = 3;
-  const glowLenHalf = bulletLenHalf + 2;
-  const glowWidHalf = bulletWidHalf + 1;
+  // Cartouche is a horizontal bullet sprite — render at natural orientation, no rotation
+  const bulletW = 14;
+  const bulletH = 7;
 
   for (const b of bullets) {
     const { sx, sy } = worldToScreen(b.x, b.y);
@@ -178,19 +243,12 @@ export function drawMinigunBullets(
     // Cull off-screen
     if (screenX < -20 || screenX > CANVAS_W + 20 || screenY < -20 || screenY > CANVAS_H + 20) continue;
 
-    // Compute angle from velocity (degrees, clockwise for DrawingSurface)
-    const angleDeg = Math.atan2(b.vy, b.vx) * 180 / Math.PI;
-
-    // Translate to bullet position, rotate to face travel direction
-    builder.pushTranslate({x: screenX, y: screenY});
-    builder.pushRotate(angleDeg, {x: 0, y: 0});
-
-    // Glow (elongated ellipse behind)
-    builder.drawEllipse(null, bulletGlowPen, {x: 0, y: 0}, {x: glowLenHalf, y: glowWidHalf});
-    // Filled core (elongated ellipse)
-    builder.drawEllipse(bulletFillBrush, null, {x: 0, y: 0}, {x: bulletLenHalf, y: bulletWidHalf});
-
-    builder.pop(); // rotate
-    builder.pop(); // translate
+    // Draw cartouche sprite centered on bullet position, no rotation
+    builder.drawRect(bulletBrush, null, {
+      x: screenX - bulletW / 2,
+      y: screenY - bulletH / 2,
+      width: bulletW,
+      height: bulletH,
+    });
   }
 }

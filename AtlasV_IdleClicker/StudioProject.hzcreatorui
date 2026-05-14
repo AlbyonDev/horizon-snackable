@@ -1,3 +1,3 @@
 <Project>
-  <StartupDocument>UI/TapButton.xaml</StartupDocument>
+  <StartupDocument>xaml/shop_zone.xaml</StartupDocument>
 </Project>

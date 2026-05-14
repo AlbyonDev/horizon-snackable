@@ -178,6 +178,8 @@ export class PlayerProgressService extends Service {
   onFishCollected(p: Events.FishCollectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     EventService.sendGlobally(NetworkEvents.ReportCatch, { defId: p.defId });
+    // Notify local UI/services immediately so collection grid + HUD update in real-time
+    EventService.sendLocally(Events.FishCaught, { fishId: p.fishId, defId: p.defId });
   }
 
   // ── Client: forward buy upgrade to server ────────────────────────────────────

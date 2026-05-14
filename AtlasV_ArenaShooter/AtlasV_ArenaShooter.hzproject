@@ -47,6 +47,6 @@
         "avatarMax": 1,
         "screenOrientation": "Portrait"
     },
-    "editorVersion": "79.0.0.13.107",
+    "editorVersion": "79.0.0.15.107",
     "starterWorldType": "BPBlank2DGame"
 }

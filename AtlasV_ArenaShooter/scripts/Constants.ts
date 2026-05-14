@@ -35,8 +35,27 @@ export const HERO_HAND_OFFSET_Y = -33;
 export const SWORD_GRIP_X = -15;
 export const SWORD_GRIP_Y = 0;
 
+// Hero minigun (visible when minigun upgrade is active). Drawn on the
+// off-hand side (mirror of sword) so both can be shown without overlap.
+export const HERO_MINIGUN_W = 44;
+export const HERO_MINIGUN_H = 22;
+// Hand offset for the minigun, in screen pixels relative to body anchor.
+// Negative X = off-hand (mirrored from sword's HERO_HAND_OFFSET_X = +21).
+export const HERO_MINIGUN_HAND_OFFSET_X = -22;
+export const HERO_MINIGUN_HAND_OFFSET_Y = -30;
+// Recoil kick when firing — small backward offset that decays over RECOIL_DUR.
+export const HERO_MINIGUN_RECOIL_DUR = 0.08; // seconds
+export const HERO_MINIGUN_RECOIL_PX = 4; // pixels of horizontal kick
+// Muzzle position offset from hero feet, in world units (where bullets/flash spawn).
+// X is in facing direction, Y is "up" in screen-space (negative = above feet).
+export const HERO_MINIGUN_MUZZLE_DX = 0.45; // tile units forward of feet
+export const HERO_MINIGUN_MUZZLE_DY = -0.45; // tile units above feet (visual)
+
 // Hero hurt flash
 export const HERO_HURT_FLASH_DUR = 0.15; // seconds
+
+// Hero invincibility frames after taking damage
+export const HERO_IFRAME_DUR = 0.6; // seconds of invulnerability after any hit
 
 // === Joystick ===
 export const JOY_DEAD_ZONE = 0.08; // 8% of radius
@@ -46,9 +65,9 @@ export const JOY_FADE_TIME = 0.5; // Seconds before fading to low opacity
 export const JOY_FADE_ALPHA = 0.4; // Opacity when faded
 
 // === Animation Parameters ===
-// Idle body bob
+// Idle body bob (disabled — was causing floating appearance)
 export const IDLE_BOB_PERIOD = 1.8; // seconds
-export const IDLE_BOB_AMP_Y = 3; // pixels
+export const IDLE_BOB_AMP_Y = 0; // pixels (set to 0 to remove idle bob)
 
 // Walk body bob
 export const WALK_BOB_PERIOD = 0.45; // seconds
@@ -70,17 +89,17 @@ export const COL_GRASS_DARK = '#3A5A20';
 export const COL_OUTLINE = '#1A1A20';
 
 // === Milestone 2: Combat Stats ===
-export const ATTACK_RANGE = 2.5; // tile units
-export const ATTACK_SPEED = 1.2; // attacks per second
-export const ATTACK_DAMAGE = 12;
-export const CRIT_CHANCE = 0.08;
+export const ATTACK_RANGE = 3.0; // tile units
+export const ATTACK_SPEED = 1.3; // attacks per second
+export const ATTACK_DAMAGE = 10;
+export const CRIT_CHANCE = 0.10;
 export const CRIT_MULT = 2.0;
 export const TARGET_EVAL_INTERVAL = 0.25; // seconds between target re-evaluations
 
 // === Grunt Rat Stats ===
-export const GRUNT_HP = 18;
-export const GRUNT_SPEED = 2.1; // units/sec
-export const GRUNT_CONTACT_DMG = 6;
+export const GRUNT_HP = 25;
+export const GRUNT_SPEED = 2.3; // units/sec
+export const GRUNT_CONTACT_DMG = 8;
 export const GRUNT_CONTACT_TICK = 0.5; // seconds between contact damage ticks
 export const GRUNT_AGGRO = 6; // tile units aggro radius
 export const GRUNT_BODY_W = 36;
@@ -173,6 +192,18 @@ export const PARTICLE_DEATH_SPEED_MAX = 90;
 export const PARTICLE_DEATH_LIFE_MIN = 0.25;
 export const PARTICLE_DEATH_LIFE_MAX = 0.45;
 
+// === Dust Trail Particles ===
+export const DUST_SPAWN_INTERVAL = 0.05; // seconds (~every 3-4 frames at 72fps)
+export const DUST_COUNT_PER_SPAWN = 2; // particles per spawn event
+export const DUST_SIZE_MIN = 3; // pixels
+export const DUST_SIZE_MAX = 5;
+export const DUST_SPEED_MIN = 20; // px/s outward/upward
+export const DUST_SPEED_MAX = 40;
+export const DUST_LIFE_MIN = 0.3; // seconds
+export const DUST_LIFE_MAX = 0.4;
+export const DUST_SPAWN_OFFSET = 10; // pixels behind hero (opposite velocity)
+export const DUST_COLORS: string[] = ['#C8C0B0', '#A89880', '#D8D0C0'];
+
 // === Camera Shake ===
 export const SHAKE_MAGNITUDE = 4; // pixels
 export const SHAKE_DURATION = 0.2; // seconds
@@ -190,18 +221,20 @@ export const HURT_SQUASH_DUR = 0.05; // seconds
 export const HURT_SQUASH_SETTLE = 0.08; // seconds
 
 // === Slash VFX ===
-export const SLASH_DURATION = 0.15; // seconds
-export const SLASH_ARC_HALF_ANGLE = 40; // degrees
-export const SLASH_RADIUS = 28; // pixels
-export const SLASH_WIDTH = 10; // pixels (arc thickness)
+export const SLASH_DURATION = 0.20; // seconds
+export const SLASH_ARC_HALF_ANGLE = 60; // degrees
+export const SLASH_RADIUS = 52; // pixels
+export const SLASH_WIDTH = 16; // pixels (arc thickness)
 export const SLASH_SCALE_START = 0.6;
-export const SLASH_SCALE_END = 1.2;
+export const SLASH_SCALE_END = 1.4;
+export const SLASH_COLOR_INNER = '#FFFFA0'; // bright yellow-white core
+export const SLASH_COLOR_GLOW = '#FFA030';  // orange glow
 
 // === Milestone 4: Enemy Type Stats ===
 
 // Gunner Mouse
-export const GUNNER_HP = 35;
-export const GUNNER_SPEED = 1.35;
+export const GUNNER_HP = 45;
+export const GUNNER_SPEED = 1.5;
 export const GUNNER_CONTACT_DMG = 4;
 export const GUNNER_CONTACT_TICK = 0.5;
 export const GUNNER_AGGRO = 8;
@@ -237,9 +270,9 @@ export const GAS_RAT_HAND_OFFSET_X = 15;
 export const GAS_RAT_HAND_OFFSET_Y = -24;
 
 // Drone Rat
-export const DRONE_HP = 28;
-export const DRONE_SPEED = 2.5;
-export const DRONE_CONTACT_DMG = 10;
+export const DRONE_HP = 35;
+export const DRONE_SPEED = 2.7;
+export const DRONE_CONTACT_DMG = 12;
 export const DRONE_CONTACT_TICK = 0.5;
 export const DRONE_AGGRO = 8;
 export const DRONE_BODY_W = 48;
@@ -248,9 +281,9 @@ export const DRONE_SINE_AMP = 1.5; // tile units lateral offset
 export const DRONE_SINE_FREQ = 2.0; // Hz
 
 // Sewer Bruiser
-export const BRUISER_HP = 120;
+export const BRUISER_HP = 150;
 export const BRUISER_SPEED = 0.9;
-export const BRUISER_CONTACT_DMG = 20;
+export const BRUISER_CONTACT_DMG = 25;
 export const BRUISER_CONTACT_TICK = 0.5;
 export const BRUISER_AGGRO = 8;
 export const BRUISER_BODY_W = 63;
@@ -258,8 +291,8 @@ export const BRUISER_BODY_H = 96;
 export const BRUISER_FRONTAL_ARMOR = 0.5; // 50% damage reduction from front
 
 // Gas Rat
-export const GAS_RAT_HP = 45;
-export const GAS_RAT_SPEED = 1.65;
+export const GAS_RAT_HP = 55;
+export const GAS_RAT_SPEED = 1.8;
 export const GAS_RAT_CONTACT_DMG = 6;
 export const GAS_RAT_CONTACT_TICK = 0.5;
 export const GAS_RAT_AGGRO = 8;
@@ -270,6 +303,15 @@ export const GAS_RAT_CLOUD_INTERVAL_MAX = 8;
 export const GAS_RAT_CLOUD_DAMAGE = 5;
 export const GAS_RAT_CLOUD_RADIUS = 2; // tile units
 export const GAS_RAT_CLOUD_DURATION = 4; // seconds
+
+// Gas Rat throw wind-up — canister lifts up & forward, cloud spawns at the apex.
+export const GAS_RAT_THROW_DUR = 0.32; // seconds
+export const GAS_RAT_THROW_LIFT_PX = 18; // canister rises this many pixels at apex
+export const GAS_RAT_THROW_FORWARD_PX = 12; // canister drifts forward (toward facing) at apex
+export const GAS_RAT_THROW_SCALE_BOOST = 0.15; // canister scales up by +15% at apex
+// World-space height (tile units) at which the cloud spawns from the canister
+// (above the rat's feet — gas appears to leave the canister, not the floor).
+export const GAS_RAT_CLOUD_SPAWN_FORWARD = 0.35; // tile units, in facing direction
 
 // Hero contact damage range
 export const HERO_CONTACT_RANGE = 0.2; // world units — distance for enemy contact damage
@@ -286,14 +328,14 @@ export const GAS_CLOUD_OPACITY = 0.3;
 export const GAS_CLOUD_TICK_INTERVAL = 0.5; // damage tick rate (same as contact)
 
 // Per-type loot drop rates
-export const GUNNER_GEM_DROP = 4;
+export const GUNNER_GEM_DROP = 2;
 export const GUNNER_COIN_CHANCE = 0.3;
-export const DRONE_GEM_DROP = 4;
+export const DRONE_GEM_DROP = 2;
 export const DRONE_COIN_CHANCE = 0.2;
-export const BRUISER_GEM_DROP = 10;
+export const BRUISER_GEM_DROP = 5;
 export const BRUISER_COIN_DROP = 2;
 export const BRUISER_COIN_CHANCE = 0.6;
-export const GAS_RAT_GEM_DROP = 6;
+export const GAS_RAT_GEM_DROP = 3;
 export const GAS_RAT_COIN_CHANCE = 0.4;
 
 // === Elite Enemy System ===
@@ -335,7 +377,7 @@ export const BOSS_BODY_H = 135;
 export const BOSS_PHASE_INTERVAL = 6.0;
 export const BOSS_CHARGE_DURATION = 2.0;
 export const BOSS_SUMMON_COUNT = 4;
-export const BOSS_GEM_DROP = 12;
+export const BOSS_GEM_DROP = 8;
 export const BOSS_COIN_DROP = 3;
 export const BOSS_COIN_CHANCE = 1.0;
 export const BOSS_WARNING_DURATION = 3.0;
@@ -390,28 +432,25 @@ export const MINIGUN_LEVELS: MinigunLevelData[] = [
 export const MINIGUN_MAX_LEVEL = MINIGUN_LEVELS.length;
 
 // === Damage Circle Weapon Levels ===
+// The damage circle is an orbiting Weapon03 sprite that circles the hero at a
+// fixed radius and damages any enemy it overlaps with (per-enemy cooldown so
+// a single enemy isn't hit every frame while it's near the orbit path).
 export interface DamageCircleLevelData {
-  radius: number;         // world units — AoE damage radius
-  damage: number;         // damage per pulse
-  pulseInterval: number;  // seconds between pulses
+  radius: number;        // world units — orbit radius around hero
+  damage: number;        // damage per hit
+  hitCooldown: number;   // seconds before the orb can hit the same enemy again
+  orbitSpeed: number;    // radians per second
 }
 
 export const DAMAGE_CIRCLE_LEVELS: DamageCircleLevelData[] = [
-  { radius: 2.0, damage: 8,  pulseInterval: 2.0 },
-  { radius: 2.5, damage: 10, pulseInterval: 1.8 },
-  { radius: 3.0, damage: 13, pulseInterval: 1.5 },
-  { radius: 3.5, damage: 16, pulseInterval: 1.2 },
-  { radius: 4.0, damage: 20, pulseInterval: 1.0 },
+  { radius: 2.0, damage: 8,  hitCooldown: 1.0, orbitSpeed: 2.0 },
+  { radius: 2.3, damage: 10, hitCooldown: 0.9, orbitSpeed: 2.4 },
+  { radius: 2.6, damage: 13, hitCooldown: 0.8, orbitSpeed: 2.8 },
+  { radius: 2.9, damage: 16, hitCooldown: 0.7, orbitSpeed: 3.2 },
+  { radius: 3.2, damage: 20, hitCooldown: 0.6, orbitSpeed: 3.6 },
 ];
 
 export const DAMAGE_CIRCLE_MAX_LEVEL = DAMAGE_CIRCLE_LEVELS.length;
-
-// Visual constants for the expanding ring VFX
-export const DAMAGE_CIRCLE_RING_DURATION = 0.4;       // seconds for ring to expand
-export const DAMAGE_CIRCLE_RING_COLOR = '#FF6040';    // warm orange-red
-export const DAMAGE_CIRCLE_RING_GLOW_COLOR = '#FF4020';
-export const DAMAGE_CIRCLE_RING_WIDTH = 3;            // stroke width
-export const DAMAGE_CIRCLE_RING_GLOW_WIDTH = 6;
 
 // === Minigun Bullet Constants ===
 export const MINIGUN_BULLET_SPEED = 8.0;       // world units per second
@@ -434,14 +473,14 @@ export interface WaveDataEntry {
 }
 
 export const WAVE_DATA: WaveDataEntry[] = [
-  // Waves 1-3: 30s, burst 3-5, pause 3-5s
-  { duration: 30, burstMin: 3, burstMax: 5, pauseMin: 3, pauseMax: 5, hpScale: 1.12 },
-  { duration: 30, burstMin: 3, burstMax: 5, pauseMin: 3, pauseMax: 5, hpScale: 1.24 },
-  { duration: 30, burstMin: 3, burstMax: 5, pauseMin: 3, pauseMax: 5, hpScale: 1.36 },
-  // Waves 4-6: 35s, burst 4-6, pause 2.5-4s
-  { duration: 35, burstMin: 4, burstMax: 6, pauseMin: 2.5, pauseMax: 4, hpScale: 1.48 },
-  { duration: 35, burstMin: 4, burstMax: 6, pauseMin: 2.5, pauseMax: 4, hpScale: 1.60 },
-  { duration: 35, burstMin: 4, burstMax: 6, pauseMin: 2.5, pauseMax: 4, hpScale: 1.72 },
+  // Waves 1-3: 30s, burst 6-8, pause 2-3s (tighter, larger groups)
+  { duration: 30, burstMin: 6, burstMax: 8, pauseMin: 2.0, pauseMax: 3.0, hpScale: 1.0 },
+  { duration: 30, burstMin: 6, burstMax: 8, pauseMin: 2.0, pauseMax: 3.0, hpScale: 1.15 },
+  { duration: 30, burstMin: 6, burstMax: 8, pauseMin: 2.0, pauseMax: 3.0, hpScale: 1.30 },
+  // Waves 4-6: 35s, burst 6-8, pause 2-3s
+  { duration: 35, burstMin: 6, burstMax: 8, pauseMin: 2.0, pauseMax: 3.0, hpScale: 1.48 },
+  { duration: 35, burstMin: 6, burstMax: 8, pauseMin: 2.0, pauseMax: 3.0, hpScale: 1.60 },
+  { duration: 35, burstMin: 6, burstMax: 8, pauseMin: 2.0, pauseMax: 3.0, hpScale: 1.72 },
   // Waves 7-9: 35s, burst 5-7, pause 2-3.5s
   { duration: 35, burstMin: 5, burstMax: 7, pauseMin: 2, pauseMax: 3.5, hpScale: 1.84 },
   { duration: 35, burstMin: 5, burstMax: 7, pauseMin: 2, pauseMax: 3.5, hpScale: 1.96 },
@@ -493,8 +532,11 @@ export const COL_COIN_FACE = '#F0C030';
 export const COL_COIN_EDGE = '#C08020';
 
 // Drop rates
-export const GRUNT_GEM_DROP = 2; // gems per kill
+export const GRUNT_GEM_DROP = 1; // gems per kill
 export const GRUNT_COIN_CHANCE = 0.15; // 15% chance
+
+// XP awarded per green gem collected
+export const XP_PER_GEM = 1;
 
 // === Health Pickup ===
 export const PICKUP_HEALTH_W = 26; // pixels

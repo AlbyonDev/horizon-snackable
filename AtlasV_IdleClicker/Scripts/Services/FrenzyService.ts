@@ -20,8 +20,6 @@ export class FrenzyService extends Service {
   private _active     : boolean = false;
   private _timeLeft   : number  = 0;
 
-  // ── Startup: declare all actions ──────────────────────────────────────────────
-
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
     const unlockDef = getActionDef('frenzy.unlock');
@@ -57,11 +55,9 @@ export class FrenzyService extends Service {
     }));
   }
 
-  // ── Tap counter ───────────────────────────────────────────────────────────────
-
   @subscribe(Events.PlayerTap)
   onPlayerTap(): void {
-    if (!this._isPurchased()) return;
+    if (!this.isPurchased()) return;
     if (this._active) return;
     this._tapCount++;
     if (this._tapCount >= this._threshold) {
@@ -69,8 +65,6 @@ export class FrenzyService extends Service {
       this._activate();
     }
   }
-
-  // ── Timer ─────────────────────────────────────────────────────────────────────
 
   @subscribe(Events.Tick)
   onTick(p: Events.TickPayload): void {
@@ -81,8 +75,6 @@ export class FrenzyService extends Service {
       this._timeLeft = 0;
     }
   }
-
-  // ── Action handling ───────────────────────────────────────────────────────────
 
   @subscribe(Events.ActionTriggered)
   onActionTriggered(p: Events.ActionTriggeredPayload): void {
@@ -118,9 +110,6 @@ export class FrenzyService extends Service {
     }
   }
 
-  // ── Public queries ────────────────────────────────────────────────────────────
-
-  isPurchased()  : boolean { return this._isPurchased(); }
   isActive()     : boolean { return this._active; }
   getTimeLeft()  : number  { return this._timeLeft; }
   getTapCount()  : number  { return this._tapCount; }
@@ -128,9 +117,7 @@ export class FrenzyService extends Service {
   getMultiplier(): number  { return this._multiplier; }
   getDuration()  : number  { return this._duration; }
 
-  // ── Private ───────────────────────────────────────────────────────────────────
-
-  private _isPurchased(): boolean {
+  isPurchased(): boolean {
     return StatsService.get().get('frenzy.unlock') > 0;
   }
 
@@ -138,6 +125,5 @@ export class FrenzyService extends Service {
     this._active   = true;
     this._timeLeft = this._duration;
     StatsService.get().increment('frenzy.activated');
-    // StatsChanged → ActionService.refreshDeclared() reveals upgrades when threshold met
   }
 }

@@ -11,30 +11,32 @@ import {
 } from 'meta/worlds';
 
 import { Events, GamePhase } from '../../Types';
-import { WATER_SURFACE_Y } from '../../Constants';
+import { WATER_SURFACE_Y, lineDepthAtLevel } from '../../Constants';
 
-// ─── ViewModel ──────────────────────────────────────────────────────────────
+// --- ViewModel ---
 @uiViewModel()
 export class GameHUDData extends UiViewModel {
   /** Gold amount */
   goldAmount: number = 0;
 
-  /** Gold counter visibility — string for XAML DataTrigger ('True'/'False') */
+  /** Gold counter visibility - string for XAML DataTrigger ('True'/'False') */
   isGoldVisible: string = 'False';
 
   /** Depth counter text */
   depthText: string = '0.0 m';
 
-  /** Depth counter visibility — string for XAML DataTrigger ('True'/'False') */
+  /** Max depth text (shows max line depth for current upgrade level) */
+  maxDepthText: string = '/ 15.0 m';
+
+  /** Depth counter visibility - string for XAML DataTrigger ('True'/'False') */
   isDepthVisible: string = 'False';
 }
 
-// ─── Component ──────────────────────────────────────────────────────────────
+// --- Component ---
 /**
- * GameHUDViewModel — drives the GameHUD XAML (gold + depth counters only).
+ * GameHUDViewModel - drives the GameHUD XAML (gold + depth counters).
  *
- * This entity has isInteractable=false on its CustomUiComponent so it NEVER
- * blocks touch/swipe input. Gold and depth counters swap based on game phase.
+ * Counter panels have IsHitTestVisible=False so they don't block input below.
  *
  * Component Attachment: Scene entity (GameHUD entity)
  * Component Networking: Local (UI only, client-side)
@@ -48,13 +50,16 @@ export class GameHUDViewModel extends Component {
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
+    console.log('[GameHUDViewModel] onStart');
     this._ui = this.entity.getComponent(CustomUiComponent);
     if (this._ui) this._ui.dataContext = this._vm;
   }
 
-  // ── Phase visibility ──────────────────────────────────────────────────────
+  // -- Phase visibility --
   @subscribe(Events.PhaseChanged)
   private _onPhase(p: Events.PhaseChangedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+
     // Gold visible: Surfacing, Launching, Reset, Idle (above-water phases)
     // Depth visible: Diving (underwater)
     // Throwing: both hidden (hook in arc, no counter needed)
@@ -65,12 +70,11 @@ export class GameHUDViewModel extends Component {
     ) {
       this._vm.isGoldVisible = 'True';
       this._vm.isDepthVisible = 'False';
-    } else if (p.phase === GamePhase.Diving || p.phase === GamePhase.Surfacing
-    ) {
+    } else if (p.phase === GamePhase.Diving || p.phase === GamePhase.Surfacing) {
       this._vm.isGoldVisible = 'False';
       this._vm.isDepthVisible = 'True';
     } else {
-      // Throwing — both hidden
+      // Throwing - both hidden
       this._vm.isGoldVisible = 'False';
       this._vm.isDepthVisible = 'False';
     }
@@ -81,21 +85,32 @@ export class GameHUDViewModel extends Component {
     }
   }
 
-  // ── Depth counter (hook position) ─────────────────────────────────────────
+  // -- Depth counter (hook position) --
   @subscribe(Events.HookMoved)
   private _onHookMoved(p: Events.HookMovedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
     const depth = Math.max(0, WATER_SURFACE_Y - p.y);
     this._vm.depthText = `${depth.toFixed(1)} m`;
   }
 
-  // ── Gold updates ──────────────────────────────────────────────────────────
+  // -- Gold updates --
   @subscribe(Events.ProgressLoaded)
   private _onProgressLoaded(p: Events.ProgressLoadedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
     this._vm.goldAmount = p.gold;
+    this._vm.maxDepthText = `/ ${lineDepthAtLevel(p.lineLevel).toFixed(1)} m`;
   }
 
   @subscribe(Events.GoldChanged)
   private _onGoldChanged(p: Events.GoldChangedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
     this._vm.goldAmount = p.gold;
+  }
+
+  // -- Max depth updates --
+  @subscribe(Events.UpgradesChanged)
+  private _onUpgradesChanged(p: Events.UpgradesChangedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._vm.maxDepthText = `/ ${p.maxDepth.toFixed(1)} m`;
   }
 }

@@ -20,7 +20,6 @@ export interface IFishDef {
   name        : string;
   rarity      : FishRarity;
   gold        : number;     // gold awarded when caught; drives burst size and text color
-  template    : TemplateAsset;
   sizeMin     : number;
   sizeMax     : number;
   speedMin    : number;
@@ -33,22 +32,101 @@ export interface IFishDef {
   wave2Offset : number;    // phase offset in radians, second sine
 }
 
-export interface IFishInstance {
-  readonly fishId : number;
-  readonly defId  : number;
-  readonly worldX : number;
-  readonly worldY : number;
-  readonly size   : number;
-  isHooked        : boolean;
-  readonly isFlying : boolean;
-  setPosition(x: number, y: number): void;
-  /** Teleport to a visible swim slot. */
-  activate(x: number, baseY: number, speedMin: number, speedMax: number, size: number): void;
-  /** Teleport off-screen; FishPoolService will reclaim and re-activate later. */
-  park(parkY: number): void;
+/**
+ * FishInstance — Pure data object representing a fish in the pool.
+ * No entity backing — all fish are rendered as sprites via FishSpriteRenderer.
+ */
+export class FishInstance {
+  readonly fishId: number;
+  readonly defId: number;
+
+  // Position & rendering
+  worldX = 0;
+  worldY = 0;
+  size = 1.0;
+  facingLeft = false;
+
+  // State flags
+  active = false;
+  isHooked = false;
+  isFlying = false;
+
+  // Swim AI state
+  targetX = 0;
+  moveSpeed = 1.0;
+  baseY = 0;
+  pausing = false;
+  pauseDur = 0;
+
+  // Flying physics (launch arc)
+  flyVX = 0;
+  flyVY = 0;
+  flyGravity = 0;
+
+  // Bubble spawn timer
+  bubbleTimer = 0;
+
+  constructor(fishId: number, defId: number) {
+    this.fishId = fishId;
+    this.defId = defId;
+  } 
+
+  setPosition(x: number, y: number): void {
+    this.worldX = x;
+    this.worldY = y;
+  }
+
+  /** Activate fish at a visible swim slot. */
+  activate(x: number, baseY: number, speedMin: number, speedMax: number, size: number): void {
+    this.size = size;
+    this.isHooked = false;
+    this.isFlying = false;
+    this.active = true;
+    this.worldX = x;
+    this.baseY = baseY;
+    this.worldY = baseY;
+    this.targetX = this._randomTargetX(x);
+    this.moveSpeed = speedMin + Math.random() * (speedMax - speedMin);
+    this.facingLeft = this.targetX < x;
+    this.pausing = false;
+  }
+
+  /** Deactivate fish (bench it). */
+  bench(): void {
+    this.isHooked = false;
+    this.isFlying = false;
+    this.active = false;
+  }
+
+  /** Start the upward launch arc. */
+  launch(vx: number, vy: number, gravity: number): void {
+    this.isHooked = false;
+    this.isFlying = true;
+    this.flyVX = vx;
+    this.flyVY = vy;
+    this.flyGravity = gravity;
+  }
+
+  /** Stop flying state. */
+  stopFlying(): void {
+    this.isFlying = false;
+  }
+
+  private _randomTargetX(from: number): number {
+    const FISH_LEFT = -5.5;
+    const FISH_RIGHT = 5.5;
+    const MIN_DIST = 2.5;
+    let t: number;
+    do { t = FISH_LEFT + Math.random() * (FISH_RIGHT - FISH_LEFT); }
+    while (Math.abs(t - from) < MIN_DIST);
+    return t;
+  }
 }
 
 // ─── Events ───────────────────────────────────────────────────────────────────
+/** @deprecated Use FishInstance directly. Kept as alias during migration. */
+export type IFishInstance = FishInstance;
+
 export namespace Events {
 
   export class GameStartedPayload { }
@@ -65,6 +143,10 @@ export namespace Events {
   export class HookLaunchPayload { }
   export const HookLaunch = new LocalEvent<HookLaunchPayload>('EvHookLaunch', HookLaunchPayload);
 
+  /** Fired on each swipe input frame during diving — drives instant pendulum kick + motion-trail strength. */
+  export class SwipeKickPayload { delta: number = 0; }
+  export const SwipeKick = new LocalEvent<SwipeKickPayload>('EvSwipeKick', SwipeKickPayload);
+
   // Requests from HookController to GameManager to advance the phase
   export class RequestDivingPayload {}
   export const RequestDiving = new LocalEvent<RequestDivingPayload>('EvRequestDiving', RequestDivingPayload);
@@ -76,12 +158,6 @@ export namespace Events {
   export const RequestLaunch = new LocalEvent<RequestLaunchPayload>('EvRequestLaunch', RequestLaunchPayload);
 
   // ── Fish lifecycle ────────────────────────────────────────────────────────────
-  export class InitFishPayload { defId: number = 0; spawnX: number = 0; baseY: number = 0; speedMin: number = 0.8; speedMax: number = 2.0; size: number = 1.0; }
-  export const InitFish = new LocalEvent<InitFishPayload>('EvInitFish', InitFishPayload);
-
-  export class FishReadyPayload { fishId: number = 0; }
-  export const FishReady = new LocalEvent<FishReadyPayload>('EvFishReady', FishReadyPayload);
-
   export class FishHookedPayload { fishId: number = 0; }
   export const FishHooked = new LocalEvent<FishHookedPayload>('EvFishHooked', FishHookedPayload);
 

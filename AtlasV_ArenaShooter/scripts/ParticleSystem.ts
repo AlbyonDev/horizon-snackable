@@ -5,11 +5,13 @@ import {
   DrawingCommandsBuilder,
   SolidBrush,
   Pen,
+  Color,
   ImageBrush,
 } from 'meta/worlds';
-import { Color } from 'meta/platform_api';
-import type { Particle, ExpandingRing, SpriteEffect } from './Types';
+import type { Particle, ExpandingRing, SpriteEffect, MuzzleFlash, CameraState } from './Types';
 import { SpriteEffectType } from './Types';
+import { worldToScreen } from './IsoRenderer';
+import { CANVAS_W, CANVAS_H } from './Constants';
 import {
   PARTICLE_HIT_COUNT_MIN, PARTICLE_HIT_COUNT_MAX,
   PARTICLE_HIT_SIZE, PARTICLE_HIT_SPEED_MIN, PARTICLE_HIT_SPEED_MAX,
@@ -21,6 +23,10 @@ import {
   PARTICLE_DEATH_COUNT_MIN, PARTICLE_DEATH_COUNT_MAX,
   PARTICLE_DEATH_SIZE, PARTICLE_DEATH_SPEED_MIN, PARTICLE_DEATH_SPEED_MAX,
   PARTICLE_DEATH_LIFE_MIN, PARTICLE_DEATH_LIFE_MAX,
+  DUST_COUNT_PER_SPAWN, DUST_SIZE_MIN, DUST_SIZE_MAX,
+  DUST_SPEED_MIN, DUST_SPEED_MAX,
+  DUST_LIFE_MIN, DUST_LIFE_MAX,
+  DUST_SPAWN_OFFSET, DUST_COLORS,
 } from './Constants';
 import { impactTexture, splashTexture, critiqueTexture } from './Assets';
 
@@ -134,6 +140,59 @@ export function spawnDeathExplosion(
   }
 }
 
+/**
+ * Spawn 1-2 dust trail particles behind the hero while moving.
+ * Particles spawn offset behind the hero (opposite to velocity direction)
+ * with slight random spread and slow upward drift.
+ */
+export function spawnDustTrail(
+  particles: Particle[],
+  screenX: number,
+  screenY: number,
+  heroVx: number,
+  heroVy: number
+): void {
+  // Compute offset direction (opposite of velocity)
+  const speed = Math.sqrt(heroVx * heroVx + heroVy * heroVy);
+  let offsetDirX = 0;
+  let offsetDirY = 0;
+  if (speed > 0.001) {
+    offsetDirX = -heroVx / speed;
+    offsetDirY = -heroVy / speed;
+  }
+
+  for (let i = 0; i < DUST_COUNT_PER_SPAWN; i++) {
+    // Spawn position: behind hero with some random spread
+    const spreadAngle = (Math.random() - 0.5) * 1.2; // ~±35 degrees spread
+    const cos = Math.cos(spreadAngle);
+    const sin = Math.sin(spreadAngle);
+    const rotDirX = offsetDirX * cos - offsetDirY * sin;
+    const rotDirY = offsetDirX * sin + offsetDirY * cos;
+
+    const spawnX = screenX + rotDirX * DUST_SPAWN_OFFSET + (Math.random() - 0.5) * 6;
+    const spawnY = screenY + rotDirY * DUST_SPAWN_OFFSET + (Math.random() - 0.5) * 6;
+
+    // Velocity: slight upward drift + small outward push
+    const driftSpeed = randRange(DUST_SPEED_MIN, DUST_SPEED_MAX);
+    const vx = rotDirX * driftSpeed * 0.3 + (Math.random() - 0.5) * 10;
+    const vy = -driftSpeed * 0.7 + (Math.random() - 0.5) * 8; // Mostly upward (negative Y)
+
+    const life = randRange(DUST_LIFE_MIN, DUST_LIFE_MAX);
+    const size = randRange(DUST_SIZE_MIN, DUST_SIZE_MAX);
+
+    particles.push({
+      x: spawnX,
+      y: spawnY,
+      vx,
+      vy,
+      life,
+      maxLife: life,
+      size,
+      colorHex: randElement(DUST_COLORS),
+    });
+  }
+}
+
 // === Sprite-based impact effects ===
 
 /** Spawn an impact sprite effect at the given screen position. */
@@ -170,6 +229,79 @@ export function spawnCritiqueEffect(effects: SpriteEffect[], x: number, y: numbe
     scale: 1.2 + Math.random() * 0.3,
     rotation: -15 + Math.random() * 30,
   });
+}
+
+// === Muzzle flashes ===
+//
+// Short-lived burst sprite drawn at the firing position. We reuse the existing
+// impact texture as a generic burst shape — sprites stay parallel to the screen
+// (no rotation) per project art direction. The flash scales up briefly then
+// fades; an inner additive disc is drawn on top to give it some pop.
+const MUZZLE_FLASH_DUR = 0.08; // seconds
+const MUZZLE_FLASH_BASE_SIZE = 26; // px at scale=1
+
+/** Spawn a muzzle flash at a world position. */
+export function spawnMuzzleFlash(
+  flashes: MuzzleFlash[],
+  worldX: number,
+  worldY: number,
+  scale: number = 1,
+  colorHex: string = '#FFE070'
+): void {
+  flashes.push({
+    x: worldX,
+    y: worldY,
+    age: 0,
+    maxAge: MUZZLE_FLASH_DUR,
+    scale,
+    colorHex,
+  });
+}
+
+/** Tick muzzle flashes, removing expired ones. */
+export function updateMuzzleFlashes(flashes: MuzzleFlash[], dt: number): void {
+  for (let i = flashes.length - 1; i >= 0; i--) {
+    flashes[i].age += dt;
+    if (flashes[i].age >= flashes[i].maxAge) {
+      flashes.splice(i, 1);
+    }
+  }
+}
+
+/** Draw muzzle flashes (no rotation; sprites stay parallel to the screen). */
+export function drawMuzzleFlashes(
+  builder: DrawingCommandsBuilder,
+  flashes: MuzzleFlash[],
+  camera: CameraState
+): void {
+  const screenCX = CANVAS_W / 2;
+  const screenCY = CANVAS_H / 2;
+
+  for (const f of flashes) {
+    const t = f.age / f.maxAge; // 0→1
+    // Scale grows then settles; alpha fades fast.
+    const animScale = f.scale * (0.7 + 0.6 * (1 - (1 - t) * (1 - t)));
+    const alpha = (1 - t) * (1 - t);
+    const size = MUZZLE_FLASH_BASE_SIZE * animScale;
+    const innerSize = size * 0.55;
+
+    const { sx, sy } = worldToScreen(f.x, f.y);
+    const screenX = sx - camera.offsetX + screenCX;
+    const screenY = sy - camera.offsetY + screenCY;
+
+    if (screenX < -40 || screenX > CANVAS_W + 40 || screenY < -40 || screenY > CANVAS_H + 40) continue;
+
+    // Outer burst: tinted impact sprite (already a radial flare). We can't
+    // tint the ImageBrush directly, so we layer a colored disc behind it for
+    // pop, then the impact sprite on top for shape.
+    const outerColor = Color.fromHex(f.colorHex);
+    const outerBrush = new SolidBrush(new Color(outerColor.r, outerColor.g, outerColor.b, alpha * 0.9));
+    builder.drawEllipse(outerBrush, null, { x: screenX, y: screenY }, { x: size * 0.45, y: size * 0.45 });
+
+    // Bright white core
+    const coreBrush = new SolidBrush(new Color(1, 1, 1, alpha));
+    builder.drawEllipse(coreBrush, null, { x: screenX, y: screenY }, { x: innerSize * 0.4, y: innerSize * 0.4 });
+  }
 }
 
 /** Update sprite effects, removing expired ones. */

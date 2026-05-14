@@ -10,6 +10,7 @@ import {
   BRUISER_HP, BRUISER_SPEED, BRUISER_CONTACT_DMG, BRUISER_CONTACT_TICK, BRUISER_AGGRO,
   GAS_RAT_HP, GAS_RAT_SPEED, GAS_RAT_CONTACT_DMG, GAS_RAT_CONTACT_TICK, GAS_RAT_AGGRO,
   GAS_RAT_CLOUD_INTERVAL_MIN, GAS_RAT_CLOUD_INTERVAL_MAX,
+  GAS_RAT_THROW_DUR,
   BOSS_SPEED, BOSS_CONTACT_DMG, BOSS_CONTACT_TICK, BOSS_AGGRO,
   BOSS_PHASE_INTERVAL, BOSS_CHARGE_SPEED, BOSS_CHARGE_DURATION, BOSS_SUMMON_COUNT,
   WORLD_W, WORLD_H,
@@ -74,6 +75,7 @@ function makeBaseEnemy(x: number, y: number, hp: number, speed: number, contactD
     sinePhase: Math.random() * Math.PI * 2,
     gasTimer: 0,
     gasSpawnFlag: false,
+    throwAnimTimer: -1,
     splashImmune: false,
     isElite: false,
     // Boss fields
@@ -339,11 +341,14 @@ function updateGasRatAI(enemy: EnemyState, hero: HeroState, dist: number, dx: nu
   // Standard chase behavior
   updateStandardAI(enemy, hero, dist, dx, dy, dt, aggro);
 
-  // Gas cloud timer
-  enemy.gasTimer -= dt;
-  if (enemy.gasTimer <= 0) {
-    enemy.gasSpawnFlag = true;
-    enemy.gasTimer = randRange(GAS_RAT_CLOUD_INTERVAL_MIN, GAS_RAT_CLOUD_INTERVAL_MAX);
+  // Gas cloud timer — when it hits 0, kick off the throw wind-up. Cloud
+  // is actually spawned by the main loop when throwAnimTimer completes.
+  if (enemy.throwAnimTimer < 0) {
+    enemy.gasTimer -= dt;
+    if (enemy.gasTimer <= 0) {
+      enemy.throwAnimTimer = 0;
+      enemy.gasTimer = randRange(GAS_RAT_CLOUD_INTERVAL_MIN, GAS_RAT_CLOUD_INTERVAL_MAX);
+    }
   }
 }
 
@@ -405,6 +410,15 @@ export function updateEnemyTimers(enemies: EnemyState[], dt: number): void {
     }
     if (enemy.hurtSquashTimer > 0) { enemy.hurtSquashTimer -= dt; if (enemy.hurtSquashTimer < 0) enemy.hurtSquashTimer = 0; }
     if (enemy.flashTimer > 0) { enemy.flashTimer -= dt; if (enemy.flashTimer < 0) enemy.flashTimer = 0; }
+    // Gas Rat throw wind-up: when timer reaches GAS_RAT_THROW_DUR the canister
+    // releases the cloud (gasSpawnFlag) and the timer resets to inactive (-1).
+    if (enemy.throwAnimTimer >= 0 && !enemy.isDead) {
+      enemy.throwAnimTimer += dt;
+      if (enemy.throwAnimTimer >= GAS_RAT_THROW_DUR) {
+        enemy.gasSpawnFlag = true;
+        enemy.throwAnimTimer = -1;
+      }
+    }
     if (enemy.isDead) {
       enemy.deathTimer += dt;
       if (enemy.deathTimer >= DEATH_FADE_END) { enemy.deathOpacity = 0; }

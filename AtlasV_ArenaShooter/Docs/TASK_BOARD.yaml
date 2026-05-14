@@ -84,10 +84,12 @@ tasks:
             files: [MinigunWeapon.ts, ArenaVerminComponent.ts, Types.ts, Constants.ts]
           - name: "Damage Circle weapon (Weapon03 AoE)"
             status: done
-            summary: "Periodic AoE pulse around hero with expanding ring VFX. 5 levels: bigger radius (2→4 units), more damage (8→20), faster pulses (2s→1s)."
+            summary: "Periodic AoE pulse around hero with expanding ring VFX. 5 levels: bigger radius (2→4 units), damage (8→20), faster pulses (2s→1s)."
             files: [DamageCircleWeapon.ts, ArenaVerminComponent.ts, Types.ts, Constants.ts]
           - name: "Balancing pass"
-            status: not_started
+            status: done
+            summary: "Reverted 6x XP boost (XP per gem back to 1, reduced gem drops), steepened leveling curve, increased enemy HP/speed/damage across all types, nerfed sword slightly, increased wave burst sizes and spawn frequency."
+            files: [Constants.ts]
       - name: "Gameplay batch: heal drops, bosses, remove drone, more XP, wave-end vacuum"
         status: done
         summary: "Removed starting drone, 6x XP gains, health heart drops (12%), wave-end auto-vacuum, Rat King Boss every 5 waves with charge/summon AI and boss HP bar."
@@ -108,26 +110,6 @@ tasks:
             status: done
             summary: "Rat King Boss with custom sprite, 3-phase AI (chase/charge/summon), spawns every 5 waves, boss HP bar, warning text, massive loot explosion."
             files: [EnemySystem.ts, WaveSystem.ts, SpriteUpdater.ts, ArenaVerminComponent.ts, ArenaVerminViewModel.ts, game.xaml, Types.ts, Constants.ts, Assets.ts]
-        subtasks:
-          - name: "Remove initial drone + increase XP gains"
-            status: done
-            summary: "Confirmed drone not pre-equipped. Doubled gem drop counts for all enemy types + tripled XP per gem (~6x faster leveling)."
-            files: [Constants.ts, PickupSystem.ts]
-          - name: "Health pickup drops from enemies"
-            status: done
-            summary: "New HealthHeart pickup type. 12% drop chance, restores 15 HP, heart sprite with pulse animation, green floating text."
-            files: [Types.ts, Constants.ts, PickupSystem.ts, Assets.ts, ArenaVerminComponent.ts]
-          - name: "Auto-vacuum loot at wave end"
-            status: done
-            summary: "On waveEnded event, all pickups get magnetActive=true with boosted speed and extended lifetime."
-            files: [ArenaVerminComponent.ts, PickupSystem.ts]
-          - name: "Boss enemies"
-            status: done
-            summary: "Rat King Boss spawns every 5 waves. 500+ HP, charge/summon AI phases, boss HP bar, warning text, massive loot drop on death. Custom sprite generated."
-            files: [EnemySystem.ts, WaveSystem.ts, SpriteUpdater.ts, CombatSystem.ts, ArenaVerminComponent.ts, ArenaVerminViewModel.ts, game.xaml, Types.ts, Constants.ts, Assets.ts]
-      - name: "Gameplay batch: heal drops, bosses, remove drone, more XP, wave-end vacuum"
-        status: done
-        summary: "Removed starting drone, 6x XP gains, health heart drops (12%), wave-end auto-vacuum, Rat King Boss every 5 waves."
       - name: "HUD Redesign - Full rework"
         status: done
         summary: "Complete HUD rebuild with clear hierarchy: top panel (HP bar, XP bar, coins/kills), bottom wave panel (wave number + timer), center overlays unchanged. Semi-transparent dark panels, mobile-readable sizes, accent colors."
@@ -135,7 +117,29 @@ tasks:
       - name: "Milestone 6: Bosses + Meta"
         status: not_started
       - name: "Milestone 7: Polish"
-        status: not_started
+        status: in_progress
+        subtasks:
+          - name: "Visual Polish Pass - 9 improvements"
+            status: done
+            summary: "Improved slash VFX (larger white arc with glow), elite aura (radial gradient), character shadows, hero idle bob, emoji removal, level-up menu fullscreen overlay, top HUD styling, game over screen aesthetics, minigun bullet sprite alignment"
+            files: [IsoRenderer.ts, game.xaml, ArenaVerminComponent.ts, MinigunWeapon.ts, Assets.ts]
+          - name: "Refactor: Dynamic XAML ItemsControl for character sprites"
+            status: done
+            summary: "Replaced 25 hardcoded enemy slots + hero slots with ItemsControl bound to array of CharacterSpriteViewModel instances. Each entry has full sprite properties controlled from TypeScript."
+            files: [CharacterSpriteViewModel.ts, ArenaVerminViewModel.ts, game.xaml, SpriteUpdater.ts]
+          - name: "Visual Polish Pass 2 - Juice effects"
+            status: in_progress
+            subtasks:
+              - name: "Hero dust trail particles"
+                status: in_progress
+              - name: "Wave announcement flair"
+                status: not_started
+              - name: "Pickup sparkle trail"
+                status: not_started
+          - name: "Refactor: Split XAML into modular files"
+            status: done
+            summary: "Split monolithic game.xaml into thin shell + GlobalResources.xaml with named DataTemplates for each screen/layer (HUD, Title, Upgrade, Pause, Death, Sprites)"
+            files: [xaml/game.xaml, xaml/GlobalResources.xaml]
 
 chopping_block:
   disabled_systems: []

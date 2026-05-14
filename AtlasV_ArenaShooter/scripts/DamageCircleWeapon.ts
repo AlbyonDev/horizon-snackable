@@ -1,21 +1,19 @@
 // Arena Vermin — Damage Circle Weapon System (pure logic module)
-// Periodic AoE pulse centered on the hero that damages all enemies within blast radius.
-// Draws an expanding ring VFX for each pulse.
+// The damage circle is a Weapon03 sprite centered on the hero, scaled to the
+// level's damage radius, that spins around its own center. Any enemy inside
+// the radius takes damage on a per-enemy cooldown.
 
 import type { DrawingCommandsBuilder } from 'meta/worlds';
-import { SolidBrush, Pen } from 'meta/worlds';
-import { Color } from 'meta/platform_api';
-import type { CameraState, EnemyState, DamageCircleState, DamageCirclePulseVFX } from './Types';
+import { ImageBrush } from 'meta/worlds';
+import type { CameraState, EnemyState, DamageCircleState } from './Types';
 import { worldToScreen } from './IsoRenderer';
 import {
   DAMAGE_CIRCLE_LEVELS,
-  DAMAGE_CIRCLE_RING_DURATION,
-  DAMAGE_CIRCLE_RING_COLOR,
-  DAMAGE_CIRCLE_RING_GLOW_COLOR,
-  DAMAGE_CIRCLE_RING_WIDTH,
-  DAMAGE_CIRCLE_RING_GLOW_WIDTH,
   CANVAS_W, CANVAS_H, PIXELS_PER_UNIT,
 } from './Constants';
+import { heroWeapon03Texture } from './Assets';
+
+const damageCircleBrush = new ImageBrush(heroWeapon03Texture);
 
 export interface DamageCircleHitResult {
   enemyIndex: number;
@@ -24,11 +22,14 @@ export interface DamageCircleHitResult {
 
 /** Initialize damage circle state for the current level. */
 export function initDamageCircle(level: number): DamageCircleState {
-  return { lastPulseTime: -999 };
+  return {
+    angle: 0,
+    hitCooldownMap: new Map(),
+  };
 }
 
-/** Update damage circle: check pulse cooldown and damage enemies in radius.
- *  Spawns a pulse VFX when a pulse fires. Returns hit results for all enemies hit. */
+/** Update the damage circle: spin the sprite and damage enemies inside the
+ *  radius (per-enemy cooldown). Returns hits for the main loop to apply. */
 export function updateDamageCircle(
   state: DamageCircleState,
   heroX: number,
@@ -37,92 +38,85 @@ export function updateDamageCircle(
   dt: number,
   level: number,
   gameTime: number,
-  pulseVFX: DamageCirclePulseVFX[],
 ): DamageCircleHitResult[] {
   if (level <= 0) return [];
 
   const data = DAMAGE_CIRCLE_LEVELS[level - 1];
   const hits: DamageCircleHitResult[] = [];
 
-  // Check pulse cooldown
-  if (gameTime - state.lastPulseTime < data.pulseInterval) return hits;
+  // Spin the sprite around its own center.
+  state.angle += data.orbitSpeed * dt;
+  if (state.angle > Math.PI * 2) state.angle -= Math.PI * 2;
 
-  // Fire a pulse!
-  state.lastPulseTime = gameTime;
+  // Hit detection: any enemy inside (radius + enemy body radius) takes a hit,
+  // respecting per-enemy cooldown.
+  const enemyRadius = 0.5;
+  const hitDist = data.radius + enemyRadius;
+  const hitDistSq = hitDist * hitDist;
 
-  // Damage all alive non-spawning enemies within radius
-  const radiusSq = data.radius * data.radius;
   for (let i = 0; i < enemies.length; i++) {
     const enemy = enemies[i];
     if (enemy.isDead || enemy.isSpawning) continue;
     const dx = enemy.x - heroX;
     const dy = enemy.y - heroY;
-    const distSq = dx * dx + dy * dy;
-    if (distSq < radiusSq) {
-      hits.push({ enemyIndex: i, damage: data.damage });
-    }
+    if (dx * dx + dy * dy >= hitDistSq) continue;
+
+    const lastHit = state.hitCooldownMap.get(enemy);
+    if (lastHit !== undefined && gameTime - lastHit < data.hitCooldown) continue;
+
+    state.hitCooldownMap.set(enemy, gameTime);
+    hits.push({ enemyIndex: i, damage: data.damage });
   }
 
-  // Spawn expanding ring VFX at hero position
-  const maxRadiusPx = data.radius * PIXELS_PER_UNIT;
-  pulseVFX.push({
-    x: heroX,
-    y: heroY,
-    age: 0,
-    maxAge: DAMAGE_CIRCLE_RING_DURATION,
-    maxRadius: maxRadiusPx,
-  });
+  // Periodically prune cooldown entries for dead/stale enemies.
+  if (state.hitCooldownMap.size > 32) {
+    const horizon = gameTime - data.hitCooldown;
+    for (const [enemy, t] of state.hitCooldownMap) {
+      if (enemy.isDead || t < horizon) state.hitCooldownMap.delete(enemy);
+    }
+  }
 
   return hits;
 }
 
-/** Update pulse VFX ages and remove expired pulses. */
-export function updateDamageCirclePulses(
-  pulses: DamageCirclePulseVFX[],
-  dt: number,
-): void {
-  for (let i = pulses.length - 1; i >= 0; i--) {
-    pulses[i].age += dt;
-    if (pulses[i].age >= pulses[i].maxAge) {
-      pulses.splice(i, 1);
-    }
-  }
-}
-
-/** Draw expanding ring VFX for all active pulses. */
-export function drawDamageCirclePulses(
+/** Draw the damage circle: Weapon03 sprite centered on hero, sized to the
+ *  level's damage radius, spinning around its own center. */
+export function drawDamageCircle(
   builder: DrawingCommandsBuilder,
-  pulses: DamageCirclePulseVFX[],
+  state: DamageCircleState,
+  heroX: number,
+  heroY: number,
   camera: CameraState,
+  level: number,
 ): void {
+  if (level <= 0) return;
+
+  const data = DAMAGE_CIRCLE_LEVELS[level - 1];
+
+  const { sx, sy } = worldToScreen(heroX, heroY);
   const screenCX = CANVAS_W / 2;
   const screenCY = CANVAS_H / 2;
+  const screenX = sx - camera.offsetX + screenCX;
+  const screenY = sy - camera.offsetY + screenCY;
 
-  for (const pulse of pulses) {
-    const progress = pulse.age / pulse.maxAge; // 0 → 1
-    const currentRadius = pulse.maxRadius * progress;
-    const alpha = 1.0 - progress; // fade out as it expands
+  // Sprite diameter = 2 * radius (in pixels). The sprite IS the damage zone.
+  const diam = data.radius * 2 * PIXELS_PER_UNIT;
+  const half = diam / 2;
 
-    // Convert world position to screen
-    const { sx, sy } = worldToScreen(pulse.x, pulse.y);
-    const screenX = sx - camera.offsetX + screenCX;
-    const screenY = sy - camera.offsetY + screenCY;
+  // Cull off-screen (with margin for the disc)
+  if (screenX < -half - 20 || screenX > CANVAS_W + half + 20 ||
+      screenY < -half - 20 || screenY > CANVAS_H + half + 20) return;
 
-    // Cull off-screen (generous margin for large rings)
-    const margin = pulse.maxRadius + 20;
-    if (screenX < -margin || screenX > CANVAS_W + margin ||
-        screenY < -margin || screenY > CANVAS_H + margin) continue;
-
-    // Draw glow ring (wider, behind)
-    const glowColor = Color.fromHex(DAMAGE_CIRCLE_RING_GLOW_COLOR);
-    const glowBrush = new SolidBrush(new Color(glowColor.r, glowColor.g, glowColor.b, alpha * 0.4));
-    const glowPen = new Pen(glowBrush, DAMAGE_CIRCLE_RING_GLOW_WIDTH);
-    builder.drawEllipse(null, glowPen, { x: screenX, y: screenY }, { x: currentRadius, y: currentRadius });
-
-    // Draw main ring
-    const ringColor = Color.fromHex(DAMAGE_CIRCLE_RING_COLOR);
-    const ringBrush = new SolidBrush(new Color(ringColor.r, ringColor.g, ringColor.b, alpha * 0.8));
-    const ringPen = new Pen(ringBrush, DAMAGE_CIRCLE_RING_WIDTH);
-    builder.drawEllipse(null, ringPen, { x: screenX, y: screenY }, { x: currentRadius, y: currentRadius });
-  }
+  // Spin around the sprite's center (the hero position on screen).
+  const angleDeg = state.angle * (180 / Math.PI);
+  builder.pushTranslate({ x: screenX, y: screenY });
+  builder.pushRotate(angleDeg, { x: 0, y: 0 });
+  builder.drawRect(damageCircleBrush, null, {
+    x: -half,
+    y: -half,
+    width: diam,
+    height: diam,
+  });
+  builder.pop(); // rotate
+  builder.pop(); // translate
 }

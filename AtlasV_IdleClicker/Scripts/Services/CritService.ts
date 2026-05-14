@@ -15,8 +15,6 @@ export class CritService extends Service {
   private _chance     : number = BASE_CRIT_CHANCE;
   private _multiplier : number = BASE_CRIT_MULTIPLIER;
 
-  // ── Startup: declare all actions ──────────────────────────────────────────────
-
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
     const unlockDef = getActionDef('crit.unlock');
@@ -43,8 +41,6 @@ export class CritService extends Service {
       isEnabled: ResourceService.get().canAfford(getScaledCost('crit.power')),
     }));
   }
-
-  // ── Action handling ───────────────────────────────────────────────────────────
 
   @subscribe(Events.ActionTriggered)
   onActionTriggered(p: Events.ActionTriggeredPayload): void {
@@ -74,8 +70,7 @@ export class CritService extends Service {
     }
   }
 
-  // ── Public queries ────────────────────────────────────────────────────────────
-
-  getChance()    : number { return this._chance; }
-  getMultiplier(): number { return this._multiplier; }
+  getChance()    : number  { return this._chance; }
+  getMultiplier(): number  { return this._multiplier; }
+  isPurchased() : boolean  { return StatsService.get().get('crit.unlock') > 0; }
 }

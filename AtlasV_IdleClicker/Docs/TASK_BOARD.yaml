@@ -1,98 +1,54 @@
 tasks:
-  - name: Core Tap UI
-    status: in_progress
-    subtasks:
-      - name: Tap button with bounce animation
-        status: done
-      - name: Floating text feedback
-        status: done
-      - name: Gold counter display
-        status: done
-      - name: Enhanced tap button animation
-        status: in_progress
-      - name: Tap button resize and reposition
-        status: done
-        summary: Button 2x bigger, positioned at 1/3 from top, animation scaled
-        files: [UI/TapButton.xaml]
-      - name: XAML 2D floating text system
-        status: in_progress
-      - name: Gold resource UI icon
-        status: done
-        summary: Generated gold coin icon with transparent background
-        files: [Textures/UI/gold_icon.png]
-      - name: Gold counter icon and animation
-        status: done
-        summary: Replaced G with coin icon, added pulse animation on gold gain
-        files: [UI/GoldCounter.xaml, Components/GoldCounterDisplay.ts]
-
-  - name: Dynamic Action List UI
+  - name: Hide Player and Skybox
     status: done
-    summary: ItemsControl with dynamic binding, pulse animation on affordable items via DataTrigger
-    files: [UI/ActionList.xaml, Components/ActionListUIComponent.ts]
-    subtasks:
-      - name: Create ActionList.xaml
-        status: done
-      - name: Create ActionListUIComponent.ts
-        status: done
-      - name: Verification
-        status: done
-      - name: User testing
-        status: done
-      - name: Convert to ItemsControl dynamic list
-        status: done
-        summary: Full rewrite with ItemsControl, new portrait button design, slide-in and pulse animations
-        files: [UI/ActionList.xaml, Components/ActionListUIComponent.ts]
-      - name: JustBecameAffordable pulse animation
-        status: done
-        summary: DataTrigger animation on individual items when they become affordable
-        files: [UI/ActionList.xaml, Components/ActionListUIComponent.ts]
+    summary: Disabled skybox entity and set player avatar scale to 0
+    files: [space.hstf, player.hstf]
 
-  - name: Test ItemsControl XAML
+  - name: Fix Player Avatar Still Visible
     status: done
-    summary: ItemsControl + ItemsSource + DataTemplate confirmed working in MHS XAML
-    files: [UI/TestItemsControl.xaml, Components/TestItemsControlComponent.ts]
+    summary: Added Background="Black" to tap_zone.xaml outer Grid to fully cover the 3D world
+    files: [xaml/tap_zone.xaml]
 
-  - name: Progress Bars UI
-    status: in_progress
-    subtasks:
-      - name: Service getters
-        status: done
-        summary: Added isPurchased() to Vault/Frenzy/Interest, getDuration() to Frenzy, getFirstGeneratorCycleProgress() to Generator
-      - name: XAML progress bars
-        status: done
-        summary: 4 colored bars (purple/orange/green/blue) with fill width and visibility bindings
-        files: [UI/ProgressBars.xaml]
-      - name: Component + Entity
-        status: done
-        summary: ViewModel with progress/visibility, tick-based updates, Frenzy dual-mode logic
-        files: [Scripts/Components/ProgressBarsUIComponent.ts]
-      - name: Verification
-        status: done
-      - name: Refactor to vertical layout
-        status: done
-        summary: Vertical bars (bottom-to-top), 2 left (Gen/Frenzy) + 2 right (Interest/Vault), icons at bottom, Frenzy drains when active
-        files: [UI/ProgressBars.xaml, Scripts/Components/ProgressBarsUIComponent.ts]
-      - name: Resize bars x5 height x2 width
-        status: done
-        summary: Bars now 750px tall, 32px wide, image placeholders for icons
-        files: [UI/ProgressBars.xaml, Scripts/Components/ProgressBarsUIComponent.ts]
-      - name: User testing
-        status: in_progress
-
-  - name: GoldCounter visibility variable
+  - name: Add TAP TO EARN text
     status: done
-    summary: Added exposed isVisible boolean property to GoldCounterDisplay component
-    files: [Components/GoldCounterDisplay.ts]
+    summary: Added golden "TAP TO EARN" text below resource counter in tap_zone.xaml
+    files: [xaml/tap_zone.xaml]
 
-  - name: TapButton animation event
+  - name: Title Screen - Idle Temple
     status: done
-    summary: Added Events.PlayTapAnimation event to trigger tap button animation from code
-    files: [Scripts/Types.ts, Components/TapButtonUIComponent.ts, UI/TapButton.xaml]
+    summary: Fullscreen title screen with temple background, golden logo, Play button, and 800ms fade-to-black transition to game
+    files: [xaml/title_screen.xaml, scripts/TitleScreenViewModel.ts, scripts/TitleScreenController.ts, sprites/title_background.png, sprites/title_logo.png]
+
+  - name: Red gradient on unaffordable buy buttons
+    status: done
+    summary: Buy button shows red gradient (#FFD32F2F to #FF6B1010) when canAfford is false
+    files: [xaml/GlobalResources.xaml]
+
+  - name: Player pickaxe z-index above auto cursors
+    status: done
+    summary: Added Panel.ZIndex="1" to player pickaxe Border in tap_zone.xaml
+    files: [xaml/tap_zone.xaml]
+
+  - name: Crystal shard VFX on gem mining
+    status: done
+    summary: 2D particle system with physics. Fixed race condition. Shards reduced in size (0.4-0.85 scale) and spawn with random position offset (±20px H, ±10px V).
+    files: [scripts/CrystalShardViewModel.ts, scripts/CrystalShardController.ts, scripts/TapZoneViewModel.ts, xaml/tap_zone.xaml]
+
+  - name: Dynamic floating text list system
+    status: done
+    summary: Replaced 20 hardcoded XAML slots with dynamic ItemsControl + ViewModel array pattern. ~50 lines XAML instead of 600+.
+    files: [scripts/FloatingTextItemViewModel.ts, scripts/FloatingTextUIComponent.ts, xaml/floating_text.xaml]
+
+  - name: New icons for mining upgrades
+    status: done
+    summary: Generated 4 sprite icons (shrine, mine, miner, critical) with transparent backgrounds and premultiply alpha
+    files: [sprites/icon_shrine.png, sprites/icon_mine.png, sprites/icon_miner.png, sprites/icon_critical.png]
 
 chopping_block:
   disabled_systems: []
-  temp_scaffolding:
-    - TestItemsControlUI entity (test UI on left side)
+  temp_scaffolding: []
   failed_attempts: []
 
-notes: []
+notes:
+  - Idle clicker game with mine/temple theme
+  - Fullscreen 2D UI game (no 3D visible)

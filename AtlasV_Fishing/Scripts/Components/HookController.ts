@@ -27,14 +27,15 @@ import {
   LINE_THICKNESS,
   lineDepthAtLevel, hookMaxFishAtLevel,
   SURFACE_SPEED,
-  LAUNCH_VY_MIN, LAUNCH_VY_MAX, LAUNCH_VX_SPREAD, LAUNCH_GRAVITY, LAUNCH_STAGGER, LAUNCH_EXIT_Y, LAUNCH_TIMEOUT,
+  LAUNCH_VY_MIN, LAUNCH_VY_MAX, LAUNCH_VX_SPREAD, LAUNCH_GRAVITY, LAUNCH_STAGGER, LAUNCH_TIMEOUT, LAUNCH_EXIT_Y, LAUNCH_ANCHOR_X,
+  HOOK_RETURN_STIFFNESS, HOOK_RETURN_DAMPING,
+  DEPTH_SCALE_MIN, DEPTH_SCALE_FULL_AT,
   HOOK_BUBBLE_INTERVAL_DIVE, HOOK_BUBBLE_INTERVAL_SURFACE, HOOK_BUBBLE_X_JITTER,
 } from '../Constants';
 import { Events, GamePhase, type IFishInstance } from '../Types';
 import { FishRegistry } from '../Services/FishRegistry';
-import { FishPoolService } from '../Services/FishPoolService';
+import { FishDataService } from '../Services/FishDataService';
 import { BubblePool } from '../Services/BubblePool';
-import { SimpleFishController } from './SimpleFishController';
 import { VFXService } from '../Services/VFXService';
 
 // =============================================================================
@@ -87,6 +88,7 @@ export class HookController extends Component {
   // ── Dive state ────────────────────────────────────────────────────────────────
   private _diveStart     = WATER_SURFACE_Y;
   private _surfaceTimer  = 0;
+  private _depthScale    = 1;  // 0..1 factor based on dive depth, applied to surface/launch intensity
   private _hookedFish  : IFishInstance[] = [];
   private _swipeStartX  = 0;
 
@@ -99,6 +101,8 @@ export class HookController extends Component {
   private _launchPending  = 0;
   private _launchInFlight = 0;
   private _launchTimeout  = 0;  // safety — fires AllFishCollected if phase never ends
+  private _hookReturnVX   = 0;  // spring-back velocity X during Launching
+  private _hookReturnVY   = 0;  // spring-back velocity Y during Launching
 
   // ── Init ──────────────────────────────────────────────────────────────────────
 
@@ -140,7 +144,7 @@ export class HookController extends Component {
       this._hookVY    = CAST_VY;
       for (const fish of this._hookedFish) {
         fish.isHooked = false;
-        FishPoolService.get().returnToBench(fish);
+        FishDataService.get().returnToBench(fish);
       }
       this._hookedFish = [];
     }
@@ -154,6 +158,9 @@ export class HookController extends Component {
       this._hookVX = 0;
       this._surfaceTimer = 0;
       this._bubbleTimer = 0;
+      const dived = Math.max(0, this._diveStart - this._hookY);
+      const t = Math.min(1, dived / DEPTH_SCALE_FULL_AT);
+      this._depthScale = DEPTH_SCALE_MIN + (1 - DEPTH_SCALE_MIN) * t;
     }
 
     if (p.phase === GamePhase.Launching) {
@@ -163,7 +170,7 @@ export class HookController extends Component {
     if (p.phase === GamePhase.Idle || p.phase === GamePhase.Reset) {
       for (const fish of this._hookedFish) {
         fish.isHooked = false;
-        FishPoolService.get().returnToBench(fish);
+        FishDataService.get().returnToBench(fish);
       }
       this._hookedFish = [];
     }
@@ -185,8 +192,9 @@ export class HookController extends Component {
     this._hookVX += delta * DIVE_SWIPE_FORCE;
     this._hookVX = Math.max(-DIVE_SWIPE_MAX_SPEED, Math.min(DIVE_SWIPE_MAX_SPEED, this._hookVX));
 
-    // Wiggle attached fish slightly for juicy feedback
-    this._jiggleHookedFish(delta);
+    // Instant pendulum impulse — pendulum reacts to acceleration, but swipe deltas
+    // are already smoothed by drag. A direct angularVel kick gives the "snap" feel.
+    EventService.sendLocally(Events.SwipeKick, { delta });
   }
 
   // ── Update ────────────────────────────────────────────────────────────────────
@@ -287,9 +295,9 @@ export class HookController extends Component {
   // ── Surfacing ─────────────────────────────────────────────────────────────────
 
   private _tickSurfacing(dt: number): void {
-    this._hookY += SURFACE_SPEED * dt;
-    // Drift X back toward center gently
-    this._hookX += (0 - this._hookX) * Math.min(1, 2.0 * dt);
+    this._hookY += SURFACE_SPEED * this._depthScale * dt;
+    // Drift X back toward launch anchor gently
+    this._hookX += (LAUNCH_ANCHOR_X - this._hookX) * Math.min(1, 2.0 * dt);
     this._hookX  = Math.max(-HALF_W + 0.3, Math.min(HALF_W - 0.3, this._hookX));
 
     this._moveHook(this._hookX, this._hookY);
@@ -320,8 +328,12 @@ export class HookController extends Component {
     this._launchTimer   = 0;
     this._launchTimeout = LAUNCH_TIMEOUT;
 
-    // Snap hook back to idle immediately
-    this._moveHook(HOOK_IDLE_X, HOOK_IDLE_Y);
+    // Park the fish cluster at the launch anchor; the hook will spring back to idle independently.
+    for (const fish of this._hookedFish) {
+      fish.setPosition(LAUNCH_ANCHOR_X, HOOK_IDLE_Y);
+    }
+    this._hookReturnVX = 0;
+    this._hookReturnVY = 0;
 
     if (this._launchPending === 0) {
       // Nothing to launch — go straight to reset
@@ -330,6 +342,16 @@ export class HookController extends Component {
   }
 
   private _tickLaunching(dt: number): void {
+    // Spring-damper return of the hook toward its idle position (independent of fish)
+    const ax = (HOOK_IDLE_X - this._hookX) * HOOK_RETURN_STIFFNESS - this._hookReturnVX * HOOK_RETURN_DAMPING;
+    const ay = (HOOK_IDLE_Y - this._hookY) * HOOK_RETURN_STIFFNESS - this._hookReturnVY * HOOK_RETURN_DAMPING;
+    this._hookReturnVX += ax * dt;
+    this._hookReturnVY += ay * dt;
+    this._moveHook(
+      this._hookX + this._hookReturnVX * dt,
+      this._hookY + this._hookReturnVY * dt,
+    );
+
     // Safety timeout — fires AllFishCollected if phase never ends naturally
     this._launchTimeout -= dt;
     if (this._launchTimeout <= 0) {
@@ -342,24 +364,24 @@ export class HookController extends Component {
       this._launchTimer -= dt;
       if (this._launchTimer <= 0) {
         const fish = this._launchQueue.shift()!;
-        const vy   = LAUNCH_VY_MIN + Math.random() * (LAUNCH_VY_MAX - LAUNCH_VY_MIN);
-        const vx   = (Math.random() * 2 - 1) * LAUNCH_VX_SPREAD;
-        (fish as unknown as SimpleFishController).launch(vx, vy, LAUNCH_GRAVITY);
+        const vy   = (LAUNCH_VY_MIN + Math.random() * (LAUNCH_VY_MAX - LAUNCH_VY_MIN)) * this._depthScale;
+        const vx   = (Math.random() * 2 - 1) * LAUNCH_VX_SPREAD * this._depthScale;
+        fish.launch(vx, vy, LAUNCH_GRAVITY);
         this._launchInFlight++;
         this._launchTimer = LAUNCH_STAGGER;
       }
     }
 
-    // Check each in-flight fish — collect when it exits top of screen
+    // Check each in-flight fish — collect at the apex of the launch arc (vy <= 0)
+    // OR as soon as it crosses LAUNCH_EXIT_Y, whichever happens first.
     for (const fish of this._hookedFish) {
-      const sfc = fish as unknown as SimpleFishController;
-      if (sfc.isFlying && fish.worldY >= LAUNCH_EXIT_Y) {
-        sfc.stopFlying();
+      if (fish.isFlying && (fish.flyVY <= 0 || fish.worldY >= LAUNCH_EXIT_Y)) {
+        fish.stopFlying();
         this._launchInFlight--;
         EventService.sendLocally(Events.FishCollected, { fishId: fish.fishId, defId: fish.defId, x: fish.worldX, y: fish.worldY });
 
         // Recycle immediately — teleport below visible area
-        FishPoolService.get().returnToBench(fish);
+        FishDataService.get().returnToBench(fish);
 
         if (this._launchInFlight <= 0 && this._launchQueue.length === 0) {
           EventService.sendLocally(Events.AllFishCollected, { count: this._launchPending });
@@ -382,20 +404,7 @@ export class HookController extends Component {
 
   private _updateHookedPositions(): void {
     for (let i = 0; i < this._hookedFish.length; i++) {
-      // Cluster fish around hook with slight offsets based on index
-      const angle  = (i / Math.max(1, this._hookedFish.length)) * Math.PI * 2;
-      const radius = 0.25 + i * 0.15;
-      const ox = Math.cos(angle) * radius;
-      const oy = Math.sin(angle) * radius * 0.5;
-      this._hookedFish[i].setPosition(this._hookX + ox, this._hookY + oy - 0.5);
-    }
-  }
-
-  private _jiggleHookedFish(swipeDelta: number): void {
-    for (const fish of this._hookedFish) {
-      // Small horizontal nudge opposite swipe for a "swinging mass" feel
-      const jx = fish.worldX - swipeDelta * 1.5;
-      fish.setPosition(Math.max(-HALF_W + 0.2, Math.min(HALF_W - 0.2, jx)), fish.worldY);
+      this._hookedFish[i].setPosition(this._hookX, this._hookY);
     }
   }
 

@@ -86,6 +86,9 @@ export interface EnemyState {
   sinePhase: number;
   gasTimer: number;
   gasSpawnFlag: boolean;
+  // Throw animation timer (gas rat canister wind-up), counts up from 0 to GAS_RAT_THROW_DUR.
+  // Active while > 0; cloud spawns when it reaches GAS_RAT_THROW_DUR. -1 means inactive.
+  throwAnimTimer: number;
   splashImmune: boolean;
   isElite: boolean;
   // Boss-specific fields
@@ -152,6 +155,16 @@ export interface SlashEffect {
   angleDeg: number;
   timer: number;
   duration: number;
+}
+
+// World-space muzzle flash burst (no rotation; sprites stay parallel to screen).
+export interface MuzzleFlash {
+  x: number;
+  y: number;
+  age: number;
+  maxAge: number;
+  scale: number;
+  colorHex: string;
 }
 
 // === Milestone 3 Types ===
@@ -245,6 +258,9 @@ export interface DroneProjectileState {
 
 export interface MinigunState {
   lastFireTime: number;
+  // Recoil kick timer for the visible hero minigun (counts down from
+  // HERO_MINIGUN_RECOIL_DUR after each shot). 0 = no kick.
+  recoilTimer: number;
 }
 
 export interface MinigunBulletState {
@@ -257,15 +273,11 @@ export interface MinigunBulletState {
 }
 
 export interface DamageCircleState {
-  lastPulseTime: number;
-}
-
-export interface DamageCirclePulseVFX {
-  x: number;
-  y: number;
-  age: number;
-  maxAge: number;
-  maxRadius: number; // in screen pixels
+  // Current orbit angle in radians.
+  angle: number;
+  // Per-enemy last-hit timestamps (gameTime). Keyed by enemy reference so it
+  // survives reordering of the enemies array.
+  hitCooldownMap: Map<EnemyState, number>;
 }
 
 export interface UpgradeOption {

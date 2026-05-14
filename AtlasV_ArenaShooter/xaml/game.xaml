@@ -4,681 +4,506 @@
       Background="Black">
 
   <Grid.Resources>
-    <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    <ResourceDictionary>
+
+      <!-- === Shared Converter === -->
+      <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+      <!-- === Shared Button ControlTemplate === -->
+      <ControlTemplate x:Key="GameButtonTemplate" TargetType="Button">
+        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="10,5">
+          <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+
+      <!-- === Sprite Item Template (character body + weapon + flash) === -->
+      <DataTemplate x:Key="SpriteItemTemplate">
+        <Canvas IsHitTestVisible="False">
+          <!-- Body sprite -->
+          <Rectangle Width="{Binding bodyW}" Height="{Binding bodyH}"
+                     Opacity="{Binding bodyOpacity}"
+                     RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
+            <Rectangle.Fill>
+              <ImageBrush ImageSource="{Binding bodyTexture}" Stretch="Uniform" />
+            </Rectangle.Fill>
+            <Rectangle.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform ScaleX="{Binding bodyScaleX}" ScaleY="{Binding bodyScaleY}" />
+                <RotateTransform Angle="{Binding bodyRotation}" />
+              </TransformGroup>
+            </Rectangle.RenderTransform>
+          </Rectangle>
+
+          <!-- Weapon sprite -->
+          <Rectangle Canvas.Left="{Binding weaponOffsetX}" Canvas.Top="{Binding weaponOffsetY}"
+                     Width="{Binding weaponW}" Height="{Binding weaponH}"
+                     Opacity="{Binding weaponOpacity}"
+                     Visibility="{Binding weaponVisible, Converter={StaticResource BoolToVis}}"
+                     RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+            <Rectangle.Fill>
+              <ImageBrush ImageSource="{Binding weaponTexture}" Stretch="Uniform" />
+            </Rectangle.Fill>
+            <Rectangle.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform ScaleX="{Binding weaponScaleX}" ScaleY="{Binding weaponScaleY}" />
+                <RotateTransform Angle="{Binding weaponRotation}" />
+              </TransformGroup>
+            </Rectangle.RenderTransform>
+          </Rectangle>
+
+          <!-- Flash overlay (OpacityMask for pixel-perfect silhouette flash) -->
+          <Rectangle Width="{Binding bodyW}" Height="{Binding bodyH}"
+                     Opacity="{Binding flashOpacity}"
+                     Fill="{Binding flashColor}"
+                     Visibility="{Binding flashVisible, Converter={StaticResource BoolToVis}}"
+                     RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
+            <Rectangle.OpacityMask>
+              <ImageBrush ImageSource="{Binding flashTexture}" Stretch="Uniform" />
+            </Rectangle.OpacityMask>
+            <Rectangle.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform ScaleX="{Binding flashScaleX}" ScaleY="{Binding flashScaleY}" />
+              </TransformGroup>
+            </Rectangle.RenderTransform>
+          </Rectangle>
+        </Canvas>
+      </DataTemplate>
+
+      <!-- === Sprite Container Style === -->
+      <Style x:Key="SpriteContainerStyle" TargetType="ContentPresenter">
+        <Setter Property="Canvas.Left" Value="{Binding posX}" />
+        <Setter Property="Canvas.Top" Value="{Binding posY}" />
+        <Setter Property="Panel.ZIndex" Value="{Binding priority}" />
+        <Setter Property="Visibility" Value="{Binding visible, Converter={StaticResource BoolToVis}}" />
+      </Style>
+
+      <!-- === HUD Template === -->
+      <DataTemplate x:Key="HudTemplate">
+        <Grid Visibility="{Binding hudVisible, Converter={StaticResource BoolToVis}}">
+
+          <!-- === TOP PANEL === -->
+          <Border VerticalAlignment="Top" HorizontalAlignment="Stretch"
+                  Background="#E8060A14" CornerRadius="0,0,18,18"
+                  BorderBrush="#40507090" BorderThickness="0,0,0,1"
+                  Padding="10,6,10,10" Margin="0,0,0,0">
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+
+              <!-- Row 0: HP Bar -->
+              <Grid Grid.Row="0" Margin="46,2,0,0">
+                <Border Height="18" CornerRadius="9" Background="#40200808">
+                  <Border CornerRadius="9" HorizontalAlignment="Left"
+                          Background="{Binding hpBarColorHex}"
+                          Width="{Binding hpBarWidth}" Height="18" />
+                </Border>
+                <Border Height="18" CornerRadius="9" HorizontalAlignment="Left"
+                        Width="{Binding hpBarWidth}" Opacity="0.35">
+                  <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                      <GradientStop Color="#80FFFFFF" Offset="0" />
+                      <GradientStop Color="#00FFFFFF" Offset="0.6" />
+                    </LinearGradientBrush>
+                  </Border.Background>
+                </Border>
+                <TextBlock Text="{Binding hpText}" FontSize="10" FontWeight="Bold" Foreground="#E0FFFFFF"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Grid>
+
+              <!-- Row 1: XP/Level Bar -->
+              <Grid Grid.Row="1" Margin="46,4,0,0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Background="#30507090" CornerRadius="4" Padding="5,1,5,1" Margin="0,0,6,0">
+                  <TextBlock FontSize="10" FontWeight="Bold" Foreground="#A0E0FF" VerticalAlignment="Center">
+                    <Run Text="Lv " /><Run Text="{Binding playerLevel}" />
+                  </TextBlock>
+                </Border>
+                <Grid Grid.Column="1">
+                  <Border Height="8" CornerRadius="4" Background="#18203A">
+                    <Border CornerRadius="4" HorizontalAlignment="Left"
+                            Background="#5090FF"
+                            Width="{Binding levelBarWidth}" Height="8" />
+                  </Border>
+                  <Border Height="4" CornerRadius="2" HorizontalAlignment="Left"
+                          Width="{Binding levelBarWidth}" Margin="0,1,0,0" Opacity="0.4">
+                    <Border.Background>
+                      <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#80FFFFFF" Offset="0" />
+                        <GradientStop Color="#00FFFFFF" Offset="1" />
+                      </LinearGradientBrush>
+                    </Border.Background>
+                  </Border>
+                  <TextBlock Text="{Binding levelBarText}" FontSize="8" Foreground="#5070A0"
+                             HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" />
+                </Grid>
+              </Grid>
+
+              <!-- Row 2: Coins (left) and Enemy Count (right) -->
+              <Grid Grid.Row="2" Margin="46,5,0,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                  <Border Background="#30C08000" CornerRadius="10" Width="22" Height="22">
+                    <Rectangle Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
+                      <Rectangle.Fill><ImageBrush ImageSource="{Binding hudCoinCountTexture}" Stretch="Uniform" /></Rectangle.Fill>
+                    </Rectangle>
+                  </Border>
+                  <TextBlock Text="{Binding coinCountText}" FontSize="14" FontWeight="Bold" Foreground="#FFD740"
+                             Margin="5,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                  <Border Background="#30204060" CornerRadius="10" Width="22" Height="22">
+                    <Rectangle Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
+                      <Rectangle.Fill><ImageBrush ImageSource="{Binding hudEnnemiCountTexture}" Stretch="Uniform" /></Rectangle.Fill>
+                    </Rectangle>
+                  </Border>
+                  <TextBlock Text="{Binding enemyCountText}" FontSize="14" FontWeight="SemiBold" Foreground="#D0E0FF"
+                             Margin="5,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+              </Grid>
+            </Grid>
+          </Border>
+
+          <!-- Pause Button (top-left, overlapping panel) -->
+          <Button Width="44" Height="44" VerticalAlignment="Top" HorizontalAlignment="Left"
+                  Margin="4,4,0,0" Background="Transparent" BorderThickness="0"
+                  Command="{Binding events.onPauseClicked}" IsHitTestVisible="True">
+            <Button.Template>
+              <ControlTemplate TargetType="Button">
+                <Grid>
+                  <Rectangle Width="44" Height="44">
+                    <Rectangle.Fill><ImageBrush ImageSource="{Binding hudPauseButtonTexture}" Stretch="Uniform" /></Rectangle.Fill>
+                  </Rectangle>
+                </Grid>
+              </ControlTemplate>
+            </Button.Template>
+          </Button>
+
+          <!-- === BOTTOM WAVE PANEL === -->
+          <Border VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                  Background="#D0060A14" CornerRadius="20"
+                  BorderBrush="#40507090" BorderThickness="1"
+                  Padding="18,8,18,10"
+                  Margin="0,0,0,20">
+            <StackPanel HorizontalAlignment="Center">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
+                <TextBlock FontSize="11" FontWeight="Bold" Foreground="#5070A0"
+                           VerticalAlignment="Center" Margin="0,0,4,0">WAVE</TextBlock>
+                <TextBlock FontSize="18" FontWeight="Bold" Foreground="#E0EEFF"
+                           VerticalAlignment="Center" Text="{Binding waveNumber}" />
+              </StackPanel>
+              <!-- Timer bar -->
+              <Grid Width="180" Height="12">
+                <Border CornerRadius="6" Background="#18101820" Height="12">
+                  <Border CornerRadius="6" HorizontalAlignment="Left"
+                          Background="{Binding timerColorHex}"
+                          Width="{Binding timerBarWidth}" Height="12" />
+                </Border>
+                <Border CornerRadius="6" HorizontalAlignment="Left"
+                        Width="{Binding timerBarWidth}" Height="6" Margin="0,1,0,0" Opacity="0.35">
+                  <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                      <GradientStop Color="#80FFFFFF" Offset="0" />
+                      <GradientStop Color="#00FFFFFF" Offset="1" />
+                    </LinearGradientBrush>
+                  </Border.Background>
+                </Border>
+              </Grid>
+              <!-- Wave progress dots row -->
+              <Grid Width="100" Height="6" Margin="0,5,0,0" HorizontalAlignment="Center">
+                <Rectangle Width="100" Height="6" RadiusX="3" RadiusY="3">
+                  <Rectangle.Fill><ImageBrush ImageSource="{Binding hudWaveBarContourTexture}" Stretch="Fill" /></Rectangle.Fill>
+                </Rectangle>
+                <Border CornerRadius="3" HorizontalAlignment="Left"
+                        Background="{Binding timerColorHex}"
+                        Width="{Binding waveBarWidth}" Height="4" Margin="1" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- Wave Announcement (center) -->
+          <Grid Visibility="{Binding waveAnnouncementVisible, Converter={StaticResource BoolToVis}}"
+                VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border Background="#D0060A14" CornerRadius="14" BorderBrush="#405090C0" BorderThickness="1"
+                    Padding="28,12">
+              <TextBlock Text="{Binding waveAnnouncementText}" FontSize="26" FontWeight="Bold"
+                         Foreground="#E0EEFF" HorizontalAlignment="Center" />
+            </Border>
+          </Grid>
+
+          <!-- Elite Warning (center, slightly above center) -->
+          <Grid Visibility="{Binding eliteWarningVisible, Converter={StaticResource BoolToVis}}"
+                VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,-80,0,0">
+            <Border Background="#D0180800" CornerRadius="12" BorderBrush="#60FF6010" BorderThickness="1.5"
+                    Padding="22,10">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="&#x26A0; " FontSize="18" Foreground="#FF8020" VerticalAlignment="Center" />
+                <TextBlock Text="ELITE INCOMING!" FontSize="20" FontWeight="Bold"
+                           Foreground="#FF9030" VerticalAlignment="Center" />
+              </StackPanel>
+            </Border>
+          </Grid>
+
+          <!-- Boss Warning (center) -->
+          <Grid Visibility="{Binding bossWarningVisible, Converter={StaticResource BoolToVis}}"
+                VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,-130,0,0">
+            <Border Background="#D0200000" CornerRadius="12" BorderBrush="#80FF2020" BorderThickness="1.5"
+                    Padding="22,10">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock Text="&#x2620; " FontSize="18" Foreground="#FF4040" VerticalAlignment="Center" />
+                <TextBlock Text="BOSS INCOMING!" FontSize="22" FontWeight="Bold"
+                           Foreground="#FF5050" VerticalAlignment="Center" />
+              </StackPanel>
+            </Border>
+          </Grid>
+
+          <!-- Boss HP Bar (top, below HUD panel) -->
+          <Grid Visibility="{Binding bossHpBarVisible, Converter={StaticResource BoolToVis}}"
+                VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,82,0,0">
+            <Border CornerRadius="8" Background="#60000000" Padding="4,3">
+              <StackPanel>
+                <TextBlock Text="BOSS" FontSize="9" FontWeight="Bold" Foreground="#FF6060"
+                           HorizontalAlignment="Center" Margin="0,0,0,2" />
+                <Border Height="12" Width="320" CornerRadius="6" Background="#40200000">
+                  <Border CornerRadius="6" HorizontalAlignment="Left"
+                          Background="#D02020"
+                          Width="{Binding bossHpBarWidth}" Height="12" />
+                </Border>
+                <TextBlock Text="{Binding bossHpBarText}" FontSize="9" Foreground="#F0A0A0"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,2,0,0" />
+              </StackPanel>
+            </Border>
+          </Grid>
+        </Grid>
+      </DataTemplate>
+
+      <!-- === Pause Menu Template === -->
+      <DataTemplate x:Key="PauseMenuTemplate">
+        <Grid Visibility="{Binding pauseMenuVisible, Converter={StaticResource BoolToVis}}"
+              Background="#D912121A">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="PAUSED" FontSize="36" FontWeight="Bold" Foreground="#F0F0F8"
+                       HorizontalAlignment="Center" Margin="0,0,0,30" />
+            <Button Content="RESUME" Command="{Binding events.onResumeClicked}"
+                    Width="180" Height="50" FontSize="18" FontWeight="Bold"
+                    Background="#4080F0" Foreground="White" BorderThickness="0" Margin="0,0,0,12"
+                    Template="{StaticResource GameButtonTemplate}" />
+            <Button Content="RESTART" Command="{Binding events.onRestartClicked}"
+                    Width="180" Height="50" FontSize="18" FontWeight="Bold"
+                    Background="#E94560" Foreground="White" BorderThickness="0"
+                    Template="{StaticResource GameButtonTemplate}" />
+          </StackPanel>
+        </Grid>
+      </DataTemplate>
+
+      <!-- === Upgrade Screen Template === -->
+      <DataTemplate x:Key="UpgradeScreenTemplate">
+        <Grid Visibility="{Binding upgradeScreenVisible, Converter={StaticResource BoolToVis}}"
+              Background="#F0080810">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="340">
+            <Border Height="3" Width="80" Background="#FFD740" CornerRadius="2"
+                    HorizontalAlignment="Center" Margin="0,0,0,14" />
+            <TextBlock Text="LEVEL UP!" FontSize="30" FontWeight="Bold" Foreground="#FFD740"
+                       HorizontalAlignment="Center" Margin="0,0,0,8" />
+            <TextBlock Text="Choose an upgrade:" FontSize="13" Foreground="#8090A0"
+                       HorizontalAlignment="Center" Margin="0,0,0,20" />
+            <Border Height="1" Width="260" Background="#20406080" CornerRadius="1"
+                    HorizontalAlignment="Center" Margin="0,0,0,18" />
+
+            <!-- Upgrade Card 0 -->
+            <Button Command="{Binding events.onUpgrade0Clicked}"
+                    Visibility="{Binding upgrade0Visible, Converter={StaticResource BoolToVis}}"
+                    Width="310" Height="84" Background="Transparent" BorderThickness="0" Margin="0,0,0,10">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border Background="#50182840" CornerRadius="10" BorderBrush="#7060B0" BorderThickness="1.5" Padding="14,10">
+                    <StackPanel>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding upgrade0Name}" FontSize="16" FontWeight="Bold" Foreground="#F0F0F8" />
+                        <TextBlock Text="{Binding upgrade0Level}" FontSize="11" Foreground="#80D0FF"
+                                   Margin="10,3,0,0" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding upgrade0Desc}" FontSize="12" Foreground="#9098A8"
+                                 Margin="0,5,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Border>
+                </ControlTemplate>
+              </Button.Template>
+            </Button>
+
+            <!-- Upgrade Card 1 -->
+            <Button Command="{Binding events.onUpgrade1Clicked}"
+                    Visibility="{Binding upgrade1Visible, Converter={StaticResource BoolToVis}}"
+                    Width="310" Height="84" Background="Transparent" BorderThickness="0" Margin="0,0,0,10">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border Background="#50182840" CornerRadius="10" BorderBrush="#7060B0" BorderThickness="1.5" Padding="14,10">
+                    <StackPanel>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding upgrade1Name}" FontSize="16" FontWeight="Bold" Foreground="#F0F0F8" />
+                        <TextBlock Text="{Binding upgrade1Level}" FontSize="11" Foreground="#80D0FF"
+                                   Margin="10,3,0,0" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding upgrade1Desc}" FontSize="12" Foreground="#9098A8"
+                                 Margin="0,5,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Border>
+                </ControlTemplate>
+              </Button.Template>
+            </Button>
+
+            <!-- Upgrade Card 2 -->
+            <Button Command="{Binding events.onUpgrade2Clicked}"
+                    Visibility="{Binding upgrade2Visible, Converter={StaticResource BoolToVis}}"
+                    Width="310" Height="84" Background="Transparent" BorderThickness="0" Margin="0,0,0,10">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border Background="#50182840" CornerRadius="10" BorderBrush="#7060B0" BorderThickness="1.5" Padding="14,10">
+                    <StackPanel>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding upgrade2Name}" FontSize="16" FontWeight="Bold" Foreground="#F0F0F8" />
+                        <TextBlock Text="{Binding upgrade2Level}" FontSize="11" Foreground="#80D0FF"
+                                   Margin="10,3,0,0" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <TextBlock Text="{Binding upgrade2Desc}" FontSize="12" Foreground="#9098A8"
+                                 Margin="0,5,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Border>
+                </ControlTemplate>
+              </Button.Template>
+            </Button>
+          </StackPanel>
+        </Grid>
+      </DataTemplate>
+
+      <!-- === Title Screen Template === -->
+      <DataTemplate x:Key="TitleScreenTemplate">
+        <Grid Visibility="{Binding titleVisible, Converter={StaticResource BoolToVis}}"
+              Background="#CC12121A">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <TextBlock Text="ARENA" FontSize="56" FontWeight="Bold" FontFamily="Teko"
+                       Foreground="#F0F0F8" HorizontalAlignment="Center"
+                       CharacterSpacing="200" Margin="0,0,0,-10" />
+            <TextBlock Text="VERMIN" FontSize="56" FontWeight="Bold" FontFamily="Teko"
+                       Foreground="#E94560" HorizontalAlignment="Center"
+                       CharacterSpacing="200" Margin="0,0,0,30" />
+            <Border Height="2" Width="160" Background="#4080F0"
+                    HorizontalAlignment="Center" Margin="0,0,0,30" CornerRadius="1" />
+            <Button Content="START" Command="{Binding events.onStartClicked}"
+                    Width="180" Height="50" FontSize="20" FontWeight="Bold"
+                    Background="#E94560" Foreground="White" BorderThickness="0"
+                    Template="{StaticResource GameButtonTemplate}" />
+          </StackPanel>
+        </Grid>
+      </DataTemplate>
+
+      <!-- === Death Overlay Template (fades in during death animation) === -->
+      <DataTemplate x:Key="DeathOverlayTemplate">
+        <Grid Visibility="{Binding deathOverlayVisible, Converter={StaticResource BoolToVis}}"
+              Background="#12121A" Opacity="{Binding deathOverlayOpacity}"
+              IsHitTestVisible="False" />
+      </DataTemplate>
+
+      <!-- === Death Screen Template === -->
+      <DataTemplate x:Key="DeathScreenTemplate">
+        <Grid Visibility="{Binding deathScreenVisible, Converter={StaticResource BoolToVis}}">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border Height="3" Width="60" Background="#E94560" CornerRadius="2"
+                    HorizontalAlignment="Center" Margin="0,0,0,12" />
+            <TextBlock Text="DEFEATED" FontSize="34" FontWeight="Bold" Foreground="#E94560"
+                       HorizontalAlignment="Center" Margin="0,0,0,6" />
+            <Border Height="1" Width="140" Background="#30E94560" CornerRadius="1"
+                    HorizontalAlignment="Center" Margin="0,0,0,20" />
+
+            <!-- Stats card -->
+            <Border Background="#30182030" CornerRadius="10" Padding="20,14" Margin="0,0,0,20"
+                    BorderBrush="#20E94560" BorderThickness="1">
+              <StackPanel>
+                <TextBlock Text="{Binding deathWavesText}" FontSize="15" Foreground="#D0D0E0"
+                           HorizontalAlignment="Center" Margin="0,0,0,10" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
+                  <Ellipse Width="14" Height="14" Fill="#F0C030" Stroke="#C08020" StrokeThickness="1" />
+                  <TextBlock Text="{Binding deathCoinsText}" FontSize="14" Foreground="#FFD740"
+                             Margin="6,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                  <Ellipse Width="14" Height="14" Fill="#30D060" Stroke="#20A040" StrokeThickness="1" />
+                  <TextBlock Text="{Binding deathXpText}" FontSize="14" Foreground="#60E080"
+                             Margin="6,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <Button Content="RETRY" Command="{Binding events.onRetryClicked}"
+                    Width="200" Height="52" FontSize="18" FontWeight="Bold"
+                    Background="#E94560" Foreground="White" BorderThickness="0" Margin="0,0,0,12">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="10,5">
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                </ControlTemplate>
+              </Button.Template>
+            </Button>
+            <Button Content="MENU" Command="{Binding events.onReturnToMenuClicked}"
+                    Width="200" Height="44" FontSize="14" FontWeight="Bold"
+                    Background="#2A3048" Foreground="#9098B0" BorderThickness="0">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="10,5"
+                          BorderBrush="#30506080" BorderThickness="1">
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                </ControlTemplate>
+              </Button.Template>
+            </Button>
+          </StackPanel>
+        </Grid>
+      </DataTemplate>
+
+    </ResourceDictionary>
   </Grid.Resources>
 
   <Viewbox Stretch="Uniform">
     <Grid Width="390" Height="844">
-      <!-- Layer 0: Game canvas (tiles, ring, slash, particles, floating text, joystick) -->
+      <!-- Layer 0: Main game canvas (tiles, ring, slash, particles, floating text, joystick) -->
       <local:DrawingSurface Width="390" Height="844" Commands="{Binding drawCommands}" />
 
-      <!-- Layer 1: Sprite Canvas (enemies, hero, flashes) -->
-      <Canvas Width="390" Height="844" IsHitTestVisible="False">
-
-        <!-- === Elite Glow Slots (behind enemy sprites) === -->
-        <Rectangle Canvas.Left="{Binding eg0X}" Canvas.Top="{Binding eg0Y}" Width="{Binding eg0W}" Height="{Binding eg0H}" Opacity="{Binding eg0Opacity}" Visibility="{Binding eg0Visible, Converter={StaticResource BoolToVis}}" Fill="{Binding eg0ColorHex}" RadiusX="999" RadiusY="999" IsHitTestVisible="False" />
-        <Rectangle Canvas.Left="{Binding eg1X}" Canvas.Top="{Binding eg1Y}" Width="{Binding eg1W}" Height="{Binding eg1H}" Opacity="{Binding eg1Opacity}" Visibility="{Binding eg1Visible, Converter={StaticResource BoolToVis}}" Fill="{Binding eg1ColorHex}" RadiusX="999" RadiusY="999" IsHitTestVisible="False" />
-        <Rectangle Canvas.Left="{Binding eg2X}" Canvas.Top="{Binding eg2Y}" Width="{Binding eg2W}" Height="{Binding eg2H}" Opacity="{Binding eg2Opacity}" Visibility="{Binding eg2Visible, Converter={StaticResource BoolToVis}}" Fill="{Binding eg2ColorHex}" RadiusX="999" RadiusY="999" IsHitTestVisible="False" />
-        <Rectangle Canvas.Left="{Binding eg3X}" Canvas.Top="{Binding eg3Y}" Width="{Binding eg3W}" Height="{Binding eg3H}" Opacity="{Binding eg3Opacity}" Visibility="{Binding eg3Visible, Converter={StaticResource BoolToVis}}" Fill="{Binding eg3ColorHex}" RadiusX="999" RadiusY="999" IsHitTestVisible="False" />
-        <Rectangle Canvas.Left="{Binding eg4X}" Canvas.Top="{Binding eg4Y}" Width="{Binding eg4W}" Height="{Binding eg4H}" Opacity="{Binding eg4Opacity}" Visibility="{Binding eg4Visible, Converter={StaticResource BoolToVis}}" Fill="{Binding eg4ColorHex}" RadiusX="999" RadiusY="999" IsHitTestVisible="False" />
-
-        <!-- === Enemy Body Sprites (slots 0-14, back to front) === -->
-        <Rectangle Canvas.Left="{Binding enemy0X}" Canvas.Top="{Binding enemy0Y}" Width="{Binding enemy0W}" Height="{Binding enemy0H}" Opacity="{Binding enemy0Opacity}" Visibility="{Binding enemy0Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy0Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy0ScaleX}" ScaleY="{Binding enemy0ScaleY}" /><RotateTransform Angle="{Binding enemy0Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy1X}" Canvas.Top="{Binding enemy1Y}" Width="{Binding enemy1W}" Height="{Binding enemy1H}" Opacity="{Binding enemy1Opacity}" Visibility="{Binding enemy1Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy1Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy1ScaleX}" ScaleY="{Binding enemy1ScaleY}" /><RotateTransform Angle="{Binding enemy1Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy2X}" Canvas.Top="{Binding enemy2Y}" Width="{Binding enemy2W}" Height="{Binding enemy2H}" Opacity="{Binding enemy2Opacity}" Visibility="{Binding enemy2Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy2Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy2ScaleX}" ScaleY="{Binding enemy2ScaleY}" /><RotateTransform Angle="{Binding enemy2Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy3X}" Canvas.Top="{Binding enemy3Y}" Width="{Binding enemy3W}" Height="{Binding enemy3H}" Opacity="{Binding enemy3Opacity}" Visibility="{Binding enemy3Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy3Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy3ScaleX}" ScaleY="{Binding enemy3ScaleY}" /><RotateTransform Angle="{Binding enemy3Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy4X}" Canvas.Top="{Binding enemy4Y}" Width="{Binding enemy4W}" Height="{Binding enemy4H}" Opacity="{Binding enemy4Opacity}" Visibility="{Binding enemy4Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy4Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy4ScaleX}" ScaleY="{Binding enemy4ScaleY}" /><RotateTransform Angle="{Binding enemy4Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy5X}" Canvas.Top="{Binding enemy5Y}" Width="{Binding enemy5W}" Height="{Binding enemy5H}" Opacity="{Binding enemy5Opacity}" Visibility="{Binding enemy5Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy5Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy5ScaleX}" ScaleY="{Binding enemy5ScaleY}" /><RotateTransform Angle="{Binding enemy5Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy6X}" Canvas.Top="{Binding enemy6Y}" Width="{Binding enemy6W}" Height="{Binding enemy6H}" Opacity="{Binding enemy6Opacity}" Visibility="{Binding enemy6Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy6Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy6ScaleX}" ScaleY="{Binding enemy6ScaleY}" /><RotateTransform Angle="{Binding enemy6Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy7X}" Canvas.Top="{Binding enemy7Y}" Width="{Binding enemy7W}" Height="{Binding enemy7H}" Opacity="{Binding enemy7Opacity}" Visibility="{Binding enemy7Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy7Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy7ScaleX}" ScaleY="{Binding enemy7ScaleY}" /><RotateTransform Angle="{Binding enemy7Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy8X}" Canvas.Top="{Binding enemy8Y}" Width="{Binding enemy8W}" Height="{Binding enemy8H}" Opacity="{Binding enemy8Opacity}" Visibility="{Binding enemy8Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy8Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy8ScaleX}" ScaleY="{Binding enemy8ScaleY}" /><RotateTransform Angle="{Binding enemy8Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy9X}" Canvas.Top="{Binding enemy9Y}" Width="{Binding enemy9W}" Height="{Binding enemy9H}" Opacity="{Binding enemy9Opacity}" Visibility="{Binding enemy9Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy9Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy9ScaleX}" ScaleY="{Binding enemy9ScaleY}" /><RotateTransform Angle="{Binding enemy9Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy10X}" Canvas.Top="{Binding enemy10Y}" Width="{Binding enemy10W}" Height="{Binding enemy10H}" Opacity="{Binding enemy10Opacity}" Visibility="{Binding enemy10Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy10Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy10ScaleX}" ScaleY="{Binding enemy10ScaleY}" /><RotateTransform Angle="{Binding enemy10Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy11X}" Canvas.Top="{Binding enemy11Y}" Width="{Binding enemy11W}" Height="{Binding enemy11H}" Opacity="{Binding enemy11Opacity}" Visibility="{Binding enemy11Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy11Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy11ScaleX}" ScaleY="{Binding enemy11ScaleY}" /><RotateTransform Angle="{Binding enemy11Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy12X}" Canvas.Top="{Binding enemy12Y}" Width="{Binding enemy12W}" Height="{Binding enemy12H}" Opacity="{Binding enemy12Opacity}" Visibility="{Binding enemy12Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy12Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy12ScaleX}" ScaleY="{Binding enemy12ScaleY}" /><RotateTransform Angle="{Binding enemy12Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy13X}" Canvas.Top="{Binding enemy13Y}" Width="{Binding enemy13W}" Height="{Binding enemy13H}" Opacity="{Binding enemy13Opacity}" Visibility="{Binding enemy13Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy13Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy13ScaleX}" ScaleY="{Binding enemy13ScaleY}" /><RotateTransform Angle="{Binding enemy13Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy14X}" Canvas.Top="{Binding enemy14Y}" Width="{Binding enemy14W}" Height="{Binding enemy14H}" Opacity="{Binding enemy14Opacity}" Visibility="{Binding enemy14Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy14Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy14ScaleX}" ScaleY="{Binding enemy14ScaleY}" /><RotateTransform Angle="{Binding enemy14Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy15X}" Canvas.Top="{Binding enemy15Y}" Width="{Binding enemy15W}" Height="{Binding enemy15H}" Opacity="{Binding enemy15Opacity}" Visibility="{Binding enemy15Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy15Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy15ScaleX}" ScaleY="{Binding enemy15ScaleY}" /><RotateTransform Angle="{Binding enemy15Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy16X}" Canvas.Top="{Binding enemy16Y}" Width="{Binding enemy16W}" Height="{Binding enemy16H}" Opacity="{Binding enemy16Opacity}" Visibility="{Binding enemy16Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy16Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy16ScaleX}" ScaleY="{Binding enemy16ScaleY}" /><RotateTransform Angle="{Binding enemy16Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy17X}" Canvas.Top="{Binding enemy17Y}" Width="{Binding enemy17W}" Height="{Binding enemy17H}" Opacity="{Binding enemy17Opacity}" Visibility="{Binding enemy17Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy17Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy17ScaleX}" ScaleY="{Binding enemy17ScaleY}" /><RotateTransform Angle="{Binding enemy17Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy18X}" Canvas.Top="{Binding enemy18Y}" Width="{Binding enemy18W}" Height="{Binding enemy18H}" Opacity="{Binding enemy18Opacity}" Visibility="{Binding enemy18Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy18Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy18ScaleX}" ScaleY="{Binding enemy18ScaleY}" /><RotateTransform Angle="{Binding enemy18Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy19X}" Canvas.Top="{Binding enemy19Y}" Width="{Binding enemy19W}" Height="{Binding enemy19H}" Opacity="{Binding enemy19Opacity}" Visibility="{Binding enemy19Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy19Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy19ScaleX}" ScaleY="{Binding enemy19ScaleY}" /><RotateTransform Angle="{Binding enemy19Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy20X}" Canvas.Top="{Binding enemy20Y}" Width="{Binding enemy20W}" Height="{Binding enemy20H}" Opacity="{Binding enemy20Opacity}" Visibility="{Binding enemy20Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy20Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy20ScaleX}" ScaleY="{Binding enemy20ScaleY}" /><RotateTransform Angle="{Binding enemy20Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy21X}" Canvas.Top="{Binding enemy21Y}" Width="{Binding enemy21W}" Height="{Binding enemy21H}" Opacity="{Binding enemy21Opacity}" Visibility="{Binding enemy21Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy21Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy21ScaleX}" ScaleY="{Binding enemy21ScaleY}" /><RotateTransform Angle="{Binding enemy21Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy22X}" Canvas.Top="{Binding enemy22Y}" Width="{Binding enemy22W}" Height="{Binding enemy22H}" Opacity="{Binding enemy22Opacity}" Visibility="{Binding enemy22Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy22Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy22ScaleX}" ScaleY="{Binding enemy22ScaleY}" /><RotateTransform Angle="{Binding enemy22Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy23X}" Canvas.Top="{Binding enemy23Y}" Width="{Binding enemy23W}" Height="{Binding enemy23H}" Opacity="{Binding enemy23Opacity}" Visibility="{Binding enemy23Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy23Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy23ScaleX}" ScaleY="{Binding enemy23ScaleY}" /><RotateTransform Angle="{Binding enemy23Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding enemy24X}" Canvas.Top="{Binding enemy24Y}" Width="{Binding enemy24W}" Height="{Binding enemy24H}" Opacity="{Binding enemy24Opacity}" Visibility="{Binding enemy24Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding enemy24Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding enemy24ScaleX}" ScaleY="{Binding enemy24ScaleY}" /><RotateTransform Angle="{Binding enemy24Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-
-        <!-- === Enemy Weapon Sprites (slots 0-24) === -->
-        <Rectangle Canvas.Left="{Binding ew0X}" Canvas.Top="{Binding ew0Y}" Width="{Binding ew0W}" Height="{Binding ew0H}" Opacity="{Binding ew0Opacity}" Visibility="{Binding ew0Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew0Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew0ScaleX}" ScaleY="{Binding ew0ScaleY}" /><RotateTransform Angle="{Binding ew0Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew1X}" Canvas.Top="{Binding ew1Y}" Width="{Binding ew1W}" Height="{Binding ew1H}" Opacity="{Binding ew1Opacity}" Visibility="{Binding ew1Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew1Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew1ScaleX}" ScaleY="{Binding ew1ScaleY}" /><RotateTransform Angle="{Binding ew1Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew2X}" Canvas.Top="{Binding ew2Y}" Width="{Binding ew2W}" Height="{Binding ew2H}" Opacity="{Binding ew2Opacity}" Visibility="{Binding ew2Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew2Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew2ScaleX}" ScaleY="{Binding ew2ScaleY}" /><RotateTransform Angle="{Binding ew2Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew3X}" Canvas.Top="{Binding ew3Y}" Width="{Binding ew3W}" Height="{Binding ew3H}" Opacity="{Binding ew3Opacity}" Visibility="{Binding ew3Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew3Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew3ScaleX}" ScaleY="{Binding ew3ScaleY}" /><RotateTransform Angle="{Binding ew3Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew4X}" Canvas.Top="{Binding ew4Y}" Width="{Binding ew4W}" Height="{Binding ew4H}" Opacity="{Binding ew4Opacity}" Visibility="{Binding ew4Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew4Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew4ScaleX}" ScaleY="{Binding ew4ScaleY}" /><RotateTransform Angle="{Binding ew4Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew5X}" Canvas.Top="{Binding ew5Y}" Width="{Binding ew5W}" Height="{Binding ew5H}" Opacity="{Binding ew5Opacity}" Visibility="{Binding ew5Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew5Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew5ScaleX}" ScaleY="{Binding ew5ScaleY}" /><RotateTransform Angle="{Binding ew5Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew6X}" Canvas.Top="{Binding ew6Y}" Width="{Binding ew6W}" Height="{Binding ew6H}" Opacity="{Binding ew6Opacity}" Visibility="{Binding ew6Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew6Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew6ScaleX}" ScaleY="{Binding ew6ScaleY}" /><RotateTransform Angle="{Binding ew6Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew7X}" Canvas.Top="{Binding ew7Y}" Width="{Binding ew7W}" Height="{Binding ew7H}" Opacity="{Binding ew7Opacity}" Visibility="{Binding ew7Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew7Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew7ScaleX}" ScaleY="{Binding ew7ScaleY}" /><RotateTransform Angle="{Binding ew7Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew8X}" Canvas.Top="{Binding ew8Y}" Width="{Binding ew8W}" Height="{Binding ew8H}" Opacity="{Binding ew8Opacity}" Visibility="{Binding ew8Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew8Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew8ScaleX}" ScaleY="{Binding ew8ScaleY}" /><RotateTransform Angle="{Binding ew8Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew9X}" Canvas.Top="{Binding ew9Y}" Width="{Binding ew9W}" Height="{Binding ew9H}" Opacity="{Binding ew9Opacity}" Visibility="{Binding ew9Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew9Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew9ScaleX}" ScaleY="{Binding ew9ScaleY}" /><RotateTransform Angle="{Binding ew9Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew10X}" Canvas.Top="{Binding ew10Y}" Width="{Binding ew10W}" Height="{Binding ew10H}" Opacity="{Binding ew10Opacity}" Visibility="{Binding ew10Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew10Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew10ScaleX}" ScaleY="{Binding ew10ScaleY}" /><RotateTransform Angle="{Binding ew10Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew11X}" Canvas.Top="{Binding ew11Y}" Width="{Binding ew11W}" Height="{Binding ew11H}" Opacity="{Binding ew11Opacity}" Visibility="{Binding ew11Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew11Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew11ScaleX}" ScaleY="{Binding ew11ScaleY}" /><RotateTransform Angle="{Binding ew11Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew12X}" Canvas.Top="{Binding ew12Y}" Width="{Binding ew12W}" Height="{Binding ew12H}" Opacity="{Binding ew12Opacity}" Visibility="{Binding ew12Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew12Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew12ScaleX}" ScaleY="{Binding ew12ScaleY}" /><RotateTransform Angle="{Binding ew12Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew13X}" Canvas.Top="{Binding ew13Y}" Width="{Binding ew13W}" Height="{Binding ew13H}" Opacity="{Binding ew13Opacity}" Visibility="{Binding ew13Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew13Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew13ScaleX}" ScaleY="{Binding ew13ScaleY}" /><RotateTransform Angle="{Binding ew13Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew14X}" Canvas.Top="{Binding ew14Y}" Width="{Binding ew14W}" Height="{Binding ew14H}" Opacity="{Binding ew14Opacity}" Visibility="{Binding ew14Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew14Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew14ScaleX}" ScaleY="{Binding ew14ScaleY}" /><RotateTransform Angle="{Binding ew14Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew15X}" Canvas.Top="{Binding ew15Y}" Width="{Binding ew15W}" Height="{Binding ew15H}" Opacity="{Binding ew15Opacity}" Visibility="{Binding ew15Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew15Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew15ScaleX}" ScaleY="{Binding ew15ScaleY}" /><RotateTransform Angle="{Binding ew15Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew16X}" Canvas.Top="{Binding ew16Y}" Width="{Binding ew16W}" Height="{Binding ew16H}" Opacity="{Binding ew16Opacity}" Visibility="{Binding ew16Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew16Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew16ScaleX}" ScaleY="{Binding ew16ScaleY}" /><RotateTransform Angle="{Binding ew16Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew17X}" Canvas.Top="{Binding ew17Y}" Width="{Binding ew17W}" Height="{Binding ew17H}" Opacity="{Binding ew17Opacity}" Visibility="{Binding ew17Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew17Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew17ScaleX}" ScaleY="{Binding ew17ScaleY}" /><RotateTransform Angle="{Binding ew17Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew18X}" Canvas.Top="{Binding ew18Y}" Width="{Binding ew18W}" Height="{Binding ew18H}" Opacity="{Binding ew18Opacity}" Visibility="{Binding ew18Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew18Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew18ScaleX}" ScaleY="{Binding ew18ScaleY}" /><RotateTransform Angle="{Binding ew18Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew19X}" Canvas.Top="{Binding ew19Y}" Width="{Binding ew19W}" Height="{Binding ew19H}" Opacity="{Binding ew19Opacity}" Visibility="{Binding ew19Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew19Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew19ScaleX}" ScaleY="{Binding ew19ScaleY}" /><RotateTransform Angle="{Binding ew19Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew20X}" Canvas.Top="{Binding ew20Y}" Width="{Binding ew20W}" Height="{Binding ew20H}" Opacity="{Binding ew20Opacity}" Visibility="{Binding ew20Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew20Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew20ScaleX}" ScaleY="{Binding ew20ScaleY}" /><RotateTransform Angle="{Binding ew20Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew21X}" Canvas.Top="{Binding ew21Y}" Width="{Binding ew21W}" Height="{Binding ew21H}" Opacity="{Binding ew21Opacity}" Visibility="{Binding ew21Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew21Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew21ScaleX}" ScaleY="{Binding ew21ScaleY}" /><RotateTransform Angle="{Binding ew21Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew22X}" Canvas.Top="{Binding ew22Y}" Width="{Binding ew22W}" Height="{Binding ew22H}" Opacity="{Binding ew22Opacity}" Visibility="{Binding ew22Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew22Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew22ScaleX}" ScaleY="{Binding ew22ScaleY}" /><RotateTransform Angle="{Binding ew22Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew23X}" Canvas.Top="{Binding ew23Y}" Width="{Binding ew23W}" Height="{Binding ew23H}" Opacity="{Binding ew23Opacity}" Visibility="{Binding ew23Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew23Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew23ScaleX}" ScaleY="{Binding ew23ScaleY}" /><RotateTransform Angle="{Binding ew23Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ew24X}" Canvas.Top="{Binding ew24Y}" Width="{Binding ew24W}" Height="{Binding ew24H}" Opacity="{Binding ew24Opacity}" Visibility="{Binding ew24Visible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding ew24Texture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ew24ScaleX}" ScaleY="{Binding ew24ScaleY}" /><RotateTransform Angle="{Binding ew24Rotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-
-        <!-- === Enemy Flash Overlays (slots 0-24) === -->
-        <Rectangle Canvas.Left="{Binding ef0X}" Canvas.Top="{Binding ef0Y}" Width="{Binding ef0W}" Height="{Binding ef0H}" Opacity="{Binding ef0Opacity}" Visibility="{Binding ef0Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef0Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef0ScaleX}" ScaleY="{Binding ef0ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef1X}" Canvas.Top="{Binding ef1Y}" Width="{Binding ef1W}" Height="{Binding ef1H}" Opacity="{Binding ef1Opacity}" Visibility="{Binding ef1Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef1Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef1ScaleX}" ScaleY="{Binding ef1ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef2X}" Canvas.Top="{Binding ef2Y}" Width="{Binding ef2W}" Height="{Binding ef2H}" Opacity="{Binding ef2Opacity}" Visibility="{Binding ef2Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef2Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef2ScaleX}" ScaleY="{Binding ef2ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef3X}" Canvas.Top="{Binding ef3Y}" Width="{Binding ef3W}" Height="{Binding ef3H}" Opacity="{Binding ef3Opacity}" Visibility="{Binding ef3Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef3Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef3ScaleX}" ScaleY="{Binding ef3ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef4X}" Canvas.Top="{Binding ef4Y}" Width="{Binding ef4W}" Height="{Binding ef4H}" Opacity="{Binding ef4Opacity}" Visibility="{Binding ef4Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef4Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef4ScaleX}" ScaleY="{Binding ef4ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef5X}" Canvas.Top="{Binding ef5Y}" Width="{Binding ef5W}" Height="{Binding ef5H}" Opacity="{Binding ef5Opacity}" Visibility="{Binding ef5Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef5Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef5ScaleX}" ScaleY="{Binding ef5ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef6X}" Canvas.Top="{Binding ef6Y}" Width="{Binding ef6W}" Height="{Binding ef6H}" Opacity="{Binding ef6Opacity}" Visibility="{Binding ef6Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef6Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef6ScaleX}" ScaleY="{Binding ef6ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef7X}" Canvas.Top="{Binding ef7Y}" Width="{Binding ef7W}" Height="{Binding ef7H}" Opacity="{Binding ef7Opacity}" Visibility="{Binding ef7Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef7Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef7ScaleX}" ScaleY="{Binding ef7ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef8X}" Canvas.Top="{Binding ef8Y}" Width="{Binding ef8W}" Height="{Binding ef8H}" Opacity="{Binding ef8Opacity}" Visibility="{Binding ef8Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef8Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef8ScaleX}" ScaleY="{Binding ef8ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef9X}" Canvas.Top="{Binding ef9Y}" Width="{Binding ef9W}" Height="{Binding ef9H}" Opacity="{Binding ef9Opacity}" Visibility="{Binding ef9Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef9Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef9ScaleX}" ScaleY="{Binding ef9ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef10X}" Canvas.Top="{Binding ef10Y}" Width="{Binding ef10W}" Height="{Binding ef10H}" Opacity="{Binding ef10Opacity}" Visibility="{Binding ef10Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef10Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef10ScaleX}" ScaleY="{Binding ef10ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef11X}" Canvas.Top="{Binding ef11Y}" Width="{Binding ef11W}" Height="{Binding ef11H}" Opacity="{Binding ef11Opacity}" Visibility="{Binding ef11Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef11Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef11ScaleX}" ScaleY="{Binding ef11ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef12X}" Canvas.Top="{Binding ef12Y}" Width="{Binding ef12W}" Height="{Binding ef12H}" Opacity="{Binding ef12Opacity}" Visibility="{Binding ef12Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef12Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef12ScaleX}" ScaleY="{Binding ef12ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef13X}" Canvas.Top="{Binding ef13Y}" Width="{Binding ef13W}" Height="{Binding ef13H}" Opacity="{Binding ef13Opacity}" Visibility="{Binding ef13Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef13Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef13ScaleX}" ScaleY="{Binding ef13ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef14X}" Canvas.Top="{Binding ef14Y}" Width="{Binding ef14W}" Height="{Binding ef14H}" Opacity="{Binding ef14Opacity}" Visibility="{Binding ef14Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef14Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef14ScaleX}" ScaleY="{Binding ef14ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef15X}" Canvas.Top="{Binding ef15Y}" Width="{Binding ef15W}" Height="{Binding ef15H}" Opacity="{Binding ef15Opacity}" Visibility="{Binding ef15Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef15Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef15ScaleX}" ScaleY="{Binding ef15ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef16X}" Canvas.Top="{Binding ef16Y}" Width="{Binding ef16W}" Height="{Binding ef16H}" Opacity="{Binding ef16Opacity}" Visibility="{Binding ef16Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef16Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef16ScaleX}" ScaleY="{Binding ef16ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef17X}" Canvas.Top="{Binding ef17Y}" Width="{Binding ef17W}" Height="{Binding ef17H}" Opacity="{Binding ef17Opacity}" Visibility="{Binding ef17Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef17Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef17ScaleX}" ScaleY="{Binding ef17ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef18X}" Canvas.Top="{Binding ef18Y}" Width="{Binding ef18W}" Height="{Binding ef18H}" Opacity="{Binding ef18Opacity}" Visibility="{Binding ef18Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef18Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef18ScaleX}" ScaleY="{Binding ef18ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef19X}" Canvas.Top="{Binding ef19Y}" Width="{Binding ef19W}" Height="{Binding ef19H}" Opacity="{Binding ef19Opacity}" Visibility="{Binding ef19Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef19Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef19ScaleX}" ScaleY="{Binding ef19ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef20X}" Canvas.Top="{Binding ef20Y}" Width="{Binding ef20W}" Height="{Binding ef20H}" Opacity="{Binding ef20Opacity}" Visibility="{Binding ef20Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef20Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef20ScaleX}" ScaleY="{Binding ef20ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef21X}" Canvas.Top="{Binding ef21Y}" Width="{Binding ef21W}" Height="{Binding ef21H}" Opacity="{Binding ef21Opacity}" Visibility="{Binding ef21Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef21Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef21ScaleX}" ScaleY="{Binding ef21ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef22X}" Canvas.Top="{Binding ef22Y}" Width="{Binding ef22W}" Height="{Binding ef22H}" Opacity="{Binding ef22Opacity}" Visibility="{Binding ef22Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef22Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef22ScaleX}" ScaleY="{Binding ef22ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef23X}" Canvas.Top="{Binding ef23Y}" Width="{Binding ef23W}" Height="{Binding ef23H}" Opacity="{Binding ef23Opacity}" Visibility="{Binding ef23Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef23Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef23ScaleX}" ScaleY="{Binding ef23ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-        <Rectangle Canvas.Left="{Binding ef24X}" Canvas.Top="{Binding ef24Y}" Width="{Binding ef24W}" Height="{Binding ef24H}" Opacity="{Binding ef24Opacity}" Visibility="{Binding ef24Visible, Converter={StaticResource BoolToVis}}" Fill="White" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding ef24Texture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding ef24ScaleX}" ScaleY="{Binding ef24ScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-
-        <!-- === Hero Body Sprite === -->
-        <Rectangle Canvas.Left="{Binding heroBodyX}" Canvas.Top="{Binding heroBodyY}" Width="{Binding heroBodyW}" Height="{Binding heroBodyH}" Opacity="{Binding heroBodyOpacity}" Visibility="{Binding heroBodyVisible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding heroBodyTexture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding heroBodyScaleX}" ScaleY="{Binding heroBodyScaleY}" /><RotateTransform Angle="{Binding heroBodyRotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-
-        <!-- === Hero Weapon Sprite === -->
-        <Rectangle Canvas.Left="{Binding heroWeaponX}" Canvas.Top="{Binding heroWeaponY}" Width="{Binding heroWeaponW}" Height="{Binding heroWeaponH}" Opacity="{Binding heroWeaponOpacity}" Visibility="{Binding heroWeaponVisible, Converter={StaticResource BoolToVis}}" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-          <Rectangle.Fill><ImageBrush ImageSource="{Binding heroWeaponTexture}" Stretch="Uniform" /></Rectangle.Fill>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding heroWeaponScaleX}" ScaleY="{Binding heroWeaponScaleY}" /><RotateTransform Angle="{Binding heroWeaponRotation}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-
-        <!-- === Hero Flash Overlay (red tint) === -->
-        <Rectangle Canvas.Left="{Binding heroFlashX}" Canvas.Top="{Binding heroFlashY}" Width="{Binding heroFlashW}" Height="{Binding heroFlashH}" Opacity="{Binding heroFlashOpacity}" Visibility="{Binding heroFlashVisible, Converter={StaticResource BoolToVis}}" Fill="#FF3319" RenderTransformOrigin="0.5,1" IsHitTestVisible="False">
-          <Rectangle.OpacityMask><ImageBrush ImageSource="{Binding heroFlashTexture}" Stretch="Uniform" /></Rectangle.OpacityMask>
-          <Rectangle.RenderTransform><TransformGroup><ScaleTransform ScaleX="{Binding heroFlashScaleX}" ScaleY="{Binding heroFlashScaleY}" /></TransformGroup></Rectangle.RenderTransform>
-        </Rectangle>
-
-      </Canvas>
+      <!-- Layer 1: Character sprites -->
+      <ItemsControl ItemsSource="{Binding characterSprites}" IsHitTestVisible="False"
+                    ItemTemplate="{StaticResource SpriteItemTemplate}"
+                    ItemContainerStyle="{StaticResource SpriteContainerStyle}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <Canvas Width="390" Height="844" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ItemsControl>
 
       <!-- Layer 1.5: Crit effect overlay (above character sprites, below HUD) -->
       <local:DrawingSurface Width="390" Height="844" Commands="{Binding critDrawCommands}" IsHitTestVisible="False" />
 
-      <!-- Layer 2: HUD overlay (above sprites, below title/pause) -->
-      <Grid Visibility="{Binding hudVisible, Converter={StaticResource BoolToVis}}">
+      <!-- Layer 2: HUD -->
+      <ContentControl Content="{Binding}" ContentTemplate="{StaticResource HudTemplate}" IsHitTestVisible="True" />
 
-        <!-- === TOP PANEL === -->
-        <Border VerticalAlignment="Top" HorizontalAlignment="Stretch"
-                Background="#B0101020" CornerRadius="0,0,12,12"
-                Padding="10,8,10,10" Margin="0,0,0,0">
-          <Grid>
-            <Grid.RowDefinitions>
-              <RowDefinition Height="Auto" />
-              <RowDefinition Height="Auto" />
-              <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+      <!-- Layer 3: Pause Menu -->
+      <ContentControl Content="{Binding}" ContentTemplate="{StaticResource PauseMenuTemplate}" />
 
-            <!-- Row 0: HP Bar (full width, prominent) -->
-            <Grid Grid.Row="0" Margin="40,0,0,0">
-              <Border Height="16" CornerRadius="8" Background="#301010">
-                <Border CornerRadius="8" HorizontalAlignment="Left"
-                        Background="{Binding hpBarColorHex}"
-                        Width="{Binding hpBarWidth}" Height="16" />
-              </Border>
-              <!-- HP text centered inside bar -->
-              <TextBlock Text="{Binding hpText}" FontSize="10" Foreground="#B0FFFFFF"
-                         HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Grid>
+      <!-- Layer 3.5: Upgrade Selection -->
+      <ContentControl Content="{Binding}" ContentTemplate="{StaticResource UpgradeScreenTemplate}" />
 
-            <!-- Row 1: XP/Level Bar with level label -->
-            <Grid Grid.Row="1" Margin="40,5,0,0">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" FontSize="11" FontWeight="Bold" Foreground="#80D0FF"
-                         VerticalAlignment="Center" Margin="0,0,6,0">
-                <Run Text="Lv." /><Run Text="{Binding playerLevel}" />
-              </TextBlock>
-              <Grid Grid.Column="1">
-                <Border Height="10" CornerRadius="5" Background="#1A2A50">
-                  <Border CornerRadius="5" HorizontalAlignment="Left"
-                          Background="#4080F0"
-                          Width="{Binding levelBarWidth}" Height="10" />
-                </Border>
-                <TextBlock Text="{Binding levelBarText}" FontSize="9" Foreground="#7090B0"
-                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" />
-              </Grid>
-            </Grid>
+      <!-- Layer 4: Title Screen -->
+      <ContentControl Content="{Binding}" ContentTemplate="{StaticResource TitleScreenTemplate}" />
 
-            <!-- Row 2: Coins (left) and Enemy Count (right) -->
-            <Grid Grid.Row="2" Margin="40,6,0,0">
-              <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                <Rectangle Width="20" Height="20">
-                  <Rectangle.Fill><ImageBrush ImageSource="{Binding hudCoinCountTexture}" Stretch="Uniform" /></Rectangle.Fill>
-                </Rectangle>
-                <TextBlock Text="{Binding coinCountText}" FontSize="13" FontWeight="SemiBold" Foreground="#FFD740"
-                           Margin="4,0,0,0" VerticalAlignment="Center" />
-              </StackPanel>
-              <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Rectangle Width="20" Height="20">
-                  <Rectangle.Fill><ImageBrush ImageSource="{Binding hudEnnemiCountTexture}" Stretch="Uniform" /></Rectangle.Fill>
-                </Rectangle>
-                <TextBlock Text="{Binding enemyCountText}" FontSize="13" Foreground="#F0F0F8"
-                           Margin="4,0,0,0" VerticalAlignment="Center" />
-              </StackPanel>
-            </Grid>
-          </Grid>
-        </Border>
+      <!-- Layer 5: Death Overlay -->
+      <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DeathOverlayTemplate}" IsHitTestVisible="False" />
 
-        <!-- Pause Button (top-left, overlapping panel) -->
-        <Button Width="44" Height="44" VerticalAlignment="Top" HorizontalAlignment="Left"
-                Margin="4,6,0,0" Background="Transparent" BorderThickness="0"
-                Command="{Binding events.onPauseClicked}" IsHitTestVisible="True">
-          <Button.Template>
-            <ControlTemplate TargetType="Button">
-              <Grid>
-                <Rectangle Width="44" Height="44">
-                  <Rectangle.Fill><ImageBrush ImageSource="{Binding hudPauseButtonTexture}" Stretch="Uniform" /></Rectangle.Fill>
-                </Rectangle>
-              </Grid>
-            </ControlTemplate>
-          </Button.Template>
-        </Button>
-
-        <!-- === BOTTOM WAVE PANEL === -->
-        <Border VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                Background="#B0101020" CornerRadius="10" Padding="14,8,14,10"
-                Margin="0,0,0,24">
-          <StackPanel HorizontalAlignment="Center">
-            <!-- Wave number text -->
-            <TextBlock FontSize="14" FontWeight="Bold" Foreground="#F0F0F8"
-                       HorizontalAlignment="Center" Margin="0,0,0,6">
-              <Run Text="WAVE " /><Run Text="{Binding waveNumber}" />
-            </TextBlock>
-            <!-- Timer bar -->
-            <Grid Width="200" Height="14">
-              <Border CornerRadius="7" Background="#201520" Height="14">
-                <Border CornerRadius="7" HorizontalAlignment="Left"
-                        Background="{Binding timerColorHex}"
-                        Width="{Binding timerBarWidth}" Height="14" />
-              </Border>
-            </Grid>
-            <!-- Wave progress bar (thin) -->
-            <Grid Width="80" Height="6" Margin="0,6,0,0" HorizontalAlignment="Center">
-              <Rectangle Width="80" Height="6" RadiusX="3" RadiusY="3">
-                <Rectangle.Fill><ImageBrush ImageSource="{Binding hudWaveBarContourTexture}" Stretch="Fill" /></Rectangle.Fill>
-              </Rectangle>
-              <Border CornerRadius="3" HorizontalAlignment="Left"
-                      Background="{Binding timerColorHex}"
-                      Width="{Binding waveBarWidth}" Height="4" Margin="1" />
-            </Grid>
-          </StackPanel>
-        </Border>
-
-        <!-- Wave Announcement (center) -->
-        <Grid Visibility="{Binding waveAnnouncementVisible, Converter={StaticResource BoolToVis}}">
-          <TextBlock Text="{Binding waveAnnouncementText}" FontSize="28" FontWeight="Bold"
-                     Foreground="#F0F0F8" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        </Grid>
-
-        <!-- Elite Warning (center, slightly above) -->
-        <Grid Visibility="{Binding eliteWarningVisible, Converter={StaticResource BoolToVis}}">
-          <TextBlock Text="⚠ ELITE INCOMING!" FontSize="24" FontWeight="Bold"
-                     Foreground="#FF8020" HorizontalAlignment="Center" VerticalAlignment="Center"
-                     Margin="0,-60,0,0" />
-        </Grid>
-
-        <!-- Boss Warning (center) -->
-        <Grid Visibility="{Binding bossWarningVisible, Converter={StaticResource BoolToVis}}">
-          <TextBlock Text="⚠ BOSS INCOMING!" FontSize="26" FontWeight="Bold"
-                     Foreground="#FF4040" HorizontalAlignment="Center" VerticalAlignment="Center"
-                     Margin="0,-100,0,0" />
-        </Grid>
-
-        <!-- Boss HP Bar (top, below HUD panel) -->
-        <Grid Visibility="{Binding bossHpBarVisible, Converter={StaticResource BoolToVis}}"
-              VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,78,0,0">
-          <Border Height="14" Width="330" CornerRadius="7" Background="#301010">
-            <Border CornerRadius="7" HorizontalAlignment="Left"
-                    Background="#D02020"
-                    Width="{Binding bossHpBarWidth}" Height="14" />
-          </Border>
-          <TextBlock Text="{Binding bossHpBarText}" FontSize="9" Foreground="#F0F0F8"
-                     HorizontalAlignment="Center" VerticalAlignment="Center" />
-        </Grid>
-      </Grid>
-
-      <!-- Layer 3: Pause Menu overlay -->
-      <Grid Visibility="{Binding pauseMenuVisible, Converter={StaticResource BoolToVis}}"
-            Background="#D912121A">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-          <TextBlock Text="PAUSED" FontSize="36" FontWeight="Bold" Foreground="#F0F0F8"
-                     HorizontalAlignment="Center" Margin="0,0,0,30" />
-          <Button Content="RESUME" Command="{Binding events.onResumeClicked}"
-                  Width="180" Height="50" FontSize="18" FontWeight="Bold"
-                  Background="#4080F0" Foreground="White" BorderThickness="0" Margin="0,0,0,12">
-            <Button.Template>
-              <ControlTemplate TargetType="Button">
-                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="10,5">
-                  <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-              </ControlTemplate>
-            </Button.Template>
-          </Button>
-          <Button Content="RESTART" Command="{Binding events.onRestartClicked}"
-                  Width="180" Height="50" FontSize="18" FontWeight="Bold"
-                  Background="#E94560" Foreground="White" BorderThickness="0">
-            <Button.Template>
-              <ControlTemplate TargetType="Button">
-                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="10,5">
-                  <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-              </ControlTemplate>
-            </Button.Template>
-          </Button>
-        </StackPanel>
-      </Grid>
-
-      <!-- Layer 3.5: Upgrade Selection Overlay -->
-      <Grid Visibility="{Binding upgradeScreenVisible, Converter={StaticResource BoolToVis}}"
-            Background="#E0101020">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="320">
-          <TextBlock Text="LEVEL UP!" FontSize="28" FontWeight="Bold" Foreground="#FFD740"
-                     HorizontalAlignment="Center" Margin="0,0,0,20" />
-          <TextBlock Text="Choose an upgrade:" FontSize="14" Foreground="#B0B0C0"
-                     HorizontalAlignment="Center" Margin="0,0,0,16" />
-
-          <!-- Upgrade Card 0 -->
-          <Button Command="{Binding events.onUpgrade0Clicked}"
-                  Visibility="{Binding upgrade0Visible, Converter={StaticResource BoolToVis}}"
-                  Width="300" Height="80" Background="Transparent" BorderThickness="0" Margin="0,0,0,10">
-            <Button.Template>
-              <ControlTemplate TargetType="Button">
-                <Border Background="#40304080" CornerRadius="8" BorderBrush="#6050A0" BorderThickness="2" Padding="12,8">
-                  <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                      <TextBlock Text="{Binding upgrade0Name}" FontSize="16" FontWeight="Bold" Foreground="#F0F0F8" />
-                      <TextBlock Text="{Binding upgrade0Level}" FontSize="12" Foreground="#80D0FF"
-                                 Margin="10,2,0,0" VerticalAlignment="Center" />
-                    </StackPanel>
-                    <TextBlock Text="{Binding upgrade0Desc}" FontSize="12" Foreground="#B0B0C0"
-                               Margin="0,4,0,0" TextWrapping="Wrap" />
-                  </StackPanel>
-                </Border>
-              </ControlTemplate>
-            </Button.Template>
-          </Button>
-
-          <!-- Upgrade Card 1 -->
-          <Button Command="{Binding events.onUpgrade1Clicked}"
-                  Visibility="{Binding upgrade1Visible, Converter={StaticResource BoolToVis}}"
-                  Width="300" Height="80" Background="Transparent" BorderThickness="0" Margin="0,0,0,10">
-            <Button.Template>
-              <ControlTemplate TargetType="Button">
-                <Border Background="#40304080" CornerRadius="8" BorderBrush="#6050A0" BorderThickness="2" Padding="12,8">
-                  <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                      <TextBlock Text="{Binding upgrade1Name}" FontSize="16" FontWeight="Bold" Foreground="#F0F0F8" />
-                      <TextBlock Text="{Binding upgrade1Level}" FontSize="12" Foreground="#80D0FF"
-                                 Margin="10,2,0,0" VerticalAlignment="Center" />
-                    </StackPanel>
-                    <TextBlock Text="{Binding upgrade1Desc}" FontSize="12" Foreground="#B0B0C0"
-                               Margin="0,4,0,0" TextWrapping="Wrap" />
-                  </StackPanel>
-                </Border>
-              </ControlTemplate>
-            </Button.Template>
-          </Button>
-
-          <!-- Upgrade Card 2 -->
-          <Button Command="{Binding events.onUpgrade2Clicked}"
-                  Visibility="{Binding upgrade2Visible, Converter={StaticResource BoolToVis}}"
-                  Width="300" Height="80" Background="Transparent" BorderThickness="0" Margin="0,0,0,10">
-            <Button.Template>
-              <ControlTemplate TargetType="Button">
-                <Border Background="#40304080" CornerRadius="8" BorderBrush="#6050A0" BorderThickness="2" Padding="12,8">
-                  <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                      <TextBlock Text="{Binding upgrade2Name}" FontSize="16" FontWeight="Bold" Foreground="#F0F0F8" />
-                      <TextBlock Text="{Binding upgrade2Level}" FontSize="12" Foreground="#80D0FF"
-                                 Margin="10,2,0,0" VerticalAlignment="Center" />
-                    </StackPanel>
-                    <TextBlock Text="{Binding upgrade2Desc}" FontSize="12" Foreground="#B0B0C0"
-                               Margin="0,4,0,0" TextWrapping="Wrap" />
-                  </StackPanel>
-                </Border>
-              </ControlTemplate>
-            </Button.Template>
-          </Button>
-        </StackPanel>
-      </Grid>
-
-      <!-- Layer 4: Title screen overlay -->
-      <Grid Visibility="{Binding titleVisible, Converter={StaticResource BoolToVis}}"
-            Background="#CC12121A">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-          <TextBlock Text="ARENA" FontSize="56" FontWeight="Bold" FontFamily="Teko"
-                     Foreground="#F0F0F8" HorizontalAlignment="Center"
-                     CharacterSpacing="200" Margin="0,0,0,-10" />
-          <TextBlock Text="VERMIN" FontSize="56" FontWeight="Bold" FontFamily="Teko"
-                     Foreground="#E94560" HorizontalAlignment="Center"
-                     CharacterSpacing="200" Margin="0,0,0,30" />
-          <Border Height="2" Width="160" Background="#4080F0"
-                  HorizontalAlignment="Center" Margin="0,0,0,30" CornerRadius="1" />
-          <Button Content="START" Command="{Binding events.onStartClicked}"
-                  Width="180" Height="50" FontSize="20" FontWeight="Bold"
-                  Background="#E94560" Foreground="White" BorderThickness="0">
-            <Button.Template>
-              <ControlTemplate TargetType="Button">
-                <Border Background="{TemplateBinding Background}"
-                        CornerRadius="6" Padding="10,5">
-                  <ContentPresenter HorizontalAlignment="Center"
-                                    VerticalAlignment="Center" />
-                </Border>
-              </ControlTemplate>
-            </Button.Template>
-          </Button>
-        </StackPanel>
-      </Grid>
-
-      <!-- Layer 5: Death dark overlay (fades in during death animation) -->
-      <Grid Visibility="{Binding deathOverlayVisible, Converter={StaticResource BoolToVis}}"
-            Background="#12121A" Opacity="{Binding deathOverlayOpacity}"
-            IsHitTestVisible="False" />
-
-      <!-- Layer 6: Death screen content -->
-      <Grid Visibility="{Binding deathScreenVisible, Converter={StaticResource BoolToVis}}">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-          <TextBlock Text="DEFEATED" FontSize="28" FontWeight="Bold" Foreground="#E94560"
-                     HorizontalAlignment="Center" Margin="0,0,0,20" />
-          <TextBlock Text="{Binding deathWavesText}" FontSize="16" Foreground="#F0F0F8"
-                     HorizontalAlignment="Center" Margin="0,0,0,12" />
-          <!-- Coin tally -->
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
-            <Ellipse Width="14" Height="14" Fill="#F0C030" Stroke="#C08020" StrokeThickness="1" />
-            <TextBlock Text="{Binding deathCoinsText}" FontSize="14" Foreground="#F0F0F8"
-                       Margin="6,0,0,0" VerticalAlignment="Center" />
-          </StackPanel>
-          <!-- XP tally -->
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,24">
-            <Ellipse Width="14" Height="14" Fill="#30D060" Stroke="#20A040" StrokeThickness="1" />
-            <TextBlock Text="{Binding deathXpText}" FontSize="14" Foreground="#F0F0F8"
-                       Margin="6,0,0,0" VerticalAlignment="Center" />
-          </StackPanel>
-          <!-- Retry button -->
-          <Button Content="RETRY" Command="{Binding events.onRetryClicked}"
-                  Width="180" Height="50" FontSize="18" FontWeight="Bold"
-                  Background="#E94560" Foreground="White" BorderThickness="0" Margin="0,0,0,12">
-            <Button.Template>
-              <ControlTemplate TargetType="Button">
-                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="10,5">
-                  <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-              </ControlTemplate>
-            </Button.Template>
-          </Button>
-          <!-- Return to menu button -->
-          <Button Content="RETURN TO MENU" Command="{Binding events.onReturnToMenuClicked}"
-                  Width="180" Height="44" FontSize="14" FontWeight="Bold"
-                  Background="#3A3E55" Foreground="White" BorderThickness="0">
-            <Button.Template>
-              <ControlTemplate TargetType="Button">
-                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="10,5">
-                  <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-              </ControlTemplate>
-            </Button.Template>
-          </Button>
-        </StackPanel>
-      </Grid>
+      <!-- Layer 6: Death Screen -->
+      <ContentControl Content="{Binding}" ContentTemplate="{StaticResource DeathScreenTemplate}" />
     </Grid>
   </Viewbox>
 </Grid>

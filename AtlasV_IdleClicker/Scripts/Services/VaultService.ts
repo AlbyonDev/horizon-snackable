@@ -1,6 +1,5 @@
 /**
- * VaultService — Locks gold for a duration, returns it with a bonus.
- * Gold is automatically collected when the timer expires.
+ * VaultService — Locks gold for a duration, returns it with a bonus (auto-collect).
  */
 import { OnServiceReadyEvent, Service, service, subscribe } from 'meta/worlds';
 import { BASE_VAULT_DURATION, BASE_VAULT_BONUS } from '../Constants';
@@ -22,8 +21,6 @@ export class VaultService extends Service {
 
   private readonly _resources = Service.injectWeak(ResourceService);
 
-  // ── Startup: declare all actions ──────────────────────────────────────────────
-
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
     const unlockDef = getActionDef('vault.unlock');
@@ -37,28 +34,32 @@ export class VaultService extends Service {
     const lockDef = getActionDef('vault.lock');
     ActionService.get().declare('vault.lock', () => {
       if (this._locked) {
+        const total = Math.floor(this._lockedAmount * this._bonusMultiplier);
         return {
           label    : lockDef.label,
-          detail   : `Vault locked — ${Math.ceil(this._timeLeft)}s remaining. [${this._lockedAmount}g]`,
+          detail   : `Returns ${total} gems (+${Math.round((this._bonusMultiplier - 1) * 100)}% on ${this._lockedAmount})`,
           cost     : 0,
           isEnabled: false,
         };
       }
       return {
         label    : lockDef.label,
-        detail   : `${lockDef.description} [+${Math.round((this._bonusMultiplier - 1) * 100)}% / ${this._duration}s]`,
+        detail   : `Lock 50% of gems for ${this._duration}s, returns with +${Math.round((this._bonusMultiplier - 1) * 100)}% bonus.`,
         cost     : Math.floor(ResourceService.get().getGold() * 0.5),
         isEnabled: ResourceService.get().getGold() > 0,
       };
     });
 
     const durDef = getActionDef('vault.duration');
-    ActionService.get().declare('vault.duration', () => ({
-      label    : durDef.label,
-      detail   : `${durDef.description} [${this._duration}s -> ${Math.max(10, this._duration - 15)}s]`,
-      cost     : getScaledCost('vault.duration'),
-      isEnabled: ResourceService.get().canAfford(getScaledCost('vault.duration')),
-    }));
+    ActionService.get().declare('vault.duration', () => {
+      const next = parseFloat((this._duration * 0.8).toFixed(1));
+      return {
+        label    : durDef.label,
+        detail   : `${durDef.description} [${parseFloat(this._duration.toFixed(1))}s -> ${next}s]`,
+        cost     : getScaledCost('vault.duration'),
+        isEnabled: ResourceService.get().canAfford(getScaledCost('vault.duration')),
+      };
+    });
 
     const bonusDef = getActionDef('vault.bonus');
     ActionService.get().declare('vault.bonus', () => ({
@@ -69,8 +70,6 @@ export class VaultService extends Service {
     }));
   }
 
-  // ── Timer ─────────────────────────────────────────────────────────────────────
-
   @subscribe(Events.Tick)
   onTick(p: Events.TickPayload): void {
     if (!this._locked) return;
@@ -79,14 +78,12 @@ export class VaultService extends Service {
       this._timeLeft = 0;
       this._handleCollect();
     } else {
-      // Lightweight patch — avoids iterating all declarations on every tick
+      const total = Math.floor(this._lockedAmount * this._bonusMultiplier);
       ActionService.get().update('vault.lock', {
-        detail: `Vault locked — ${Math.ceil(this._timeLeft)}s remaining. [${this._lockedAmount}g]`,
+        detail: `Returns ${total} gems (+${Math.round((this._bonusMultiplier - 1) * 100)}% on ${this._lockedAmount})`,
       });
     }
   }
-
-  // ── Action handling ───────────────────────────────────────────────────────────
 
   @subscribe(Events.ActionTriggered)
   onActionTriggered(p: Events.ActionTriggeredPayload): void {
@@ -101,7 +98,7 @@ export class VaultService extends Service {
 
     if (p.id === 'vault.duration') {
       if (!ResourceService.get().buy(p.id)) return;
-      this._duration = Math.max(10, this._duration - 15);
+      this._duration = parseFloat((this._duration * 0.8).toFixed(1));
       ActionService.get().refreshDeclared();
       return;
     }
@@ -113,16 +110,12 @@ export class VaultService extends Service {
     }
   }
 
-  // ── Public queries ────────────────────────────────────────────────────────────
-
   isPurchased()        : boolean { return StatsService.get().get('vault.unlock') > 0; }
   isLocked()           : boolean { return this._locked; }
   getTimeLeft()        : number  { return this._timeLeft; }
   getLockedAmount()    : number  { return this._lockedAmount; }
   getDuration()        : number  { return this._duration; }
   getBonusMultiplier() : number  { return this._bonusMultiplier; }
-
-  // ── Private ───────────────────────────────────────────────────────────────────
 
   private _handleLock(): void {
     if (this._locked) return;
@@ -133,7 +126,6 @@ export class VaultService extends Service {
     this._lockedAmount = amount;
     this._timeLeft     = this._duration;
     StatsService.get().increment('vault.lock');
-    // StatsChanged → refreshDeclared() → factory reads _locked=true → shows locked state
   }
 
   private _handleCollect(): void {
@@ -142,6 +134,5 @@ export class VaultService extends Service {
     this._locked       = false;
     this._lockedAmount = 0;
     this._resources?.addGain(total, GainSource.VaultPayout);
-    // ResourceChanged → refreshDeclared() → factory reads _locked=false → shows ready state
   }
 }
