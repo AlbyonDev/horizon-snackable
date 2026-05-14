@@ -1,9 +1,0 @@
-{
-  "version": "1",
-  "title": "Gravity Properties",
-  "elements": [
-    { "id": "grav_desc", "type": "readonly_text", "label": "Description", "value": "Downward acceleration applied to all items every frame. Higher gravity = faster falling, heavier feel." },
-    { "id": "gt_heading", "type": "heading", "value": "Tune", "variant": "caption" },
-    { "id": "gt_gravity", "type": "slider", "label": "Gravity (px/s\u00b2)", "value": 800, "min": 400, "max": 1600, "step": 50, "onChange": { "type": "prompt", "template": "[Gameplan: update .gameplan/physics/properties/gravity.schema.json, set gt_gravity to {{gt_gravity}}]\nSet gravity to {{gt_gravity}} px/s\u00b2 in scripts/Constants.ts GRAVITY constant." } }
-  ]
-}

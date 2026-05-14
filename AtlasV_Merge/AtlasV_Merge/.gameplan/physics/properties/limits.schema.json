@@ -1,9 +1,0 @@
-{
-  "version": "1",
-  "title": "Velocity Limits Properties",
-  "elements": [
-    { "id": "lim_desc", "type": "readonly_text", "label": "Description", "value": "Maximum speed cap prevents physics explosions from overlapping items or extreme forces." },
-    { "id": "limt_heading", "type": "heading", "value": "Tune", "variant": "caption" },
-    { "id": "limt_max_vel", "type": "slider", "label": "Max Velocity (px/s)", "value": 1200, "min": 600, "max": 2000, "step": 100, "onChange": { "type": "prompt", "template": "[Gameplan: update .gameplan/physics/properties/limits.schema.json, set limt_max_vel to {{limt_max_vel}}]\nSet max velocity to {{limt_max_vel}} px/s in scripts/Constants.ts." } }
-  ]
-}

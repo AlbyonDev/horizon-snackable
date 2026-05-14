@@ -1,0 +1,52 @@
+{
+    "id": "b0c138e9-c4d8-4f5b-b290-0af302d8d744",
+    "defaultTemplateAssetId": {
+        "packageOrRemoteId": "26792108410409509",
+        "ingestionId": "16123935224325786335",
+        "targetId": "2719744159"
+    },
+    "organizationId": "896923280160081",
+    "organizationName": "thibaud_albyon's team",
+    "organizationScope": "thibaudalbyonsteam",
+    "worldId": "26997856073164425",
+    "collisionLayers": [
+        "Player",
+        "World",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
+    "playerSettings": {
+        "avatarMax": 1,
+        "screenOrientation": "Portrait"
+    },
+    "editorVersion": "80.0.1.0.438",
+    "starterWorldType": "BPBlank2DGame"
+}

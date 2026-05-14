@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Scoring",
-  "elements": [{ "id": "scoring_preview", "type": "image", "src": "~/overview/banner-scoring.jpg", "fit": "cover" }]
-}

@@ -1,0 +1,594 @@
+<Grid Background="Black"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="clr-namespace:horizon.ui_noesis;assembly=ui_noesis"
+  xmlns:noesis="clr-namespace:NoesisGUIExtensions"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d">
+
+  <Grid.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+    <!-- HP bar template: ally team.
+         Layout: HP section (top, fills available height) + mana strip (bottom, 6px).
+         Tapping the bar is handled by InputHandler touch targets, not here. -->
+    <DataTemplate x:Key="AllyHpBarTemplate">
+      <Grid Width="{Binding width}" Height="{Binding height}"
+            Opacity="{Binding opacity}"
+            IsHitTestVisible="False">
+        <Grid.RenderTransform>
+          <TransformGroup>
+            <!-- Scale around the bar's center (70×34 → center at 35,17) -->
+            <ScaleTransform ScaleX="{Binding barScale}" ScaleY="{Binding barScale}"
+                            CenterX="35" CenterY="17"/>
+            <TranslateTransform X="{Binding x}" Y="{Binding y}"/>
+          </TransformGroup>
+        </Grid.RenderTransform>
+
+        <!-- CAST! badge: floats above the bar, pulses with the glow -->
+        <Border Background="{Binding borderColor}"
+                CornerRadius="6" Padding="5,1"
+                Margin="0,-17,0,0"
+                VerticalAlignment="Top" HorizontalAlignment="Center"
+                Opacity="{Binding borderGlowOpacity}"
+                Visibility="{Binding powerReadyVisible, Converter={StaticResource BoolToVis}}">
+          <TextBlock Text="CAST!" FontFamily="Bangers" FontSize="11"
+                     FontWeight="Bold" Foreground="White"
+                     HorizontalAlignment="Center"/>
+        </Border>
+
+        <!-- Outer dark frame — border turns gem color when power is ready -->
+        <Border CornerRadius="3" BorderThickness="2"
+                BorderBrush="{Binding borderColor}" Background="#FF1A1A2A"/>
+        <!-- Inner glow ring: pulsing border overlay for power-ready CTA -->
+        <Border CornerRadius="2" BorderThickness="2" Margin="1"
+                Opacity="{Binding borderGlowOpacity}"
+                BorderBrush="{Binding borderColor}" Background="Transparent"/>
+
+        <!-- Inner layout: HP row + mana row -->
+        <Grid Margin="3">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="6"/>
+          </Grid.RowDefinitions>
+
+          <!-- HP section -->
+          <Grid Grid.Row="0">
+            <Rectangle Width="{Binding trailWidth}" HorizontalAlignment="Left"
+                       Fill="#FFFFFFFF" RadiusX="2" RadiusY="2"/>
+            <Rectangle Width="{Binding fillWidth}" HorizontalAlignment="Left"
+                       RadiusX="2" RadiusY="2">
+              <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                  <GradientStop Offset="0"   Color="#FF8FF080"/>
+                  <GradientStop Offset="0.5" Color="#FF44CC44"/>
+                  <GradientStop Offset="1"   Color="#FF1F8F1F"/>
+                </LinearGradientBrush>
+              </Rectangle.Fill>
+            </Rectangle>
+            <TextBlock Text="{Binding hpText}"
+                       FontFamily="Bangers" FontWeight="Bold" FontSize="13"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       noesis:Text.StrokeThickness="2">
+              <TextBlock.Foreground>
+                <SolidColorBrush Color="#FFFFFFFF"/>
+              </TextBlock.Foreground>
+              <noesis:Text.Stroke>
+                <SolidColorBrush Color="#FF000000"/>
+              </noesis:Text.Stroke>
+            </TextBlock>
+          </Grid>
+
+          <!-- Mana section -->
+          <Grid Grid.Row="1">
+            <!-- Track (dark background) -->
+            <Rectangle Fill="#55000000" RadiusX="2" RadiusY="2"/>
+            <!-- Fill (hero gem color) -->
+            <Rectangle Width="{Binding manaFillWidth}" HorizontalAlignment="Left"
+                       RadiusX="2" RadiusY="2">
+              <Rectangle.Fill>
+                <SolidColorBrush Color="{Binding manaColor}"/>
+              </Rectangle.Fill>
+            </Rectangle>
+          </Grid>
+        </Grid>
+      </Grid>
+    </DataTemplate>
+
+    <!-- HP bar template: enemy team. Same structure, red gradient. -->
+    <DataTemplate x:Key="EnemyHpBarTemplate">
+      <Grid Width="{Binding width}" Height="{Binding height}"
+            Opacity="{Binding opacity}"
+            IsHitTestVisible="False">
+        <Grid.RenderTransform>
+          <TranslateTransform X="{Binding x}" Y="{Binding y}"/>
+        </Grid.RenderTransform>
+        <Border CornerRadius="3" BorderThickness="2"
+                BorderBrush="#FF000000" Background="#FF1A1A2A"/>
+        <!-- Damage trail: white ghost strip (same pattern as ally template) -->
+        <Rectangle Width="{Binding trailWidth}" Margin="3"
+                   HorizontalAlignment="Left"
+                   Fill="#FFFFFFFF"
+                   RadiusX="2" RadiusY="2"/>
+
+        <Rectangle Width="{Binding fillWidth}" Margin="3"
+                   HorizontalAlignment="Left"
+                   RadiusX="2" RadiusY="2">
+          <Rectangle.Fill>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+              <GradientStop Offset="0"   Color="#FFFF8F8F"/>
+              <GradientStop Offset="0.5" Color="#FFE04444"/>
+              <GradientStop Offset="1"   Color="#FF8F1F1F"/>
+            </LinearGradientBrush>
+          </Rectangle.Fill>
+        </Rectangle>
+        <TextBlock Text="{Binding hpText}"
+                   FontFamily="Bangers" FontWeight="Bold" FontSize="14"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   noesis:Text.StrokeThickness="2">
+          <TextBlock.Foreground>
+            <SolidColorBrush Color="#FFFFFFFF"/>
+          </TextBlock.Foreground>
+          <noesis:Text.Stroke>
+            <SolidColorBrush Color="#FF000000"/>
+          </noesis:Text.Stroke>
+        </TextBlock>
+      </Grid>
+    </DataTemplate>
+
+    <!-- Floating text item (damage popups, mana gain, status callouts).
+         Uses noesis:Text.Stroke for a comic-style outline matching the
+         Bangers-based HUD typography. -->
+    <DataTemplate x:Key="TextItemTemplate">
+      <Grid Width="{Binding width}" Height="{Binding height}"
+            Opacity="{Binding opacity}"
+            RenderTransformOrigin="0.5, 0.5"
+            IsHitTestVisible="False">
+        <Grid.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform  ScaleX="{Binding scale}" ScaleY="{Binding scale}"/>
+            <RotateTransform Angle="{Binding rotation}"/>
+            <TranslateTransform X="{Binding x}" Y="{Binding y}"/>
+          </TransformGroup>
+        </Grid.RenderTransform>
+        <TextBlock Text="{Binding text}"
+                   FontFamily="Bangers"
+                   FontWeight="Bold"
+                   FontSize="{Binding fontSize}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   noesis:Text.StrokeThickness="{Binding strokeThickness}">
+          <TextBlock.Foreground>
+            <SolidColorBrush Color="{Binding fontColor}"/>
+          </TextBlock.Foreground>
+          <noesis:Text.Stroke>
+            <SolidColorBrush Color="{Binding strokeColor}"/>
+          </noesis:Text.Stroke>
+        </TextBlock>
+      </Grid>
+    </DataTemplate>
+
+    <!-- Generic sprite item: one bindable VM = one drawable.
+         Used by the team layer ItemsControl below. -->
+    <DataTemplate x:Key="SpriteItemTemplate">
+      <Grid Width="{Binding width}" Height="{Binding height}"
+            Opacity="{Binding opacity}"
+            RenderTransformOrigin="0.5, 0.5"
+            IsHitTestVisible="False">
+        <Grid.RenderTransform>
+          <TransformGroup>
+            <ScaleTransform  ScaleX="{Binding scale}" ScaleY="{Binding scale}"/>
+            <RotateTransform Angle="{Binding rotation}"/>
+            <TranslateTransform X="{Binding x}" Y="{Binding y}"/>
+          </TransformGroup>
+        </Grid.RenderTransform>
+
+        <!-- Layer 1: base sprite -->
+        <Image Stretch="Uniform" IsHitTestVisible="False">
+          <Image.Source>
+            <Binding Path="spriteTexture"/>
+          </Image.Source>
+        </Image>
+
+        <!-- Layer 2: silhouette tint (color rectangle masked by sprite alpha).
+             Opacity drives the flash strength; color drives the hue (white for
+             hurt flash, gold for power-up, etc.). -->
+        <Rectangle Opacity="{Binding tintOpacity}" IsHitTestVisible="False">
+          <Rectangle.OpacityMask>
+            <ImageBrush ImageSource="{Binding spriteTexture}" Stretch="Uniform"/>
+          </Rectangle.OpacityMask>
+          <Rectangle.Fill>
+            <SolidColorBrush Color="{Binding tintColor}"/>
+          </Rectangle.Fill>
+        </Rectangle>
+      </Grid>
+    </DataTemplate>
+  </Grid.Resources>
+
+  <Viewbox Stretch="Uniform">
+    <Grid Width="480" Height="800">
+      <!-- Layer 0: full-screen background gradient as Grid.Background. -->
+      <Grid.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+          <GradientStop Offset="0"   Color="#0A0A1A"/>
+          <GradientStop Offset="0.4" Color="#0F0F2D"/>
+          <GradientStop Offset="1"   Color="#1A0A2E"/>
+        </LinearGradientBrush>
+      </Grid.Background>
+
+      <!-- Layer 0b: dungeon background image, scoped to the combat/team area -->
+      <Image VerticalAlignment="Top"
+             HorizontalAlignment="Center"
+             Stretch="UniformToFill"
+             IsHitTestVisible="False" Margin="0,-50,0,0" Height="372">
+        <Image.Source>
+          <Binding Path="backgroundTexture"/>
+        </Image.Source>
+      </Image>
+
+      <!-- Layer 1: team sprites (heroes + enemies). Drawn *behind* the board
+           so the front character's feet are occluded by the board roundrect.
+           Hidden during the power cinematic so the fullscreen overlay stays clean. -->
+      <ItemsControl ItemsSource="{Binding team.sprites}"
+                    ItemTemplate="{StaticResource SpriteItemTemplate}"
+                    Visibility="{Binding gameUiVisible, Converter={StaticResource BoolToVis}}">
+        <ItemsControl.ItemContainerStyle>
+          <Style TargetType="ContentPresenter">
+            <Setter Property="Panel.ZIndex" Value="{Binding zIndex}"/>
+          </Style>
+        </ItemsControl.ItemContainerStyle>
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <Canvas Width="480" Height="800"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ItemsControl>
+
+      <!-- Layer 2: game canvas (board, particles, power surge FX) -->
+      <local:DrawingSurface x:Name="GameCanvas" Width="480" Height="800"
+                            Commands="{Binding drawCommands}" />
+
+      <!-- Layer 2.1: Cinematic text overlay — XAML TextBlocks for caster name and
+           power name, centred over the dark strip that PowerCinematicRenderer draws
+           at the bottom of the fullscreen phase. Fades in/out with cinematicAlpha so
+           the text tracks the DrawingSurface gradient exactly. -->
+      <Canvas Width="480" Height="800" IsHitTestVisible="False"
+              Visibility="{Binding cinematicTextVisible, Converter={StaticResource BoolToVis}}"
+              Opacity="{Binding cinematicAlpha}">
+        <!-- Caster / enemy name — small subtitle above the power name -->
+        <TextBlock Canvas.Left="0" Canvas.Top="585"
+                   Width="480" TextAlignment="Center"
+                   Text="{Binding cinematicCasterName}"
+                   FontFamily="Bangers" FontSize="18"
+                   Foreground="White"
+                   noesis:Text.StrokeThickness="2">
+          <noesis:Text.Stroke>
+            <SolidColorBrush Color="#FF000000"/>
+          </noesis:Text.Stroke>
+        </TextBlock>
+        <!-- Power name — large, themed to the power's primary colour -->
+        <TextBlock Canvas.Left="0" Canvas.Top="618"
+                   Width="480" TextAlignment="Center"
+                   Text="{Binding cinematicPowerName}"
+                   FontFamily="Bangers" FontSize="46"
+                   noesis:Text.StrokeThickness="3">
+          <TextBlock.Foreground>
+            <SolidColorBrush Color="{Binding cinematicPowerColorHex}"/>
+          </TextBlock.Foreground>
+          <noesis:Text.Stroke>
+            <SolidColorBrush Color="#FF000000"/>
+          </noesis:Text.Stroke>
+        </TextBlock>
+      </Canvas>
+
+      <!-- Layer 2a: Mana counter panel (XAML, anchored at bottom).
+           Hidden during the cinematic so the fullscreen overlay is unobstructed. -->
+
+      <!-- Layer 2.5: HP bars (chunky), drawn *above* the DrawingSurface so they
+           always sit on top of the board frame. Two ItemsControls so each team
+           has its own gradient template. Hidden during the power cinematic. -->
+      <ItemsControl ItemsSource="{Binding team.allyHpBars}"
+                    ItemTemplate="{StaticResource AllyHpBarTemplate}"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding gameUiVisible, Converter={StaticResource BoolToVis}}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <Canvas Width="480" Height="800"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ItemsControl>
+      <ItemsControl ItemsSource="{Binding team.enemyHpBars}"
+                    ItemTemplate="{StaticResource EnemyHpBarTemplate}"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding gameUiVisible, Converter={StaticResource BoolToVis}}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <Canvas Width="480" Height="800"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ItemsControl>
+
+      <!-- Layer 2.5: floating text (damage popups, etc.) -->
+      <ItemsControl ItemsSource="{Binding team.texts}"
+                    ItemTemplate="{StaticResource TextItemTemplate}"
+                    IsHitTestVisible="False"
+                    Visibility="{Binding gameUiVisible, Converter={StaticResource BoolToVis}}">
+        <ItemsControl.ItemContainerStyle>
+          <Style TargetType="ContentPresenter">
+            <Setter Property="Panel.ZIndex" Value="{Binding zIndex}"/>
+          </Style>
+        </ItemsControl.ItemContainerStyle>
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <Canvas Width="480" Height="800"/>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ItemsControl>
+
+      <!-- Layer 2b: Flee button (top-left). Hidden during the power cinematic. -->
+      <Button Width="48" Height="48" Margin="6,6,0,0"
+              VerticalAlignment="Top" HorizontalAlignment="Left"
+              Command="{Binding events.onFleeClicked}"
+              Background="Transparent" BorderThickness="0" ToolTip="Flee"
+              Visibility="{Binding gameUiVisible, Converter={StaticResource BoolToVis}}" Padding="0,0,0,0">
+        <Image Source="sprites/btn_flee.png" Stretch="Uniform"/>
+      </Button>
+      <StackPanel x:Name="ManaCounterPanel" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,0" IsHitTestVisible="False" Visibility="{Binding gameUiVisible, Converter={StaticResource BoolToVis}}" Panel.ZIndex="1">
+        <Grid x:Name="RedManaOrb" Width="80" Height="40" Margin="4,0">
+          <Grid.Background>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+              <GradientStop Offset="0" Color="#88E84040"/>
+              <GradientStop Offset="1" Color="#FF000000"/>
+            </LinearGradientBrush>
+          </Grid.Background>
+          <Border BorderBrush="#FFFFFF" BorderThickness="2" CornerRadius="4"/>
+          <Grid Margin="6">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="32"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image x:Name="RedGemImage" Grid.Column="0" Width="32" Height="32" Stretch="Uniform" IsHitTestVisible="False" VerticalAlignment="Center">
+              <Image.Source>
+                <Binding Path="redGemTexture"/>
+              </Image.Source>
+            </Image>
+            <TextBlock x:Name="RedManaText" Grid.Column="1" Text="{Binding redManaText}" FontFamily="Bangers" FontSize="18" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" noesis:Text.StrokeThickness="2">
+              <noesis:Text.Stroke>
+                <SolidColorBrush Color="#FF000000"/>
+              </noesis:Text.Stroke>
+            </TextBlock>
+          </Grid>
+        </Grid>
+        <Grid x:Name="BlueManaOrb" Width="80" Height="40" Margin="4,0">
+          <Grid.Background>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+              <GradientStop Offset="0" Color="#883080E8"/>
+              <GradientStop Offset="1" Color="#FF000000"/>
+            </LinearGradientBrush>
+          </Grid.Background>
+          <Border BorderBrush="#FFFFFF" BorderThickness="2" CornerRadius="4"/>
+          <Grid Margin="6">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="32"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image x:Name="BlueGemImage" Grid.Column="0" Width="32" Height="32" Stretch="Uniform" IsHitTestVisible="False" VerticalAlignment="Center">
+              <Image.Source>
+                <Binding Path="blueGemTexture"/>
+              </Image.Source>
+            </Image>
+            <TextBlock x:Name="BlueManaText" Grid.Column="1" Text="{Binding blueManaText}" FontFamily="Bangers" FontSize="18" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" noesis:Text.StrokeThickness="2">
+              <noesis:Text.Stroke>
+                <SolidColorBrush Color="#FF000000"/>
+              </noesis:Text.Stroke>
+            </TextBlock>
+          </Grid>
+        </Grid>
+        <Grid x:Name="GreenManaOrb" Width="80" Height="40" Margin="4,0">
+          <Grid.Background>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+              <GradientStop Offset="0" Color="#8830B850"/>
+              <GradientStop Offset="1" Color="#FF000000"/>
+            </LinearGradientBrush>
+          </Grid.Background>
+          <Border BorderBrush="#FFFFFF" BorderThickness="2" CornerRadius="4"/>
+          <Grid Margin="6">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="32"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image x:Name="GreenGemImage" Grid.Column="0" Width="32" Height="32" Stretch="Uniform" IsHitTestVisible="False" VerticalAlignment="Center">
+              <Image.Source>
+                <Binding Path="greenGemTexture"/>
+              </Image.Source>
+            </Image>
+            <TextBlock x:Name="GreenManaText" Grid.Column="1" Text="{Binding greenManaText}" FontFamily="Bangers" FontSize="18" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" noesis:Text.StrokeThickness="2">
+              <noesis:Text.Stroke>
+                <SolidColorBrush Color="#FF000000"/>
+              </noesis:Text.Stroke>
+            </TextBlock>
+          </Grid>
+        </Grid>
+        <Grid x:Name="YellowManaOrb" Width="80" Height="40" Margin="4,0">
+          <Grid.Background>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+              <GradientStop Offset="0" Color="#88F0C830"/>
+              <GradientStop Offset="1" Color="#FF000000"/>
+            </LinearGradientBrush>
+          </Grid.Background>
+          <Border BorderBrush="#FFFFFF" BorderThickness="2" CornerRadius="4"/>
+          <Grid Margin="6">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="32"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image x:Name="YellowGemImage" Grid.Column="0" Width="32" Height="32" Stretch="Uniform" IsHitTestVisible="False" VerticalAlignment="Center">
+              <Image.Source>
+                <Binding Path="yellowGemTexture"/>
+              </Image.Source>
+            </Image>
+            <TextBlock x:Name="YellowManaText" Grid.Column="1" Text="{Binding yellowManaText}" FontFamily="Bangers" FontSize="18" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" noesis:Text.StrokeThickness="2">
+              <noesis:Text.Stroke>
+                <SolidColorBrush Color="#FF000000"/>
+              </noesis:Text.Stroke>
+            </TextBlock>
+          </Grid>
+        </Grid>
+        <Grid x:Name="PurpleManaOrb" Width="80" Height="40" Margin="4,0">
+          <Grid.Background>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+              <GradientStop Offset="0" Color="#889030C8"/>
+              <GradientStop Offset="1" Color="#FF000000"/>
+            </LinearGradientBrush>
+          </Grid.Background>
+          <Border BorderBrush="#FFFFFF" BorderThickness="2" CornerRadius="4"/>
+          <Grid Margin="6">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="32"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image x:Name="PurpleGemImage" Grid.Column="0" Width="32" Height="32" Stretch="Uniform" IsHitTestVisible="False" VerticalAlignment="Center">
+              <Image.Source>
+                <Binding Path="purpleGemTexture"/>
+              </Image.Source>
+            </Image>
+            <TextBlock x:Name="PurpleManaText" Grid.Column="1" Text="{Binding purpleManaText}" FontFamily="Bangers" FontSize="18" Foreground="White" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" noesis:Text.StrokeThickness="2">
+              <noesis:Text.Stroke>
+                <SolidColorBrush Color="#FF000000"/>
+              </noesis:Text.Stroke>
+            </TextBlock>
+          </Grid>
+        </Grid>
+      </StackPanel>
+
+      <!-- Layer 2c: Power detail panel -->
+      <Grid VerticalAlignment="Bottom" Visibility="{Binding powerPreviewVisible, Converter={StaticResource BoolToVis}}"
+            IsHitTestVisible="True" Height="113">
+
+        <Border>
+          <Border.Background>
+            <LinearGradientBrush EndPoint="0,1" StartPoint="0,0">
+              <GradientStop Offset="0" Color="#001C1F38"/>
+              <GradientStop Color="#FF0D0E1E" Offset="1"/>
+              <GradientStop Offset="0.105" Color="#FF1A1C34"/>
+            </LinearGradientBrush>
+          </Border.Background>
+        </Border>
+
+        <Grid Margin="0,5,0,40">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="88"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="88"/>
+          </Grid.ColumnDefinitions>
+
+          <!-- Left: Hero sprite (overflows above panel) -->
+          <Grid Grid.Column="0" Margin="0,-90,0,0">
+            <Image Stretch="Uniform" VerticalAlignment="Bottom"
+                   Height="178" IsHitTestVisible="False">
+              <Image.Source><Binding Path="powerHeroTexture"/></Image.Source>
+            </Image>
+            <TextBlock Text="{Binding powerHeroName}"
+                       FontFamily="Bangers" FontSize="12"
+                       Foreground="White" HorizontalAlignment="Center"
+                       VerticalAlignment="Bottom" Margin="0,0,0,2"
+                       noesis:Text.StrokeThickness="1.5">
+              <noesis:Text.Stroke><SolidColorBrush Color="#FF000000"/></noesis:Text.Stroke>
+            </TextBlock>
+          </Grid>
+
+          <!-- Center: Power name + description -->
+          <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,6,4,6">
+            <TextBlock Text="{Binding powerName}"
+                       FontFamily="Bangers" FontSize="20"
+                       HorizontalAlignment="Center" TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       noesis:Text.StrokeThickness="2">
+              <TextBlock.Foreground>
+                <SolidColorBrush Color="{Binding powerManaColorHex}"/>
+              </TextBlock.Foreground>
+              <noesis:Text.Stroke><SolidColorBrush Color="#FF000000"/></noesis:Text.Stroke>
+            </TextBlock>
+            <TextBlock Text="{Binding powerDescription}"
+                       FontFamily="Noto Sans" FontSize="11"
+                       Foreground="#DDFFFFFF"
+                       HorizontalAlignment="Center" TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       MaxHeight="36" Margin="0,3,0,0"/>
+          </StackPanel>
+
+          <!-- Right: Cast button -->
+          <Grid Grid.Column="2" Margin="4,10,8,4">
+            <Button Command="{Binding events.onPowerCastClicked}"
+                    IsEnabled="{Binding powerCanCast}">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border x:Name="Bg" CornerRadius="10" BorderThickness="2" BorderBrush="#FFFFD700">
+                    <Border.Background>
+                      <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0" Color="#FFFFC774"/>
+                        <GradientStop Offset="1" Color="#FFFFA702"/>
+                      </LinearGradientBrush>
+                    </Border.Background>
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,0">
+                        <Image Source="{Binding Path=powerGemTexture}" Width="18" Height="18"
+                               VerticalAlignment="Center" Margin="0,0,3,0" IsHitTestVisible="False"/>
+                        <TextBlock Text="{Binding Path=powerManaCost}" FontFamily="Bangers" FontSize="17"
+                                   Foreground="White" VerticalAlignment="Center"
+                                   noesis:Text.StrokeThickness="1.5">
+                          <noesis:Text.Stroke><SolidColorBrush Color="#FF000000"/></noesis:Text.Stroke>
+                        </TextBlock>
+                      </StackPanel>
+                      <TextBlock Text="CAST" FontFamily="Bangers" FontSize="20"
+                                 Foreground="White" HorizontalAlignment="Center"
+                                 noesis:Text.StrokeThickness="2">
+                        <noesis:Text.Stroke><SolidColorBrush Color="#FF000000"/></noesis:Text.Stroke>
+                      </TextBlock>
+                    </StackPanel>
+                  </Border>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                      <Setter TargetName="Bg" Property="Opacity" Value="0.35"/>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                      <Setter TargetName="Bg" Property="Opacity" Value="0.7"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Button.Template>
+            </Button>
+          </Grid>
+        </Grid>
+      </Grid>
+
+      <!-- Layer 4: Game Over overlay (legacy, hidden) -->
+      <Grid Visibility="{Binding gameOverVisible, Converter={StaticResource BoolToVis}}" Background="#CC000000" d:IsHidden="True">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+          <TextBlock Text="GAME OVER" FontSize="42" Foreground="#FF4444" HorizontalAlignment="Center" FontWeight="Bold" StrokeThickness="5" Stroke="#FFFFFFFF" />
+          <TextBlock Text="{Binding finalScoreText}" FontSize="22" Foreground="White" HorizontalAlignment="Center" Margin="0,12,0,0" />
+          <Button Content="Play Again" Command="{Binding events.onRestartClicked}"
+                  Width="200" Height="50" Margin="0,24,0,0" FontSize="18"
+                  Background="#E94560" Foreground="White" BorderThickness="0" />
+        </StackPanel>
+      </Grid>
+
+      <!-- Layer 5: Dungeon info HUD (top area during combat) -->
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Center"
+                  Margin="0,4,0,0" IsHitTestVisible="False"
+                  Visibility="{Binding combatVisible, Converter={StaticResource BoolToVis}}">
+        <Border Background="#AA000000" CornerRadius="4" Padding="8,2">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{Binding dungeonNameText}" FontFamily="Bangers" FontSize="13"
+                       Foreground="#FFD700" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <TextBlock Text="{Binding dungeonRoomText}" FontFamily="Bangers" FontSize="12"
+                       Foreground="#CCCCCC" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <TextBlock Text="{Binding levelText}" FontFamily="Bangers" FontSize="12"
+                       Foreground="#88FF88" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </Grid>
+  </Viewbox>
+</Grid>

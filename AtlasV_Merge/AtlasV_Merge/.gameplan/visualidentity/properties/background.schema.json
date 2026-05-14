@@ -1,8 +1,0 @@
-{
-  "version": "1",
-  "title": "Background Properties",
-  "elements": [
-    { "id": "bg_desc", "type": "readonly_text", "label": "Description", "value": "Calm ambient environment behind the container. Should never compete with merges for attention. Slow ambient animation is acceptable." },
-    { "id": "bg_note", "type": "readonly_text", "label": "Style", "value": "Dark, calm, narrow color range. The container and items are the stars." }
-  ]
-}

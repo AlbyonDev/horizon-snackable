@@ -1,7 +1,0 @@
-{
-  "version": "1",
-  "title": "Merge Ladder",
-  "elements": [
-    { "id": "mergeladder_preview", "type": "image", "src": "~/overview/banner-mergeladder.jpg", "fit": "cover" }
-  ]
-}

@@ -1,8 +1,0 @@
-{
-  "version": "1",
-  "title": "Best Score",
-  "elements": [
-    { "id": "bs_desc", "type": "readonly_text", "label": "Description", "value": "Tracks the player's highest score within a session. Displayed on HUD and game-over screen. Persists across runs but not across sessions (no cloud save in v1)." },
-    { "id": "bs_note", "type": "readonly_text", "label": "Status", "value": "Session-only persistence. Cloud save planned for future." }
-  ]
-}

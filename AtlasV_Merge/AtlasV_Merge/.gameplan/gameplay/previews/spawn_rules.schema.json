@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Spawn Rules",
-  "elements": [{ "id": "sr_prev", "type": "image", "src": "./spawn_rules.png", "fit": "cover" }]
-}

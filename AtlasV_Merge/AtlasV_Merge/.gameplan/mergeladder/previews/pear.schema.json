@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Pear",
-  "elements": [{ "id": "pear_prev", "type": "image", "src": "./pear.png", "fit": "cover" }]
-}

@@ -1,8 +1,0 @@
-{
-  "version": "1",
-  "title": "Session Flow",
-  "elements": [
-    { "id": "sess_desc", "type": "readonly_text", "label": "Description", "value": "The session flows: Start → Drop/Merge loop → Game Over → Instant Restart. No menus, no confirmation dialogs. Tap to restart immediately." },
-    { "id": "sess_note", "type": "readonly_text", "label": "Design Principle", "value": "Restart must be under 2 seconds. Losses feel like 'I can do better' not 'that was unfair'." }
-  ]
-}

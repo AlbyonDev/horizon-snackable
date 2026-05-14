@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Danger Detection",
-  "elements": [{ "id": "dd_prev", "type": "image", "src": "./danger.png", "fit": "cover" }]
-}

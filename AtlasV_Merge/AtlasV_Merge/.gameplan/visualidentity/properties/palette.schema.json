@@ -1,8 +1,0 @@
-{
-  "version": "1",
-  "title": "Color Palette",
-  "elements": [
-    { "id": "pal_desc", "type": "readonly_text", "label": "Description", "value": "11 distinct tier colors chosen for maximum contrast between adjacent tiers. Background and UI use a calm, narrow palette so items carry the color load." },
-    { "id": "pal_colors", "type": "readonly_text", "label": "Current Palette", "value": "Cherry #E84855, Strawberry #FF6B8A, Grape #9B5DE5, Orange #F48C06, Persimmon #DC6601, Apple #57CC99, Pear #A8D844, Peach #FFADAD, Pineapple #FFD166, Melon #83E377, Watermelon #2D6A4F" }
-  ]
-}

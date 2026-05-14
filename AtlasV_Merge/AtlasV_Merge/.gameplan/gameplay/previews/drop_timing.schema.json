@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Drop Timing",
-  "elements": [{ "id": "dt_prev", "type": "image", "src": "./drop_timing.png", "fit": "cover" }]
-}

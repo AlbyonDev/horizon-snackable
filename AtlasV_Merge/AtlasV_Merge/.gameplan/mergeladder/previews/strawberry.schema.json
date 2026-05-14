@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Strawberry",
-  "elements": [{ "id": "strawberry_prev", "type": "image", "src": "./strawberry.png", "fit": "cover" }]
-}

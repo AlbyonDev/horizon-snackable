@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Gameplay",
-  "elements": [{ "id": "gameplay_preview", "type": "image", "src": "~/overview/banner-gameplay.jpg", "fit": "cover" }]
-}

@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Persimmon",
-  "elements": [{ "id": "persimmon_prev", "type": "image", "src": "./persimmon.png", "fit": "cover" }]
-}

@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Best Score",
-  "elements": [{ "id": "bs_prev", "type": "image", "src": "./best_score.png", "fit": "cover" }]
-}

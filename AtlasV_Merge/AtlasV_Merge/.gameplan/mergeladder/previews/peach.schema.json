@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Peach",
-  "elements": [{ "id": "peach_prev", "type": "image", "src": "./peach.png", "fit": "cover" }]
-}

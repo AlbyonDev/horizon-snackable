@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Collision",
-  "elements": [{ "id": "collision_prev", "type": "image", "src": "./collision.png", "fit": "cover" }]
-}

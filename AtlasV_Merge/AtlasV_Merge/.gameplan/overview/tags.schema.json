@@ -1,6 +1,0 @@
-{
-  "version": "1",
-  "elements": [
-    { "id": "overview_tags", "type": "tag_row", "tags": ["Puzzle", "Physics", "Merge", "Casual", "Mobile", "Portrait", "Score-Chaser"] }
-  ]
-}

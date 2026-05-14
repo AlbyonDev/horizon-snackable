@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Orange",
-  "elements": [{ "id": "orange_prev", "type": "image", "src": "./orange.png", "fit": "cover" }]
-}

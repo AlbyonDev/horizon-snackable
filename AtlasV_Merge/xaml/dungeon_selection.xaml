@@ -1,0 +1,119 @@
+<Grid Background="Transparent"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:local="clr-namespace:horizon.ui_noesis;assembly=ui_noesis"
+  xmlns:noesis="clr-namespace:NoesisGUIExtensions"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d">
+
+  <Grid.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolToVis" />
+  </Grid.Resources>
+
+  <Viewbox Stretch="Uniform">
+    <Grid Width="480" Height="800">
+      <Grid.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+          <GradientStop Offset="0" Color="#1A0A2E"/>
+          <GradientStop Offset="0.5" Color="#0F0F2D"/>
+          <GradientStop Offset="1" Color="#0A0A1A"/>
+        </LinearGradientBrush>
+      </Grid.Background>
+      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+        <TextBlock Text="SELECT DUNGEON" FontFamily="Bangers" FontSize="36"
+                   Foreground="#FFD700" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+
+        <!-- Forest Button -->
+        <Button Command="{Binding events.onDungeonSelectClicked}" CommandParameter="forest"
+                Width="280" Height="70" Margin="0,8" BorderThickness="0">
+          <Button.Template>
+            <ControlTemplate TargetType="Button">
+              <Border CornerRadius="8" BorderBrush="#44FF44" BorderThickness="2">
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Offset="0" Color="#1A3A1A"/>
+                    <GradientStop Offset="1" Color="#0A2A0A"/>
+                  </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel VerticalAlignment="Center" Margin="16,0">
+                  <TextBlock Text="Enchanted Forest" FontFamily="Bangers" FontSize="22" Foreground="#88FF88"/>
+                  <TextBlock Text="Lv.1 · Slimes &amp; Goblins" FontSize="12" Foreground="#AAAAAA"/>
+                </StackPanel>
+              </Border>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+
+        <!-- Crypt Button -->
+        <Button Command="{Binding events.onDungeonSelectClicked}" CommandParameter="crypt"
+                Width="280" Height="70" Margin="0,8" BorderThickness="0">
+          <Button.Template>
+            <ControlTemplate TargetType="Button">
+              <Border CornerRadius="8" BorderBrush="#8888FF" BorderThickness="2">
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Offset="0" Color="#1A1A3A"/>
+                    <GradientStop Offset="1" Color="#0A0A2A"/>
+                  </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel VerticalAlignment="Center" Margin="16,0">
+                  <TextBlock Text="Forgotten Crypt" FontFamily="Bangers" FontSize="22" Foreground="#AAAAFF"/>
+                  <TextBlock Text="Lv.3 · Skeletons &amp; Ghosts" FontSize="12" Foreground="#AAAAAA"/>
+                </StackPanel>
+              </Border>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+
+        <!-- Volcano Button -->
+        <Button Command="{Binding events.onDungeonSelectClicked}" CommandParameter="volcano"
+                Width="280" Height="70" Margin="0,8" BorderThickness="0">
+          <Button.Template>
+            <ControlTemplate TargetType="Button">
+              <Border CornerRadius="8" BorderBrush="#FF6644" BorderThickness="2">
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Offset="0" Color="#3A1A1A"/>
+                    <GradientStop Offset="1" Color="#2A0A0A"/>
+                  </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel VerticalAlignment="Center" Margin="16,0">
+                  <TextBlock Text="Inferno Crater" FontFamily="Bangers" FontSize="22" Foreground="#FF8866"/>
+                  <TextBlock Text="Lv.5 · Elementals &amp; Demons" FontSize="12" Foreground="#AAAAAA"/>
+                </StackPanel>
+              </Border>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+
+        <!-- Player level/gold info -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,0">
+          <TextBlock Text="{Binding levelText}" FontFamily="Bangers" FontSize="18"
+                     Foreground="#88FF88" Margin="0,0,20,0"/>
+          <TextBlock Text="{Binding xpText}" FontFamily="Bangers" FontSize="18"
+                     Foreground="#CCCCCC"/>
+        </StackPanel>
+
+        <!-- Manage Team button -->
+        <Button Command="{Binding events.onManageTeamClicked}"
+                Width="220" Height="50" Margin="0,20,0,0" BorderThickness="0">
+          <Button.Template>
+            <ControlTemplate TargetType="Button">
+              <Border CornerRadius="8" BorderBrush="#9030C8" BorderThickness="2">
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Offset="0" Color="#2A1A3A"/>
+                    <GradientStop Offset="1" Color="#1A0A2A"/>
+                  </LinearGradientBrush>
+                </Border.Background>
+                <TextBlock Text="MANAGE TEAM" FontFamily="Bangers" FontSize="22"
+                           Foreground="#CC88FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+            </ControlTemplate>
+          </Button.Template>
+        </Button>
+      </StackPanel>
+    </Grid>
+  </Viewbox>
+</Grid>

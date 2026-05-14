@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep -l \"victoryDefeatVM\\\\.\")",
+      "Bash(grep -E \"\\\\.\\(ts|xaml\\)$\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projects\\\\Horizon\\\\PuzzleQuest\\\\scripts\\\\\" -Recurse -Filter \"*.ts\" | Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projects\\\\Horizon\\\\PuzzleQuest\\\\scripts\" -Recurse -Filter \"*.ts\" -Filter \"*.cs\")",
+      "Bash(Get-Content -Path \"c:\\\\Projects\\\\Horizon\\\\PuzzleQuest\\\\scripts\\\\CombatFlowController.ts\" -TotalCount 250)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projects\\\\Horizon\\\\PuzzleQuest\\\\scripts\\\\\" -Recurse -File | Select-Object -First 50)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Projects\\\\Horizon\\\\PuzzleQuest\\\\scripts\\\\\" -Recurse -File | Select-Object -First 30 | ForEach-Object { $_.FullName })",
+      "Bash(Get-ChildItem -Path \"c:\\\\Projects\\\\Horizon\\\\PuzzleQuest\\\\scripts\" -Recurse -File)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Projects\\\\Horizon\\\\PuzzleQuest\" -Recurse -Force | Select-Object FullName, PSIsContainer | Sort-Object FullName | ForEach-Object { if \\($_.PSIsContainer\\) { $_.FullName + \"/\" } else { $_.FullName } })"
+    ]
+  }
+}

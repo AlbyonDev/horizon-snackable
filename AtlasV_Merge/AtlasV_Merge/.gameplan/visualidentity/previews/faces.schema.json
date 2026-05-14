@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Faces",
-  "elements": [{ "id": "faces_prev", "type": "image", "src": "./faces.png", "fit": "cover" }]
-}

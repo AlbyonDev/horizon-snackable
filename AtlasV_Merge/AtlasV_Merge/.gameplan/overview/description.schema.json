@@ -1,6 +1,0 @@
-{
-  "version": "1",
-  "elements": [
-    { "id": "overview_desc", "type": "readonly_text", "label": "About", "value": "A physics-driven fruit merge game where dropping identical fruits into a jar triggers cascading chain reactions. Chase your best score one drop at a time." }
-  ]
-}

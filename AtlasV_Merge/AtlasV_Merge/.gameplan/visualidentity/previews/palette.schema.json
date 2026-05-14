@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Palette",
-  "elements": [{ "id": "pal_prev", "type": "image", "src": "./palette.png", "fit": "cover" }]
-}

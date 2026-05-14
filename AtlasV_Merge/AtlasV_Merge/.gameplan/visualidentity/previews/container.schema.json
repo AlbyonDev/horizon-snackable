@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Container",
-  "elements": [{ "id": "cont_prev", "type": "image", "src": "./container.png", "fit": "cover" }]
-}

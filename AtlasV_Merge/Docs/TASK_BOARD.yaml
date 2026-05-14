@@ -1,0 +1,164 @@
+tasks:
+  - name: "Milestone 1-6: Core Game Systems"
+    status: done
+    reference: "Puzzle Quest, Gems of War, Slay the Spire"
+    description: "Complete Match-3 RPG with combat, powers, dungeons, and hero collection"
+    summary: "Built full Match-3 RPG game with 7×7 board, hero portraits, turn-based combat, 8 power types, 3 dungeons with 3 rooms each, hero collection with XP/leveling (1-10), persistent save system, and JRPG victory screen"
+    files: ["All game systems complete"]
+
+  - name: "Title Screen"
+    status: done
+    description: "Create dedicated title screen with epic battle background, polished Play button, and fade transition"
+    summary: "Built complete title screen with epic anime battle background (heroes vs monsters), CRYSTAL VANGUARD title, PLAY button with press state animation (scale + dim), fade to black transition (0.7s), and smooth reveal of main game"
+    files: ["sprites/title_background.png", "scripts/TitleScreenViewModel.ts", "scripts/TitleScreenComponent.ts", "xaml/title_screen.xaml", "space.hstf"]
+
+  - name: "Persistent Save System"
+    status: done
+    description: "Add persistent save system that stores hero roster, HP, and XP across sessions"
+    summary: "Implemented full save/load system using PlayerVariablesService: SaveData interface, SaveManagerComponent (server-side), client-server communication via NetworkEvents, auto-save after combat, load on game start with full state restoration; new players start with 3 level 1 starter heroes (Warrior/Mage/Ranger)"
+    files: ["scripts/SaveData.ts", "scripts/SaveManagerComponent.ts", "scripts/RosterManager.ts", "scripts/GameComponent.ts", "space.hstf"]
+
+  - name: "Per-Hero Leveling System"
+    status: done
+    description: "Refactor XP from global to per-hero, with levels 1-10 affecting match and power damage"
+    summary: "Replaced global XP system with per-hero XP/level tracking in RosterManager: HeroXpState interface, level 1-10 progression (100 XP per level), linear damage scaling (1.0x to 2.0x), integrated into CombatSystem and PowerSystem damage calculations, save/load support"
+    files: ["scripts/RosterManager.ts", "scripts/CombatSystem.ts", "scripts/PowerSystem.ts", "scripts/SaveData.ts"]
+
+  - name: "Bug Fixes"
+    status: done
+    description: "Fix critical bugs in title screen transition, save system, and HP sync"
+    summary: "Fixed: (1) Input guard for title screen tap pass-through; (2) Game panel dimensions 1920×1080; (3) Save system maxLength and network timing; (4) HP sync on defeat for all 3 heroes"
+    files: ["scripts/GameComponent.ts", "scripts/SaveData.ts", "space.hstf"]
+
+  - name: "XP & Level Display on Hero Cards"
+    status: done
+    description: "Add XP progress bars and level indicators to hero cards in collection screen"
+    summary: "Added level badge (gold-bordered pill showing 'Lv.X') and XP progress bar (6px cyan-to-green gradient) to each hero card"
+    files: ["scripts/SpriteViewModel.ts", "scripts/GameComponent.ts", "xaml/game.xaml"]
+
+  - name: "Modular UI Architecture Refactor"
+    status: done
+    description: "Split monolithic game.xaml into separate UI entities for easier editing"
+    summary: "Refactored UI into 6 separate entities with dedicated XAML files and components: TitleScreen, DungeonSelection, DungeonMap, HeroCollection, VictoryDefeat, and GameBoard; each entity has its own CustomUiComponent, ViewModel, and Component script; entities show/hide based on game state with proper renderOrderOffset layering (0-10)"
+    files: ["xaml/dungeon_selection.xaml", "xaml/dungeon_map.xaml", "xaml/hero_collection.xaml", "xaml/victory_defeat.xaml", "scripts/DungeonSelectionComponent.ts", "scripts/DungeonMapComponent.ts", "scripts/HeroCollectionComponent.ts", "scripts/VictoryDefeatComponent.ts", "scripts/DungeonSelectionViewModel.ts", "scripts/DungeonMapViewModel.ts", "scripts/HeroCollectionViewModel.ts", "scripts/VictoryDefeatViewModel.ts", "space.hstf"]
+
+  - name: "Cross-Entity Button Event Fix"
+    status: done
+    description: "Fix button events not working after UI refactor due to entity-scoped UiEvents"
+    summary: "Fixed cross-entity communication: UiEvents are entity-scoped and don't cross entity boundaries; each screen component now subscribes to its own UiEvents and forwards them as LocalEvents; GameComponent subscribes to forwarded LocalEvents instead of original UiEvents; all dungeon selection buttons, hero collection buttons, and other cross-entity UI now work correctly"
+    files: ["scripts/DungeonSelectionComponent.ts", "scripts/DungeonMapComponent.ts", "scripts/HeroCollectionComponent.ts", "scripts/VictoryDefeatComponent.ts", "scripts/GameComponent.ts"]
+
+  - name: "HP Bar Visibility Fix"
+    status: done
+    description: "Fix HP bars not always displaying for all living heroes"
+    summary: "Fixed HP bar visibility issues: (1) Bars snap to full opacity immediately when repurposed after hero death (opacity < 0.05 → 1.0); (2) Added resetBarVisibility() callback after reorganize; (3) Fixed one-frame hidden state at match start by calling hpBars.update() immediately after resetBarVisibility() in startRoomCombat() to force opacity snap before first render; all living heroes now have visible HP bars consistently from frame 1"
+    files: ["scripts/HpBarManager.ts", "scripts/CombatFlowController.ts", "scripts/GameComponent.ts"]
+
+  - name: "Complete Hero Sprite Collection"
+    status: done
+    description: "Generate unique battle sprites for all 15 heroes in the catalog with correct facing direction"
+    summary: "Generated 10 new unique hero battle sprites (Berserker, Pyromancer, Cryomancer, Oracle, Druid, Assassin, Cleric, Alchemist, Warlock, Death Knight) following anime JRPG chibi art style with RIGHT-FACING fighting stances to match game layout (heroes face right toward enemies); processed with background removal and cropping; enabled premultiply alpha; updated Assets.ts to reference unique sprites for all heroes"
+    files: ["sprites/hero_berserker_attack.png", "sprites/hero_pyromancer_attack.png", "sprites/hero_cryomancer_attack.png", "sprites/hero_oracle_attack.png", "sprites/hero_druid_attack.png", "sprites/hero_assassin_attack.png", "sprites/hero_cleric_attack.png", "sprites/hero_alchemist_attack.png", "sprites/hero_warlock_attack.png", "sprites/hero_death_knight_attack.png", "scripts/Assets.ts"]
+
+  - name: "Remove Unused Background Sprites"
+    status: done
+    description: "Remove unused dungeon_background_* sprite files not referenced in code"
+    summary: "Deleted 3 unused sprites (dungeon_background_forest/crypt/volcano.png + assetmetas); kept bg_forest/crypt/volcano.png (in use) and dungeon_background.png (generic, in use)"
+    files: ["sprites/"]
+
+  - name: "Darken Volcano Background"
+    status: done
+    description: "Regenerate background_volcano to be darker for better character visibility"
+    summary: "Regenerated bg_volcano.png with deeper shadows, dim lighting, and dark volcanic cavern aesthetic for better character contrast"
+    files: ["sprites/bg_volcano.png"]
+
+  - name: "Regenerate Fire Elemental Sprite"
+    status: done
+    description: "Regenerate the fire elemental sprite in a fighting stance looking left"
+    summary: "Regenerated fire elemental sprite with aggressive fighting stance facing left, chibi anime style, transparent background, premultiply alpha enabled"
+    files: ["sprites/enemy_fire_elemental.png"]
+
+  - name: "Hero Cards - Bigger Level Text, Top Right"
+    status: done
+    description: "Double the level text size on hero cards and move it to top-right corner"
+    summary: "Doubled level text font size (12→24 collection, 9→18 roster) and repositioned to top-right corner on both card types"
+    files: ["xaml/hero_collection.xaml"]
+
+  - name: "Hero Collection - Bigger Roster Cards & Remove Back Button"
+    status: done
+    description: "Increase roster card size at bottom of hero collection, adjust layout, remove Back button"
+    summary: "Removed Back button from top-left title bar; increased roster cards from 100×145 to 135×195; expanded roster row height from 200 to 260"
+    files: ["xaml/hero_collection.xaml"]
+
+  - name: "Hero Collection Grid - 3 Cards Per Row"
+    status: done
+    description: "Update hero collection panel to use bigger cards in rows of 3 instead of 5"
+    summary: "Resized hero cards from 90×130 to 148×210, switched to WrapPanel layout for 3-per-row wrapping, updated HP bar width calculations"
+    files: ["xaml/hero_collection.xaml", "scripts/GameComponent.ts", "scripts/SpriteViewModel.ts"]
+
+  - name: "Hero Detail Panel Polish"
+    status: done
+    summary: "Initial redesign of detail overlay"
+    files: ["xaml/hero_collection.xaml", "scripts/HeroCollectionViewModel.ts", "scripts/HeroCollectionComponent.ts"]
+
+  - name: "Hero Detail Panel Polish v2"
+    status: done
+    summary: "Fixed: name banner matches portrait width, added HP: label, level replaces XP tab text with bigger bar font, darker power background, stroke on power title, cost moved to top-left"
+    files: ["xaml/hero_collection.xaml"]
+
+  - name: "Hero Detail Panel Polish v3"
+    status: done
+    summary: "Increased power desc height/padding, doubled Lv font size and XP bar height, generated ornate gold close icon sprite positioned straddling the top-right border"
+    files: ["xaml/hero_collection.xaml", "sprites/icon_close.png", "scripts/Assets.ts", "scripts/HeroCollectionViewModel.ts"]
+
+  - name: "Hero HP Regen System"
+    status: done
+    description: "Passive HP regen for out-of-combat heroes, KO revival after 1h, offline regen on login, timer display on detail card"
+    summary: "Added full regen system: 1 HP/min passive heal on collection screen, KO heroes revive after 1h then regen, offline regen on login using elapsed time, 'Fully restored in Xh Xm' on detail card, save data v4 with timestamps"
+    files: ["scripts/SaveData.ts", "scripts/RosterManager.ts", "scripts/GameComponent.ts"]
+
+  - name: "HP Bar Formula Bug in Hero Collection Roster"
+    status: in_progress
+    description: "HP bars on roster hero cards not showing full when hero is at full HP - wrong fill formula"
+
+  - name: "Heal KO Hero Popup (50 Gold)"
+    status: done
+    description: "Clicking a KO'd hero shows a popup (same format as hero purchase popup) offering to heal them for 50 gold instead of adding them to the team"
+    summary: "Added heal popup overlay (green theme, same format as buy popup) to hero collection; KO'd hero tap intercepts equip and shows 50g heal offer; confirms deducts gold, heals to max HP, clears death timer, saves"
+    files: ["scripts/RosterManager.ts", "scripts/HeroCollectionViewModel.ts", "scripts/HeroCollectionComponent.ts", "scripts/GameComponent.ts", "scripts/ScreenEvents.ts", "xaml/hero_collection.xaml"]
+
+  - name: "Hero Detail Panel Polish v4"
+    status: done
+    summary: "Neutral HP label, dynamic HP color matching gauge, healing timer format (XminXXs left) with real-time updates on both screens, unified timer colors (green/orange), name top margin, removed spacer gap"
+    files: ["xaml/hero_collection.xaml", "scripts/HeroCollectionViewModel.ts", "scripts/HeroCollectionComponent.ts", "scripts/GameComponent.ts"]
+
+  - name: "Gold Counter UI + Persistence"
+    status: done
+    description: "Add gold counter visible on hero collection screen and victory screen, with save/load for player gold"
+    summary: "Added goldText to HeroCollectionViewModel (top-right title bar with gold icon) and goldTotalText to VictoryDefeatViewModel (room reward overlay); GameComponent syncs gold to both VMs on screen show and after save load; save system already handled gold persistence"
+    files: ["scripts/HeroCollectionViewModel.ts", "scripts/VictoryDefeatViewModel.ts", "xaml/hero_collection.xaml", "xaml/victory_defeat.xaml", "scripts/GameComponent.ts"]
+
+  - name: "Druid Healing Power Visual Bug"
+    status: done
+    description: "Fix Druid's Regeneration power to show heal popups and VFX on all allies instead of just the caster"
+    summary: "Fixed visual bug where Druid's ALL_ALLIES heal only showed popup/VFX on caster; now spawns heal popup (+X) and particle effects on each living hero when power targets ALL_ALLIES"
+    files: ["scripts/PowerActivationController.ts"]
+
+  - name: "Random Encounters by Biome"
+    status: in_progress
+    description: "Modify encounter system to use all enemies from the catalog and build random encounters based on the dungeon biome"
+
+chopping_block:
+  disabled_systems: []
+  temp_scaffolding: []
+  failed_attempts: []
+
+notes:
+  - "Grid is 7×7"
+  - "Heroes are 160×200, rendered before board for natural depth layering"
+  - "Reference games: Puzzle Quest for match-3 + RPG hybrid, Gems of War for mana system"
+  - "UI is split into 6 separate entities for modularity"
+  - "Screen flow: Title → Dungeon Selection → Game Board → Victory/Defeat → Dungeon Selection"
+  - "Cross-entity communication uses LocalEvents (entity-scoped UiEvents don't cross boundaries)"
+  - "All 15 heroes now have unique battle sprites matching their class identity"
+  - "Heroes face RIGHT toward enemies (enemies face LEFT toward heroes)"

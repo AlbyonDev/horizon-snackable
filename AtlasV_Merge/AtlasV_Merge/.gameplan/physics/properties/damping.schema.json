@@ -1,9 +1,0 @@
-{
-  "version": "1",
-  "title": "Damping Properties",
-  "elements": [
-    { "id": "damp_desc", "type": "readonly_text", "label": "Description", "value": "Exponential velocity decay simulating friction. Higher damping = items settle faster, less chaos." },
-    { "id": "dampt_heading", "type": "heading", "value": "Tune", "variant": "caption" },
-    { "id": "dampt_friction", "type": "slider", "label": "Friction Damping", "value": 3.0, "min": 0.5, "max": 8.0, "step": 0.5, "onChange": { "type": "prompt", "template": "[Gameplan: update .gameplan/physics/properties/damping.schema.json, set dampt_friction to {{dampt_friction}}]\nSet friction damping to {{dampt_friction}} per second in scripts/Constants.ts." } }
-  ]
-}

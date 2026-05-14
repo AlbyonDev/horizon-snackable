@@ -1,5 +1,0 @@
-{
-  "version": "1",
-  "title": "Damping",
-  "elements": [{ "id": "damping_prev", "type": "image", "src": "./damping.png", "fit": "cover" }]
-}
