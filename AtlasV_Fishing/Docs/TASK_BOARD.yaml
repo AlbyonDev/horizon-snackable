@@ -283,6 +283,46 @@ tasks:
     summary: Events.FishCaught n'était jamais émis — ajouté sendLocally dans PlayerProgressService.onFishCollected(). La collection se met à jour en temps réel maintenant.
     files: [Scripts/Services/PlayerProgressService.ts]
 
+  - name: Title Screen UI
+    status: done
+    summary: Écran titre fullscreen avec BGStart.png, logo FishingLegend centré haut, bouton Play style buzzer orange (copie CastButtonTemplate). UiEvent + LocalEvent pour démarrer le jeu.
+    files: [UI/TitleScreen.xaml, Scripts/Components/UI/TitleScreenUIComponent.ts]
+
+  - name: Hook Play Button to GameManager
+    status: done
+    summary: TitleScreenUIComponent cache son CustomUiComponent (isVisible=false) quand Play est pressé, puis fire TitleScreenPlayRequested. Le jeu tourne déjà en Idle en dessous.
+    files: [Scripts/Components/UI/TitleScreenUIComponent.ts]
+
+  - name: Hide HUDs Until Play Pressed
+    status: done
+    summary: GameHUD et InteractiveHUD démarrent cachés (isVisible=false). Deviennent visibles uniquement après TitleScreenPlayRequested. Gate _playPressed empêche l'affichage prématuré.
+    files: [Scripts/Components/UI/GameHUDViewModel.ts, Scripts/Components/UI/InteractiveHUDViewModel.ts]
+
+  - name: Fix GameHUD Not Showing After Play
+    status: done
+    summary: Timing issue — PhaseChanged(Idle) fired before Play, _onPhase returned early. Fix: set isGoldVisible='True' and isDepthVisible='False' dans _onPlayPressed().
+    files: [Scripts/Components/UI/GameHUDViewModel.ts]
+
+  - name: Title Screen Exit Animation
+    status: done
+    summary: Animation sortie titre — logo slide up hors écran (0.45s), bouton scale+fade (0.4s). Après 550ms delay, hide titre + fire TitleScreenPlayRequested → HUDs apparaissent en cascade.
+    files: [UI/TitleScreen.xaml, Scripts/Components/UI/TitleScreenUIComponent.ts]
+
+  - name: Fix Logo Exit Not High Enough
+    status: done
+    summary: Logo TranslateTransform Y passé de -800 à -1500 pour sortir complètement hors écran.
+    files: [UI/TitleScreen.xaml]
+
+  - name: Camera Animate to 4.5 on Play
+    status: done
+    summary: Ajouté animateTo(targetY, durationMs) dans GameCameraService avec easing quad. TitleScreen appelle animateTo(4.5, 550) au moment du Play pour sync avec l'animation de sortie UI.
+    files: [Scripts/Services/GameCameraService.ts, Scripts/Components/UI/TitleScreenUIComponent.ts]
+
+  - name: Move DepthCounterPanel to FishingHUD
+    status: done
+    summary: DepthCounterPanel déplacé de GameHUD vers FishingHUD. Propriétés depthText/maxDepthText/isDepthVisible migrées vers FishingHUDViewModel. GameHUD nettoyé.
+    files: [UI/GameHUD.xaml, UI/FishingHUD.xaml, Scripts/Components/UI/GameHUDViewModel.ts, Scripts/Components/UI/FishingHUDViewModel.ts]
+
 chopping_block:
   disabled_systems: []
   temp_scaffolding: []

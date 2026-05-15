@@ -24,7 +24,8 @@ import {
   FISH_PAUSE_DUR_MIN, FISH_PAUSE_DUR_MAX, FISH_BOB_AMP, FISH_BOB_FREQ, FISH_MIN_MOVE_DIST,
   HALF_SCREEN_WORLD_HEIGHT,
   POOL_COUNT_COMMON, POOL_COUNT_RARE, POOL_COUNT_LEGENDARY,
-  POOL_SLOT_COUNT, POOL_SLOT_SPREAD, POOL_SLOT_TOLERANCE, POOL_SLOT_DRIFT_MAX,
+  POOL_SLOT_STEP_MIN, POOL_SLOT_STEP_MAX, POOL_SLOT_STEP_RAMP_DEPTH,
+  POOL_SLOT_SPREAD, POOL_SLOT_TOLERANCE, POOL_SLOT_DRIFT_MAX,
   POOL_SCALE_VARIANCE, FISH_SIZE_RANGE_COMPRESSION,
   WATER_SURFACE_Y,
   BUBBLE_INTERVAL_MIN, BUBBLE_INTERVAL_MAX,
@@ -61,8 +62,13 @@ export class FishDataService extends Service {
   // Camera center Y (set by GameCameraService each frame)
   private _camCenterY = 0;
 
-  // fishId assigned to each slot (0 = vacant)
-  private _slotFishId = new Array<number>(POOL_SLOT_COUNT).fill(0);
+  // Pending one-shot pre-fill: filled once camera position is known
+  private _pendingInitialFill = 0;
+
+  // fishId assigned to each slot index (0 / missing = vacant).
+  // Slot indices are stable (0 = shallowest, increases with depth) regardless
+  // of how many slots the ramp produces this frame.
+  private _slotFishId: Map<number, number> = new Map();
 
   // ── Init ───────────────────────────────────────────────────────────────────
 
@@ -71,6 +77,10 @@ export class FishDataService extends Service {
     if (NetworkingService.get().isServerContext()) return;
     console.log('[FishDataService] Creating fish pool data objects');
     this._createPool();
+    // Defer the initial pre-fill to the first onUpdate that has a valid
+    // _camCenterY (set by GameCameraService.onUpdate). Filling 3 shallow
+    // strata so the title/idle screen shows fish immediately.
+    this._pendingInitialFill = 3;
   }
 
   // ── Public API ─────────────────────────────────────────────────────────────
@@ -78,6 +88,66 @@ export class FishDataService extends Service {
   /** Called by GameCameraService each frame. */
   setCameraY(centerY: number): void {
     this._camCenterY = centerY;
+  }
+
+  /**
+   * Pre-fill the visible underwater zone with N fish at game start so the
+   * title/idle screen shows fish immediately instead of an empty ocean.
+   * Fish are spawned at evenly-spaced Y positions in the visible band just
+   * below the surface, NOT bound to pool slots — the normal slot tick will
+   * still spawn its own when slots fall in the visible range or off-screen.
+   * These fish are full first-class instances: poolable, catchable, AI-driven.
+   */
+  forceFillInitial(numStrata: number): void {
+    const camBottom = this._camCenterY - HALF_SCREEN_WORLD_HEIGHT;
+    // Visible underwater band: from just below the surface to the bottom of
+    // screen. Stay clear of the exact surface (fish would clip into waves).
+    const topY    = WATER_SURFACE_Y - 0.5;
+    const bottomY = Math.max(camBottom + 0.5, topY - 8.0);
+    if (bottomY >= topY) return;
+
+    const range = topY - bottomY;
+    const step  = range / numStrata;
+
+    for (let i = 0; i < numStrata; i++) {
+      // Strata center, with a bit of jitter to avoid a perfectly straight line.
+      const slotY = topY - step * (i + 0.5) + (Math.random() * 2 - 1) * step * 0.25;
+
+      const depth = WATER_SURFACE_Y - slotY;
+      const def = this._rollEligibleForInitialFill(depth);
+      if (!def) continue;
+
+      const bench = this._bench.get(def.id);
+      if (!bench || bench.length === 0) continue;
+
+      const fish = bench.pop()!;
+      this._benchedIds.delete(fish.fishId);
+      const spawnX = FISH_LEFT + Math.random() * (FISH_RIGHT - FISH_LEFT);
+      const mean = (def.sizeMin + def.sizeMax) * 0.5;
+      const lo   = mean + (def.sizeMin - mean) * FISH_SIZE_RANGE_COMPRESSION;
+      const hi   = mean + (def.sizeMax - mean) * FISH_SIZE_RANGE_COMPRESSION;
+      const base = lo + Math.random() * (hi - lo);
+      const size = base * (1 - POOL_SCALE_VARIANCE + Math.random() * POOL_SCALE_VARIANCE * 2);
+      fish.activate(spawnX, slotY, def.speedMin, def.speedMax, size);
+    }
+  }
+
+  /**
+   * Pick a random def eligible at this depth, with a bench fish available.
+   * Skips the wave/spawnChance gating since the initial fill must guarantee
+   * a populated screen — picking from the eligible pool is enough.
+   */
+  private _rollEligibleForInitialFill(depth: number): IFishDef | null {
+    const eligible: IFishDef[] = [];
+    for (const def of DEFS_BY_RARITY) {
+      const minDepthThreshold = def.depthMin !== undefined ? (WATER_SURFACE_Y - def.depthMin) : 0;
+      if (depth < minDepthThreshold) continue;
+      const bench = this._bench.get(def.id);
+      if (!bench || bench.length === 0) continue;
+      eligible.push(def);
+    }
+    if (eligible.length === 0) return null;
+    return eligible[Math.floor(Math.random() * eligible.length)];
   }
 
   /** Get a fish instance by ID. */
@@ -121,6 +191,13 @@ export class FishDataService extends Service {
     if (NetworkingService.get().isServerContext()) return;
     const dt = p.deltaTime;
     if (dt <= 0) return;
+
+    // Consume any pending initial pre-fill now that the camera has reported
+    // its center (otherwise _camCenterY would still be 0 and slot Ys wrong).
+    if (this._pendingInitialFill > 0 && this._camCenterY !== 0) {
+      this.forceFillInitial(this._pendingInitialFill);
+      this._pendingInitialFill = 0;
+    }
 
     // Tick swim AI and flying physics for all active fish
     this._tickFishAI(dt);
@@ -222,40 +299,46 @@ export class FishDataService extends Service {
     const camBottomRaw = this._camCenterY - HALF_SCREEN_WORLD_HEIGHT;
     const bufferTop    = camTopRaw + POOL_SLOT_SPREAD;
     const bufferBottom = camBottomRaw - POOL_SLOT_SPREAD;
-    // For "off-screen above" tests we still want to ensure we never count
-    // out-of-water region as visible — but we no longer use it to clip the buffer.
-    const camTop       = Math.min(camTopRaw, WATER_SURFACE_Y);
-    const camBottom    = camBottomRaw;
 
-    // Step 1 — recycle free fish outside the full buffer zone.
+    // Generate slot Y positions via a non-linear depth ramp:
+    //   step(depth) = lerp(STEP_MIN, STEP_MAX, clamp(depth / RAMP_DEPTH, 0, 1))
+    // Walking from the surface down, the first slot is shallow (step=1m),
+    // subsequent slots stretch out until step=8m at and beyond RAMP_DEPTH.
+    // Result: dense fish near the surface (visible at idle, easy early game),
+    // sparse at depth (room to swipe between strata).
+    const slotYs: number[] = [];
+    let depth = POOL_SLOT_STEP_MIN * 0.5; // first slot sits half a step under the surface
+    while (true) {
+      const slotY = WATER_SURFACE_Y - depth;
+      if (slotY < bufferBottom) break;
+      slotYs.push(slotY);
+      const t = Math.min(1, depth / POOL_SLOT_STEP_RAMP_DEPTH);
+      const step = POOL_SLOT_STEP_MIN + (POOL_SLOT_STEP_MAX - POOL_SLOT_STEP_MIN) * t;
+      depth += step;
+    }
+    const slotCount = slotYs.length;
+
+    // Step 1 — recycle free fish outside the full buffer zone, clearing their
+    // slot assignment if they had one.
     for (const fish of this._allFish) {
       if (!fish.active) continue;
       if (fish.isHooked || fish.isFlying) continue;
       if (this._benchedIds.has(fish.fishId)) continue;
       if (fish.worldY > bufferTop || fish.worldY < bufferBottom) {
-        const idx = this._slotFishId.indexOf(fish.fishId);
-        if (idx !== -1) this._slotFishId[idx] = 0;
+        for (const [idx, fid] of this._slotFishId) {
+          if (fid === fish.fishId) { this._slotFishId.delete(idx); break; }
+        }
         this._benchFish(fish);
       }
     }
 
     // Step 2 — fill vacant slots.
-    const totalRange = bufferTop - bufferBottom;
-    if (totalRange <= 0) return;
-    const slotStep = totalRange / POOL_SLOT_COUNT;
+    for (let i = 0; i < slotCount; i++) {
+      const slotY = slotYs[i];
 
-    for (let i = 0; i < POOL_SLOT_COUNT; i++) {
-      const slotY = bufferBottom + i * slotStep + slotStep * 0.5;
-
-      // Validate current assignment.
-      // A slot is "still occupied" only if its fish:
-      //   - is hooked or flying (special states), OR
-      //   - is still active AND within the global buffer AND has NOT drifted
-      //     too far from this slot's nominal Y position.
-      // The drift check is critical at depth: without it, a fish spawned just
-      // below the camera holds its slot for ~7 seconds while it drifts up
-      // toward bufferTop, starving spawns.
-      const assignedId = this._slotFishId[i];
+      // Validate current assignment (hooked/flying always keeps the slot;
+      // drifted-too-far fish releases it so a fresh one can spawn).
+      const assignedId = this._slotFishId.get(i) ?? 0;
       if (assignedId !== 0) {
         const inst = this._allFish.find(f => f.fishId === assignedId);
         const stillOccupied = inst && (
@@ -266,22 +349,24 @@ export class FishDataService extends Service {
             && Math.abs(inst.worldY - slotY) < POOL_SLOT_DRIFT_MAX)
         );
         if (stillOccupied) continue;
-        this._slotFishId[i] = 0;
+        this._slotFishId.delete(i);
       }
 
       // Never spawn above water
       if (slotY >= WATER_SURFACE_Y) continue;
 
-      // Only spawn off-screen
-      const offscreenAbove = slotY > camTop && slotY <= bufferTop;
-      const offscreenBelow = slotY < camBottom && slotY >= bufferBottom;
-      if (!offscreenAbove && !offscreenBelow) continue;
+      // Spawn eligibility: off-screen always allowed (the classic "pre-load
+      // ahead of the camera" behaviour). On-screen allowed too — needed so
+      // the visible idle/title screen and the dense shallow ramp stay
+      // populated even when the camera does not move. The neighbour check
+      // below prevents this from stacking fish on top of each other.
+      if (slotY > bufferTop || slotY < bufferBottom) continue;
 
       // Avoid stacking
       if (this._hasNeighborWithin(slotY, POOL_SLOT_TOLERANCE)) continue;
 
-      const depth = WATER_SURFACE_Y - slotY;
-      const def = this._rollDef(depth);
+      const slotDepth = WATER_SURFACE_Y - slotY;
+      const def = this._rollDef(slotDepth);
       if (!def) continue;
 
       const bench = this._bench.get(def.id);
@@ -296,7 +381,7 @@ export class FishDataService extends Service {
       const base = lo + Math.random() * (hi - lo);
       const size = base * (1 - POOL_SCALE_VARIANCE + Math.random() * POOL_SCALE_VARIANCE * 2);
       fish.activate(spawnX, slotY, def.speedMin, def.speedMax, size);
-      this._slotFishId[i] = fish.fishId;
+      this._slotFishId.set(i, fish.fishId);
     }
   }
 

@@ -29,6 +29,11 @@ class SaveData {
 
 const SAVE_KEY = 'fishCollection';
 
+// Coalesce rapid setVariable calls (e.g. a Launch dropping N fish back-to-back
+// blasts the rate-limited backend). We flag dirty and flush a single write
+// at the end of the burst.
+const PERSIST_DEBOUNCE_MS = 400;
+
 // =============================================================================
 //  PlayerProgressService
 //
@@ -55,6 +60,10 @@ export class PlayerProgressService extends Service {
   private _lineLevel : number              = 0;
   private _hookLevel : number              = 0;
 
+  // Debounced persist state (server-side only).
+  private _persistTimerId: ReturnType<typeof setTimeout> | null = null;
+  private _persistDirty  : boolean                              = false;
+
   // ── Server: player joins ─────────────────────────────────────────────────────
 
   async loadForPlayer(player: Entity): Promise<void> {
@@ -76,7 +85,9 @@ export class PlayerProgressService extends Service {
       this._lineLevel = save.lineLevel ?? 0;
       this._hookLevel = save.hookLevel ?? 0;
     } else {
-      this._persist();
+      // First-time player: write the empty save immediately so a quick quit
+      // does not lose the initial record.
+      this._persistNow();
     }
 
     const catchDefIds = Array.from(this._counts.keys());
@@ -192,8 +203,22 @@ export class PlayerProgressService extends Service {
 
   // ── Private ───────────────────────────────────────────────────────────────────
 
+  /**
+   * Schedule a persist. Coalesces bursts (e.g. N fish collected in quick
+   * succession during Launch) into a single setVariable call.
+   */
   private _persist(): void {
+    this._persistDirty = true;
+    if (this._persistTimerId !== null) return;
+    this._persistTimerId = setTimeout(() => {
+      this._persistTimerId = null;
+      if (this._persistDirty) this._persistNow();
+    }, PERSIST_DEBOUNCE_MS);
+  }
+
+  private _persistNow(): void {
     if (!this._player) return;
+    this._persistDirty = false;
     const catchDefIds = Array.from(this._counts.keys());
     const save: SaveData = {
       catchDefIds,

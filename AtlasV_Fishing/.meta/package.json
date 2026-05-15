@@ -8,6 +8,10 @@
             "version": "*"
         },
         {
+            "name": "meta/worlds_sdk_provisional",
+            "version": "development"
+        },
+        {
             "name": "meta/editor_starter_kit",
             "version": "1.13.2"
         },

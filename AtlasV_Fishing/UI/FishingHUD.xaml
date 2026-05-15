@@ -58,6 +58,34 @@
             </DoubleAnimation>
         </Storyboard>
 
+        <!-- ══ Depth Counter Show Animation ══════════════════ -->
+        <Storyboard x:Key="DepthShowAnimation">
+            <DoubleAnimation Storyboard.TargetName="DepthCounterTranslate"
+                             Storyboard.TargetProperty="Y"
+                             From="-150" To="0" Duration="0:0:0.35" BeginTime="0:0:0">
+                <DoubleAnimation.EasingFunction>
+                    <BackEase EasingMode="EaseOut" Amplitude="0.5"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="DepthCounterPanel"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0" To="1" Duration="0:0:0.2" BeginTime="0:0:0"/>
+        </Storyboard>
+
+        <!-- ══ Depth Counter Hide Animation ══════════════════ -->
+        <Storyboard x:Key="DepthHideAnimation">
+            <DoubleAnimation Storyboard.TargetName="DepthCounterTranslate"
+                             Storyboard.TargetProperty="Y"
+                             To="-150" Duration="0:0:0.25" BeginTime="0:0:0">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseIn"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="DepthCounterPanel"
+                             Storyboard.TargetProperty="Opacity"
+                             To="0" Duration="0:0:0.25" BeginTime="0:0:0"/>
+        </Storyboard>
+
         <!-- HUD Show/Hide Storyboards -->
         <Storyboard x:Key="HUDShowAnimation">
             <DoubleAnimation Storyboard.TargetName="HUDRootScale"
@@ -183,6 +211,92 @@
         </Grid>
 
         <!-- NEW ZONE UNLOCKED Message - Above XP Bar -->
+
+        <!-- ── Depth Counter (Bottom Left, own show/hide animation) ── -->
+        <Grid x:Name="DepthCounterPanel" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="DepthCounterTranslate" Y="-150"/>
+            </Grid.RenderTransform>
+
+            <b:Interaction.Triggers>
+                <b:DataTrigger Binding="{Binding isDepthVisible}" Value="True">
+                    <b:ControlStoryboardAction Storyboard="{StaticResource DepthShowAnimation}"/>
+                </b:DataTrigger>
+                <b:DataTrigger Binding="{Binding isDepthVisible}" Value="False">
+                    <b:ControlStoryboardAction Storyboard="{StaticResource DepthHideAnimation}"/>
+                </b:DataTrigger>
+            </b:Interaction.Triggers>
+
+            <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="40,0,0,100">
+                <!-- Drop shadow -->
+                <Border CornerRadius="72"
+                        Padding="54,24,66,24"
+                        Opacity="0.4"
+                        Margin="0,10,0,0"
+                        VerticalAlignment="Top">
+                    <Border.Background>
+                        <SolidColorBrush Color="#FF000000"/>
+                    </Border.Background>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Opacity="0">
+                        <Path Width="90" Height="100" Stretch="Uniform" Margin="0,0,30,0"
+                              VerticalAlignment="Center"
+                              Data="M 50,95 L 80,50 L 62,50 L 62,5 L 38,5 L 38,50 L 20,50 Z"/>
+                        <TextBlock FontSize="96" FontWeight="Bold" Text="{Binding Path=depthText, FallbackValue=0.0 m}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Outer white border -->
+                <Border CornerRadius="72"
+                        BorderBrush="{StaticResource WhiteBorder}"
+                        BorderThickness="8"
+                        Background="Transparent"
+                        VerticalAlignment="Top">
+
+                    <!-- Inner black border -->
+                    <Border CornerRadius="64"
+                            BorderBrush="{StaticResource BlackBorder}"
+                            BorderThickness="5"
+                            Padding="54,24,66,24">
+                        <Border.Background>
+                            <SolidColorBrush Color="#EE0C1B33"/>
+                        </Border.Background>
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Width="90" Height="100" Stretch="Uniform" Margin="0,0,30,0"
+                                  VerticalAlignment="Center"
+                                  StrokeThickness="8" StrokeLineJoin="Round"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Data="M 50,95 L 80,50 L 62,50 L 62,5 L 38,5 L 38,50 L 20,50 Z">
+                                <Path.Stroke>
+                                    <SolidColorBrush Color="#FFFFFFFF"/>
+                                </Path.Stroke>
+                                <Path.Fill>
+                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                        <GradientStop Color="#00FFFF" Offset="0"/>
+                                        <GradientStop Color="#0066AA" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Path.Fill>
+                            </Path>
+                            <TextBlock Text="{Binding depthText}"
+                                       FontSize="96"
+                                       FontWeight="Bold"
+                                       Foreground="White"
+                                       Stroke="#FF000000"
+                                       StrokeThickness="6"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding maxDepthText}"
+                                       FontSize="72"
+                                       FontWeight="SemiBold"
+                                       Foreground="#AA00E5FF"
+                                       Stroke="#FF000000"
+                                       StrokeThickness="4"
+                                       VerticalAlignment="Center"
+                                       Margin="16,0,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Border>
+            </Grid>
+        </Grid>
 
         <!-- Swipe Hint (center screen, Diving phase only) -->
         <Grid x:Name="SwipeHintContainer"

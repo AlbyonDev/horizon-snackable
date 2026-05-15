@@ -6,14 +6,19 @@
  * Component Networking: Local (client-side rendering only)
  * Component Ownership: Not Networked
  *
- * Canvas: 540×960 px. Perspective projection from camera at Z=25, FOV=45°
- * yields ~20.71 world units visible height, ~11.65 visible width at Z=0.
- * PX_PER_UNIT ≈ 46.35 (= 960 / 20.71).
+ * Canvas: 540×960 px. Orthographic projection — camera orthographicSize=9.5
+ * means the visible half-height is 9.5 world units (VISIBLE_HEIGHT=19), so
+ * VISIBLE_WIDTH = 19 * (540/960) ≈ 10.6875. PX_PER_UNIT = 960 / 19 ≈ 50.526.
+ * Because the projection is orthographic, world→canvas mapping is depth-
+ * independent: a 3D entity at world (x, y, anyZ) lands at the same canvas
+ * pixel as a UI fish at world (x, y), so the hooked fish sprite anchors
+ * exactly to the 3D hook position.
  * Coordinate mapping:
  *   canvasX = (worldX + HALF_VISIBLE_W) * PX_PER_UNIT
  *   canvasY = (cameraCenterY + HALF_VISIBLE_H - worldY) * PX_PER_UNIT
  */
 import {
+  CameraService,
   Component,
   CustomUiComponent,
   DrawingCommandData,
@@ -29,46 +34,54 @@ import {
   subscribe,
   uiViewModel,
 } from 'meta/worlds';
+import {
+  CameraModeProvisionalService,
+} from 'meta/worlds_provisional';
 import type { Maybe, OnWorldUpdateEventPayload } from 'meta/worlds';
 
 import { FishDataService } from '../../Services/FishDataService';
 import { GameCameraService } from '../../Services/GameCameraService';
 import { HookedFishAnimator } from '../../Services/HookedFishAnimator';
 import { SPRITE_FISH_MAP } from '../../FishSpriteAssets';
+import { HOOK_IDLE_X, HOOK_IDLE_Y } from '../../Constants';
 
 // --- Constants ---
-const CANVAS_W = 540;
+// Canvas height is the reference axis — it maps 1:1 to the camera orthographic
+// height. Canvas width is computed at runtime from the actual screen aspect
+// ratio (set in onStart) so the UI never drifts from the 3D scene regardless
+// of device aspect. The XAML Viewbox uses Stretch="Fill"; since canvas aspect
+// now matches screen aspect, no distortion occurs.
 const CANVAS_H = 960;
 
-// Camera perspective parameters (must match 3D camera setup)
-const CAMERA_DISTANCE = 25; // camera Z position (looking at Z=0)
-const CAMERA_FOV_DEG = 45;  // vertical FOV in degrees
-const CAMERA_FOV_RAD = CAMERA_FOV_DEG * Math.PI / 180;
+// Camera orthographic parameters (must match 3D camera setup in space.hstf).
+// orthographicSize is the visible half-height in world units.
+const CAMERA_ORTHO_SIZE = 9.5;
 
-// Visible world extents at Z=0 via perspective projection
-const VISIBLE_HEIGHT = 2 * CAMERA_DISTANCE * Math.tan(CAMERA_FOV_RAD / 2); // ~20.71
-const VISIBLE_WIDTH = VISIBLE_HEIGHT * (CANVAS_W / CANVAS_H);              // ~11.65
-
-// Pixels per world unit (perspective-correct)
-const PX_PER_UNIT = CANVAS_H / VISIBLE_HEIGHT; // ~46.35
-
-// Half-extents for coordinate conversion
-const HALF_VISIBLE_W = VISIBLE_WIDTH / 2;
+// Visible world extents in Y — depth-independent under orthographic projection.
+const VISIBLE_HEIGHT = 2 * CAMERA_ORTHO_SIZE;          // 19
 const HALF_VISIBLE_H = VISIBLE_HEIGHT / 2;
+
+// Pixels per world unit (vertical reference, screen-aspect-independent).
+const PX_PER_UNIT = CANVAS_H / VISIBLE_HEIGHT;         // ~50.526
 
 // Margin outside canvas beyond which fish are skipped (pixels)
 const CULL_MARGIN = 120;
 
-// Hooked-fish pivot offset: where on the sprite the "fishing line attaches".
-// 0.5  = vertical middle of the sprite's mouth-side edge (old behavior).
-// 0.15 = near the top edge of the sprite (mouth/nose area) → bigger tail-arc on swing.
-// Lower values give a more dramatic "hanging by the mouth" look.
-const HOOK_PIVOT_Y_FRACTION = 0.18;
+// Hooked-fish pivot offset: where on the sprite the "fishing line attaches",
+// expressed as a fraction of sprite height from the top edge.
+// Sprites are drawn with their right edge at origin (mouth-side); this constant
+// controls the vertical position of the attachment along that edge.
+// 0.5 = vertical middle of the right edge — matches sprite art where the mouth
+//       sits at the middle-right. The hook anchors directly into the mouth.
+// 0   = top-right corner.  1 = bottom-right corner.
+const HOOK_PIVOT_Y_FRACTION = 0.5;
 
 // --- ViewModel ---
 @uiViewModel()
 class FishSpriteRendererViewModel extends UiViewModel {
   drawCommands: DrawingCommandData = new DrawingCommandData();
+  canvasW: number = 540;
+  canvasH: number = 960;
 }
 
 // --- Component ---
@@ -79,6 +92,12 @@ export class FishSpriteRenderer extends Component {
   private _builder = new DrawingCommandsBuilder();
   private _ready = false;
 
+  // Screen-aspect-driven width values. Recomputed in onStart; canvas height
+  // remains 960 and maps 1:1 to camera ortho height.
+  private _canvasW = 540;
+  private _halfVisibleW = (CANVAS_H * (540 / 960) * VISIBLE_HEIGHT / CANVAS_H) / 2;
+  private _visibleWidth = this._halfVisibleW * 2;
+
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -88,6 +107,15 @@ export class FishSpriteRenderer extends Component {
       ui.dataContext = this._vm;
       this._ready = true;
     }
+    // Sync canvas width to actual screen aspect so UI projection matches the
+    // orthographic 3D view exactly. With Viewbox Stretch="Fill" and matching
+    // aspect, sprites are neither stretched nor offset.
+    const screenAspect = CameraModeProvisionalService.get().aspectRatio; // width/height
+    this._canvasW = CANVAS_H * screenAspect;
+    this._visibleWidth = VISIBLE_HEIGHT * screenAspect;
+    this._halfVisibleW = this._visibleWidth / 2;
+    this._vm.canvasW = this._canvasW;
+    this._vm.canvasH = CANVAS_H;
   }
 
   @subscribe(OnWorldUpdateEvent)
@@ -98,7 +126,9 @@ export class FishSpriteRenderer extends Component {
     const builder = this._builder;
     builder.clear();
 
-    const cameraCenterY = GameCameraService.get().getCameraCenterY();
+    // Read the camera's actual transform Y (not the lerp target) so the UI
+    // projection matches the rendered 3D frame even when update order varies.
+    const cameraCenterY = GameCameraService.get().getCameraWorldY();
     const fishDataService = FishDataService.get();
 
     for (const fish of fishDataService.allActive()) {
@@ -106,12 +136,12 @@ export class FishSpriteRenderer extends Component {
       const spriteInfo = SPRITE_FISH_MAP.get(fish.defId);
       if (!spriteInfo) continue;
 
-      // Convert world → canvas (perspective-correct)
-      const canvasX = (fish.worldX + HALF_VISIBLE_W) * PX_PER_UNIT;
+      // Convert world → canvas (orthographic, aspect-matched)
+      const canvasX = (fish.worldX + this._halfVisibleW) * PX_PER_UNIT;
       const canvasY = (cameraCenterY + HALF_VISIBLE_H - fish.worldY) * PX_PER_UNIT;
 
       // Cull fish outside canvas bounds
-      if (canvasX < -CULL_MARGIN || canvasX > CANVAS_W + CULL_MARGIN) continue;
+      if (canvasX < -CULL_MARGIN || canvasX > this._canvasW + CULL_MARGIN) continue;
       if (canvasY < -CULL_MARGIN || canvasY > CANVAS_H + CULL_MARGIN) continue;
 
       // Compute pixel dimensions based on fish size (0.5 scale to match world proportions)

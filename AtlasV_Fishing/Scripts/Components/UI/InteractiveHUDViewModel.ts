@@ -17,6 +17,7 @@ import {
 
 import { Events, GamePhase } from '../../Types';
 import { upgradeCost, LINE_MAX_LEVEL, HOOK_MAX_LEVEL, lineDepthAtLevel, hookMaxFishAtLevel } from '../../Constants';
+import { TitleScreenPlayRequested } from './TitleScreenUIComponent';
 
 // ─── Module-level UiEvent declarations (unique prefixed IDs) ─────────────────
 @serializable()
@@ -108,6 +109,7 @@ export class InteractiveHUDData extends UiViewModel {
 export class InteractiveHUDViewModel extends Component {
   private _vm = new InteractiveHUDData();
   private _ui: Maybe<CustomUiComponent> = null;
+  private _playPressed = false;
 
   /** Track hide timer so we can cancel it if show is requested mid-hide */
   private _hideTimerId: ReturnType<typeof setTimeout> | null = null;
@@ -116,7 +118,18 @@ export class InteractiveHUDViewModel extends Component {
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
     this._ui = this.entity.getComponent(CustomUiComponent);
-    if (this._ui) this._ui.dataContext = this._vm;
+    if (this._ui) {
+      this._ui.dataContext = this._vm;
+      this._ui.isVisible = false;
+    }
+  }
+
+  @subscribe(TitleScreenPlayRequested)
+  private _onPlayPressed(): void {
+    if (NetworkingService.get().isServerContext()) return;
+    console.log('[InteractiveHUDViewModel] Play pressed, showing HUD');
+    this._playPressed = true;
+    this._showHUD();
   }
 
   @subscribe(OnEntityDestroyEvent)
@@ -206,6 +219,8 @@ export class InteractiveHUDViewModel extends Component {
 
   /** Show: set isVisible=true FIRST so XAML can render, then trigger animation */
   private _showHUD(): void {
+    if (!this._playPressed) return;
+
     if (this._hideTimerId !== null) {
       clearTimeout(this._hideTimerId);
       this._hideTimerId = null;

@@ -6,9 +6,12 @@
       mc:Ignorable="d"
       Background="Transparent" d:DesignWidth="540" d:DesignHeight="960">
 
-  <Viewbox Stretch="Uniform">
-    <Grid Width="540" Height="960">
-      <local:DrawingSurface Width="540" Height="960"
+  <!-- Stretch="Fill" + canvas dimensions bound to the screen aspect (set in TS)
+       keeps the UI canvas perfectly aligned with the orthographic 3D view on
+       any device aspect, with no letterboxing and no sprite distortion. -->
+  <Viewbox Stretch="Fill">
+    <Grid Width="{Binding canvasW}" Height="{Binding canvasH}">
+      <local:DrawingSurface Width="{Binding canvasW}" Height="{Binding canvasH}"
                             Commands="{Binding drawCommands}" />
     </Grid>
   </Viewbox>

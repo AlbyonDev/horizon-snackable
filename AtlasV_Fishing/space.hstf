@@ -214,7 +214,7 @@
                         "data": {
                             "localPosition": {
                                 "x": 0.0,
-                                "y": 7.5,
+                                "y": 6.5,
                                 "z": 25.0
                             }
                         }
@@ -223,10 +223,12 @@
                 },
                 {
                     "data": {
-                        "class": "horizon::platform_api::CameraPlatformComponent",
-                        "version": 3,
+                        "class": "horizon::platform_api::CameraModePlatformComponent",
+                        "version": 6,
                         "data": {
-                            "fieldOfView": 45.0
+                            "attachedToPlayer": false,
+                            "projection": "Orthographic",
+                            "orthographicSize": 9.5
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -337,9 +339,9 @@
                                 "z": 0.0
                             },
                             "localScale": {
-                                "x": 3.0,
-                                "y": 3.0,
-                                "z": 20.0
+                                "x": 50.0,
+                                "y": 50.0,
+                                "z": 50.0
                             }
                         }
                     },
@@ -1084,6 +1086,50 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "98955a11-69d5-4bb8-96ea-12e5620c35ad",
+            "name": "TitleScreen",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 15,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26220234944285836",
+                                "ingestionId": "17560799132928207539",
+                                "targetId": "2149638574"
+                            },
+                            "isInteractable": true,
+                            "renderOrderOffset": 10
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "TitleScreenUIComponent",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26220234944285836",
+                            "ingestionId": "4967191555731312864",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -1165,6 +1211,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "fe0c619f-3e5c-491f-aeee-faffe4f1bcb5",
+            "destination": "0400f1fe-065e-4d84-a3bd-86c89fab5c60"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "98955a11-69d5-4bb8-96ea-12e5620c35ad",
             "destination": "0400f1fe-065e-4d84-a3bd-86c89fab5c60"
         }
     ]

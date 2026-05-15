@@ -88,11 +88,18 @@ export const POOL_COUNT_RARE      = 5;
 export const POOL_COUNT_LEGENDARY = 2;
 export const POOL_PARK_Y          = 1000; // world Y used to park off-screen pool entities
 
-// Slot-based spawning
-// The region below camBottom is divided into POOL_SLOT_COUNT equal slots.
-// Each slot is checked every frame; vacant slots get a fish activated below camBottom.
-export const POOL_SLOT_COUNT      = 9;    // number of vertical slots to maintain
-export const POOL_SLOT_SPREAD     = 28.0; // total Y range below camBottom covered by slots (world units)
+// Slot-based spawning — non-linear spacing.
+// Slots start dense just under the water surface and stretch out with depth:
+//   - depth = 0 (surface)     → step = POOL_SLOT_STEP_MIN  (1 m, dense)
+//   - depth ≥ POOL_SLOT_STEP_RAMP_DEPTH → step = POOL_SLOT_STEP_MAX (8 m, sparse)
+//   - linear lerp between, then constant
+// This keeps early-game fish reachable (no waiting 8 m for first catch) and
+// also fills the visible idle/title screen, while giving mid/late-game enough
+// breathing room between strata to swipe and aim.
+export const POOL_SLOT_STEP_MIN        = 1.0;
+export const POOL_SLOT_STEP_MAX        = 8.0;
+export const POOL_SLOT_STEP_RAMP_DEPTH = 15.0;
+export const POOL_SLOT_SPREAD          = 28.0; // total Y range below camBottom covered by slots (world units)
 /**
  * How far a hooked-slot's fish can drift from its assigned slotY before the slot
  * is considered "vacated" (even if the fish is still within the global buffer).

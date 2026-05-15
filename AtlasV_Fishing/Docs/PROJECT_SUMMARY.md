@@ -69,6 +69,7 @@ FishingHUDViewModel   → species discovery progress bar + fish counter (hooked/
 FishCollectionUIComponent → fullscreen collection overlay; grid of all 31 fish species showing caught/uncaught state; detail view on tap; starts invisible (isVisible=false) to avoid blocking touch; becomes visible only when opened via GameHUD button; integrates with FishCollectionService for catch data
 FishSpriteRenderer    → fullscreen DrawingSurface overlay rendering all 30 sprite-based fish species each frame; converts world positions to canvas pixels using GameCameraService scroll offset; applies physics-based animation transforms (trail lag, tilt, squash/stretch, wiggle) to hooked fish via HookedFishAnimator
 HookedFishAnimator    → per-fish spring-damper animation for hooked fish: trailing offset, rotation tilt from horizontal hook velocity, squash/stretch from speed, wiggle oscillation; reacts to hook movement for juicy feel
+TitleScreenUIComponent → fullscreen title screen overlay with background image (BGStart.png), game logo (FishingLegend_logo.png), and orange buzzer-style Play button; fires TitleScreenPlayRequested LocalEvent when pressed; renderOrderOffset=10 to display above all other UI
 ```
 
 ## VFX System

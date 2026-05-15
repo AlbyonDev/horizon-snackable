@@ -12,6 +12,10 @@ import {
   type Maybe,
 } from 'meta/worlds';
 
+import {
+  CameraProvisionalComponent,
+  CameraModeProvisionalService,
+} from 'meta/worlds_provisional';
 import { Events, GamePhase } from '../Types';
 import { FishDataService } from './FishDataService';
 import { CAMERA_SCROLL_LERP_SPEED } from '../Constants';
@@ -50,8 +54,15 @@ export class GameCameraService extends Service {
   private _contShakeAmp   = 0;
   private _contShakeActive = false;
 
+  // Intro/transition animation state
+  private _animating       = false;
+  private _animTargetOffY  = 0;
+  private _animStartOffY   = 0;
+  private _animDuration    = 0;
+  private _animElapsed     = 0;
+
   private _phase: GamePhase = GamePhase.Idle;
-  private _camera: Maybe<CameraComponent> = null;
+  private _camera: Maybe<Entity> = null;
 
   // ── Public API ───────────────────────────────────────────────────────────────
 
@@ -61,9 +72,14 @@ export class GameCameraService extends Service {
     this._basePosX = tc.worldPosition.x;
     this._basePosY = tc.worldPosition.y;
     this._basePosZ = tc.worldPosition.z;
-    this._camera = entity.getComponent(CameraComponent);
-    if (this._camera) {
-      CameraService.get().setActiveCamera({ camera: this._camera });
+    this._camera = entity;
+    const _camera = entity.getComponent(CameraComponent);
+    const _cameraP = entity.getComponent(CameraProvisionalComponent);
+    if (_camera) {
+      CameraService.get().setActiveCamera({ camera: _camera });
+    }
+    if (_cameraP){
+      CameraModeProvisionalService.get().setActiveCamera({ camera: _cameraP });
     }
 
     this._ready = true;
@@ -88,6 +104,31 @@ export class GameCameraService extends Service {
 
   getCameraCenterY(): number {
     return this._basePosY + this._scrollOffsetY;
+  }
+
+  /**
+   * Returns the camera's actual world Y from its TransformComponent. Use this
+   * for UI→world projections that must match the rendered 3D frame exactly,
+   * since `getCameraCenterY()` can be one update tick behind `_applyCamera()`.
+   */
+  getCameraWorldY(): number {
+    if (!this._camera) return this._basePosY + this._scrollOffsetY;
+    const tc = this._camera.getComponent(TransformComponent);
+    if (!tc) return this._basePosY + this._scrollOffsetY;
+    return tc.worldPosition.y;
+  }
+
+  /**
+   * Smoothly animate the camera's world Y to `targetWorldY` over `durationMs`.
+   * Uses ease-in-out quad for smooth feel. Suppresses normal scroll lerp while active.
+   */
+  animateTo(targetWorldY: number, durationMs: number): void {
+    this._animating      = true;
+    this._animStartOffY  = this._scrollOffsetY;
+    this._animTargetOffY = targetWorldY - this._basePosY;
+    this._animDuration   = durationMs / 1000; // convert to seconds
+    this._animElapsed    = 0;
+    console.log(`[GameCameraService] animateTo worldY=${targetWorldY} over ${durationMs}ms`);
   }
 
   // ── Events ───────────────────────────────────────────────────────────────────
@@ -117,14 +158,30 @@ export class GameCameraService extends Service {
     if (!this._ready) return;
     const dt = p.deltaTime;
 
-    const diff = this._scrollTargetY - this._scrollOffsetY;
-    if (Math.abs(diff) > 0.001) {
-      // During Surfacing the hook rises very fast — use instant tracking
-      // so the camera keeps pace. Otherwise use the smooth lerp for diving.
-      const effectiveSpeed = this._phase === GamePhase.Surfacing ? 60.0 : this._scrollLerpSpeed;
-      this._scrollOffsetY += diff * Math.min(1, effectiveSpeed * dt);
+    // --- Intro/transition animation (suppresses normal scroll lerp) ---
+    if (this._animating) {
+      this._animElapsed += dt;
+      const t = Math.min(this._animElapsed / this._animDuration, 1);
+      // Ease-in-out quad
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      this._scrollOffsetY = this._animStartOffY + (this._animTargetOffY - this._animStartOffY) * eased;
+      if (t >= 1) {
+        this._scrollOffsetY = this._animTargetOffY;
+        this._scrollTargetY = this._animTargetOffY;
+        this._animating = false;
+        console.log('[GameCameraService] animateTo complete');
+      }
     } else {
-      this._scrollOffsetY = this._scrollTargetY;
+      // --- Normal scroll lerp (hook-following) ---
+      const diff = this._scrollTargetY - this._scrollOffsetY;
+      if (Math.abs(diff) > 0.001) {
+        // During Surfacing the hook rises very fast — use instant tracking
+        // so the camera keeps pace. Otherwise use the smooth lerp for diving.
+        const effectiveSpeed = this._phase === GamePhase.Surfacing ? 60.0 : this._scrollLerpSpeed;
+        this._scrollOffsetY += diff * Math.min(1, effectiveSpeed * dt);
+      } else {
+        this._scrollOffsetY = this._scrollTargetY;
+      }
     }
 
     if (this._shakeTimer > 0) {
@@ -152,7 +209,7 @@ export class GameCameraService extends Service {
 
   private _applyCamera(): void {
     if (!this._camera) return;
-    const tc = this._camera.entity.getComponent(TransformComponent);
+    const tc = this._camera.getComponent(TransformComponent);
     if (!tc) return;
     tc.worldPosition = new Vec3(
       this._basePosX + this._shakeOffsetX,

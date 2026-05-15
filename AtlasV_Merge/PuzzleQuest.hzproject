@@ -5,10 +5,10 @@
         "ingestionId": "16123935224325786335",
         "targetId": "2719744159"
     },
-    "organizationId": "896923280160081",
-    "organizationName": "thibaud_albyon's team",
-    "organizationScope": "thibaudalbyonsteam",
-    "worldId": "26997856073164425",
+    "organizationId": "661087583756217",
+    "organizationName": "Emporium of Wonders",
+    "organizationScope": "emporiumofwonders",
+    "worldId": "35260763196900530",
     "collisionLayers": [
         "Player",
         "World",
