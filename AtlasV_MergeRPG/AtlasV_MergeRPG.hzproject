@@ -1,0 +1,53 @@
+{
+    "id": "b0c138e9-c4d8-4f5b-b290-0af302d8d744",
+    "defaultTemplateAssetId": {
+        "packageOrRemoteId": "26792108410409509",
+        "ingestionId": "16123935224325786335",
+        "targetId": "2719744159"
+    },
+    "organizationId": "661087583756217",
+    "organizationName": "Emporium of Wonders",
+    "organizationScope": "emporiumofwonders",
+    "worldId": "35034603956155467",
+    "collisionLayers": [
+        "Player",
+        "World",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
+    "playerSettings": {
+        "avatarMax": 1,
+        "screenOrientation": "Portrait"
+    },
+    "updatePackageAuthorOnOrgChange": true,
+    "editorVersion": "79.0.0.15.107",
+    "starterWorldType": "BPBlank2DGame"
+}
