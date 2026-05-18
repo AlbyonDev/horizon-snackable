@@ -103,9 +103,9 @@ export const NEREIA_STORY: string = `
 // ============================================================
 
 === nereia_loop ===
-*Nereia is on the bench, a notebook open on her knees.*
-*She is filing something. Pen poised, then still.*
-*She does not look up.*
+*Nereia drifts near the surface, gold filigree catching the low light.*
+*Her fins trace a slow pattern in the water. Then stop.*
+*She does not turn toward you.*
 -> END
 
 // ============================================================
@@ -628,7 +628,7 @@ I have stopped looking.
     -> nereia_t2_c4_b3
 
 === nereia_t2_c4_b3 === #silent:240
-*The square is empty. Nereia does not speak. The bench is still.*
+*The shallows are empty. Nereia does not speak. The water is still.*
 
 * [WAIT] Hold space. #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.nereia.t2_done #flag:recipe.nereia.directiveT3 #disable-flag:recipe.nereia.anomalyT2 #flag:mood.nereia.silence_kept
     ...

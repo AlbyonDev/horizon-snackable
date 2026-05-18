@@ -150,6 +150,12 @@ tasks:
     summary: CG deferred until user taps to dismiss epitaph overlay — sequence is epitaph → tap to close → CG → tap to close → back to gameplay
     files: [scripts/FloaterGame.ts]
 
+  - name: Rewrite scenery to fish/lake descriptions
+    status: done
+    reference: "Hooked on a Feeling - dual narrative layer"
+    summary: All scenery lines in 4 story files rewritten from human/city imagery to fish/pond behavior matching each species
+    files: [scripts/Story_Nereia.ts, scripts/Story_Kasha.ts, scripts/Story_Fugu.ts, scripts/Story_Soma.ts]
+
 chopping_block:
   disabled_systems: []
   temp_scaffolding: []

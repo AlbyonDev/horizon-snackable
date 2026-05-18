@@ -91,9 +91,9 @@ export const SOMA_STORY: string = `
 // ============================================================
 
 === soma_loop ===
-*Sōma is on the bench. Same bench. Same thermos.*
-*He glances up, then back down at his paperback.*
-*He doesn't seem inclined to talk.*
+*Sōma is resting on the lakebed. Same spot. Same thermos-shaped stone beside him.*
+*He flicks a fin upward, then settles back into the silt.*
+*He doesn't seem inclined to move.*
 -> END
 
 // ============================================================
@@ -137,7 +137,7 @@ Look, the bench has room. Sit if you want. But I'm not making conversation.
 
 === soma_t1_c1_b2 ===
 ...
-*He turns a page. Doesn't look up.*
+*He nudges a pebble with his nose. Doesn't look up.*
 This book is terrible, by the way. Guy finds love on page forty and I'm on page three hundred and the love is still there.
 Unrealistic.
 ...
@@ -175,8 +175,8 @@ You're still here.
     Look, I wasn't trying to be rude last time. That's just... how I talk.
 - mood.soma.last_drift == "SCARED" :
     ...
-    *He sees you and almost gets up to leave.*
-    *Stays.*
+    *He sees you and almost drifts away.*
+    *Settles back down.*
     ...fine. Sit down.
 - else :
     Same bench. Same thermos.
@@ -223,7 +223,7 @@ I used to talk to a lot of people. All day, every day.
 Decided to stop.
 Best decision I ever made.
 ...second best. The first was this bench. Good lumbar support.
-*Almost smiles. Doesn't.*
+*Almost stirs a fin. Doesn't.*
 
 * [WAIT] Accept. #delta:3 #expr:warm #icon:contentment #drift:CHARMED #flag:quest.soma.t1_done #flag:recipe.soma.benchT2 #disable-flag:recipe.soma.home
     You're not going to ask why I stopped.
@@ -426,7 +426,7 @@ Funny how dreams can take from you too.
     ...you came. Even though I basically told you nothing last time.
 - mood.soma.last_drift == "SCARED" :
     ...
-    *He's sitting very still. Thermos untouched.*
+    *He's pressed flat against the lakebed. Perfectly still.*
     I owe you an honest conversation. I know.
 - else :
     Night. Fewer people.
@@ -597,14 +597,14 @@ Without purpose you're just... a body on a bench.
 === soma_t4_c7_b1 ===
 { mood.soma.last_drift == "SCARED" :
     ...
-    *He's sitting with the thermos held in both hands. Knuckles white.*
+    *He's hovering near the bottom, fins pressed tight to his sides.*
     ...I didn't think you'd come this far out.
 - mood.soma.last_drift == "WARY" :
     The park.
     ...didn't think you'd make the trek after last time.
 - else :
     ...
-    *The park is quiet. Leaves on the path.*
+    *The water is quiet. Sediment drifts along the bottom.*
     You found me.
     ...I'm not sure how I feel about that.
 }
@@ -695,7 +695,7 @@ Except this time there won't be anything left to break.
     I was hoping you would be. Don't tell anyone I said that.
 - else :
     ...
-    *He's not reading today. The book is closed on the bench beside him.*
+    *He's not nosing at pebbles today. He just hovers, motionless.*
     I've been thinking.
 }
 ...
@@ -783,12 +783,12 @@ And now the wall feels... less necessary.
     I don't deserve that. But here we are.
 - mood.soma.last_drift == "SCARED" :
     ...
-    *He's standing. Not sitting. First time.*
+    *He's risen off the lakebed. Not resting. First time.*
     ...you came. With the coin.
     I... yeah. Okay.
 - else :
     ...
-    *Night. The park. He's standing by the bench, not sitting on it.*
+    *Night. The deep water. He's hovering above the lakebed, not resting on it.*
     You're here.
     ...
     The coin. You brought it.
@@ -819,7 +819,7 @@ And somehow... you made that enough.
 
 * [DRIFT] Affirm. #delta:4 #expr:warm #icon:sadness #drift:OPENED #flag:fact.soma.confession
     ...
-    *He blinks rapidly.*
+    *His gills flutter rapidly.*
     ...don't.
     ...
     ...okay. Thank you.
@@ -876,8 +876,8 @@ Either way... this was good. All of it.
 
 === soma_t5_c10_b1 ===
 ...
-*Night. Same park. Same bench.*
-*Sōma is standing.*
+*Night. Same depth. Same lakebed.*
+*Sōma has risen from the silt.*
 ...
 So.
 You're here.
@@ -904,7 +904,7 @@ And trying is the scariest thing I've ever done.
 
 * [DRIFT] Release. #delta:1 #expr:warm #icon:sadness #drift:WARM #ending:release #unlock-cg:ending_soma_release
     ...
-    *He watches you step back.*
+    *He watches you drift back.*
     ...
     Okay.
     ...
@@ -915,14 +915,14 @@ And trying is the scariest thing I've ever done.
 
 * [REEL] Choose. #delta:0 #expr:warm #icon:surprise #drift:CHARMED #ending:reel #unlock-cg:ending_soma_reel
     ...
-    *You hold out the coin.*
+    *You hold out the coin in the current.*
     ...
     *He stares at it for a very long time.*
     ...
     ...okay.
     ...
     Okay.
-    *He takes it. His hand is shaking.*
+    *He takes it. His fin is trembling.*
     ...don't make me regret this.
     ...
     ...I won't regret this.

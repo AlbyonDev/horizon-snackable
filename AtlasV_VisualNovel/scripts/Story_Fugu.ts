@@ -98,8 +98,8 @@ export const FUGU_STORY: string = `
 // ============================================================
 
 === fugu_loop ===
-*Fugu is already in the middle of something.*
-*Talking to a rock. Practicing a speech. Pacing in tight circles.*
+*Fugu is already darting in tight circles near the reeds.*
+*Talking to a stone. Rehearsing a speech. Inflating and deflating.*
 -> END
 
 // ============================================================
@@ -119,7 +119,7 @@ You came back to make sure.
 Make sure I'm still the joke. The one who flinches. The one with the spines.
 The one who can't stop talking even when nobody's listening.
 ...
-*The spines along his arms are flat. Not relaxed — given up. You've never seen him without them up at least a little.*
+*The spines along his flanks are flat. Not relaxed — given up. You've never seen him without them up at least a little.*
 ...
 I thought... I really thought this time was different.
 I told a rock about you. Trust me, I — I told a rock.
@@ -143,7 +143,7 @@ But you didn't either.
     I'm not doing the bit. I'm not making it small.
     You don't get the joke version. You don't get to laugh and leave.
     ...
-    *His spines are flat. They've never been flat.*
+    *His spines are flat against his body. They've never been flat.*
     Just go. I'm done performing.
     -> END
 
@@ -160,7 +160,7 @@ But you didn't either.
     Don't.
     DON'T.
     ...
-    *He recoils. His whole body becomes spines again — but inward this time, curled around himself.*
+    *He recoils. His whole body bristles outward — but inward this time, curled around himself.*
     ...
     You don't get to do that now. You don't get to want me now.
     I'm toxic. I told you. I told you and told you and told you.
@@ -190,7 +190,7 @@ Please tell me you're not lost. Please say you're staying!
 * [TWITCH] Greet. #delta:5 #icon:delight #drift:CHARMED #flag:met.fugu #flag:fact.fugu.appearance #flag:fact.fugu.puffs
     Nice to meet you too!
     Whoa, we are so in sync already! I feel it!
-    Wait, my heart is beating so fast — *the spines along his forearms prickle up through his sleeves, sharp and visible.*
+    Wait, my heart is beating so fast — *the spines along his body prickle up through his skin, sharp and visible.*
     Oops! Sorry! That happens when I get too excited.
     But I'm just so glad you're here, trust me!
     -> fugu_t1_c1_b2
@@ -335,7 +335,7 @@ You know you're weird?
 No! Not mean weird! Good weird!
 Like... you're not scared of me.
 Look.
-*He rolls up a sleeve carefully, by the cuff. The skin underneath is dotted with hard ridges — spines, lying flat for now.*
+*He turns slowly, showing his flank. The skin is dotted with hard ridges — spines, lying flat for now.*
 See these? When I get stressed, they come out. With poison. Real poison.
 A lot of it.
 
@@ -349,7 +349,7 @@ A lot of it.
 * [TWITCH] Probe. #delta:3 #icon:curiosity #drift:WARM #flag:fact.fugu.toxic
     It doesn't hurt me. If that's what you're asking.
     But it hurts everyone else.
-    Watch — *He tenses on purpose, and a row of spines bristles all at once down his arm.*
+    Watch — *He tenses on purpose, and a row of spines bristles all at once down his side.*
     Tadaaaa! Look! A walking hazard sign! Limited edition!
     -> fugu_t2_c3_b2
 
@@ -435,7 +435,7 @@ Look! I'm happy right now. And nothing's coming out!
 
 * [REEL] Warn. #delta:-2 #icon:shock #drift:SCARED
     Still too dangerous?
-    NO! *Every spine snaps up at once — sleeves catch on them, sharp through the fabric.*
+    NO! *Every spine snaps up at once — bristling through his skin, sharp across his whole body.*
     See?! See what happens when you doubt me?!
     The second someone pushes me, I lose control!
     -> fugu_t2_c4_b2
@@ -674,7 +674,7 @@ I'm gonna tell you something. The biggest secret.
 I control my spines now. Completely.
 I've been training for days.
 So I could...
-*steps closer, arms open*
+*drifts closer, fins open*
 So I could do this. Without danger.
 For the first time in my life.
 
@@ -689,9 +689,9 @@ For the first time in my life.
 * [TWITCH] High-five. #delta:3 #icon:delight #drift:CHARMED #flag:quest.fugu.t4_c7_done
     A high-five?!
     REALLY?!
-    *He concentrates very hard, then slaps your hand. Just skin. Soft.*
+    *He concentrates very hard, then bumps your fin. Just skin. Soft.*
     SEE?! Nothing! Not one spine!
-    *tears of joy*
+    *a few tiny bubbles rise from his eyes*
     -> END
 
 * [DRIFT] Praise. #delta:3 #icon:hesitation #drift:WARM #flag:quest.fugu.t4_c7_done
@@ -754,7 +754,7 @@ Trust me. It's more than I deserve.
 
 * [WAIT] Promise. #delta:4 #icon:warmth #drift:CHARMED #flag:quest.fugu.t4_done #flag:recipe.fugu.climaxT5 #disable-flag:recipe.fugu.parkT4 #flag:fact.fugu.dream
     You're here.
-    *wipes a tear from his cheek*
+    *a bubble trails from his eye*
     Listen. Tomorrow is a big day for me.
     Bring that feather charm you carry. It means something big.
     Meet me here. Please.

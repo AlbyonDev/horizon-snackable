@@ -120,8 +120,8 @@ export const KASHA_STORY: string = `
 // ============================================================
 
 === kasha_loop ===
-*Kasha is practicing fighting stances against her own reflection.*
-*Tch. Punch. Tch. Pivot.*
+*Kasha is circling the shallows, fins flared wide against her own reflection.*
+*Snap. Flare. Snap. Turn.*
 *She does not notice you.*
 -> END
 
@@ -134,8 +134,8 @@ export const KASHA_STORY: string = `
 // ============================================================
 
 === kasha_drift_away ===
-*Kasha is sitting on the corner. Just sitting. Not pacing. Not punching air.*
-*The hair-flip move she does when she's about to start a fight — she doesn't do it.*
+*Kasha is hovering in the corner of the shallows. Just hovering. Not circling. Not flaring.*
+*The fin-flare she does before a territorial display — she doesn't do it.*
 You're back.
 ...
 I had a whole speech.
@@ -143,7 +143,7 @@ About how the corner stays mine. How nobody walks in here and acts like — anyw
 I'm not doing the speech.
 The champion act got tiring. Around the third time you came back to wound me, specifically.
 ...
-*She doesn't look at you. She looks at the corner.*
+*She doesn't turn toward you. She stares at the lakebed.*
 This was the place I was a person. Just for a little while. The rest of the time I was a costume.
 You knew. You had to know.
 That's the part I can't get past. That you knew.
@@ -164,7 +164,7 @@ That's the part I can't get past. That you knew.
     The bit is over. The champion is done.
     You don't get the joke today.
     ...
-    *She finally looks at you. Just once. Her face is empty.*
+    *She finally turns toward you. Just once. Her face is empty.*
     That was the joke. The whole time. Me, here, doing this.
     Pretty good one, in the end.
     -> END
@@ -184,7 +184,7 @@ That's the part I can't get past. That you knew.
     Of course it ends like this. The push. The grab.
     The hand on the costume to see what's underneath.
     ...
-    *She stands. Slowly. Not for a fight.*
+    *She rises from the lakebed. Slowly. Not for a fight.*
     There's nothing under it. That's the secret. There's just a corner and a champion of nothing.
     Tell whoever sent you. The fight's over. They can have it.
     -> END
