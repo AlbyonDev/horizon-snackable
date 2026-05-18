@@ -48,5 +48,6 @@
         "screenOrientation": "Portrait"
     },
     "editorVersion": "79.0.0.15.107",
-    "starterWorldType": "BPBlank2DGame"
+    "starterWorldType": "BPBlank2DGame",
+    "remotePackageId": "26684849927850329"
 }

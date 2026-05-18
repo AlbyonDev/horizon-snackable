@@ -315,6 +315,39 @@
               Opacity="{Binding skipButtonOpacity}"
               IsEnabled="{Binding skipButtonVisible}" Content="SKIP" d:IsHidden="True" />
 
+      <!-- Day/Night toggle button (top-left, visible only during idle) -->
+      <Button Width="44" Height="44"
+              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16,16,0,0"
+              Visibility="{Binding idleBarVisible, Converter={StaticResource BoolToVis}}"
+              Opacity="{Binding idleBarOpacity}"
+              Command="{Binding events.onDayNightToggle}"
+              RenderTransformOrigin="0.5,0.5">
+        <Button.RenderTransform>
+          <RotateTransform Angle="{Binding dayNightButtonRotation}" />
+        </Button.RenderTransform>
+        <Button.Template>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="BtnBorder" CornerRadius="22" Width="44" Height="44">
+              <Border.Background>
+                <ImageBrush ImageSource="sprites/action_icon_daynight.png" Stretch="UniformToFill" />
+              </Border.Background>
+              <Border.RenderTransform>
+                <ScaleTransform x:Name="PressScale" ScaleX="1" ScaleY="1" />
+              </Border.RenderTransform>
+              <Border.RenderTransformOrigin>
+                <Point X="0.5" Y="0.5" />
+              </Border.RenderTransformOrigin>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="PressScale" Property="ScaleX" Value="0.85" />
+                <Setter TargetName="PressScale" Property="ScaleY" Value="0.85" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Button.Template>
+      </Button>
+
       <!-- Layer 4: Dialogue Panel (XAML-based) — below portrait area -->
       <Grid x:Name="DialoguePanel" VerticalAlignment="Top" Visibility="{Binding dialogueVisible, Converter={StaticResource BoolToVis}}" Margin="20,175,20,0">
         <Border x:Name="DialoguePanelBorder" Background="#D90D1520" BorderBrush="#2A4060"
@@ -428,6 +461,107 @@
         </Grid>
       </Grid>
 
+      <!-- Layer 4c: Action Intent Tooltip (hold-to-preview, contextual per Beat).
+           One Border per action; each is visible only while its button is pressed.
+           Style mirrors the dialogue bubble for visual consistency. -->
+      <Grid x:Name="ActionIntentPanel" VerticalAlignment="Bottom" Margin="20,0,20,150"
+            HorizontalAlignment="Stretch"
+            Visibility="{Binding actionMenuVisible, Converter={StaticResource BoolToVis}}"
+            d:IsHidden="True">
+        <!-- WAIT intent -->
+        <Border Background="#D90D1520" BorderBrush="#2A4060" BorderThickness="1"
+                CornerRadius="12" Padding="16,10,16,10" HorizontalAlignment="Center"
+                Width="280" MinHeight="44">
+          <Border.Style>
+            <Style TargetType="Border">
+              <Setter Property="Visibility" Value="Collapsed" />
+              <Style.Triggers>
+                <MultiDataTrigger>
+                  <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding ElementName=WaitActionBtn, Path=IsPressed}" Value="True" />
+                    <Condition Binding="{Binding actionWaitIntentHasText}" Value="True" />
+                  </MultiDataTrigger.Conditions>
+                  <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Border.Style>
+          <TextBlock Text="{Binding actionWaitIntent}" Foreground="#E8EAD8"
+                     FontSize="13" FontFamily="Roboto" FontStyle="Italic"
+                     TextWrapping="Wrap" TextAlignment="Center"
+                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+        </Border>
+        <!-- TWITCH intent -->
+        <Border Background="#D90D1520" BorderBrush="#2A4060" BorderThickness="1"
+                CornerRadius="12" Padding="16,10,16,10" HorizontalAlignment="Center"
+                Width="280" MinHeight="44">
+          <Border.Style>
+            <Style TargetType="Border">
+              <Setter Property="Visibility" Value="Collapsed" />
+              <Style.Triggers>
+                <MultiDataTrigger>
+                  <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding ElementName=TwitchActionBtn, Path=IsPressed}" Value="True" />
+                    <Condition Binding="{Binding actionTwitchIntentHasText}" Value="True" />
+                  </MultiDataTrigger.Conditions>
+                  <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Border.Style>
+          <TextBlock Text="{Binding actionTwitchIntent}" Foreground="#E8EAD8"
+                     FontSize="13" FontFamily="Roboto" FontStyle="Italic"
+                     TextWrapping="Wrap" TextAlignment="Center"
+                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+        </Border>
+        <!-- DRIFT intent -->
+        <Border Background="#D90D1520" BorderBrush="#2A4060" BorderThickness="1"
+                CornerRadius="12" Padding="16,10,16,10" HorizontalAlignment="Center"
+                Width="280" MinHeight="44">
+          <Border.Style>
+            <Style TargetType="Border">
+              <Setter Property="Visibility" Value="Collapsed" />
+              <Style.Triggers>
+                <MultiDataTrigger>
+                  <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding ElementName=DriftActionBtn, Path=IsPressed}" Value="True" />
+                    <Condition Binding="{Binding actionDriftIntentHasText}" Value="True" />
+                  </MultiDataTrigger.Conditions>
+                  <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Border.Style>
+          <TextBlock Text="{Binding actionDriftIntent}" Foreground="#E8EAD8"
+                     FontSize="13" FontFamily="Roboto" FontStyle="Italic"
+                     TextWrapping="Wrap" TextAlignment="Center"
+                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+        </Border>
+        <!-- REEL intent -->
+        <Border Background="#D90D1520" BorderBrush="#2A4060" BorderThickness="1"
+                CornerRadius="12" Padding="16,10,16,10" HorizontalAlignment="Center"
+                Width="280" MinHeight="44">
+          <Border.Style>
+            <Style TargetType="Border">
+              <Setter Property="Visibility" Value="Collapsed" />
+              <Style.Triggers>
+                <MultiDataTrigger>
+                  <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding ElementName=ReelActionBtn, Path=IsPressed}" Value="True" />
+                    <Condition Binding="{Binding actionReelIntentHasText}" Value="True" />
+                  </MultiDataTrigger.Conditions>
+                  <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Border.Style>
+          <TextBlock Text="{Binding actionReelIntent}" Foreground="#E8EAD8"
+                     FontSize="13" FontFamily="Roboto" FontStyle="Italic"
+                     TextWrapping="Wrap" TextAlignment="Center"
+                     VerticalAlignment="Center" HorizontalAlignment="Center" />
+        </Border>
+      </Grid>
+
       <!-- Layer 5: Action Buttons (XAML circular buttons with ground strip) -->
       <Grid x:Name="ActionMenu" VerticalAlignment="Bottom" Visibility="{Binding actionMenuVisible, Converter={StaticResource BoolToVis}}"
             Opacity="{Binding actionMenuOpacity}" Height="135" d:IsHidden="True">
@@ -450,7 +584,7 @@
             <StackPanel.RenderTransform>
               <TranslateTransform Y="{Binding actionWaitBtnTranslateY}" />
             </StackPanel.RenderTransform>
-            <Button Width="87" Height="87" Margin="0,0,0,2"
+            <Button x:Name="WaitActionBtn" Width="87" Height="87" Margin="0,0,0,2"
                     Command="{Binding events.onFloaterActionSelected}" CommandParameter="wait"
                     IsEnabled="{Binding actionWaitEnabled}">
               <Button.Template>
@@ -489,7 +623,7 @@
             <StackPanel.RenderTransform>
               <TranslateTransform Y="{Binding actionTwitchBtnTranslateY}" />
             </StackPanel.RenderTransform>
-            <Button Width="87" Height="87" Margin="0,0,0,2"
+            <Button x:Name="TwitchActionBtn" Width="87" Height="87" Margin="0,0,0,2"
                     Command="{Binding events.onFloaterActionSelected}" CommandParameter="twitch"
                     IsEnabled="{Binding actionTwitchEnabled}">
               <Button.Template>
@@ -528,7 +662,7 @@
             <StackPanel.RenderTransform>
               <TranslateTransform Y="{Binding actionDriftBtnTranslateY}" />
             </StackPanel.RenderTransform>
-            <Button Width="87" Height="87" Margin="0,0,0,2"
+            <Button x:Name="DriftActionBtn" Width="87" Height="87" Margin="0,0,0,2"
                     Command="{Binding events.onFloaterActionSelected}" CommandParameter="drift"
                     IsEnabled="{Binding actionDriftEnabled}">
               <Button.Template>
@@ -567,7 +701,7 @@
             <StackPanel.RenderTransform>
               <TranslateTransform Y="{Binding actionReelBtnTranslateY}" />
             </StackPanel.RenderTransform>
-            <Button Width="87" Height="87" Margin="0,0,0,2"
+            <Button x:Name="ReelActionBtn" Width="87" Height="87" Margin="0,0,0,2"
                     Command="{Binding events.onFloaterActionSelected}" CommandParameter="reel"
                     IsEnabled="{Binding actionReelEnabled}">
               <Button.Template>
@@ -727,6 +861,12 @@
         </StackPanel>
       </Grid>
 
+      <!-- Cast Aiming Instruction (shown when Cast button tapped, before drag) -->
+      <TextBlock Text="↕ Drag to cast ↕" FontSize="18" FontWeight="Bold" Foreground="#CCFFFFFF"
+                 HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,60"
+                 Stroke="#FF000000" StrokeThickness="1.5"
+                 Visibility="{Binding castInstructionVisible, Converter={StaticResource BoolToVis}}" />
+
       <!-- Layer 6: Title Screen -->
       <Grid x:Name="TitleScreen" Visibility="{Binding titleVisible, Converter={StaticResource BoolToVis}}">
         <Button Content="Start" Width="200" Height="54" FontSize="20" FontWeight="Bold"
@@ -774,6 +914,31 @@
             </TransformGroup>
           </Image.RenderTransform>
         </Image>
+      </Grid>
+
+      <!-- Layer 6b: Intro Cinematic Overlay -->
+      <Grid x:Name="IntroOverlay" Visibility="{Binding introVisible, Converter={StaticResource BoolToVis}}"
+            Background="#EE080D14" Opacity="{Binding introOverlayOpacity}" d:IsHidden="True">
+        <TextBlock Text="{Binding introText}" FontSize="16" FontFamily="Roboto"
+                   Foreground="#C8D8E8" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   TextWrapping="Wrap" TextAlignment="Center" Margin="40"
+                   LineHeight="24" />
+        <TextBlock Text="Tap to continue" FontSize="13" FontFamily="Roboto"
+                   Foreground="#6888A8" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                   Margin="0,0,0,48"
+                   Visibility="{Binding introTapVisible, Converter={StaticResource BoolToVis}}">
+          <TextBlock.Triggers>
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+              <BeginStoryboard>
+                <Storyboard RepeatBehavior="Forever">
+                  <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                   From="0.9" To="0.2" Duration="0:0:0.7"
+                                   AutoReverse="True" />
+                </Storyboard>
+              </BeginStoryboard>
+            </EventTrigger>
+          </TextBlock.Triggers>
+        </TextBlock>
       </Grid>
 
       <!-- Layer 7: Departure overlay -->
@@ -1428,6 +1593,32 @@
                   <TextBlock Text="{Binding charDetailQuestHint}"
                              Foreground="#8A9AB0" FontSize="11" FontFamily="Roboto"
                              TextWrapping="Wrap" FontStyle="Italic" />
+                </StackPanel>
+              </Border>
+              <!-- Where to find -->
+              <Border Background="#D90D1520" BorderBrush="#2A4060" BorderThickness="1"
+                      CornerRadius="12" Padding="14,10" Margin="0,10,0,0"
+                      Visibility="{Binding charDetailLocationVisible, Converter={StaticResource BoolToVis}}">
+                <StackPanel>
+                  <TextBlock Text="📍 Where to find" FontSize="13" FontWeight="Bold"
+                             Foreground="#E8A84C" Margin="0,0,0,4" />
+                  <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Width="24" Height="24" VerticalAlignment="Center" Source="sprites/action_icon_daynight.png" RenderTransformOrigin="0.5,0.5" Margin="5,5,5,5">
+                      <Image.RenderTransform>
+                        <RotateTransform>
+                          <RotateTransform.Angle>
+                            <Binding Path="charDetailLocationPhaseRotation"/>
+                          </RotateTransform.Angle>
+                        </RotateTransform>
+                      </Image.RenderTransform>
+                    </Image>
+                    <Image Width="24" Height="24" VerticalAlignment="Center" Visibility="{Binding charDetailLocationLureVisible, Converter={StaticResource BoolToVis}}" Margin="0,5,8,5">
+                      <Image.Source>
+                        <Binding Path="charDetailLocationLureTexture"/>
+                      </Image.Source>
+                    </Image>
+                    <TextBlock Text="{Binding charDetailLocationZone}" Foreground="#C8D8E8" FontSize="12" FontFamily="Roboto" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                  </StackPanel>
                 </StackPanel>
               </Border>
             </StackPanel>

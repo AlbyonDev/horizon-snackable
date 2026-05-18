@@ -6,7 +6,7 @@
  */
 
 import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
-import { DriftState, EmotionIconType, ExpressionState } from './Types';
+import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { catfishNeutralTexture } from './Assets';
 
@@ -54,14 +54,12 @@ export const CATFISH_CHARACTER: CharacterConfig = {
   portraitTexture: catfishNeutralTexture,
   portraitSpritePath: CATFISH_PORTRAIT_SPRITE,
 
-  preferredLures: [],
-  dislikedLures: [],
-
-  lakeZones: ['mid'],
+  // Ambient NPC — fills the mid + Night slot.
+  recipes: [
+    { id: 'home', zone: 'mid', phase: Phase.Night, lure: ANY_LURE, initial: true },
+  ],
 
   unlockCondition: () => true,
-
-  encounterRate: 1.0,
 
   questName: 'The Catfish',
   questHint: 'Read the water. Wait, twitch, drift — then strike.',

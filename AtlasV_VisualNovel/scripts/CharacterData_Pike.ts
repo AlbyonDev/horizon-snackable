@@ -5,7 +5,7 @@
  */
 
 import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
-import { DriftState, EmotionIconType, ExpressionState } from './Types';
+import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { pikeNeutralTexture } from './Assets';
 
@@ -53,14 +53,12 @@ export const PIKE_CHARACTER: CharacterConfig = {
   portraitTexture: pikeNeutralTexture,
   portraitSpritePath: PIKE_PORTRAIT_SPRITE,
 
-  preferredLures: [],
-  dislikedLures: [],
-
-  lakeZones: ['mid'],
+  // Ambient NPC — fills the far + Night slot.
+  recipes: [
+    { id: 'home', zone: 'far', phase: Phase.Night, lure: ANY_LURE, initial: true },
+  ],
 
   unlockCondition: () => true,
-
-  encounterRate: 1.0,
 
   questName: 'The Pike',
   questHint: 'Challenge it. Twitch, twitch, twitch — prove you are not prey.',

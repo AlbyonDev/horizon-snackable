@@ -54,6 +54,33 @@ export const ACTION_ROW_HEIGHT = 52;
 export const ACTION_MENU_WIDTH = CANVAS_WIDTH * 0.92;
 export const ACTION_MENU_X = (CANVAS_WIDTH - CANVAS_WIDTH * 0.92) / 2;
 
+// === Cast Trajectory Preview (touch-drag on LakeIdle) ===
+export const CAST_TRAJ_START_X = 520;   // Rod tip X (off-screen right)
+export const CAST_TRAJ_START_Y = CANVAS_HEIGHT * 0.5; // Rod tip Y (vertical center)
+export const CAST_TRAJ_LANDING_NEAR_Y = CANVAS_HEIGHT * 0.78; // Near landing (low power)
+export const CAST_TRAJ_LANDING_FAR_Y = CANVAS_HEIGHT * 0.40;  // Far landing (high power) — reduced from 0.42 for longer casts
+export const CAST_TRAJ_CTRL_OFFSET_Y = -400; // Bezier control point Y offset above midpoint
+export const CAST_TRAJ_LINE_WIDTH = 2.5;
+export const CAST_TRAJ_LINE_COLOR_R = 1.0;
+export const CAST_TRAJ_LINE_COLOR_G = 1.0;
+export const CAST_TRAJ_LINE_COLOR_B = 1.0;
+export const CAST_TRAJ_LINE_ALPHA = 0.7;
+export const CAST_TRAJ_DOT_RADIUS = 10;       // Landing target dot radius
+export const CAST_TRAJ_DOT_ALPHA = 0.9;
+export const CAST_TRAJ_DRAG_SENSITIVITY = 1.5; // Multiplier for Y-drag → distance mapping
+export const CAST_TRAJ_LANDING_MIN_X = 80;     // Leftmost landing X (pixels from left edge)
+export const CAST_TRAJ_LANDING_MAX_X = 470;    // Rightmost landing X (pixels from left edge)
+export const CAST_TRAJ_X_SENSITIVITY = 1.5;    // Multiplier for X-drag → horizontal offset
+
+// === Debug Zone Overlay ===
+// Zone Y boundaries (divided into thirds between NEAR_Y and FAR_Y)
+export const ZONE_TOTAL_RANGE = CAST_TRAJ_LANDING_NEAR_Y - CAST_TRAJ_LANDING_FAR_Y; // 304px
+export const ZONE_THIRD = ZONE_TOTAL_RANGE / 3;
+export const ZONE_NEAR_TOP_Y = CAST_TRAJ_LANDING_NEAR_Y;           // 624 (bottom of near zone)
+export const ZONE_NEAR_BOTTOM_Y = CAST_TRAJ_LANDING_NEAR_Y - ZONE_THIRD; // ~523
+export const ZONE_MID_BOTTOM_Y = CAST_TRAJ_LANDING_NEAR_Y - 2 * ZONE_THIRD; // ~422
+export const ZONE_FAR_BOTTOM_Y = CAST_TRAJ_LANDING_FAR_Y;          // 320 (top of far zone)
+
 // === Cast Mechanics ===
 export const GAUGE_X = CANVAS_WIDTH - 55;
 export const GAUGE_Y = CANVAS_HEIGHT * 0.30;
@@ -148,6 +175,16 @@ export const CAST_3D_SCALE_MULTIPLIER = 1.5; // Scale boost in projection
 // Inverse-projection ballistic flight time range (power 0→100 maps high→low time)
 export const CAST_3D_CALC_MIN_FLIGHT_TIME = 1.8; // Fast cast (high power) — still arcs upward visibly
 export const CAST_3D_CALC_MAX_FLIGHT_TIME = 2.8; // Slow, high arc (low power) — dramatic upward arc
+
+// === 3D Ballistic Flight (touch-drag cast) ===
+export const CAST_3D_Y_BOOST_MULTIPLIER = 1.0; // Boost upward velocity for a more dramatic arc peak
+
+// === Verlet Rope Simulation (Bezier Cast Flight Line) ===
+export const VERLET_ROPE_NUM_PARTICLES = 12;
+export const VERLET_ROPE_SEGMENT_LENGTH = 0.35; // meters between particles
+export const VERLET_ROPE_GRAVITY = -6.0; // gentler than real gravity for visual feel
+export const VERLET_ROPE_CONSTRAINT_ITERATIONS = 5;
+export const VERLET_ROPE_DAMPING = 0.98; // velocity damping per frame
 
 // === POV Cast Animation Toggle ===
 export const USE_POV_CAST_ANIMATION = true; // Set to false for side-view arc

@@ -1,17 +1,15 @@
 /**
  * CharacterData_Kasha — Kasha's character configuration.
  *
- * Dialogue content lives in Story_Kasha.ts (Ink format) and is compiled
- * into Beat[] on demand by InkBeatAdapter. This file holds only the
- * metadata, departures, catch sequence, and character config.
- *
- * Casts progress in the order declared in KASHA_CAST_DEFS — no tiers.
+ * Dialogue content (including the fish's goodbye lines per Ink Authoring
+ * Guide §4.4) lives in Story_Kasha.ts. This file only holds metadata,
+ * catch sequence, recipes, and character config.
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
-import { DriftState, EmotionIconType, ExpressionState } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData, Recipe } from './Types';
+import { DriftState, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
-import { kashaNeutralTexture, cgKashaLoveEndTexture, cgKashaDriftAwayTexture } from './Assets';
+import { kashaNeutralTexture, cgKashaLoveEndTexture, cgKashaReleaseEndTexture, cgKashaDriftAwayTexture } from './Assets';
 
 const CHARACTER_ID = 'kasha';
 const KASHA_PORTRAIT_SPRITE = 'sprites/char_veiltail_neutral.png';
@@ -35,82 +33,13 @@ const KASHA_CAST_DEFS: CastDef[] = [
   { start: 'kasha_t3_c7_b1',  name: 'The Question She Asks'  },
   { start: 'kasha_t4_c8_b1',  name: 'The Offer'              },
   { start: 'kasha_t4_c9_b1',  name: 'The Trophy Refused'     },
-  { start: 'kasha_t5_c10_b1', name: 'The Name'               },
+  // T5 has two parallel branches locked in by the T4 c8_b2 choice:
+  //   - release branch (default, neutral, or DRIFT at T4) = 'The Name'
+  //   - catch branch (REEL at T4)                         = 'The Name We Walk With'
+  // For the journal cast list we expose the release branch as the canonical
+  // T5 entry. The catch branch is reached purely via the dispatcher.
+  { start: 'kasha_t5_release_b1', name: 'The Name'               },
 ];
-
-// ============================================================
-// Departures per cast (keyed by cast id, e.g. 'kasha_t1_c1')
-// ============================================================
-
-const KASHA_DEPARTURES: Record<string, CastData['departures']> = {
-  kasha_t1_c1: {
-    [DriftState.Charmed]: { dialogue: ['Oi.', 'Come back.', "I'm not done with you.", '...Tomorrow.', "Don't be late, baka."], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:    { dialogue: ['Tch.', "You're alright.", 'Maybe.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]: { dialogue: ['Whatever.', "I'll see if you come back or not.", "Doesn't matter to me."], icon: EmotionIconType.None },
-    [DriftState.Wary]:    { dialogue: ["...You're weird.", 'Not in the good way.', 'Maybe try again.', "Or don't. Whatever."], icon: EmotionIconType.Hesitation },
-    [DriftState.Scared]:  { dialogue: ['...', "Don't come back tomorrow."], icon: EmotionIconType.Shock },
-  },
-  kasha_t1_c2: {
-    [DriftState.Charmed]: { dialogue: ['Tomorrow.', 'Same corner.', "Don't bring anyone else.", '...Just you.', 'Baka.'], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:    { dialogue: ['Maybe tomorrow.', "I haven't decided.", "...I've decided. Tomorrow."], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]: { dialogue: ["Whatever. I'll be here.", 'If you come, you come.'], icon: EmotionIconType.None },
-    [DriftState.Wary]:    { dialogue: ['...', 'Maybe think about whether you actually want to come back.', "I'm not begging."], icon: EmotionIconType.Hesitation },
-    [DriftState.Scared]:  { dialogue: ['Just go.', '...', 'Just go, baka.'], icon: EmotionIconType.Shock },
-  },
-  kasha_t2_c3: {
-    [DriftState.Charmed]: { dialogue: ['You passed.', '...Some of it.', 'Come back tomorrow. New test.', "Don't get cocky, baka."], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:    { dialogue: ['Mm.', 'Acceptable performance.', 'Tomorrow.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]: { dialogue: ["We'll see.", 'Maybe.'], icon: EmotionIconType.None },
-    [DriftState.Wary]:    { dialogue: ['...', 'I expected better.', 'From you specifically.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Scared]:  { dialogue: ["Don't bother coming back.", '...', 'I mean it.'], icon: EmotionIconType.Shock },
-  },
-  kasha_t2_c4: {
-    [DriftState.Charmed]: { dialogue: ['Tomorrow.', '...', 'Bring something.', "I don't know what. Surprise me.", "Don't bring nothing, baka."], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:    { dialogue: ['Tomorrow, then.', '...', 'Same corner.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]: { dialogue: ['Mm.', 'Maybe.'], icon: EmotionIconType.None },
-    [DriftState.Wary]:    { dialogue: ['...', "Don't push it.", "I told you something. Don't make me regret it."], icon: EmotionIconType.Hesitation },
-    [DriftState.Scared]:  { dialogue: ['...', "I shouldn't have told you that.", "Don't come back."], icon: EmotionIconType.Shock, flagsToSet: ['mood.kasha.regret_admission'] },
-  },
-  kasha_t3_c5: {
-    [DriftState.Opened]:  { dialogue: ['...', 'Tomorrow.', "Don't bring it up.", '...', "Don't not bring it up either.", "Just — be normal. Be a baka. The way you usually are."], icon: EmotionIconType.Warmth },
-    [DriftState.Raw]:     { dialogue: ['...', 'Tomorrow.', "I'll be here."], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]: { dialogue: ['...', 'Whatever.'], icon: EmotionIconType.None },
-    [DriftState.Wary]:    { dialogue: ['...', 'I told you too much.', "I'm not doing that again."], icon: EmotionIconType.Surprise },
-    [DriftState.Scared]:  { dialogue: ['...', "Don't come back.", 'I mean it this time.'], icon: EmotionIconType.Shock, flagsToSet: ['mood.kasha.shame_spiral'] },
-  },
-  kasha_t3_c6: {
-    [DriftState.Charmed]: { dialogue: ['Tomorrow.', '...', "Bring nothing again. I don't need anything except— just come.", 'Just you, baka.'], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:    { dialogue: ['Tomorrow.', 'Be on time.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]: { dialogue: ['Mm. Tomorrow.'], icon: EmotionIconType.None },
-    [DriftState.Wary]:    { dialogue: ['...', "I don't know if I'll be here.", "Don't count on it."], icon: EmotionIconType.Hesitation },
-    [DriftState.Scared]:  { dialogue: ['...'], icon: EmotionIconType.Shock },
-  },
-  kasha_t3_c7: {
-    [DriftState.Charmed]: { dialogue: ['...', 'Tomorrow.', 'Bring whatever you want. Or nothing.', 'Just come.', "Don't be late, baka."], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:    { dialogue: ['Tomorrow.', '...', "I won't keep asking why you come.", '...For now.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]: { dialogue: ['Whatever.', 'Tomorrow.'], icon: EmotionIconType.None },
-    [DriftState.Wary]:    { dialogue: ['...', "Maybe don't come tomorrow.", 'Give me a day.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Scared]:  { dialogue: ['...', 'I asked. You answered wrong.', "I don't want to see you for a while."], icon: EmotionIconType.Shock },
-  },
-  kasha_t4_c8: {
-    [DriftState.Charmed]: { dialogue: ['Tomorrow.', '...', 'Same time. Same corner.', "I'll be — I'll be here.", 'Be on time, baka.'], icon: EmotionIconType.Warmth },
-    [DriftState.Opened]:  { dialogue: ['Tomorrow.', '...', 'I need to think about today.', "Don't worry. It was good thinking."], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]: { dialogue: ['Mm.', 'Tomorrow, I guess.'], icon: EmotionIconType.None },
-    [DriftState.Wary]:    { dialogue: ['...', "I shouldn't have offered.", 'Forget I did.'], icon: EmotionIconType.Hesitation, flagsToSet: ['mood.kasha.offer_retracted'] },
-    [DriftState.Scared]:  { dialogue: ['...', 'I made a mistake.', "Don't come back tomorrow."], icon: EmotionIconType.Shock, flagsToSet: ['mood.kasha.shame_deep'] },
-  },
-  kasha_t4_c9: {
-    [DriftState.Charmed]: { dialogue: ['...', 'Tomorrow.', 'I want to tell you my real name.', 'Not tonight. Tomorrow.', 'Be on time.', 'Baka.'], icon: EmotionIconType.Warmth, flagsToSet: ['secret.kasha.real_name_intent'] },
-    [DriftState.Opened]:  { dialogue: ['...', 'Tomorrow.', 'I have one more thing I want to say.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]: { dialogue: ['Mm.', 'Tomorrow. Maybe.'], icon: EmotionIconType.None },
-    [DriftState.Wary]:    { dialogue: ['...', 'I told you too much.', 'Again.', 'I keep doing that with you.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Scared]:  { dialogue: ['...', "I think I'm going to leave.", 'Not tomorrow. Soon.', '...', "I told someone the truth and they didn't know what to do with it."], icon: EmotionIconType.Shock },
-  },
-  kasha_t5_c10: {
-    [DriftState.Charmed]: { dialogue: ['...'], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:    { dialogue: ['...'], icon: EmotionIconType.Hesitation },
-  },
-};
 
 // ============================================================
 // Catch sequence + drift-away journal text
@@ -129,12 +58,22 @@ const KASHA_DRIFT_AWAY_JOURNAL_TEXT =
 // ============================================================
 
 function getCasts(): CastData[] {
-  return KASHA_CAST_DEFS.map(d => {
-    const castId = d.start.replace(/_b\d+$/, '');
-    const departures = KASHA_DEPARTURES[castId] ?? {};
-    return inkCast(CHARACTER_ID, d.start, d.name, departures);
-  });
+  return KASHA_CAST_DEFS.map(d => inkCast(CHARACTER_ID, d.start, d.name));
 }
+
+// ============================================================
+// Encounter recipes — Kasha's 5-tier arc (mid waters)
+// ============================================================
+// Main-fish recipes use priority: 1 to win ties over ambient NPCs.
+// T1 is accessible day OR night for first contact.
+const KASHA_RECIPES: Recipe[] = [
+  { id: 'home',      zone: 'mid', phase: Phase.Day,   lure: ANY_LURE,      initial: true, priority: 1 },
+  { id: 'homeNight', zone: 'mid', phase: Phase.Night, lure: ANY_LURE,      initial: true, priority: 1 },
+  { id: 'challenge', zone: 'mid', phase: Phase.Day,   lure: 'red_spinner', priority: 1 },
+  { id: 'corner',    zone: 'mid', phase: Phase.Night, lure: 'bare_hook',   priority: 1 },
+  { id: 'offer',     zone: 'mid', phase: Phase.Night, lure: ANY_LURE,      priority: 1 },
+  { id: 'name',      zone: 'mid', phase: Phase.Day,   lure: ANY_LURE,      priority: 1 },
+];
 
 // ============================================================
 // Character configuration (exported)
@@ -151,13 +90,22 @@ const KASHA_CGS: CGData[] = [
     thumbnailTexture: kashaNeutralTexture,
   },
   {
-    id: 'ending_kasha_love_end',
+    id: 'ending_kasha_reel',
     characterId: CHARACTER_ID,
     name: 'The Trophy',
     description: 'She wanted to be chosen.',
     unlockCondition: "Complete Kasha's Reel ending",
     thumbnailPath: '@sprites/kasha_love_end.png',
     thumbnailTexture: cgKashaLoveEndTexture,
+  },
+  {
+    id: 'ending_kasha_release',
+    characterId: CHARACTER_ID,
+    name: 'The Name',
+    description: 'She wanted to be a person, not a prize.\n\nYou let her be.\n\nShe comes back tomorrow. She will keep coming back.',
+    unlockCondition: "Choose \"Release\" in Kasha's catch sequence",
+    thumbnailPath: '@sprites/kasha_release_end.png',
+    thumbnailTexture: cgKashaReleaseEndTexture,
   },
   {
     id: 'ending_kasha_drift_away',
@@ -184,14 +132,9 @@ export const KASHA_CHARACTER: CharacterConfig = {
   portraitTexture: kashaNeutralTexture,
   portraitSpritePath: KASHA_PORTRAIT_SPRITE,
 
-  preferredLures: ['red_spinner', 'bone_whistle'],
-  dislikedLures: ['gold_teardrop'],
-
-  lakeZones: ['mid', 'far'],
+  recipes: KASHA_RECIPES,
 
   unlockCondition: () => true,
-
-  encounterRate: 1.0,
 
   questName: 'The Championship',
   questHint: "She tests everyone. Stay when she tells you to leave. Push back without being cruel. Listen when she goes quiet.",
@@ -211,6 +154,20 @@ export const KASHA_CHARACTER: CharacterConfig = {
 
   catchSequenceData: KASHA_CATCH_SEQUENCE_DATA,
   driftAwayJournalText: KASHA_DRIFT_AWAY_JOURNAL_TEXT,
+
+  // 10-step narrative progression for the HUD gauge.
+  progressionMilestones: [
+    'met.kasha',                  // c1
+    'quest.kasha.t1_done',        // c2 end of T1
+    'quest.kasha.t2_c3_done',     // c3
+    'quest.kasha.t2_done',        // c4 end of T2
+    'quest.kasha.t3_c5_done',     // c5
+    'quest.kasha.t3_c6_done',     // c6
+    'quest.kasha.t3_done',        // c7 end of T3
+    'quest.kasha.t4_c8_done',     // c8
+    'quest.kasha.t4_done',        // c9 end of T4
+    'kasha.ending_complete',      // c10 ending reached (any of Reel/Release/DriftAway)
+  ],
 
   facts: [
     {

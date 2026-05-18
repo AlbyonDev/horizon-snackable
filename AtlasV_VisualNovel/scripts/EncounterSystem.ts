@@ -1,22 +1,24 @@
 /**
- * EncounterSystem — Selects which character appears when the player casts.
- * Implements the priority-based selection algorithm:
+ * EncounterSystem — Deterministic recipe-based fish selection.
  *
- * 1. Filter out characters with incomplete quests (NEVER appear)
- * 2. Filter by zone match (cast power → zone → character zones)
- * 3. Prioritize recently quest-completed characters
- * 4. Prioritize characters who prefer the equipped lure
- * 5. Weighted random among remaining candidates by encounterRate
+ * Recipes are stable slots (id + zone + phase + lure). Ink activates them via
+ * `<fishId>.recipe.<id>.on` flags; the encounter system reads those flags
+ * (treating `initial: true` recipes as default-on unless explicitly disabled),
+ * matches the player's cast (zone, phase, lure), and signals the winning
+ * recipe to Ink by setting `<fishId>.from.<id> = true` right before launching
+ * the fish's entry knot.
  *
- * Cast power zones (0-100 scale):
- * - Near: 0-33
- * - Mid: 34-66
- * - Far: 67-100
+ * Selection (zero RNG):
+ *   1. Each fish's enabled recipes are filtered by zone + phase exact match.
+ *   2. Exact lure match wins over ANY_LURE wildcard.
+ *   3. Tie-break: fishId alphabetic, then recipe array order.
+ *
+ * Cast power → zone:  Near 0-33  |  Mid 34-66  |  Far 67-100.
  */
 
-import type { CharacterConfig, LakeZone } from './Types';
+import type { CharacterConfig, LakeZone, Recipe } from './Types';
+import { Phase, ANY_LURE } from './Types';
 import { FlagSystem } from './FlagSystem';
-import { QuestSystem } from './QuestSystem';
 import { characterRegistry } from './CharacterRegistry';
 
 /** Determine which zone a cast power value falls into */
@@ -26,123 +28,100 @@ export function getZoneFromPower(castPower: number): LakeZone {
   return 'far';
 }
 
+/** Result of an encounter resolution. */
+export interface EncounterResult {
+  character: CharacterConfig;
+  recipe: Recipe;
+}
+
+/** Build the flag key for a recipe's activation state. */
+export function recipeActivationFlag(fishId: string, recipeId: string): string {
+  return `recipe.${fishId}.${recipeId}`;
+}
+
+/** Build the flag key for a recipe's one-shot "I just matched" signal. */
+export function recipeFromFlag(fishId: string, recipeId: string): string {
+  return `from.${fishId}.${recipeId}`;
+}
+
+/**
+ * Decide whether a recipe is active given the current flag state.
+ *
+ * Rules:
+ *   - If the activation flag is set truthy → active.
+ *   - If the activation flag is set falsy (explicitly false / 0) → inactive.
+ *   - If the activation flag is absent and `initial: true` → active.
+ *   - Otherwise → inactive.
+ */
+export function isRecipeActive(
+  fishId: string,
+  recipe: Recipe,
+  flagSystem: FlagSystem,
+): boolean {
+  const key = recipeActivationFlag(fishId, recipe.id);
+  if (flagSystem.has(key)) {
+    return flagSystem.check(key);
+  }
+  return recipe.initial === true;
+}
+
 export class EncounterSystem {
   /**
-   * Select a character to encounter based on cast conditions.
+   * Select a character + recipe based on cast conditions.
    *
-   * @param castPower - Power gauge value (0-100)
-   * @param equippedLureId - Currently equipped lure ID, or null
-   * @param flagSystem - Game flag system for quest checks
-   * @param questSystem - Quest tracking system
-   * @returns Selected character config, or null if no valid candidates
+   * @param zone - Lake zone (derived from cast power)
+   * @param phase - Day or Night
+   * @param equippedLureId - Equipped lure id, or null/'none' for no lure
+   * @param flagSystem - Game flag system
+   * @returns Match result, or null if nothing bites
    */
   selectCharacter(
-    castPower: number,
+    zone: LakeZone,
+    phase: Phase,
     equippedLureId: string | null,
     flagSystem: FlagSystem,
-    questSystem: QuestSystem,
-  ): CharacterConfig | null {
-    const allCharacters = characterRegistry.getAllCharacters();
-    const zone = getZoneFromPower(castPower);
+  ): EncounterResult | null {
+    const lureKey = equippedLureId && equippedLureId !== 'none' ? equippedLureId : null;
+    console.log(`[EncounterSystem] Selecting: zone=${zone}, phase=${phase}, lure=${lureKey ?? 'none'}`);
 
-    console.log(`[EncounterSystem] Selecting character: power=${castPower.toFixed(1)}, zone=${zone}, lure=${equippedLureId ?? 'none'}`);
+    type Candidate = { character: CharacterConfig; recipe: Recipe; specific: boolean };
+    const specificMatches: Candidate[] = [];
+    const wildcardMatches: Candidate[] = [];
 
-    // Step 0: Filter out characters whose ending has been triggered
-    const notEnded = allCharacters.filter(c =>
-      !flagSystem.check(`${c.id}.ending_complete`)
-    );
-    console.log(`[EncounterSystem] After ending filter: ${notEnded.length}/${allCharacters.length}`);
+    for (const character of characterRegistry.getAllCharacters()) {
+      // Skip if ending already resolved
+      if (flagSystem.check(`${character.id}.ending_complete`)) continue;
 
-    if (notEnded.length === 0) return null;
+      for (const recipe of character.recipes) {
+        if (!isRecipeActive(character.id, recipe, flagSystem)) continue;
+        if (recipe.zone !== zone) continue;
+        if (recipe.phase !== phase) continue;
 
-    // Step 1: Filter out characters with incomplete quests
-    const questEligible = notEnded.filter(c =>
-      questSystem.isQuestComplete(c.id, c.questRequirement, flagSystem)
-    );
-    console.log(`[EncounterSystem] After quest filter: ${questEligible.length}/${notEnded.length}`);
+        if (lureKey !== null && recipe.lure === lureKey) {
+          specificMatches.push({ character, recipe, specific: true });
+        } else if (recipe.lure === ANY_LURE) {
+          wildcardMatches.push({ character, recipe, specific: false });
+        }
+      }
+    }
 
-    if (questEligible.length === 0) return null;
-
-    // Step 2: Filter by zone match
-    const zoneMatched = questEligible.filter(c =>
-      c.lakeZones.includes(zone)
-    );
-    console.log(`[EncounterSystem] After zone filter (${zone}): ${zoneMatched.length}/${questEligible.length}`);
-
-    if (zoneMatched.length === 0) {
-      // No characters match the zone — return null so "nothing bites" can trigger
-      console.log('[EncounterSystem] No zone matches, returning null (nothing bites)');
+    const pool = specificMatches.length > 0 ? specificMatches : wildcardMatches;
+    if (pool.length === 0) {
+      console.log('[EncounterSystem] No recipe matched — nothing bites');
       return null;
     }
 
-    return this.weightedSelect(zoneMatched, equippedLureId, questSystem);
-  }
-
-  /**
-   * Perform weighted random selection with priority boosting.
-   */
-  private weightedSelect(
-    candidates: CharacterConfig[],
-    equippedLureId: string | null,
-    questSystem: QuestSystem,
-  ): CharacterConfig | null {
-    if (candidates.length === 0) return null;
-    if (candidates.length === 1) return candidates[0];
-
-    // Calculate weights with priority boosting
-    const weights: number[] = candidates.map(c => {
-      let weight = c.encounterRate;
-
-      // Priority 1: Recently quest-completed characters get 3x boost
-      if (questSystem.isRecentlyCompleted(c.id)) {
-        weight *= 3.0;
-      }
-
-      // Priority 2: Lure preference boost (2x for preferred, 0.5x for disliked)
-      if (equippedLureId) {
-        if (c.preferredLures.includes(equippedLureId)) {
-          weight *= 2.0;
-        } else if (c.dislikedLures.includes(equippedLureId)) {
-          weight *= 0.5;
-        }
-      }
-
-      return weight;
+    // Tie-break: higher priority first (main fish win over ambient NPCs),
+    // then fishId alphabetic for deterministic stable order.
+    pool.sort((a, b) => {
+      const pa = a.recipe.priority ?? 0;
+      const pb = b.recipe.priority ?? 0;
+      if (pa !== pb) return pb - pa;
+      return a.character.id.localeCompare(b.character.id);
     });
 
-    // Weighted random selection
-    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-    if (totalWeight <= 0) return candidates[0];
-
-    let roll = Math.random() * totalWeight;
-    for (let i = 0; i < candidates.length; i++) {
-      roll -= weights[i];
-      if (roll <= 0) {
-        console.log(`[EncounterSystem] Selected: ${candidates[i].id} (weight=${weights[i].toFixed(2)}, total=${totalWeight.toFixed(2)})`);
-        return candidates[i];
-      }
-    }
-
-    // Fallback (shouldn't reach here due to floating point)
-    return candidates[candidates.length - 1];
-  }
-
-  /**
-   * Get all valid candidates for the current conditions (for debug/display).
-   */
-  getValidCandidates(
-    castPower: number,
-    equippedLureId: string | null,
-    flagSystem: FlagSystem,
-    questSystem: QuestSystem,
-  ): CharacterConfig[] {
-    const allCharacters = characterRegistry.getAllCharacters();
-    const zone = getZoneFromPower(castPower);
-
-    return allCharacters.filter(c =>
-      !flagSystem.check(`${c.id}.ending_complete`) &&
-      questSystem.isQuestComplete(c.id, c.questRequirement, flagSystem) &&
-      c.lakeZones.includes(zone)
-    );
+    const winner = pool[0];
+    console.log(`[EncounterSystem] Matched: ${winner.character.id} / recipe="${winner.recipe.id}" (${winner.specific ? 'specific' : 'wildcard'}, priority=${winner.recipe.priority ?? 0})`);
+    return { character: winner.character, recipe: winner.recipe };
   }
 }

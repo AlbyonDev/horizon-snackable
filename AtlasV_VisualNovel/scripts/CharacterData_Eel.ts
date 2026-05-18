@@ -5,7 +5,7 @@
  */
 
 import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
-import { DriftState, EmotionIconType, ExpressionState } from './Types';
+import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { eelNeutralTexture } from './Assets';
 
@@ -53,14 +53,12 @@ export const EEL_CHARACTER: CharacterConfig = {
   portraitTexture: eelNeutralTexture,
   portraitSpritePath: EEL_PORTRAIT_SPRITE,
 
-  preferredLures: [],
-  dislikedLures: [],
-
-  lakeZones: ['far'],
+  // Ambient NPC — fills the near + Night slot.
+  recipes: [
+    { id: 'home', zone: 'near', phase: Phase.Night, lure: ANY_LURE, initial: true },
+  ],
 
   unlockCondition: () => true,
-
-  encounterRate: 1.0,
 
   questName: 'The Eel',
   questHint: 'Let the line go slack. Drift, drift, drift — then strike.',

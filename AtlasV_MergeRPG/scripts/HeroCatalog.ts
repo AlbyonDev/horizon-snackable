@@ -138,14 +138,18 @@ const RANGER: HeroData = {
     [GemType.Yellow]: 0.2, [GemType.Purple]: 0.2,
   },
   power: {
-    name: 'Poison Arrow',
+    name: 'Rain of Arrows',
     manaColor: GemType.Green,
-    manaCost: 8,
-    effectType: PowerEffectType.DAMAGE_DOT,
-    target: PowerTarget.SINGLE_ENEMY,
-    atkMultiplier: 0.4,
-    duration: 3,
-    description: 'Poison the front enemy for damage over 3 turns!',
+    manaCost: 12,
+    effectType: PowerEffectType.DAMAGE_DIRECT,
+    target: PowerTarget.ALL_ENEMIES,
+    atkMultiplier: 0.7,
+    description: 'Rain arrows on all enemies for 70% ATK, then bleed them for 30% ATK over 3 turns!',
+    secondaryEffect: {
+      effectType: PowerEffectType.DAMAGE_DOT,
+      atkMultiplier: 0.3,
+      duration: 3,
+    },
   },
 };
 
@@ -412,7 +416,8 @@ const WARLOCK: HeroData = {
     description: 'Curse an enemy, reducing its ATK by 65% and inflicting a bleeding DoT for 4 turns!',
     secondaryEffect: {
       effectType: PowerEffectType.DAMAGE_DOT,
-      atkMultiplier: 0.5,
+      atkMultiplier: 0.75,
+      duration: 4,
     },
   },
 };

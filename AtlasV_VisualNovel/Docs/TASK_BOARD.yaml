@@ -1,405 +1,130 @@
 tasks:
-  - name: Milestone 1 — Foundation
+  - name: Day/Night Toggle Button with Crossfade
     status: done
-    summary: Core systems implemented, Cast loop working, Nereia Tier 1 playable, UI polished, dialogue system converted to XAML
+    summary: Added day/night toggle button with 0.5s fade-through-black crossfade between bg_lily_day.png and bg_lily_shallows.png
+    files: [xaml/floater.xaml, scripts/FloaterViewModel.ts, scripts/FloaterRenderer.ts, scripts/FloaterGame.ts, scripts/Assets.ts]
 
-  - name: Milestone 2 — Affection & Relationship Layer
+  - name: Cast Bezier Curve Prototype
     status: done
-    summary: Affection system implemented, tier progression working, Nereia Tier 2 content complete, mood icons as sprites, fishing cast mechanics added
-    files:
-      - scripts/AffectionSystem.ts
-      - scripts/MoodIcons.ts
-      - scripts/Types.ts
-      - scripts/CastData.ts
-      - scripts/FloaterViewModel.ts
-      - scripts/FloaterGame.ts
-      - scripts/FloaterRenderer.ts
-      - scripts/Constants.ts
-      - xaml/floater.xaml
-      - sprites/mood_icon_unaware.png
-      - sprites/mood_icon_curious.png
-      - sprites/mood_icon_familiar.png
-      - sprites/mood_icon_trusting.png
-      - sprites/mood_icon_bonded.png
+    reference: "Fishing game casting mechanic"
     subtasks:
-      - name: SYS-01-AFFECTION Implementation
+      - name: Bezier curve touch interaction on idle screen
         status: done
-      - name: SYS-04-TIERS Implementation
+        summary: Bezier curve drawn from rod tip while touching in LakeIdle, Y-delta controls distance
+        files: [scripts/Constants.ts, scripts/FloaterGame.ts, scripts/FloaterRenderer.ts]
+      - name: Float follows chosen curve (Phase 2)
         status: done
-      - name: Action → Affection Delta
-        status: done
-      - name: Drift → Affection Modifier
-        status: done
-      - name: Tier Transition UI
-        status: done
-      - name: Nereia Tier 2 Content
-        status: done
-      - name: Save/Load Integration
-        status: done
-      - name: Mood Icon Sprites (Unicode replacement)
-        status: done
-      - name: Fishing Cast Mechanics
-        status: done
-        subtasks:
-          - name: Title screen "Play" button
-            status: done
-          - name: LakeIdle state (pond + Cast button, no character)
-            status: done
-          - name: CastCharging state (power gauge ping-pong)
-            status: done
-          - name: CastFlying state (arc physics)
-            status: done
-          - name: FloatLanded state (splash VFX)
-            status: done
-          - name: Character appears after float lands
-            status: done
+        summary: Float animates along quadratic bezier on touch release, lands at endpoint, transitions to FloatLanded
+        files: [scripts/FloaterGame.ts]
 
-  - name: Milestone 3 — Journal & Hints
+  - name: Cast Physicality Improvements
     status: done
-    summary: Journal system (5 tabs), Lure system with inventory-based equipment, Personal Quest hints, emotion icons generated, Complete Nereia arc (10 Casts, 5 Tiers), 4-action system, visible affection bar, floating emotion icons, float animations for all 4 actions, character teasing system, global stats and badges
-    files:
-      - scripts/LureData.ts
-      - scripts/QuestHintData.ts
-      - scripts/JournalSystem.ts
-      - scripts/GlobalStatsSystem.ts
-      - scripts/LureSystem.ts
-      - scripts/FloaterViewModel.ts
-      - scripts/FloaterGame.ts
-      - scripts/FloaterRenderer.ts
-      - scripts/Constants.ts
-      - scripts/Types.ts
-      - scripts/CastDataTier1.ts
-      - scripts/CastDataTier2.ts
-      - scripts/CastDataTier3.ts
-      - scripts/CastDataTier4.ts
-      - scripts/CastDataTier5.ts
-      - xaml/floater.xaml
-      - sprites/emotion_icon_curiosity.png
-      - sprites/emotion_icon_surprise.png
-      - sprites/emotion_icon_warmth.png
-      - sprites/emotion_icon_shock.png
-      - sprites/emotion_icon_hesitation.png
-      - sprites/emotion_icon_contentment.png
-      - sprites/emotion_icon_sadness.png
-      - sprites/emotion_icon_boredom.png
-      - sprites/emotion_icon_delight.png
+    reference: "Fishing game cast physics feel"
+    summary: Added float rotation (tangent + damped wobble) during bezier flight and reworked fishing line from stiff to slack-to-taut thread behavior
+    files: [scripts/FloaterGame.ts, scripts/FloaterRenderer.ts]
     subtasks:
-      - name: SYS-05-JOURNAL Implementation (MUSEUM variant)
+      - name: Float physics during cast flight
         status: done
-      - name: Personal Quest Hint System
-        status: done
-      - name: SYS-23-GIFTS (Lures) Implementation
-        status: done
-      - name: Lure Selection UI
-        status: done
-      - name: Lure → Fish Attraction Logic
-        status: done
-      - name: Lure → Initial DRIFT Modifier
-        status: done
-      - name: Journal UI (5 tabs)
-        status: done
-      - name: Emotion Icon Sprites (9 icons)
-        status: done
-      - name: 4-Action System (WAIT, TWITCH, DRIFT, REEL)
-        status: done
-      - name: Visible Affection Bar + Emotion Name
-        status: done
-      - name: Floating Emotion Icons with Animation
-        status: done
-      - name: Complete Nereia Arc (10 Casts, 5 Tiers)
-        status: done
-      - name: Catch Sequence (2-choice system)
-        status: done
-      - name: Endings System (REEL, RELEASE, DRIFT-AWAY)
-        status: done
-      - name: Tier Unlock System (Moment Clefs)
-        status: done
-      - name: Float Animations (WAIT, REEL, DRIFT, TWITCH)
-        status: done
-      - name: Character Teasing System
-        status: done
-      - name: Global Stats & Badges
+      - name: Fishing line rope physics (slack/tension)
         status: done
 
-  - name: Character System Restructure
+  - name: Verlet Rope Simulation for Fishing Line
     status: done
-    summary: Modular character system - easy to add new fish. Only Nereia implemented. Docs cleaned. All Nereia content consolidated in CharacterData_Nereia.ts.
-    files:
-      - scripts/CharacterData_Nereia.ts
-      - scripts/CharacterRegistry.ts
-      - scripts/Types.ts
-      - scripts/CastData.ts
-      - scripts/FloaterGame.ts
-      - scripts/LureData.ts
-      - scripts/QuestHintData.ts
-      - scripts/JournalSystem.ts
-      - Docs/PROJECT_SUMMARY.md
-      - Docs/ART_DIRECTION.md
-      - sprites/nereia_neutral.png
+    reference: "Verlet integration rope physics"
+    summary: Replaced static bezier line with 12-particle Verlet rope in 3D during cast flight — gravity, damping, distance constraints, projected via drawSegmentedLine3D
+    files: [scripts/FloaterGame.ts, scripts/FloaterRenderer.ts, scripts/Constants.ts]
 
-  - name: Exclamation Duration Fix
+  - name: Float 3D Arc Trajectory (High Throw + Gravity Landing)
     status: done
-    summary: Reduced "!" emoji duration to 0.25s so it disappears before portrait appears (t=0.3s). Creates clean visual transition.
-    files:
-      - scripts/Constants.ts
-      - scripts/FloaterGame.ts
+    reference: "Realistic fishing cast arc - high parabola falling onto water plane"
+    summary: Replaced 2D bezier flight with 3D ballistic simulation — float launches upward (shrinks in perspective), peaks small, then falls with gravity toward water plane (grows). Y boost multiplier = 1.4 for dramatic arc.
+    files: [scripts/FloaterGame.ts, scripts/Constants.ts]
 
-  - name: Exclamation Timing Fix
+  - name: Fix Cast Arc Issues (height, rotation, teleport, aiming)
     status: done
-    summary: Fixed "!" emoji to appear at the START of bobbing animation instead of after. Corrected compile errors (missing import, property naming).
-    files:
-      - scripts/FloaterGame.ts
+    reference: "Cast physics polish"
+    summary: Reduced Y boost to 1.0, rotation from 2D screen delta, no teleport on landing (uses actual projected pos), ballistic velocity targets exact aimed point
+    files: [scripts/FloaterGame.ts, scripts/Constants.ts]
 
-  - name: Fish Appearance Sequence
+  - name: Bezier Preview Matches Physics Landing
     status: done
-    summary: Created cinematic sequence - "!" appears (t=0), portrait scales in (t=0.3s), emotion emoji spawns (t=0.8s). Adjusted "!" height closer to float.
-    files:
-      - scripts/FloaterGame.ts
-      - scripts/FloaterRenderer.ts
+    reference: "Cast aiming accuracy"
+    summary: Added computePhysicsLandingPoint() that forward-simulates the ballistic trajectory to find real landing point, preview bezier now draws toward actual physics destination
+    files: [scripts/FloaterGame.ts, scripts/FloaterRenderer.ts]
 
-  - name: Emoji Position Fix
+  - name: Fix Y-drag controls cast distance (depth)
     status: done
-    summary: Moved "!" emoji to appear above float instead of portrait. Adjusted to 50% size and positioned higher. Prevents 2 emojis above portrait simultaneously.
-    files:
-      - scripts/Types.ts
-      - scripts/FloaterGame.ts
-      - scripts/FloaterRenderer.ts
+    reference: "Cast aiming - Y drag = distance"
+    summary: Fixed computePhysicsLandingPoint and landing detection so Y-drag properly varies landing depth (near/far). Changed landing trigger from broken 3D Y-threshold to time-based completion.
+    files: [scripts/FloaterGame.ts]
 
-  - name: Nothing Bites Visual Fix
+  - name: Fix line detaches from float on landing/bounce
     status: done
-    summary: Fixed exclamation emoji and portrait bobbing appearing during "nothing bites". Now only shows scenery message.
-    files:
-      - scripts/FloaterGame.ts
+    reference: "Fishing line continuity at landing"
+    summary: Fixed line endpoint during FloatBounce to use the same decay bounce formula as the float sprite, eliminating detachment/teleport at landing
+    files: [scripts/FloaterGame.ts]
 
-  - name: Nothing Bites Mechanic + Nereia Arc v2.2
+  - name: Default curve at center on touch start
     status: done
-    summary: Added "nothing bites" when no fish in zone. Rewrote Nereia Tiers 1-2 with Nagato Yuki voice, counter system, Cast 4 variants, Four Minutes silent beat timer.
-    files:
-      - scripts/CharacterData_Nereia.ts
-      - scripts/EncounterSystem.ts
-      - scripts/Types.ts
-      - scripts/Constants.ts
-      - scripts/FloaterGame.ts
-      - scripts/CastDataTier1.ts
-      - scripts/CastDataTier2.ts
-      - scripts/FloaterViewModel.ts
-      - Docs/FLOATER_NEREIA_ARC_v2_2.md
-    subtasks:
-      - name: Nothing Bites Mechanic
-        status: done
-      - name: Nereia Zones (near/mid only)
-        status: done
-      - name: Nereia Tier 1 Rewrite (2 Casts)
-        status: done
-      - name: Nereia Tier 2 Rewrite (2 Casts + variant)
-        status: done
-      - name: Counter System (T-XXXX)
-        status: done
-      - name: Four Minutes Silent Beat Timer
-        status: done
+    reference: "Cast aiming UX"
+    summary: Curve appears immediately on touch at center of bounds (distance=0.5, offsetX=0), drag adjusts from center in all 4 directions
+    files: [scripts/FloaterGame.ts]
 
-  - name: Kasha Character Implementation
+  - name: Cast button triggers trajectory aiming (remove power gauge)
     status: done
-    summary: Added 2nd character Kasha with 5 tiers (10 Casts), dynamic catch sequence, cross-references to Nereia. Voice opposite of Nereia (fast, loud, contractions).
-    files:
-      - scripts/CastDataTier1_Kasha.ts
-      - scripts/CastDataTier2_Kasha.ts
-      - scripts/CastDataTier3_Kasha.ts
-      - scripts/CastDataTier4_Kasha.ts
-      - scripts/CastDataTier5_Kasha.ts
-      - scripts/CharacterData_Kasha.ts
-      - scripts/Types.ts
-      - scripts/Assets.ts
-      - scripts/CastDataTier5.ts
-      - scripts/CharacterRegistry.ts
-      - scripts/FloaterGame.ts
-      - scripts/FloaterViewModel.ts
-      - xaml/floater.xaml
-      - sprites/char_veiltail_neutral.png
-      - Docs/PROJECT_SUMMARY.md
-      - Docs/FLOATER_KASHA_ARC_v1_0.md
+    reference: "Cast UX simplification"
+    summary: Cast button now triggers trajectory preview at center (stays in LakeIdle), drag to aim, release to launch. Removed CastCharging phase and power gauge from active flow.
+    files: [scripts/FloaterGame.ts]
 
-  - name: Quest & Encounter Systems
+  - name: Cast UX - Button enters aiming mode with drag instruction
     status: done
-    summary: Quest system with 5 quest types, lake zones (near/mid/far), encounter priority algorithm, multi-character support ready
-    files:
-      - scripts/QuestSystem.ts
-      - scripts/EncounterSystem.ts
-      - scripts/Types.ts
-      - scripts/CharacterData_Nereia.ts
-      - scripts/FloaterGame.ts
-      - scripts/JournalSystem.ts
-    subtasks:
-      - name: Quest System Implementation
-        status: done
-      - name: Lake Zones (Near/Mid/Far)
-        status: done
-      - name: Encounter Priority Algorithm
-        status: done
-      - name: CharacterConfig Updates
-        status: done
-      - name: Save Data Integration
-        status: done
-      - name: Journal Quest Display
-        status: done
+    reference: "Cast UX flow refinement"
+    summary: Re-enabled button input intercept, disabled tap-anywhere-to-cast, cast button enters aiming state with drag instruction text, focus interaction for curve drawing + release to launch
+    files: [xaml/floater.xaml, scripts/FloaterViewModel.ts, scripts/FloaterGame.ts]
 
-  - name: Cast Progression Bug Fix
+  - name: Cast zones (Near/Mid/Far) from Y range + debug overlay
     status: done
-    summary: Fixed dialogue not progressing past tier exhaustion. Added auto-promotion when all casts in a tier are completed.
-    files:
-      - scripts/FloaterGame.ts
-      - scripts/CharacterRegistry.ts
+    reference: "Fishing game zone targeting"
+    summary: Divided landing Y range into 3 equal zones, added colored debug overlay (green/yellow/red) with labels during aiming mode
+    files: [scripts/Constants.ts, scripts/FloaterRenderer.ts, scripts/FloaterGame.ts]
 
-  - name: Action Button Redesign
+  - name: Add "Where to find" section in Journal character detail
     status: done
-    summary: Redesigned 4 action buttons as large round fishing buttons (100x100px) with action verbs and fishing float background icons
-    files:
-      - xaml/floater.xaml
-      - sprites/action_bg_wait.png
-      - sprites/action_bg_twitch.png
-      - sprites/action_bg_drift.png
-      - sprites/action_bg_reel.png
+    summary: Added 📍 Where to find card in character detail overlay showing zone/phase/lure from getTargetRecipe+formatRecipe
+    files: [scripts/JournalSystem.ts, scripts/FloaterViewModel.ts, scripts/FloaterGame.ts, xaml/floater.xaml]
 
-  - name: Enhanced Journal System
+  - name: "Where to find" icons instead of text (lure icon + phase icon)
     status: done
-    summary: Implemented comprehensive journal enhancements based on VN Systems Bible - character teasing with locked silhouettes, global stats tracking, 10-badge achievement system, 5-tab redesigned UI, met counter, optimized save/load
-    files:
-      - scripts/JournalSystem.ts
-      - scripts/GlobalStatsSystem.ts
-      - scripts/FloaterViewModel.ts
-      - scripts/FloaterGame.ts
-      - scripts/Types.ts
-      - xaml/floater.xaml
-    subtasks:
-      - name: Character Teasing System
-        status: done
-      - name: Locked Character Silhouettes
-        status: done
-      - name: Met Counter (X/Y characters)
-        status: done
-      - name: Global Stats Tracking
-        status: done
-      - name: Badge/Achievement System (10 badges)
-        status: done
-      - name: 5-Tab Journal UI Redesign
-        status: done
-      - name: Optimized Save/Load
-        status: done
-      - name: Auto-Update After Each Cast
-        status: done
+    summary: Replaced text-only location hint with visual layout — zone text + lure icon (hidden if ANY) + day/night icon (180° rotation for day)
+    files: [scripts/JournalSystem.ts, scripts/FloaterViewModel.ts, scripts/FloaterGame.ts, xaml/floater.xaml]
 
-  - name: Code Review & Cleanup
+  - name: Skip button always visible during dialogue, skips entire exchange, hidden on idle
     status: done
-    summary: Comprehensive code review - removed 3 dead files (~350 lines), cleaned dead code from 6 files, removed unused constants and methods. All scripts compile cleanly.
-    files:
-      - scripts/Constants.ts
-      - scripts/Types.ts
-      - scripts/FloaterViewModel.ts
-      - scripts/FloaterRenderer.ts
-      - scripts/FloaterGame.ts
-      - scripts/CGGallerySystem.ts
-    subtasks:
-      - name: Delete ActionButtonRenderer.ts (dead file)
-        status: done
-      - name: Delete LureSystem.ts (dead file)
-        status: done
-      - name: Delete QuestHintData.ts (dead file)
-        status: done
-      - name: Remove 24 legacy VN_* constants from Constants.ts
-        status: done
-      - name: Remove CastState interface from Types.ts
-        status: done
-      - name: Remove actionMenuScale from FloaterViewModel.ts
-        status: done
-      - name: Remove drawProgressDots() from FloaterRenderer.ts
-        status: done
-      - name: Remove enterIdle() and resetActionButtonsToVisible() from FloaterGame.ts
-        status: done
-      - name: Remove CG_IMAGE_MAP from CGGallerySystem.ts
-        status: done
+    summary: Skip shows immediately on Exchange start, skips ALL remaining beats to Departure, hidden on LakeIdle
+    files: [scripts/FloaterGame.ts]
 
-  - name: Fugu Ending CGs
+  - name: Fix "drift away" showing as dialogue instead of scenery on departure
     status: done
-    summary: Added 3 ending CGs for Fugu (drift_away, love_end, release_end) to gallery system. Affection range calculated - MIN -48, MAX +79 across all 10 casts.
-    files:
-      - scripts/Assets.ts
-      - scripts/CharacterData_Fugu.ts
+    summary: Added asterisk markers to fallback departure line so it triggers scenery mode (centered, italic, no speaker)
+    files: [scripts/FloaterGame.ts]
 
-  - name: Fish Name Colors
+  - name: Hide dialogue bubble during departure animation
     status: done
-    summary: Fish names now use their accent color in Fish tab and Character Detail overlay
-    files:
-      - xaml/floater.xaml
-      - scripts/FloaterGame.ts
+    summary: Fixed empty bubble by hiding dialogueVisible when entering departure with no text to display
+    files: [scripts/FloaterGame.ts]
 
-  - name: Kasha Ending CGs
+  - name: Intro cinematic text screen (first play only, flag-saved)
     status: done
-    summary: Added 2 ending CGs for Kasha (love_end, drift_away) to gallery system
-    files:
-      - scripts/Assets.ts
-      - scripts/CharacterData_Kasha.ts
+    summary: Added 5-line atmospheric intro overlay after first Start, tap-to-advance, saved via run.intro_seen flag, clears on reset
+    files: [scripts/FloaterGame.ts, scripts/FloaterViewModel.ts, xaml/floater.xaml]
 
-  - name: Flag-Based Facts System
-    status: done
-    summary: Replaced static facts with flag-driven discovery system. Facts appear as "???" until revealed through dialogue choices. Each fact tied to specific flag (fact.character.name). Stats counter tracks only discovered facts. Optimized save data by removing knownFacts array - facts are rebuilt on-demand from flags.
-    files:
-      - scripts/Types.ts
-      - scripts/JournalSystem.ts
-      - scripts/GlobalStatsSystem.ts
-      - scripts/FloaterGame.ts
-      - scripts/FlagSystem.ts
-      - scripts/CharacterData_Nereia.ts
-      - scripts/CharacterData_Kasha.ts
-      - scripts/CharacterData_Fugu.ts
-      - ink/Story_Nereia.ink
-      - ink/Story_Kasha.ink
-      - ink/Story_Fugu.ink
-    subtasks:
-      - name: Add FactDefinition interface to Types
-        status: done
-      - name: Update JournalSystem with checkFactUnlocks()
-        status: done
-      - name: Update GlobalStatsSystem to count flag-unlocked facts
-        status: done
-      - name: Convert Nereia facts to flag-based (7 facts)
-        status: done
-      - name: Convert Kasha facts to flag-based (6 facts)
-        status: done
-      - name: Convert Fugu facts to flag-based (6 facts)
-        status: done
-      - name: Add fact flags to Nereia dialogue (Casts 1-6)
-        status: done
-      - name: Add fact flags to Kasha dialogue (Casts 1-10)
-        status: done
-      - name: Add fact flags to Fugu dialogue (Casts 1-10)
-        status: done
-      - name: Optimize save data - remove knownFacts array
-        status: done
+  - name: Intro text as progressive paragraph (not one-line-at-a-time)
+    status: in_progress
+    reference: "Film/VN intro crawl style"
 
-  - name: Silver Trout Portraits (x5)
-    status: done
-    summary: 5 silver trout chibi portraits generated (neutral, curious, shy, happy, serious) with locked fish-portraits template, saved to trout/ folder with premultiply alpha
-    files:
-      - trout/silver_trout_neutral.png
-      - trout/silver_trout_curious.png
-      - trout/silver_trout_shy.png
-      - trout/silver_trout_happy.png
-      - trout/silver_trout_serious.png
-      - characters.md
-
-  - name: Rainbow Trout Portrait (rosée, charmeuse)
-    status: done
-    summary: Pink rainbow trout chibi portrait with charming expression, saved to trout/trout_charming.png
-    files:
-      - trout/trout_charming.png
-      - characters.md
-
-  - name: Save Race Condition Fix
-    status: done
-    summary: Added ready gate to SaveSystem - saves blocked until OnSaveDataLoaded fires. Prevents empty default state from overwriting real save data when user acts quickly after load.
-    files:
-      - scripts/SaveSystem.ts
-      - scripts/FloaterGame.ts
+  - name: New Character Story - Dramatic Arc (Ink only)
+    status: in_progress
+    reference: "Visual novel dramatic branching narrative"
 
 chopping_block:
   disabled_systems: []
@@ -407,35 +132,4 @@ chopping_block:
   failed_attempts: []
 
 notes:
-  - Project initialized with comprehensive design documentation
-  - All systems reference VN_SYSTEMS_BIBLE_v2.0.md by SYS-NN-NAME
-  - Build order follows 7 milestones defined in PROJECT_SUMMARY.md
-  - Art direction established for nocturnal pond illustration style
-  - Milestone 1 complete — foundation systems working, Nereia Tier 1 playable
-  - Milestone 2 complete — affection system working, tier progression functional, Nereia Tier 2 playable
-  - Milestone 3 complete — journal with 5 tabs, character teasing, global stats, badges, optimized save/load
-  - Game renamed from "FLOATER" to "Hooked on a Feeling"
-  - Fishing cast mechanics added: LakeIdle → CastCharging (power gauge) → CastFlying (arc physics) → FloatLanded (splash VFX) → Approach
-  - Cast loop: Title → LakeIdle → CastCharging → CastFlying → FloatLanded → Approach → Exchange → Departure → Idle
-  - Power gauge: vertical bar, ping-pong indicator, tap to lock power
-  - Float physics: parabolic arc trajectory, 1.2s flight, power-based height
-  - Splash VFX: 3 staggered ripple circles, 0.5s pause before character appears
-  - DRIFT system tracks departure state for next Cast and applies affection modifiers
-  - Affection system: hidden meter (0-100), TIER_ONLY visibility, floor mechanic, ±30 cap per action
-  - Tier progression: 5 tiers with thresholds at 0, 15, 35, 60, 85
-  - Mood icons implemented as sprites (no Unicode) - 5 icons for 5 tiers
-  - All dialogue follows pacing rules (≤80 chars, 1 line per bubble)
-  - Layout: Central portrait (170px, DrawingSurface), dialogue panel (XAML Custom UI, editable in editor), action menu (XAML)
-  - Background uses UniformToFill stretch to fill 100% height and crop left/right as needed
-  - Design documents (FLOATER_GDD_v1.0.md, FLOATER_VISUAL_BIBLE_v1.0.md, VN_SYSTEMS_BIBLE_v2.0.md) kept with original names as reference
-  - Character system restructured: modular CharacterRegistry allows easy addition of new fish
-  - Currently 2 characters implemented: Nereia (koi) and Kasha (betta)
-  - To add new character: create CharacterData_NewFish.ts, register in CharacterRegistry.ts
-  - All character content consolidated in single CharacterData_X.ts files (metadata, portraits, lures, quest hints, dialogues, endings)
-  - Quest system: 5 quest types (use_lure, talk_to_fish, talk_to_x_fish, make_fish_leave, custom)
-  - Lake zones: Near (0-33%), Mid (34-66%), Far (67-100%) based on cast power
-  - Encounter priority: quest incomplete = never appears, quest complete = prioritized, lure preference = 2x weight
-  - Multi-character support ready: per-fish cast indices, quest tracking, zone-based spawning
-  - Journal system: 5 tabs (Pond, Fish, Lures, Gifts, Stats), character teasing with locked silhouettes, met counter, global stats, 10 achievement badges
-  - Badge system: First Line, First Ripple, Patient Angler, Dedicated Fisher, Full Pond, Growing Trust, Soulbound, Treasured Gift, Deep Listener, Night Owl
-  - Save system: AUTO_ONLY after each Cast, backward-compatible, includes journal + globalStats data
+  - Player prefers physical, 3D feel over rigid/mechanical movement

@@ -43,6 +43,9 @@ export const onInventorySelect = new UiEvent('onInventorySelect', FloaterLureSel
 export const onCharacterDetailOpen = new UiEvent('onCharacterDetailOpen', FloaterTabSelectedPayload);
 export const onCharacterDetailClose = new UiEvent('onCharacterDetailClose');
 
+// Day/Night toggle event
+export const onDayNightToggle = new UiEvent('onDayNightToggle');
+
 // Reset save events
 export const onResetSavePressed = new UiEvent('onResetSavePressed');
 export const onResetSaveConfirm = new UiEvent('onResetSaveConfirm');
@@ -115,6 +118,12 @@ export class FloaterViewModel extends UiViewModel {
   skipButtonVisible: boolean = false;
   skipButtonOpacity: number = 0;
   castButtonVisible: boolean = false;
+  castInstructionVisible: boolean = false;
+
+  // Day/Night toggle \u2014 seeded from wall-clock at startup (6h-18h = day),
+  // freely toggled by the player via the top-left button. Not persisted.
+  isDayMode: boolean = false;
+  dayNightButtonRotation: number = 0;
 
   // Dialogue panel (XAML-based)
   dialogueVisible: boolean = false;
@@ -174,6 +183,12 @@ export class FloaterViewModel extends UiViewModel {
   departureText: string = '';
   idlePromptText: string = 'Tap to Cast again';
 
+  // Intro cinematic overlay
+  introVisible: boolean = false;
+  introText: string = '';
+  introOverlayOpacity: number = 0;
+  introTapVisible: boolean = false;
+
   // Ending overlay
   endingVisible: boolean = false;
   endingText: string = '';
@@ -187,6 +202,7 @@ export class FloaterViewModel extends UiViewModel {
     onFloaterNewCast,
     onFloaterSkipBeat,
     onFloaterCastStart,
+    onDayNightToggle,
     onJournalOpen,
     onJournalClose,
     onJournalTabSwitch,
@@ -245,6 +261,12 @@ export class FloaterViewModel extends UiViewModel {
   charDetailObservations: string = '';
   charDetailQuestName: string = '';
   charDetailQuestHint: string = '';
+  charDetailLocation: string = '';
+  charDetailLocationZone: string = '';
+  charDetailLocationLureVisible: boolean = false;
+  charDetailLocationLureTexture?: TextureAsset;
+  charDetailLocationPhaseRotation: number = 0;
+  charDetailLocationVisible: boolean = false;
   charDetailAccentColor: string = '#9B7FCC';
   charDetailTierColor: string = '#8A9AB0';
   /** TextureAsset for the detail portrait — bound directly to Image.Source. */
@@ -280,6 +302,34 @@ export class FloaterViewModel extends UiViewModel {
   actionTwitchEnabled: boolean = true;
   actionDriftEnabled: boolean = true;
   actionReelEnabled: boolean = true;
+
+  // Hold-to-preview intent tooltips (contextual per Beat, populated from Ink).
+  // Empty string = no intent for this action on this Beat → tooltip suppressed.
+  actionWaitIntent: string = '';
+  actionTwitchIntent: string = '';
+  actionDriftIntent: string = '';
+  actionReelIntent: string = '';
+  actionWaitIntentHasText: boolean = false;
+  actionTwitchIntentHasText: boolean = false;
+  actionDriftIntentHasText: boolean = false;
+  actionReelIntentHasText: boolean = false;
+
+  /** Set the per-action intent tooltips for the current Beat. */
+  setActionIntents(
+    waitIntent: string,
+    twitchIntent: string,
+    driftIntent: string,
+    reelIntent: string,
+  ): void {
+    this.actionWaitIntent = waitIntent;
+    this.actionTwitchIntent = twitchIntent;
+    this.actionDriftIntent = driftIntent;
+    this.actionReelIntent = reelIntent;
+    this.actionWaitIntentHasText = waitIntent.length > 0;
+    this.actionTwitchIntentHasText = twitchIntent.length > 0;
+    this.actionDriftIntentHasText = driftIntent.length > 0;
+    this.actionReelIntentHasText = reelIntent.length > 0;
+  }
 
   // Action button animation state (driven from game loop)
   actionMenuOpacity: number = 0;

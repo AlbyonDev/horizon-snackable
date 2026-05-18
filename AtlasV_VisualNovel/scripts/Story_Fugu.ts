@@ -9,10 +9,22 @@
  * Character voice: Short energetic bursts, repetitions, self-interruptions,
  * sudden silences when loneliness surfaces. Signature phrase: "Trust me!"
  *
- * Inspired by: Naruto Uzumaki — loneliness, desperate desire for recognition,
- * boundless energy hiding deep sadness, talks to fill the silence.
+ * Engine integration notes:
+ *   - `from.fugu.<recipeId>` one-shot signals are set by the encounter
+ *     system and auto-cleared by the engine after fugu_entry dispatch.
+ *   - `mood.fugu.last_drift` is a synthetic string flag set by the engine
+ *     from the fish's departure drift, used for bridge dialogues.
+ *   - `-> END` triggers the visual departure fade directly; goodbye lines
+ *     belong inside the terminal choice's response (Ink Authoring Guide §4.4).
  *
- * Delta calibration (scale -10 / +50):
+ * Intent format (Guide §1.2): cold meta-verb categories, 1–3 words, no
+ * adverbs. The emotion lives in the fish's reaction, not in the tooltip.
+ *   WAIT   → Hold space. / Observe. / Listen. / Let him vent.
+ *   TWITCH → Tease. / Nudge. / Prompt. / Match energy. / Break the ice.
+ *   DRIFT  → Comfort. / Empathize. / Reassure. / Validate. / Yield.
+ *   REEL   → Push back. / Ground him. / Confront. / Set boundary. / Take charge.
+ *
+ * Delta calibration:
  *   +5  emotional breakthrough, vulnerability accepted
  *   +4  real opening, significant moment
  *   +3  sincere positive, marked interest
@@ -24,1074 +36,784 @@
  */
 
 export const FUGU_STORY: string = `
+// ============================================================
+// STORY_FUGU — REWRITTEN FOR PURE AGENCY & INVISIBLE DIALOGUE
+// ============================================================
+
+=== fugu_entry ===
+{ from.fugu.climaxT5 :
+    { quest.fugu.t5_c9_done :
+        -> fugu_t5_c10_b1
+    - else :
+        -> fugu_t5_c9_b1
+    }
+- from.fugu.parkT4 :
+    { quest.fugu.t4_c7_done :
+        -> fugu_t4_c8_b1
+    - else :
+        -> fugu_t4_c7_b1
+    }
+- from.fugu.spinnerT3 :
+    { quest.fugu.t3_c5_done :
+        -> fugu_t3_c6_b1
+    - else :
+        -> fugu_t3_c5_b1
+    }
+- from.fugu.nightT2 :
+    { quest.fugu.t2_c3_done :
+        -> fugu_t2_c4_b1
+    - else :
+        -> fugu_t2_c3_b1
+    }
+- from.fugu.home :
+    { quest.fugu.t1_done :
+        -> fugu_loop
+    - met.fugu :
+        -> fugu_t1_c2_b1
+    - else :
+        -> fugu_t1_c1_b1
+    }
+- from.fugu.homeNight :
+    { quest.fugu.t1_done :
+        -> fugu_loop
+    - met.fugu :
+        -> fugu_t1_c2_b1
+    - else :
+        -> fugu_t1_c1_b1
+    }
+- else :
+    -> fugu_t1_c1_b1
+}
 
 // ============================================================
-// TIER 1 — UNAWARE: "Someone finally sees me!" (Casts 1–2)
+// FAIL-SAFE LOOP — reached when home is somehow still active after T1.
+// Should never happen with correct recipe disabling; if it does, give the
+// player a beat of flavor instead of replaying T1 c2.
+// ============================================================
+
+=== fugu_loop ===
+*Fugu is already in the middle of something.*
+*Talking to a rock. Practicing a speech. Pacing in tight circles.*
+-> END
+
+// ============================================================
+// TIER 1 — UNAWARE: The desperate need to be seen
 // ============================================================
 
 === fugu_t1_c1_b1 ===
-Hey! HEY! You can see me?!
-For real? You're actually looking at me?
-Nobody ever looks at me! Never!
-I'm Fugu! Fugu the pufferfish!
-You're staying? Please say you're staying!
+Hey! HEY! You're talking to me?!
+For real? You actually stopped to say hi?
+Nobody ever stops! Never!
+I'm Fugu!
+Please tell me you're not lost. Please say you're staying!
 
-* [WAIT] #delta:3 #expr:warm #icon:warmth #drift:CHARMED #flag:fact.fugu.appearance
-    You... you're waiting?
-    For me?
-    ...
-    Nobody's ever waited for me.
-    Thank you. Really. Thank you, trust me!
+* [WAIT] Observe. #delta:3 #icon:warmth #drift:CHARMED #flag:met.fugu #flag:fact.fugu.appearance #flag:fact.fugu.puffs
+    You're... you're not much of a talker, are you?
+    Just staring at me.
+    Nobody has ever just stood here and listened. They usually walk away mid-sentence.
+    Thank you. Really. Trust me!
     -> fugu_t1_c1_b2
 
-* [TWITCH] #delta:5 #expr:warm #icon:delight #drift:CHARMED #flag:fact.fugu.appearance
-    Oh! You moved! You're playing?!
-    We're playing together?! For real?!
-    Wait I'm gonna... *puffs up with excitement*
-    Oops! Sorry! I can't control it when I'm happy!
-    But it's cool, right? We're having fun, trust me!
+* [TWITCH] Greet. #delta:5 #icon:delight #drift:CHARMED #flag:met.fugu #flag:fact.fugu.appearance #flag:fact.fugu.puffs
+    Nice to meet you too!
+    Whoa, we are so in sync already! I feel it!
+    Wait, my heart is beating so fast I'm gonna... *puffs up with excitement*
+    Oops! Sorry! I puff up when I get too excited.
+    But I'm just so glad you're here, trust me!
     -> fugu_t1_c1_b2
 
-* [DRIFT] #delta:-2 #expr:alarmed #icon:sadness #drift:TROUBLED #flag:fact.fugu.appearance
-    Huh? You... you're drifting away?
-    Already?
-    But... but we just met...
-    Is it my spines? Am I scary?
-    Wait! Come back! Please!
+* [DRIFT] Reassure. #delta:1 #icon:hesitation #drift:WARM #flag:met.fugu #flag:fact.fugu.appearance #flag:fact.fugu.puffs
+    You're staying?! For real?!
+    Wow. You have a really calming presence.
+    Usually, everything is a rush. Because people want to leave.
+    I'll try to slow down.
     -> fugu_t1_c1_b2
 
-* [REEL] #delta:-5 #expr:alarmed #icon:shock #drift:SCARED #flag:fact.fugu.appearance
-    NO! Not that!
-    You... you wanna grab me?!
-    Already?! But we don't even know each other!
-    *puffs up in panic, spines raised*
-    Let go! LET GO!
+* [REEL] Interrupt. #delta:-2 #icon:shock #drift:SCARED #flag:met.fugu #flag:fact.fugu.appearance #flag:fact.fugu.puffs
+    What do you mean I'm "too loud"?!
+    I'm not loud! I'm just... existing!
+    You don't have to snap at me... I just get overly excited.
+    *deflates slightly*
     -> fugu_t1_c1_b2
-
 
 === fugu_t1_c1_b2 ===
 ...
-Sorry.
-I talk too much.
+Sorry. I talk too much. I know I do.
+It's just... the silence in this neighborhood gets so heavy.
+So I fill it. All by myself.
 ...
-It's just that... nobody usually stays.
-They see the spines and... yeah.
-...
-But you're still here.
-...
-That's... that's good.
+But you're still standing there. That's... nice.
 
-* [WAIT] #delta:3 #expr:warm #icon:warmth #drift:CHARMED #flag:fact.fugu.talks
+* [WAIT] Stay. #delta:3 #icon:contentment #drift:CHARMED #flag:fact.fugu.talks
+    You really don't mind the quiet?
     ...
-    You're not saying anything.
-    That's... actually restful.
-    Usually I fill the silence all by myself.
-    ...
+    That's actually really restful. Having someone just *be* here.
     Thank you.
     -> END
 
-* [TWITCH] #delta:2 #expr:curious #icon:curiosity #drift:WARM #flag:fact.fugu.talks
-    Oh! You want me to keep going?
-    I've got tons of stuff to tell!
-    Like yesterday I found a piece of seaweed that looked like a face!
-    Wanna see? Well... it's gone now.
-    But I can show you where it was!
+* [TWITCH] Ask. #delta:2 #icon:curiosity #drift:WARM #flag:fact.fugu.talks
+    My day?! You want to know about MY day?!
+    Well, I walked down to the lower streets and found a rock that looked like a crab!
+    I can show you tomorrow! If... if you come back.
     -> END
 
-* [DRIFT] #delta:0 #expr:neutral #icon:hesitation #drift:WARY #flag:fact.fugu.talks
+* [DRIFT] Validate. #delta:1 #icon:hesitation #drift:INTRIGUED #flag:fact.fugu.talks
+    I don't have to talk to be heard?
     ...
-    Ok.
-    It's fine.
-    ...
-    Maybe tomorrow?
+    That's... a really beautiful thing to say.
+    I'll think about that.
     -> END
 
-* [REEL] #delta:-2 #expr:alarmed #icon:shock #drift:SCARED
-    Again?!
-    ...
-    I'm toxic you know. Very toxic.
-    You shouldn't touch me.
-    ...
-    It's for your own good.
-    Trust me.
+* [REEL] Warn. #delta:-2 #icon:sadness #drift:WARY #flag:fact.fugu.talks
+    Right. Right, of course. I need to take a breath.
+    I'm suffocating you with words.
+    I'm toxic like that. Trust me, it's for the best if I shut up.
     -> END
-
 
 === fugu_t1_c2_b1 ===
-YOU CAME BACK!!!
-I... I thought you wouldn't come back!
+{ mood.fugu.last_drift == "WARY" :
+    You... you came back?
+    Even after I exhausted you yesterday?
+- mood.fugu.last_drift == "SCARED" :
+    Oh. It's you.
+    I promise I won't yell this time. Don't be mad.
+- else :
+    YOU CAME BACK!!!
+    I... I paced around my place all night hoping you would!
+}
 ...
-Wait. Breathe Fugu. Breathe.
-...
-...ok.
-Hi.
-...
-I practiced that all night. Just "hi." To be normal.
-I'm not very good at being normal.
+Wait. Breathe, Fugu.
+I practiced saying a normal "Hi" all morning.
+Hi. I'm not very good at this.
 
-* [WAIT] #delta:3 #expr:warm #icon:warmth #drift:CHARMED
-    ...
-    You're letting me be weird?
-    Without leaving?
-    ...
-    That's... nobody does that.
-    Nobody.
+* [WAIT] Wait. #delta:3 #icon:warmth #drift:CHARMED
+    You're just giving me time. Without judging.
+    Nobody does that.
     -> fugu_t1_c2_b2
 
-* [TWITCH] #delta:4 #expr:warm #icon:delight #drift:CHARMED #flag:mood.fugu.first_play #flag:fact.fugu.puffs
-    Ha! You wanna play again?!
-    I learned a new trick! Watch!
-    *puffs up and does little circles*
-    That's my joy dance! See?
-    Trust me, nobody's ever seen it!
+* [TWITCH] Joke. #delta:4 #icon:delight #drift:CHARMED
+    Hey! "Hi" is a very hard word when your brain is going a million miles an hour!
+    But you laughed! A real laugh!
+    Trust me, I'm gonna make you laugh every day!
     -> fugu_t1_c2_b2
 
-* [DRIFT] #delta:-1 #expr:neutral #icon:hesitation #drift:WARY
-    Oh... you wanna leave already?
-    ...
-    No no it's fine. It's normal.
-    People leave.
-    ...
-    Everyone leaves.
+* [DRIFT] Comfort. #delta:2 #icon:contentment #drift:WARM
+    It was a perfect hi?
+    ... Really?
+    Wow. You know exactly what to say to make my spikes lay flat.
     -> fugu_t1_c2_b2
 
-* [REEL] #delta:-3 #expr:alarmed #icon:shock #drift:SCARED
-    No no no!
-    We just saw each other again!
-    ...
-    Why... why do people always do that?
-    Get close just to grab you?
+* [REEL] Push. #delta:-3 #icon:shock #drift:SCARED
+    Act natural?
+    I don't know what natural IS! This IS my natural!
+    Why does everyone always want me to act like someone else...
     -> fugu_t1_c2_b2
-
 
 === fugu_t1_c2_b2 ===
-You know...
+You know... I counted.
+You're the second person who ever came back to see me twice.
+The first was a snail. His name was Slowpoke.
+We used to go for long walks together.
 ...
-I counted.
-You're the second person who came back.
-The first was a snail.
-...
-He died.
-Of old age though! Not... not because of me!
-...
-Probably not because of me.
+He died. Of old age, though!
+Not... not because of my poison.
+... Probably not because of my poison.
 
-* [WAIT] #delta:3 #expr:warm #icon:warmth #drift:CHARMED #flag:mood.fugu.told_about_snail
-    ...
-    Thanks for not laughing.
-    ...
-    The seaweed laughs. I know it doesn't really laugh.
-    But in my head, it laughs.
-    ...
-    You don't laugh.
-    That's good.
+* [WAIT] Listen. #delta:3 #icon:warmth #drift:CHARMED #flag:quest.fugu.t1_done #flag:recipe.fugu.nightT2 #disable-flag:recipe.fugu.home #disable-flag:recipe.fugu.homeNight
+    You didn't even flinch when I said the word "poison".
+    That's... new. Nobody ever reacts like that.
+    Listen... it gets really crowded here during the day.
+    Could you... come back tonight? Please? It's quieter.
     -> END
 
-* [TWITCH] #delta:2 #expr:curious #icon:curiosity #drift:WARM
-    Haha... yeah it's kinda sad when you put it that way.
-    ...
-    But it's true, trust me!
-    His name was... well he didn't have a name.
-    But I called him "Slowpoke."
-    Because... you know.
+* [TWITCH] Tease. #delta:3 #icon:curiosity #drift:WARM #flag:quest.fugu.t1_done #flag:recipe.fugu.nightT2 #disable-flag:recipe.fugu.home #disable-flag:recipe.fugu.homeNight
+    Haha! Yeah, I guess Slowpoke wasn't exactly a fast walker!
+    But you... you're way better than Slowpoke. Trust me!
+    Hey, come back tonight? The streetlights make this place look cool.
     -> END
 
-* [DRIFT] #delta:0 #expr:neutral #icon:hesitation #drift:NEUTRAL
+* [DRIFT] Reassure. #delta:4 #icon:hesitation #drift:WARM #flag:quest.fugu.t1_done #flag:recipe.fugu.nightT2 #disable-flag:recipe.fugu.home #disable-flag:recipe.fugu.homeNight
+    You really think it wasn't my fault?
     ...
-    Yeah.
-    ...
-    It's a sad story.
-    I shouldn't have told it.
-    ...
-    Forget it.
+    I've told myself that a thousand times. Hearing you say it makes it feel real.
+    I want to talk more. But not with all these people around.
+    Meet me here tonight?
     -> END
 
-* [REEL] #delta:-2 #expr:alarmed #icon:sadness #drift:WARY
-    Stop!
-    ...
-    It's not funny.
-    ...
-    I'm telling you something important and you...
-    ...
-    No. Forget it. It's nothing.
+* [REEL] Confront. #delta:-4 #icon:sadness #drift:WARY #flag:quest.fugu.t1_done #flag:recipe.fugu.nightT2 #disable-flag:recipe.fugu.home #disable-flag:recipe.fugu.homeNight
+    Am I dangerous?
+    ... Yes. Very.
+    I shouldn't have brought it up. I'm sorry.
+    If you're not too scared... come back tonight. I can explain.
     -> END
-
 
 // ============================================================
-// TIER 2 — CURIOUS: "You're really staying?" (Casts 3–4)
+// TIER 2 — CURIOUS: The weight of the poison
 // ============================================================
 
 === fugu_t2_c3_b1 ===
+{ mood.fugu.last_drift == "WARY" :
+    You actually came tonight. Even after what I said about being dangerous.
+- else :
+    You came! The night breeze is nice, right?
+}
+...
 You know you're weird?
-...
 No! Not mean weird! Good weird!
-Like... you're not scared.
-The others are scared.
-...
+Like... you're not scared of me.
 Look.
-*extends a fin*
-See the spines? If I puff up...
-They come out. With poison.
-...
+*extends an arm*
+See these? If I get stressed, my spikes come out. With poison.
 A lot of poison.
 
-* [WAIT] #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:mood.fugu.showed_spines #flag:fact.fugu.toxic
-    ...
-    You didn't move.
-    I showed my spines and you didn't move.
-    ...
-    The other fish... when I was little...
-    They ran away. Well, swam away.
-    ...
-    You stay.
+* [WAIT] Stand. #delta:4 #icon:warmth #drift:CHARMED #flag:fact.fugu.toxic
+    You're not going anywhere.
+    I showed you my worst side and you stayed.
+    The folks in my old neighborhood... they used to run across the street when they saw me.
     Why do you stay?
     -> fugu_t2_c3_b2
 
-* [TWITCH] #delta:3 #expr:curious #icon:curiosity #drift:WARM #flag:fact.fugu.toxic
-    Ha! You think it's cool?!
-    Really?!
-    Nobody ever said it was cool!
-    ...
-    Wait I can puff up more!
-    *POOF*
-    Tadaaaa! See?! I'm like a balloon!
+* [TWITCH] Probe. #delta:3 #icon:curiosity #drift:WARM #flag:fact.fugu.toxic
+    It doesn't hurt me. If that's what you're asking.
+    But it hurts everyone else.
+    Wait, I can puff up more! *POOF*
+    Tadaaaa! See?! I'm like a toxic balloon!
     -> fugu_t2_c3_b2
 
-* [DRIFT] #delta:-1 #expr:neutral #icon:sadness #drift:WARY
-    ...you're backing away.
-    ...
-    That's normal.
-    I understand.
-    ...
-    It's toxic. Very toxic.
-    People are right to be scared.
+* [DRIFT] Yield. #delta:-1 #icon:sadness #drift:WARY #flag:fact.fugu.toxic
+    Yeah. I get it. That's a lot to take in.
+    That's normal. I understand.
+    It's toxic. People are right to cross the street.
     -> fugu_t2_c3_b2
 
-* [REEL] #delta:-3 #expr:alarmed #icon:shock #drift:SCARED
-    HEY!
-    MY SPINES CAME OUT!
-    You're gonna get hurt!
-    BACK OFF!
+* [REEL] Step back. #delta:-3 #icon:shock #drift:SCARED #flag:fact.fugu.toxic
+    HEY! I TOLD YOU I CAN'T ALWAYS CONTROL IT!
     ...
     ...please back off. I don't wanna hurt you.
     -> fugu_t2_c3_b2
 
-
 === fugu_t2_c3_b2 ===
 ...
 When I was little...
-...no forget it.
-...
+...no, forget it.
 ...
 Ok. I'll say it. Because you're staying.
-...
-My family left me. In the deep waters.
-When my toxins got too strong.
-They said I was a curse.
-...
-I didn't even have a name back then.
+My family packed their bags and left me behind.
+They moved to the deep side of town.
+When my toxins got too strong, they said I was a curse.
 
-* [WAIT] #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:secret.fugu.family_abandoned
-    ...
-    You're listening.
-    ...
-    Nobody listens when I talk about this.
-    Or they say "oh that's sad" and leave.
-    ...
-    You just... stay there.
-    ...
+* [WAIT] Listen. #delta:4 #icon:warmth #drift:CHARMED #flag:quest.fugu.t2_c3_done
+    You're just letting me talk.
+    Nobody does that. They usually look at their watches and make an excuse to leave.
+    But you... you're still here.
     That's enough. Trust me.
     -> END
 
-* [TWITCH] #delta:2 #expr:curious #icon:hesitation #drift:WARM
-    ...
-    No it's fine. It was a long time ago.
-    ...
-    Ok it's a little not-fine.
-    ...
-    But I survived! See? I'm here!
+* [TWITCH] Joke. #delta:2 #icon:hesitation #drift:WARM #flag:quest.fugu.t2_c3_done
+    Their loss?
+    Haha... yeah. I guess.
+    I survived! See? I'm standing right here!
     Strong as a rock! Trust me!
     -> END
 
-* [DRIFT] #delta:0 #expr:neutral #icon:sadness #drift:TROUBLED
-    ...
-    Yeah.
-    That's a heavy story.
-    Sorry.
-    ...
-    We can talk about something else.
-    Like... seaweed. Seaweed is nice.
+* [DRIFT] Empathize. #delta:4 #icon:sadness #drift:OPENED #flag:quest.fugu.t2_c3_done
+    Terrifying is the exact word. Yeah.
+    I didn't even know how to unlock the front door back then.
+    Thank you for understanding.
     -> END
 
-* [REEL] #delta:-3 #expr:alarmed #icon:shock #drift:SCARED
+* [REEL] Judge. #delta:-3 #icon:shock #drift:SCARED #flag:quest.fugu.t2_c3_done
+    Go after them?
     Stop! I puff up when I'm scared!
-    ...
-    See?! That's the problem!
-    I can't be close to someone without risking hurting them!
-    ...
-    That's why they left.
-    All of them.
+    I couldn't! I was a kid, and I was dangerous!
+    That's why they left! All of them!
     -> END
-
 
 === fugu_t2_c4_b1 ===
-Hey.
+{ mood.fugu.last_drift == "SCARED" :
+    I'm calm today. I promise. No sudden spikes.
+- else :
+    Hey. I thought of something last night.
+}
 ...
-Hey.
-...
-I thought of something last night.
-...
-If I concentrate really hard...
-I can keep my spines in.
-Even when I'm happy.
-...
+If I concentrate really, really hard...
+I can keep my spikes in. Even when I'm happy.
 Look! I'm happy right now. And nothing's coming out!
-...
-...
 ...ok maybe one. But just one!
 
-* [WAIT] #delta:3 #expr:warm #icon:warmth #drift:CHARMED #flag:mood.fugu.trying_control
-    ...
-    See? I'm getting better!
-    For you. So you'll stay.
-    ...
-    It's the first time I have a reason to get better.
-    ...
-    Trust me.
+* [WAIT] Encourage. #delta:3 #icon:warmth #drift:CHARMED
+    I will! See? I'm getting better!
+    For you. So you'll keep hanging out with me.
+    It's the first time I've had a reason to practice.
     -> fugu_t2_c4_b2
 
-* [TWITCH] #delta:4 #expr:warm #icon:delight #drift:CHARMED #flag:fact.fugu.puffs
-    Ha! You're clapping?! Well... you're moving like it!
+* [TWITCH] Cheer. #delta:4 #icon:delight #drift:CHARMED
     THANK YOU!
-    ...
-    I worked all night! All night!
+    I paced around my living room all night trying to get it right!
     For you! Because you come back!
-    And I want you to keep coming back!
     -> fugu_t2_c4_b2
 
-* [DRIFT] #delta:-1 #expr:neutral #icon:hesitation #drift:WARY #flag:fact.fugu.puffs
-    ...you don't care?
+* [DRIFT] Praise. #delta:2 #icon:hesitation #drift:WARM
+    You're proud of me?
     ...
-    I worked so hard...
-    ...
-    No. It's fine. I'm doing it for myself.
-    Not for others.
-    ...
-    ...well yeah. A little for you.
+    I worked so hard... and hearing you say that...
+    It means everything.
     -> fugu_t2_c4_b2
 
-* [REEL] #delta:-2 #expr:alarmed #icon:shock #drift:SCARED
-    NO!
-    *POOF — puffs up in panic*
-    ...
-    See?! See what happens?!
-    The second someone tries to grab me I lose control!
-    It's been like this forever!
+* [REEL] Warn. #delta:-2 #icon:shock #drift:SCARED
+    Still too dangerous?
+    NO! *POOF — puffs up in panic*
+    See?! See what happens when you doubt me?!
+    The second someone pushes me, I lose control!
     -> fugu_t2_c4_b2
-
 
 === fugu_t2_c4_b2 ===
-You know what's weird?
-...
-Nighttime. When I'm all alone.
-In the deep.
-...
-I talk to rocks.
-...
-I know they don't answer. I'm not stupid.
-But the silence... the silence is too heavy.
-So I fill it.
-I fill it all the time.
-...
-Except now.
-With you I... I don't need to fill as much.
+You know what's weird? Nighttime. When I'm alone in my apartment.
+I talk to the furniture.
+I know the chairs don't answer. I'm not stupid.
+But the silence... the silence is too heavy. So I fill it.
+Except now. With you, I don't need to fill it as much.
 
-* [WAIT] #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:mood.fugu.silence_ok
-    ...
-    ...
-    See? Right now. This silence.
-    It doesn't hurt.
-    ...
-    It's the first time.
+* [WAIT] Observe. #delta:4 #icon:warmth #drift:CHARMED #flag:quest.fugu.t2_done #flag:recipe.fugu.spinnerT3 #disable-flag:recipe.fugu.nightT2
+    The silence is nice, isn't it?
+    See? It doesn't hurt right now.
+    Listen... you know what I'd love?
+    That red keychain you have. It's so shiny.
+    Could you bring it next time? It would make my day.
     -> END
 
-* [TWITCH] #delta:2 #expr:curious #icon:curiosity #drift:WARM
-    Ha! You want me to keep talking?
-    I can! I've got tons of stuff!
-    ...
-    But... it's also nice to just... be here.
-    Right?
+* [TWITCH] Tease. #delta:2 #icon:curiosity #drift:WARM #flag:quest.fugu.t2_done #flag:recipe.fugu.spinnerT3 #disable-flag:recipe.fugu.nightT2
+    A name for the chair?
+    Haha! No, it's just a chair! I'm not completely crazy!
+    But hey... I am crazy about that red keychain you have.
+    Bring it tomorrow night? Please?
     -> END
 
-* [DRIFT] #delta:0 #expr:neutral #icon:hesitation #drift:NEUTRAL
-    ...
-    Don't leave while I'm saying important stuff.
-    ...
-    Please.
+* [DRIFT] Comfort. #delta:3 #icon:contentment #drift:WARM #flag:quest.fugu.t2_done #flag:recipe.fugu.spinnerT3 #disable-flag:recipe.fugu.nightT2
+    I really hope you mean that. That I don't have to be alone anymore.
+    If you do... bring that red keychain next time.
+    It'll be our little secret signal.
     -> END
 
-* [REEL] #delta:-2 #expr:alarmed #icon:sadness #drift:WARY
-    ...
-    I just told you something vulnerable and you...
-    ...
-    No. It's my fault. I shouldn't have said that.
-    People use vulnerable stuff against you.
-    ...
+* [REEL] Diagnose. #delta:-2 #icon:sadness #drift:WARY #flag:quest.fugu.t2_done #flag:recipe.fugu.spinnerT3 #disable-flag:recipe.fugu.nightT2
+    Unhealthy?
+    ... I just told you something vulnerable and you...
     Forget what I said.
+    Just... bring that red keychain next time, okay? If you even care.
     -> END
-
 
 // ============================================================
-// TIER 3 — FAMILIAR: "My first friend" (Casts 5–6)
+// TIER 3 — FAMILIAR: The imaginary friends
 // ============================================================
 
 === fugu_t3_c5_b1 ===
+{ mood.fugu.last_drift == "WARY" :
+    You brought the red keychain. Even after I got defensive.
+- else :
+    You brought the keychain! It's so beautiful...
+}
 ...
-I'm gonna tell you something.
-A real thing. Not a joke.
-...
-When I was little.
-After my family left.
-...
-I invented friends.
-Three of them. They had names and everything.
+I'm gonna tell you something. A real thing. Not a joke.
+When I was little. After my family left.
+I invented friends. Three of them.
 Bizu, Plop, and Big Algae.
-...
-I talked to them every day.
-For... a long time.
+I talked to them every day. For a long time.
 
-* [WAIT] #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:secret.fugu.imaginary_friends #flag:fact.fugu.alone
-    ...
-    You're not judging?
-    ...
-    Usually when I say that people make a face.
-    Like "oh poor thing" or "he's crazy."
-    ...
-    You just... listen.
-    ...
-    That's the best gift anyone's ever given me.
-    Trust me.
+* [WAIT] Listen. #delta:4 #icon:warmth #drift:CHARMED #flag:fact.fugu.alone
+    You're not judging me.
+    Usually, when I tell people that, they give me this look of pity.
+    But you just want me to keep going.
+    That's the best gift anyone's ever given me. Trust me.
     -> fugu_t3_c5_b2
 
-* [TWITCH] #delta:3 #expr:curious #icon:curiosity #drift:WARM
-    You wanna know their personalities?!
-    Bizu was the brave one! He wasn't scared of anything!
-    Plop never talked but we understood each other!
-    And Big Algae... she was big. That's it.
-    ...
-    It's pathetic right?
+* [TWITCH] Ask. #delta:3 #icon:curiosity #drift:WARM #flag:fact.fugu.alone
+    What were they like?!
+    Bizu was the brave one! Plop was the quiet listener... kinda like you!
+    And Big Algae... she was just tall.
+    It's pathetic, right?
     -> fugu_t3_c5_b2
 
-* [DRIFT] #delta:0 #expr:neutral #icon:sadness #drift:TROUBLED #flag:fact.fugu.alone
-    ...
-    Yeah. I know.
-    ...
-    I shouldn't have said that.
+* [DRIFT] Validate. #delta:5 #icon:sadness #drift:OPENED #flag:fact.fugu.alone
+    I did what I had to do to survive?
+    *sniffles*
+    Nobody has ever understood it like that.
+    You make me feel... less broken.
     -> fugu_t3_c5_b2
 
-* [REEL] #delta:-3 #expr:alarmed #icon:shock #drift:SCARED
-    Don't touch me!
-    ...
-    I just told you a secret and you...
-    ...
-    *puffs up, spines raised*
-    Go away.
+* [REEL] Judge. #delta:-3 #icon:shock #drift:SCARED #flag:fact.fugu.alone
+    Grow up?
+    *puffs up defensively*
+    I DID grow up! I survived on my own!
+    You don't know what it was like!
     -> fugu_t3_c5_b2
-
 
 === fugu_t3_c5_b2 ===
 The day I stopped talking to them...
 That's the day I realized they weren't real.
+It took a while. I felt so stupid. And so alone.
 ...
-It took a while.
-...
-I felt so stupid.
-And so alone.
-...
-But now...
-...
-You're real.
-Right?
-You're real?
+But now... you're real. Right?
+Tell me you're real.
 
-* [WAIT] #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:mood.fugu.confirmed_real #flag:fact.fugu.alone
-    ...
-    Ok.
-    ...
-    Ok.
+* [WAIT] Stand. #delta:4 #icon:warmth #drift:CHARMED #flag:quest.fugu.t3_c5_done
+    You're right here. I know.
     ...
     I think I'm gonna cry. Just a little.
-    It's nothing. It's happiness. Trust me.
+    It's happiness, trust me.
     -> END
 
-* [TWITCH] #delta:3 #expr:warm #icon:delight #drift:CHARMED
-    Ha! Yes! You moved! You're real!
-    Imaginary ones don't move like that!
-    ...
-    Sorry. That's a dumb test.
-    But it works.
-    You pass the test. You're real.
+* [TWITCH] Joke. #delta:3 #icon:delight #drift:CHARMED #flag:quest.fugu.t3_c5_done
+    Pinch you?
+    Haha! Hey! Yes, I feel that!
+    Imaginary friends definitely can't joke like that!
+    Okay. You're real.
     -> END
 
-* [DRIFT] #delta:-1 #expr:neutral #icon:sadness #drift:TROUBLED
+* [DRIFT] Promise. #delta:4 #icon:contentment #drift:WARM #flag:quest.fugu.t3_c5_done
+    You're not leaving.
     ...
-    You're leaving?
-    ...
-    No... no come back...
-    Real ones come back.
-    ...
-    Come back. Please.
+    I'm going to hold onto those words. Forever.
     -> END
 
-* [REEL] #delta:-3 #expr:alarmed #icon:shock #drift:SCARED
-    Real ones don't grab!
-    ...
-    Real ones...
-    ...
-    I don't know what real ones do.
-    I've never had one.
+* [REEL] Dismiss. #delta:-4 #icon:sadness #drift:WARY #flag:quest.fugu.t3_c5_done
+    Dramatic?
+    Right. Sorry.
+    I guess asking for reassurance is asking too much.
     -> END
-
 
 === fugu_t3_c6_b1 ===
-Hey...
-...
-I have a question.
-A real question.
+{ mood.fugu.last_drift == "WARY" :
+    Look, I know I was needy last time. I'm sorry.
+- else :
+    Hey... I have a question. A real question.
+}
 ...
 Are you scared of me?
-...
 It's ok if yes. I'd understand.
-My spines. The poison.
-The fact that I puff up when I'm stressed.
-...
-Everyone's scared.
-...
+My spikes. The poison. The fact that I puff up when I'm stressed.
+Everyone who walks past me on the street is scared.
 What about you?
 
-* [WAIT] #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:mood.fugu.not_afraid
+* [WAIT] Deny. #delta:4 #icon:warmth #drift:CHARMED
+    No?
     ...
-    ...
-    You know what you just gave me?
-    ...
-    I spent my entire life trying not to be scary.
-    Making myself small. Hiding my spines.
-    ...
-    And you stay. Even knowing.
-    ...
-    That's... that's huge. Trust me.
+    I spent my entire life trying to make myself small. Hiding in alleys.
+    And you're still here. Even knowing everything.
+    That's... huge. Trust me.
     -> fugu_t3_c6_b2
 
-* [TWITCH] #delta:3 #expr:curious #icon:curiosity #drift:WARM
+* [TWITCH] Tease. #delta:3 #icon:curiosity #drift:WARM
+    Scary? Me?
     Aha! Playing tough?!
-    ...
-    No sorry. You ARE tough.
-    Because you're here. In front of the most toxic fish in the lake.
-    And you're playing with it.
-    ...
-    You're either very brave or very stupid.
-    ...
-    I like both.
+    No, sorry. You ARE tough. Because you're talking to me, of all people.
+    You're either very brave or very stupid. I like both.
     -> fugu_t3_c6_b2
 
-* [DRIFT] #delta:-1 #expr:neutral #icon:sadness #drift:WARY
-    ...
-    That's an answer too.
-    ...
-    I understand.
+* [DRIFT] Confess. #delta:-1 #icon:sadness #drift:WARY
+    A little bit.
+    That's an honest answer.
+    I understand. I really do.
     -> fugu_t3_c6_b2
 
-* [REEL] #delta:-4 #expr:alarmed #icon:shock #drift:SCARED
+* [REEL] Confirm. #delta:-4 #icon:shock #drift:SCARED
+    A liability.
     SEE! You see!
-    You wanna capture me! That's not the same as not being scared!
-    ...
-    Being scared is... human. Normal.
-    Wanting to grab is... something else.
+    You're just like the rest of them!
+    Being scared is human... but calling me a liability... that hurts.
     -> fugu_t3_c6_b2
-
 
 === fugu_t3_c6_b2 ===
-...
-Sometimes I wonder...
-...
-If I'm a monster.
-...
+Sometimes I wonder... if I'm a monster.
 Not like an evil monster. Just...
-Something that hurts without meaning to.
-That can't be touched.
-That can't be close.
-...
-That's what a monster is right?
-Hurting just by existing?
+Something that hurts people without meaning to.
+That can't be touched. That can't be close.
+That's what a monster is right? Hurting just by existing?
 
-* [WAIT] #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:secret.fugu.not_monster
-    ...
-    ...
-    Thank you.
-    ...
-    I know you didn't say anything.
-    But your silence... it says "no."
-    ...
+* [WAIT] Reassure. #delta:5 #icon:warmth #drift:CHARMED #flag:quest.fugu.t3_done #flag:recipe.fugu.parkT4 #disable-flag:recipe.fugu.spinnerT3
     That's the most beautiful "no" I've ever heard.
+    Listen... I'm tired of the dark.
+    Let's meet tomorrow during the day. I want to stand in the sun with you.
     -> END
 
-* [TWITCH] #delta:3 #expr:curious #icon:curiosity #drift:WARM
-    ...
-    You think that's a stupid question?
-    ...
-    Maybe.
-    ...
-    Thanks for thinking it's stupid.
-    That means the answer is obvious to you.
+* [TWITCH] Joke. #delta:3 #icon:curiosity #drift:WARM #flag:quest.fugu.t3_done #flag:recipe.fugu.parkT4 #disable-flag:recipe.fugu.spinnerT3
+    Monsters don't talk to chairs.
+    Haha! Okay, fair point!
+    Thanks for reminding me how ridiculous I am.
+    Hey, come see me tomorrow during the day? The sun feels nice right now.
     -> END
 
-* [DRIFT] #delta:0 #expr:neutral #icon:hesitation #drift:TROUBLED
-    ...you don't know what to say.
-    ...
-    That's ok. There's no right answer.
-    ...
+* [DRIFT] Empathize. #delta:0 #icon:hesitation #drift:TROUBLED #flag:quest.fugu.t3_done #flag:recipe.fugu.parkT4 #disable-flag:recipe.fugu.spinnerT3
+    We all hurt people sometimes. That's true.
+    There's no perfect answer.
     I ask myself every day anyway.
+    Meet me during the day tomorrow. I need to see things clearly.
     -> END
 
-* [REEL] #delta:-3 #expr:alarmed #icon:shock #drift:SCARED
+* [REEL] Confront. #delta:-3 #icon:shock #drift:SCARED #flag:quest.fugu.t3_done #flag:recipe.fugu.parkT4 #disable-flag:recipe.fugu.spinnerT3
+    A pity party.
     ...
-    Grabbing a monster... that's an answer too.
-    ...
-    It's not the one I was hoping for.
+    Maybe you're right. Maybe I am just throwing a pity party.
+    Come back tomorrow during the day. Let's see if the daylight makes me less miserable.
     -> END
-
 
 // ============================================================
-// TIER 4 — TRUSTING: "I can be myself" (Casts 7–8)
+// TIER 4 — TRUSTING: "I can be myself"
 // ============================================================
 
 === fugu_t4_c7_b1 ===
+{ mood.fugu.last_drift == "SCARED" :
+    Daylight. Okay. I'm not throwing a pity party today.
+- else :
+    The sun is so warm today.
+}
 ...
 ...
 ...
 ...
 
-* [WAIT] #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:mood.fugu.first_silence
-    ...
-    ...
-    ...
-    You know what we're doing right now?
-    ...
+* [WAIT] Share. #delta:5 #icon:warmth #drift:CHARMED
+    You feel it too, right?
     We're being silent. Together.
-    ...
-    I've never done this.
-    Never.
-    ...
-    Usually silence is when I'm alone.
-    And it hurts.
+    Usually silence is when I'm alone in my room. And it hurts.
     But right now... it's soft.
-    ...
-    Is this what friendship is? This kind of silence?
+    Is this what friendship is?
     -> fugu_t4_c7_b2
 
-* [TWITCH] #delta:2 #expr:curious #icon:curiosity #drift:WARM
+* [TWITCH] Poke. #delta:2 #icon:curiosity #drift:WARM
     Oh! Sorry! I was trying to... say nothing.
-    ...
-    It's an exercise. For me.
-    ...
-    Being silent. Not from loneliness.
-    By choice.
-    ...
+    It's an exercise. Being silent. Not from loneliness, but by choice.
     It's hard. But with you it's... possible.
     -> fugu_t4_c7_b2
 
-* [DRIFT] #delta:0 #expr:neutral #icon:hesitation #drift:NEUTRAL
-    ...
-    No wait!
-    ...
-    I was trying something new.
-    Silence.
-    On purpose.
-    ...
-    It's ruined now right?
+* [DRIFT] Relax. #delta:4 #icon:contentment #drift:CHARMED
+    Peaceful. Yeah. It really is.
+    I've never felt peace like this. Never.
     -> fugu_t4_c7_b2
 
-* [REEL] #delta:-2 #expr:alarmed #icon:sadness #drift:WARY
-    ...
-    I was being vulnerable there.
-    Silence is... my armor off.
-    ...
-    And you pick this moment to...
-    ...no. No.
+* [REEL] Demand. #delta:-2 #icon:sadness #drift:WARY
+    Pushing me to speak?
+    I was being vulnerable there! Silence is my armor off!
+    And you pick this moment to push me... no.
     -> fugu_t4_c7_b2
-
 
 === fugu_t4_c7_b2 ===
-I'm gonna tell you something.
-...
-The biggest secret.
-...
-I control my spines now.
-Completely.
-...
-I've been training for three nights.
+I'm gonna tell you something. The biggest secret.
+I control my spikes now. Completely.
+I've been training for days.
 So I could...
-...
-*extends a fin, spines perfectly retracted*
-...
-So I could do this.
-Without danger.
+*steps closer, arms open*
+So I could do this. Without danger.
 For the first time in my life.
 
-* [WAIT] #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:secret.fugu.full_control #flag:mood.fugu.touch_possible
-    ...
+* [WAIT] Trust. #delta:5 #icon:warmth #drift:CHARMED #flag:quest.fugu.t4_c7_done
+    You trust me.
     You understand what this means?
-    ...
-    It means someone could...
-    ...
-    Well. Theoretically.
-    ...
-    Just... stay close to me.
+    It means someone could... theoretically... give me a hug.
     Without risk.
-    ...
-    For the first time.
-    ...
     Trust me.
     -> END
 
-* [TWITCH] #delta:3 #expr:warm #icon:delight #drift:CHARMED
-    You wanna touch?! REALLY?!
-    ...
-    Wait! Wait!
-    *concentrates very hard*
-    ...
-    Ok. Go ahead. Gently.
-    ...
-    ...
-    SEE?! Nothing! No spines!
-    ...
-    *tears, of joy*
+* [TWITCH] High-five. #delta:3 #icon:delight #drift:CHARMED #flag:quest.fugu.t4_c7_done
+    A high-five?!
+    REALLY?!
+    *concentrates very hard and slaps your hand*
+    SEE?! Nothing! No spikes!
+    *tears of joy*
     -> END
 
-* [DRIFT] #delta:0 #expr:neutral #icon:hesitation #drift:NEUTRAL
-    ...
-    It's fine if you don't want to.
-    ...
-    The fact that I learned... that's already...
-    ...
-    That's already for me.
+* [DRIFT] Praise. #delta:3 #icon:hesitation #drift:WARM #flag:quest.fugu.t4_c7_done
+    Incredible.
+    The fact that I learned... that's already a victory for me.
+    But sharing it with you... makes it real.
     -> END
 
-* [REEL] #delta:-2 #expr:alarmed #icon:sadness #drift:WARY
+* [REEL] Reject. #delta:-2 #icon:sadness #drift:WARY #flag:quest.fugu.t4_c7_done
+    Too close?
     No! Not like that!
-    ...
-    I did all this so I could CHOOSE.
-    Not so someone could take me.
-    ...
-    You understand the difference?
+    I did all this so I could CHOOSE to be safe.
+    You still don't trust me.
     -> END
-
 
 === fugu_t4_c8_b1 ===
-Hey.
+{ mood.fugu.last_drift == "WARY" :
+    I'm keeping my distance today. I promise.
+- else :
+    Hey. I wanted to tell you something. Seriously.
+}
 ...
-I wanted to tell you something.
-Seriously.
-No joke. No crazy energy.
-Just... the true thing.
-...
+No joke. No crazy energy. Just the true thing.
 You're my friend.
-...
 My first friend.
-The first real one.
-Not a snail. Not a rock. Not an imaginary one.
-A real one.
-...
-You.
+Not a snail. Not a chair. Not an imaginary voice.
+A real one. You.
 
-* [WAIT] #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:mood.fugu.said_friend #flag:fact.fugu.dream
-    ...
-    ...
-    There.
-    It's said.
+* [WAIT] Accept. #delta:5 #icon:warmth #drift:CHARMED
+    You accept it.
     ...
     It took my whole life to say that to someone.
-    And now it's said.
-    ...
-    And you're staying.
     -> fugu_t4_c8_b2
 
-* [TWITCH] #delta:4 #expr:warm #icon:delight #drift:CHARMED #flag:fact.fugu.dream
-    Ha! You... you're doing the joy dance too?!
-    ...
-    No? Just me?
-    ...
-    Doesn't matter! I'M doing the joy dance!
-    *puffs up and deflates rapidly*
+* [TWITCH] Celebrate. #delta:4 #icon:delight #drift:CHARMED
+    Best friends?!
+    Ha! You're matching my joy dance, aren't you?!
     FRIENDS! We're FRIENDS! Trust me!
     -> fugu_t4_c8_b2
 
-* [DRIFT] #delta:-1 #expr:neutral #icon:sadness #drift:TROUBLED
-    ...you're drifting away?
-    Now?
-    ...
+* [DRIFT] Slow. #delta:-1 #icon:sadness #drift:TROUBLED
+    Rush things?
     I just said the most important thing of my life and you...
-    ...
-    No. It's ok. People do that.
-    They pull away when it's too much.
-    ...
-    Come back when you're ready.
+    No. It's ok. People pull away when it's too much.
     -> fugu_t4_c8_b2
 
-* [REEL] #delta:-3 #expr:alarmed #icon:shock #drift:SCARED
-    ...
+* [REEL] Correct. #delta:-3 #icon:shock #drift:SCARED
+    Don't call you that.
     ...that's not how friendship works.
-    ...
-    Friendship isn't grabbing.
-    It's... staying. Just staying.
-    ...
-    You understand?
+    You're right. I'm sorry I assumed.
     -> fugu_t4_c8_b2
-
 
 === fugu_t4_c8_b2 ===
 I have a dream.
-...
 It's silly. It's a little kid's dream.
-...
-I want a friend who stays.
-Even knowing everything.
-The spines. The poison. The fact that I talk too much.
-The fact that I cry at night.
-...
-Who stays anyway.
-...
-And comes back the next day.
-...
-You do that.
-You do exactly that.
-...
+I want a friend who stays. Even knowing everything.
+Who walks with me anyway. And comes back the next day.
+You do that. You do exactly that.
 Trust me. It's more than I deserve.
 
-* [WAIT] #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:mood.fugu.dream_fulfilled #flag:fact.fugu.dream
-    ...
-    ...
-    *little bubbles rising*
-    ...
-    Those are happy tears.
-    Just to be clear.
-    Pufferfish cry with bubbles.
-    ...
-    Well I think. I'd never cried from happiness before.
+* [WAIT] Promise. #delta:4 #icon:warmth #drift:CHARMED #flag:quest.fugu.t4_done #flag:recipe.fugu.climaxT5 #disable-flag:recipe.fugu.parkT4 #flag:fact.fugu.dream
+    You're here.
+    *wipes a tear from his cheek*
+    Listen. Tomorrow is a big day for me.
+    Bring that feather charm you carry. It means something big.
+    Meet me here. Please.
     -> END
 
-* [TWITCH] #delta:3 #expr:warm #icon:delight #drift:CHARMED #flag:fact.fugu.dream
-    More than you deserve?! NO!
-    ...
-    You deserve a million friends!
-    Two million!
-    ...
-    But I'm glad to be the first.
-    Trust me.
+* [TWITCH] Tease. #delta:3 #icon:delight #drift:CHARMED #flag:quest.fugu.t4_done #flag:recipe.fugu.climaxT5 #disable-flag:recipe.fugu.parkT4 #flag:fact.fugu.dream
+    Two million friends?
+    NO! I just need one! You!
+    Hey, tomorrow... bring that feather charm.
+    I want to show you something. Trust me.
     -> END
 
-* [DRIFT] #delta:0 #expr:neutral #icon:hesitation #drift:NEUTRAL
-    ...
-    You'll come back tomorrow?
-    ...
-    Tell me you'll come back tomorrow.
-    ...
-    Please.
+* [DRIFT] Comfort. #delta:3 #icon:hesitation #drift:WARM #flag:quest.fugu.t4_done #flag:recipe.fugu.climaxT5 #disable-flag:recipe.fugu.parkT4 #flag:fact.fugu.dream
+    You'll always come back.
+    Tell me you'll come back tomorrow. With the feather charm.
+    It's important. It's the final piece.
     -> END
 
-* [REEL] #delta:-2 #expr:alarmed #icon:sadness #drift:WARY #flag:fact.fugu.dream
-    ...
-    See that's exactly it.
-    ...
-    I give you everything and you want to take even more.
-    ...
-    Friendship isn't taking. It's giving.
-    ...
-    Think about it.
+* [REEL] Warn. #delta:-2 #icon:sadness #drift:WARY #flag:quest.fugu.t4_done #flag:recipe.fugu.climaxT5 #disable-flag:recipe.fugu.parkT4 #flag:fact.fugu.dream
+    Pedestal?
+    I give you everything and you push me away.
+    Think about it. If you actually care... bring the feather charm tomorrow.
     -> END
-
 
 // ============================================================
-// TIER 5 — BONDED: "True friendship" (Casts 9–10)
+// TIER 5 — BONDED: The Climax (Requires Feather Charm)
 // ============================================================
 
 === fugu_t5_c9_b1 ===
+{ mood.fugu.last_drift == "WARY" :
+    You brought the feather charm. You actually brought it.
+- else :
+    The feather charm. It's beautiful.
+}
 ...
-I'm gonna tell you something.
-...
-I counted.
-You've come back... a lot of times.
-Every time I count.
-...
-And every time, the morning before you arrive...
-My heart beats faster.
-...
+I counted. You've walked over here to see me... a lot of times.
+And every time, the morning before you arrive... my heart beats faster.
 Not from fear.
-From... what actually?
-...
-Hope I think.
-For the first time in my life.
-Hope.
+From... hope. For the first time in my life.
 
-* [WAIT] #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:mood.fugu.hope
-    ...
-    ...
-    Do you know what it feels like to hope after a whole life without hope?
-    ...
-    It's terrifying.
-    And beautiful.
-    ...
-    Both at the same time.
-    ...
+* [WAIT] Observe. #delta:4 #icon:warmth #drift:CHARMED
+    Hope is good.
+    Do you know what it feels like to hope after a whole life without it?
+    It's terrifying. And beautiful.
     You gave me that.
     -> fugu_t5_c9_b2
 
-* [TWITCH] #delta:3 #expr:warm #icon:delight #drift:CHARMED
+* [TWITCH] Match. #delta:3 #icon:delight #drift:CHARMED
+    Your heart too?
     Ha! My heart's doing the thing again! Right now!
-    ...
-    *puffs up very slightly*
-    Don't panic! It's JOY!
-    Just joy!
-    ...
-    Controlled! See? I'm in control!
+    Don't panic! It's JOY! Just joy!
     -> fugu_t5_c9_b2
 
-* [DRIFT] #delta:0 #expr:neutral #icon:hesitation #drift:NEUTRAL
-    ...
-    You're leaving already?
-    ...
-    No it's ok.
-    You always come back.
-    I know that now.
-    ...
+* [DRIFT] Smile. #delta:0 #icon:hesitation #drift:NEUTRAL
+    You're glad.
+    You always come back. I know that now.
     I trust you.
     -> fugu_t5_c9_b2
 
-* [REEL] #delta:-2 #expr:alarmed #icon:sadness #drift:WARY
-    ...
-    Not now.
-    ...
-    Not when I'm like this. Open.
-    ...
+* [REEL] Deflect. #delta:-2 #icon:sadness #drift:WARY
+    Not get overly emotional?
+    Not now. Not when I'm like this. Open.
     Please.
     -> fugu_t5_c9_b2
 
-
 === fugu_t5_c9_b2 ===
-...
 Fugu isn't my real name.
-...
-My real name is the one my family gave me.
-Before they left.
-...
+My real name is the one my family gave me. Before they packed up.
 But Fugu is the name I chose for myself.
-Because it's what I am.
-A pufferfish.
-Dangerous on the outside.
-...
-But on the inside...
-...
-Just a little fish who wants to be loved.
-...
-There. Now you know everything.
-Absolutely everything.
+Because it's what I am. A pufferfish. Dangerous on the outside.
+But on the inside... just someone who wants to be loved.
+There. Now you know everything. Absolutely everything.
 
-* [WAIT] #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:secret.fugu.knows_all #flag:fugu.catch_available
-    ...
-    ...
-    Thank you.
-    ...
-    For everything.
-    For every visit. Every silence. Every game.
-    ...
-    You're the best thing that ever happened to me.
-    Trust me.
+* [WAIT] Accept. #delta:5 #icon:warmth #drift:CHARMED #flag:quest.fugu.t5_c9_done
+    Thank me?
+    No... thank YOU.
+    For every visit. Every silence. Every walk.
+    You're the best thing that ever happened to me. Trust me.
     -> END
 
-* [TWITCH] #delta:3 #expr:warm #icon:delight #drift:CHARMED #flag:fugu.catch_available
-    Ha! You're dancing for me?!
-    ...
-    I'm dancing too! LOOK!
-    *puffs up and deflates in rhythm*
-    ...
-    Haha! We're ridiculous!
-    ...
+* [TWITCH] Joke. #delta:3 #icon:delight #drift:CHARMED #flag:quest.fugu.t5_c9_done
+    A softie?
+    Haha! We're both ridiculous!
     I love being ridiculous with you.
     -> END
 
-* [DRIFT] #delta:0 #expr:neutral #icon:hesitation #drift:NEUTRAL #flag:fugu.catch_available
-    ...
-    You'll come back?
-    ...
-    Ok.
-    ...
-    I know you will.
+* [DRIFT] Nod. #delta:0 #icon:hesitation #drift:NEUTRAL #flag:quest.fugu.t5_c9_done
+    You know.
+    I know you do.
+    See you next time. For the last step.
     -> END
 
-* [REEL] #delta:-2 #expr:alarmed #icon:sadness #drift:WARY #flag:fugu.catch_available
-    ...
+* [REEL] Step. #delta:-2 #icon:sadness #drift:WARY #flag:quest.fugu.t5_c9_done
+    A lot to process.
     Now you know everything.
-    And you still want to take.
-    ...
     At least be honest with yourself about what you're doing.
     -> END
-
 
 === fugu_t5_c10_b1 ===
 ...
 You're here.
-...
-Today is... different.
-I can feel it.
-...
-You know...
-If you take me...
-I'll be with you forever.
+Today is... different. I can feel it.
+You brought the feather charm. We both know what that means.
+If you take me with you... I'll be by your side forever.
 That's what I want, trust me!
-...
-But... but if you let me go...
-I'll swim knowing I had a friend.
-A real one.
-...
+But... if you walk away... I'll walk away knowing I had a true friend.
 So... what do you choose?
 
-* [WAIT] #delta:3 #expr:warm #icon:warmth #drift:CHARMED
-    ...
-    ...
-    You're taking your time.
-    ...
-    That's good. It's a big choice.
-    For both of us.
-    ...
-    Whatever you decide... it was good.
-    All of it. It was good.
+* [WAIT] Hesitate. #delta:3 #icon:warmth #drift:CHARMED #flag:fugu.release_ready
+    You need a moment.
+    Yeah. It's a big choice.
+    Whatever you decide... it was good. All of it.
     Trust me.
     -> END
 
-* [TWITCH] #delta:2 #expr:curious #icon:curiosity #drift:WARM
-    Ha! Still playing?
-    ...
-    Even now. Even at the end.
-    ...
-    That's why you're my friend.
+* [TWITCH] Tease. #delta:2 #icon:curiosity #drift:WARM #flag:fugu.release_ready
+    Guess?
+    Even now. Even at the end, you're playing with me.
+    That's why you're my best friend.
     -> END
 
-* [DRIFT] #delta:1 #expr:warm #icon:hesitation #drift:WARM
-    ...
-    You're drifting away gently.
+* [DRIFT] Leave. #delta:1 #icon:hesitation #drift:WARM #flag:fugu.release_ready
+    You have to go.
     ...
     That's... that's your answer?
-    ...
-    ...ok.
+    ...ok. I'll never forget you.
     -> END
 
-* [REEL] #delta:0 #expr:warm #icon:surprise #drift:CHARMED
-    ...
-    You're choosing.
-    ...
+* [REEL] Choose. #delta:0 #icon:surprise #drift:CHARMED #flag:fugu.catch_available
+    You're taking me with you.
+    You're choosing me.
     Ok.
-    ...
-    I'm ready.
-    -> END
-
-`;
+    I'm ready. Let's go home.
+    -> END`
+;

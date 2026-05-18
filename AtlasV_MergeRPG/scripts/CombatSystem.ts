@@ -7,13 +7,14 @@
 import { GemType } from './Types';
 import type { Match } from './Types';
 import { TeamState, ATTACK_DURATION, HURT_FLASH_DURATION } from './TeamState';
-import { matchBonus, basicAttackDamage, applyDirect } from './Damage';
+import { matchBonus, basicAttackDamage } from './Damage';
 
 /** Result of enemy turn */
 export interface EnemyTurnResult {
   damage: number;
   targetHeroIndex: number;
   killed: boolean;
+  shielded: boolean;
 }
 
 export class CombatSystem {
@@ -31,8 +32,8 @@ export class CombatSystem {
   }
 
   /**
-   * Execute enemy turn: front enemy deals a basic attack (bypassing shields)
-   * to the front hero.
+   * Execute enemy turn: front enemy deals a basic attack honoring shields
+   * against the front hero.
    */
   static executeEnemyTurn(teamState: TeamState): EnemyTurnResult {
     const frontEnemy = teamState.enemies[teamState.frontEnemyIndex];
@@ -40,14 +41,18 @@ export class CombatSystem {
     const targetHero = teamState.heroes[targetHeroIndex];
 
     if (frontEnemy.currentHp <= 0 || targetHero.currentHp <= 0) {
-      return { damage: 0, targetHeroIndex, killed: false };
+      return { damage: 0, targetHeroIndex, killed: false, shielded: false };
     }
 
     const damage = basicAttackDamage(teamState.getEffectiveAtk(frontEnemy));
-    const outcome = applyDirect(targetHero, damage);
+    const outcome = teamState.applyDamage(targetHero, damage);
 
-
-    return { damage: outcome.dealt, targetHeroIndex, killed: outcome.killed };
+    return {
+      damage: outcome.dealt,
+      targetHeroIndex,
+      killed: outcome.killed,
+      shielded: outcome.shielded,
+    };
   }
 
   /**

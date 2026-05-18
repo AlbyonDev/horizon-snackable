@@ -303,6 +303,10 @@ export class InkRunner {
   private evalCondition(expr?: Expr): boolean {
     if (!expr) return true;
     if (expr.kind === 'literal') return this.truthy(expr.value);
+    if (expr.kind === 'eq') {
+      const eq = this.flags.get(expr.name) === expr.value;
+      return expr.negated ? !eq : eq;
+    }
     const truthy = this.truthy(this.flags.get(expr.name));
     return expr.negated ? !truthy : truthy;
   }

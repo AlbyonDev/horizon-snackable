@@ -1,432 +1,263 @@
 # Hooked on a Feeling — Project Summary
 
-> **Last updated:** Milestone 1 Foundation implementation complete  
-> **Reference documents:** `FLOATER_GDD_v1.0.md`, `FLOATER_VISUAL_BIBLE_v1.0.md`, `VN_SYSTEMS_BIBLE_v2.0.md`
+> **Last updated:** 2026-05-16 — synced against current code state
+> **Reference documents:** [game_design.md](game_design.md), [characters.md](characters.md), [ART_DIRECTION.md](ART_DIRECTION.md), [encounter_probabilities.md](encounter_probabilities.md)
 
 ---
 
 ## Project Overview
 
-**Hooked on a Feeling** is a cozy mobile visual novel disguised as a fishing game. The player manipulates a fishing float in a pond, attracting fish characters who approach, talk, and form bonds across multiple sessions. The game's central tension lives in a single question the player is never asked directly: what do you actually intend to do with the fish you've grown to love?
+**Hooked on a Feeling** is a cozy mobile visual novel disguised as a fishing game. The player manipulates a fishing float in a pond, attracting fish characters who approach, talk, and form bonds across multiple sessions. The player never speaks — they communicate through five fishing actions.
 
 ### Core Identity
 
 - **Platform:** Mobile-only, portrait format (480×800 base canvas)
+- **Engine:** Meta Horizon Engine (DrawingSurface 2D + XAML overlays)
 - **Genre:** Romance + Slice-of-life hybrid visual novel with fishing metaphor
-- **Session target:** 3–7 minutes per Cast (fishing session)
-- **Cadence:** One-shot premium — no real-time gating
-- **Cast size:** 6 fish characters (3 primary arcs, 2 secondary, 1 hidden)
+- **Session target:** 3–7 minutes per Cast
+- **Cadence:** One-shot premium — no real-time gating, no timers
+- **Roster:** 9 fish — 3 with full 5-tier arcs, 6 single-cast NPCs
 
 ### Design Pillars
 
-1. **Cozy first, conflicted second** — Warm and playful by default; emotional weight is earned, not imposed
-2. **Actions, not words** — Player communicates through fishing verbs (Twitch, Wait, Reel, Loosen, Tug)
-3. **Every fish has a life** — Six distinct characters with full arcs, secrets, and multiple endings
-4. **Discovery over frustration** — Hints always visible in Journal; clear pistes with rewarding branches
-5. **The ending is a choice, not a surprise** — Reeling a fish at max affection is a deliberate act the game never forces
+1. **Cozy first, conflicted second** — Warm and playful by default; emotional weight is earned
+2. **Actions, not words** — Player speaks through Wait, Twitch, Drift, Reel
+3. **Every fish has a life** — Tiered roster: 3 deep arcs, 6 quick encounters
+4. **Discovery over frustration** — Quest hints visible in Journal, lure preferences learned
+5. **The ending is a choice** — Reel at max affection is a deliberate act, never forced
 
 ---
 
-## Core Loop — The Cast
+## Core Loop
 
-A **Cast** is the atomic unit of play — equivalent to a chatroom session in Mystic Messenger or a client visit in VA-11 Hall-A. Each Cast has three phases:
+### State machine (14 phases — see [scripts/Types.ts](../scripts/Types.ts))
 
-### Phase 1 — Approach (~30 seconds)
-- Player equips one Lure from inventory
-- Lure determines which fish species are attracted and their initial Drift state (mood)
-- Fish approaches with ambient animation; name and Affection tier appear in HUD
+```
+Title → [Intro Cinematic (first time only)] → LakeIdle → CastFlying →
+FloatLanded → FloatBounce → Approach → Exchange ⇄ ActionSelect ⇄ FishReaction
+                                            ↓
+                                     Departure → Idle → LakeIdle (loop)
+                                            ↓
+                                       Ending (Reel / Release / Drift-Away)
 
-### Phase 2 — Exchange (3–5 minutes)
-- Core dialogue phase structured as 2–4 Beats per Cast
-- After each Beat, player selects one Action from the Action Menu:
-  - **Twitch** — Get Noticed / Flirt
-  - **Wait** — Be Patient / Listen
-  - **Slight Reel** — Invite Closer
-  - **Loosen Line** — Give Space / Relax
-  - **Firm Tug** — Assert / Challenge
-  - **Reel** — Capture (only available at max Affection tier)
+NothingBites: timeout state when no fish matches the cast → auto-return to LakeIdle (2.5s)
+```
 
-### Phase 3 — Departure (~30 seconds)
-- Fish always leaves at end of Cast (unless Catch Sequence triggers)
-- Departure state becomes the DRIFT flag carried into next Cast
-- States: Satisfied, Troubled, Suspicious, Charmed, Frightened, Angry
+### The Cast in three phases
 
-### The Catch Sequence
-When Affection reaches maximum tier during an active Cast:
-- Normal Action Menu replaced with two options: **Reel** or **[Fish's name]**
-- **Reel** → Screen fades, CG unlocks, fish removed from pond permanently
-- **[Fish's name]** → Fish responds with relief/confusion/gratitude, Cast ends with DRIFT_CHARMED, Release Route opens
-- There is no correct choice; both outcomes unlock content
+**1. Approach (~30s)** — Player equips a lure (persists across casts), presses the Cast button to enter aiming mode (HUD hides, "Drag to cast" instruction appears), then drags to aim a trajectory preview (distance determines lake zone: Near, Mid, Far) with horizontal left/right control for lateral targeting, releases to launch the float in a 3D ballistic arc, the float lands, a fish is selected via [EncounterSystem](../scripts/EncounterSystem.ts) and approaches.
+
+**2. Exchange (3–5min)** — Beats play in sequence. Each beat: fish line(s) → Action menu → player picks one of four actions → fish reaction with affection delta and emotion icon → next beat. Long-arc characters (Nereia/Kasha/Fugu) play tier-appropriate beats; NPC characters play a single fixed 4-beat sequence whose correct action combo unlocks the Reel finisher.
+
+**3. Departure (~30s)** — Fish leaves. Departure mood becomes the DRIFT flag carried into the next cast with that character.
+
+### Catch Sequence
+
+When affection ≥ 50 (Bonded tier), the next action menu replaces "Reel" semantics with a two-choice moment: **Reel** (capture → Reel ending CG, fish removed from pond) or **[fish's name]** (release → Release ending CG, arc closed warmly). Both outcomes unlock content; neither is "correct".
 
 ---
 
-## Systems Architecture
+## Implemented Systems
 
-All systems reference **VN Systems Bible v2.0** by ID. Implementation follows the Bible's specifications, anti-patterns, and acceptance criteria.
+All systems are present in [scripts/](../scripts/). One file per system, single responsibility.
 
-### Core Stack (Always Present)
-- **SYS-02-CHOICE** — Dialogue Choice (Action Menu)
-- **SYS-03-FLAGS** — Flag System (Drift, arc progress, cross-fish flags)
-- **SYS-09-SKIP** — Skip / Already-Seen
-- **SYS-10-SAVE** — AUTO_ONLY, saves after every Beat resolution
-- **SYS-11-PACING** — Mobile rules: 1 line per bubble, max 80 chars
+| System | File | Role |
+|---|---|---|
+| **Affection** | [AffectionSystem.ts](../scripts/AffectionSystem.ts) | Per-fish meter (-10 → 50), 8 tier labels (Estranged → Bonded), drift modifiers, catch readiness (≥50), drift-away threshold (≤-10) |
+| **Encounter** | [EncounterSystem.ts](../scripts/EncounterSystem.ts) | Picks the fish per cast: ending-filter → quest-filter → zone-filter → weighted random (×3 recently-completed boost, ×2 preferred lure, ×0.5 disliked) |
+| **Flags** | [FlagSystem.ts](../scripts/FlagSystem.ts) | Centralised key-value store with namespace prefixes (`met.`, `secret.`, `quest.`, `mood.`, `count.`, `cross.`, `run.`, `time.`, `fact.`) |
+| **Save** | [SaveSystem.ts](../scripts/SaveSystem.ts) | AUTO_ONLY — debounced 0.5s after each beat. Persists via PlayerVariablesService |
+| **Journal** | [JournalSystem.ts](../scripts/JournalSystem.ts) | Characters + Facts tabs. Records expressions seen, casts made, fact unlocks driven by flag changes |
+| **CG Gallery** | [CGGallerySystem.ts](../scripts/CGGallerySystem.ts) | Aggregates all CGs from registered characters. Unlock per-CG, persisted in save |
+| **Quest** | [QuestSystem.ts](../scripts/QuestSystem.ts) | Tracks quest completion (use_lure / talk_to_fish / talk_to_x_fish / make_fish_leave / custom flag). Incomplete-quest chars are never selected by EncounterSystem |
+| **Global Stats** | [GlobalStatsSystem.ts](../scripts/GlobalStatsSystem.ts) | Totals (casts, characters met, facts), 8 badges, derived on load |
+| **Character Registry** | [CharacterRegistry.ts](../scripts/CharacterRegistry.ts) | Central registry: 9 characters registered, lookup by id, zone, lure preference |
+| **Ink Pipeline** | [InkParser.ts](../scripts/InkParser.ts) · [InkRunner.ts](../scripts/InkRunner.ts) · [InkBeatAdapter.ts](../scripts/InkBeatAdapter.ts) | Dialogue authored as Ink-like syntax in `Story_<Name>.ts`, parsed to AST, converted to `Beat[]` via the BeatAdapter (cached per character+startNode) |
 
-### Narrative Layer
-- **SYS-04-TIERS** — Arc tiers per fish (ROMANCE_5ACT for primary, SLICE_EPISODIC for secondary)
-- **SYS-05-JOURNAL** — MUSEUM variant: observations, hints, lure notes, keepsakes
-- **SYS-06-ENDINGS** — Reel / Release / Drift-Away per fish + cross-fish surprises
+### Explicitly excluded (design decisions)
 
-### Relationship Layer
-- **SYS-01-AFFECTION** — Per-fish hidden meter, TIER_ONLY visibility (mood icon + tier name, no numbers)
-- **SYS-23-GIFTS** — Lures as strategic items; fish-gifted items as narrative rewards
-
-### Mastery Layer
-- **SYS-08-QUESTS** — Personal Quest hints per fish, always visible in Journal
-
-### Retention Layer
-- **SYS-24-GALLERY** — Catch CGs, Release CGs, arc moment CGs with locked silhouettes
-
-### Systems Explicitly Excluded
-- SYS-07-RIVALRY — Replaced by cross-fish flags (simpler, more elegant)
-- SYS-12-NGPLUS — Deferred to future iteration
-- SYS-13-ROUTELOCK — Arcs are independent by default
-- SYS-18-REALTIME — Premium one-shot model, no scheduled content
-- SYS-22-TIMER — No timers anywhere in Hooked on a Feeling (confirmed design decision)
+- **SYS-07-RIVALRY** — replaced by lighter cross-fish flags
+- **SYS-12-NGPLUS** — no inter-run memory in v1
+- **SYS-13-ROUTELOCK** — arcs are independent
+- **SYS-18-REALTIME / SYS-22-TIMER** — no timers anywhere
 
 ---
 
-## Fish Roster
+## Fish Roster (9 characters)
 
-The game uses a **modular character system** where each fish is a self-contained configuration registered in `CharacterRegistry.ts`. Adding a new character requires only creating a `CharacterData_<Name>.ts` file and registering it.
+Full per-character data: see [characters.md](characters.md).
 
-### Currently Implemented
+### Long arcs — 5 tiers, 10 casts each
 
-#### Nereia — Koi (Primary, 5-tier ROMANCE_5ACT arc)
-- **Species reputation:** Ornamental, kept, decorative
-- **Actual personality:** Ancient, imperious, secretly lonely; has been in pond for decades
-- **Arc:** Suspicion → The float keeps returning → Why does she keep surfacing? → She admits she waits → The choice
-- **Voice:** Long sentences, formal register, no contractions in Tier 1–2
-- **Lure affinity:** Gold Teardrop, Shell Hook; refuses Red Spinner
-- **Accent colour:** Purple / gold
+| Character | Species | Accent | Zones | Preferred lures | True name |
+|---|---|---|---|---|---|
+| **Nereia** | Koi | `#9B7FCC` purple | near, mid | gold_teardrop, shell_hook | — |
+| **Kasha** | Siamese fighting fish (betta) | `#D33A2C` scarlet | mid, far | red_spinner, bone_whistle* | **Aki** (revealed at peak) |
+| **Fugu** | Pufferfish | `#FFB84D` orange | near, far | feather_fly, red_spinner | — |
 
-#### Kasha — Siamese Fighting Fish / Betta (Primary, 5-tier ROMANCE_5ACT arc)
-- **Species reputation:** Territorial, solitary, vivid
-- **Actual personality:** Loud, competitive, performative. Hides vulnerability behind bravado. Calls Floater "baka."
-- **Arc:** Claims her corner → Tests him → Performance leaks → Offers herself as prize → Gives her real name (Aki)
-- **Voice:** Fast, contractions, self-corrects, third-person slips when stressed, onomatopoeia ("Tch.", "Hah—", "Pff.")
-- **Lure affinity:** Red Spinner, Bone Whistle; dislikes Gold Teardrop
-- **Accent colour:** Scarlet #D33A2C / Burnt orange #E07A2B
-- **Zones:** Mid, Far (contrasts with Nereia's Near/Mid)
-- **Catch Sequence:** Choice is "Reel" or "Aki" (her real name)
+*`bone_whistle` is referenced in Kasha's preferred lures but not declared in `LureData.ts` — it has no effect currently.*
 
-#### Fugu — Poisson-Globe / Pufferfish (Primary, 5-tier ROMANCE_5ACT arc)
-- **Species reputation:** Dangerous, toxic, avoided
-- **Actual personality:** Desperately lonely, abandoned by family due to toxic spines. Frenetic energy hides deep sadness. Talks nonstop to fill the silence.
-- **Arc:** Overexcited first contact → Reveals toxic nature → Shares childhood abandonment → First comfortable silence → The friendship choice
-- **Voice:** Short energetic bursts, repetitions ("Vraiment !"), self-interruptions, "crois-moi !" as verbal signature, sudden silences when loneliness surfaces
-- **Lure affinity:** Feather Fly, Red Spinner; dislikes Gold Teardrop, Bare Hook
-- **Accent colour:** Warm orange #FFB84D
-- **Zones:** Near, Far (found in shallows and deep waters)
-- **Catch Sequence:** Choice is "Reel" or "Fugu" (let him swim free)
+### NPC characters — 1 cast, 4 beats, combo-based catch
 
-### Future Characters (Not Yet Implemented)
-The architecture supports up to 6 fish characters (3 primary arcs, 2 secondary, 1 hidden). Additional characters can be added by:
-1. Creating a single `CharacterData_<Name>.ts` file containing ALL content (metadata, dialogue for all tiers, lure preferences, quest hints, catch sequence, endings)
-2. Registering in `CharacterRegistry.ts`
+These act as quick fishing puzzles. Each has a "correct action combo" hinted in their Quest entry; complete the combo and you unlock the portrait CG. No tier progression, no romance arc.
 
-Each character is fully self-contained in ONE file — no separate tier files needed.
+| Character | Species | Accent | Zone | Combo |
+|---|---|---|---|---|
+| **Catfish** | Catfish | `#7A6850` | mid | WAIT → TWITCH → DRIFT → REEL |
+| **Carp** | Carp | `#8B7D3C` | far | WAIT → DRIFT → WAIT → REEL |
+| **Perch** | Perch | `#C87533` | near | TWITCH → WAIT → TWITCH → REEL |
+| **Eel** | Eel | `#2D4A3E` | far | DRIFT → DRIFT → DRIFT → REEL |
+| **Pike** | Pike | `#3A5C2E` | mid | TWITCH → TWITCH → TWITCH → REEL |
+| **Trout** | Trout | `#6B8FA3` | near | WAIT → TWITCH → DRIFT → REEL |
 
 ---
 
-## Lure System
+## Actions (4)
 
-Lures are the primary strategic layer. Player equips one lure before each Cast.
+Defined in [Constants.ts](../scripts/Constants.ts).
 
-### Starter Lure Set
-- **Red Spinner** — Attracts all fish (default), Nereia arrives WARY
-- **Gold Teardrop** — Nereia's preferred lure, arrives WARM
-- **Feather Fly** — General attraction, CHARMED drift
+| Action | Fishing meaning | Emotional intent | Animation |
+|---|---|---|---|
+| **Wait** | Hold perfectly still | Listen / be patient | 2.0s gentle bob (4px amplitude) |
+| **Twitch** | Small jerk of the line | Flirt / get noticed | 0.4s sharp jerk (-10px, 4px wiggle) |
+| **Drift** | Slack in the line | Give space / relax | 1.8s horizontal sway (±20px) |
+| **Reel** | Strong pull | Assert / capture | 0.8s upward pull (3 bounce cycles) |
 
-### Unlockable Lures (Future)
-- **Night Lure** — For future deep-dwelling characters
-- **Shell Hook** — Nereia-specific, DRIFT_CHARMED on arrival (future cross-fish unlock)
-- **Bare Hook** — DRIFT_TROUBLED, vulnerability dialogue
-
-### Fish-Gifted Items
-- Occasionally a fish attaches an item to the hook during a Cast
-- Items added to Inventory automatically
-- Some function as equippable Lures for future Casts
-- Some are purely narrative — unlock Journal entries or satisfy Personal Quest conditions
+Note: the design vocabulary used to include "Slight Reel", "Loosen Line", and "Firm Tug" as separate verbs — these were consolidated into the 4 actions above.
 
 ---
 
-## Journal System (SYS-05-JOURNAL, MUSEUM variant)
+## Affection Tiers
 
-Accessible freely at any time. Four tabs:
+Single-meter affection in range **[-10, 50]**, displayed via 8 named labels — no raw numbers shown.
 
-### Tab 1 — Pond Notes
-- One entry per fish (locked fish shown as dark silhouette)
-- Each entry: portrait, species sketch, known facts, **Personal Quest** hint
-- Personal Quest hints use progressive precision:
-  - **Tier 1:** Poetic, implies lure type without naming
-  - **Tier 2:** More specific, mentions time/distance/lure category
-  - **Tier 3:** Precise, names conditions directly
-  - **Tier 4+:** Tactical, tells what moment to watch for
+| Value range | Label | Tier idx | Display colour |
+|---|---|---|---|
+| < -5 | Estranged | 0 | `#5A6A7A` |
+| -5 to -1 | Wary | 1 | `#6A8AA8` |
+| 0 | Indifferent | 2 | `#77BBEE` |
+| 1–12 | Curious | 3 | `#8AC8D8` |
+| 13–25 | Interested | 4 | `#48C8B0` |
+| 26–37 | Fond | 5 | `#88D888` |
+| 38–46 | Devoted | 6 | `#E8A84C` |
+| 47–50 | Bonded | 7 | `#C8A0FF` |
 
-### Tab 2 — Fish (Character Teasing)
-- Shows ALL characters (unlocked + locked) in a structured list
-- Unlocked characters: name, species, bond tier, cast count, observations, quest hint
-- Locked characters: "???" with mysterious silhouette hint (e.g., "Dwells in the middle depths...")
-- Character met counter at top: "X/Y characters met"
-- Encourages exploration and curiosity about unmet characters
-
-### Tab 3 — Lure Box
-- All lures player owns
-- Notes on which fish each has been used with and observed reactions
-- Functions as preference-learning record
-
-### Tab 4 — Collection (CG Gallery)
-- 2-column grid of unlockable CG cards
-- CG types: Fish portraits (unlocked on first encounter), Ending CGs (Reel/Release)
-- Unlocked CGs show thumbnail and title, tappable to view fullscreen
-- Locked CGs show lock icon with "???" placeholder
-- Fullscreen viewer: semi-transparent background, centered image, close button at bottom
-- CG IDs: "portrait_[fishId]" and "ending_[fishId]_[type]"
-- Unlock state persists in save data (cgUnlocks array)
-
-### Tab 5 — Stats & Achievements
-- **Angler Statistics:** Total casts, characters met, facts discovered, keepsakes collected, highest bond tier, play sessions
-- **Achievements/Badges:** 10 unlockable badges with conditions (First Cast, First Meeting, Patient Angler, Full Pond, Growing Trust, Soulbound, etc.)
-- Progress indicator: "X/10 earned"
-- All stats and badge unlock state persist in save data with backward compatibility
+- **Catch ready:** affection ≥ 50
+- **Drift-away ending:** affection ≤ -10
+- **Drift modifiers** (applied at cast start): Warm +3, Charmed +5, Wary −2, Angry −5, Troubled 0
 
 ---
 
-## Endings (SYS-06-ENDINGS)
+## Lures (7)
 
-### Per-Fish Endings
-- **REEL (Catch)** — Player chooses Reel in Catch Sequence → CG unlock → Gallery CG + Journal epitaph
-- **RELEASE (Let go)** — Player declines Reel → warm CG → Gallery CG + new arc branch + Journal note
-- **DRIFT-AWAY (Left)** — DRIFT_SCARED triggers 3× with no recovery → empty pond CG → Journal note "they're gone"
+Defined in [LureData.ts](../scripts/LureData.ts). Equipped lure persists across casts.
 
-### Cross-Fish Endings (Future)
-- Specific flags from another fish's arc will trigger unique combinations
-- Hidden Gallery slots planned
+| Id | Display name | Effect |
+|---|---|---|
+| `none` | No Lure | Bare hook, default drift |
+| `red_spinner` | Red Spinner | Reliable, all fish |
+| `gold_teardrop` | Gold Teardrop | Cautious fish (Warm drift) |
+| `feather_fly` | Feather Fly | Surface dwellers (Charmed drift) |
+| `night_lure` | Night Lure | Deep dwellers (Troubled drift) |
+| `shell_hook` | Shell Hook | Adorned freshwater shell (Charmed drift) |
+| `bare_hook` | Bare Hook | Vulnerability cue (Troubled drift) |
 
----
+**Starting inventory:** `red_spinner`, `gold_teardrop`, `feather_fly`.
+**Default equipped:** `red_spinner`.
 
-## Build Order (7 Milestones)
+Per-fish drift overrides are declared on the character (e.g. Nereia: red_spinner → Wary, gold_teardrop → Warm, shell_hook → Charmed).
 
-### Milestone 1 — Foundation
-- Implement SYS-03-FLAGS, SYS-10-SAVE, SYS-02-CHOICE, SYS-09-SKIP, SYS-11-PACING
-- Implement Cast loop: Approach → Exchange (2 Beats) → Departure for Nereia Tier 1 only
-- Implement DRIFT flag system
-- Asset prompt: 1 pond background (Nereia territory), Nereia sprite set (4 expressions)
-- Code-animate: Float (red/white bobber, sine idle, dip on action), fishing line
-- **Test:** Full Cast loop completes, saves, reloads correctly, skip works on repeated Cast
-
-### Milestone 2 — Affection & Relationship Layer
-- Implement SYS-01-AFFECTION, SYS-04-TIERS
-- Wire Action → affection delta, Drift state → affection modifier
-- Implement tier transition UI cue
-- Author: Nereia Tier 1–2 Beat content
-- **Test:** Reach Nereia Tier 2 via correct action sequence, verify floor mechanic, tier transition fires
-
-### Milestone 3 — Journal & Hints
-- Implement SYS-05-JOURNAL (MUSEUM variant, 3 tabs)
-- Implement Personal Quest hint system
-- Implement SYS-23-GIFTS (Lures): starting 3 lures, equip before Cast
-- Wire Lure → fish attraction + initial Drift state
-- Asset prompt: Emotion icon set (9 icons)
-- **Test:** Journal updates after each Cast, hints match current arc tier, Lure equip changes Drift
-
-### Milestone 4 — Catch Sequence & Endings
-- Implement Catch Sequence: two-choice moment (Reel / [fish name])
-- Implement Reel ending, Release ending, Drift-Away ending
-- Implement SYS-06-ENDINGS, SYS-24-GALLERY
-- Author: Nereia Tier 3–5 Beat content including Catch Sequence
-- Asset prompt: Nereia Reel CG, Nereia Release CG
-- **Test:** Both Nereia endings reachable, CGs unlock, Gallery updates
-
-### Milestone 5 — Full Roster
-- Asset prompts: All remaining fish sprite sets (Merlan, Gilles, Brume, Vélo, Hidden)
-- Asset prompts: Remaining pond backgrounds (one per fish territory)
-- Author and implement: Merlan, Gilles, Brume, Vélo, Hidden full arcs
-- Implement: Remaining Lures (Night Lure, Shell Hook, Bare Hook)
-- Implement: All cross-fish flags
-- Asset prompts: All remaining CGs (Reel + Release per remaining fish)
-- **Test:** All fish reachable, all endings reachable, all cross-fish flags trigger correctly
-
-### Milestone 6 — Polish & Validation
-- Run `SYS-03-FLAGS flag_audit()`: no orphan flags, no dangling checks
-- Run global anti-pattern check (Bible Section E): all Critical and High issues resolved
-- Wire SYS-08-QUESTS: Personal Quest hints connected to quest progression tracking
-- Implement new game / restart flow
-- Mobile audit: all tap targets ≥ 44pt, no dialogue bubble exceeds 80 chars
-- Playtest: 3 distinct run paths produce coherent experiences
-- Save stress test: app-kill at 20 random points — no data loss
-
-### Milestone 7 — Content Authoring (Parallel)
-- Each fish has documented voice signature
-- Emotional beats library (Bible Section F) referenced: 3–5 beats landed per route
-- No flag set without in-fiction acknowledgement
-- No choice without effect
+> **Implementation note:** the `attractedFish` array on every lure currently points only to `nereia`. Encounter routing is done by `EncounterSystem` using zone + `preferredLures`/`dislikedLures` weights, not by the lure's attractedFish list. See [encounter_probabilities.md](encounter_probabilities.md).
 
 ---
 
-## Technical Parameters
+## Drift States
 
-| Parameter | Value |
+13 named departure moods in `DriftState` enum ([Types.ts](../scripts/Types.ts)): Warm, Troubled, Wary, Charmed, Scared, Angry, Satisfied, Neutral, Intrigued, Guarded, Raw, Opened, Destabilised. Five carry affection modifiers; the rest are narrative tags consumed by the Ink scripts.
+
+- **DRIFT_SCARED:** fish does not appear in the next cast (1-cast cooldown)
+- **DRIFT_ANGRY:** affection drops one tier
+- **DRIFT_CHARMED:** fish arrives early next cast, skips one beat
+
+---
+
+## Journal
+
+Accessible from Title and Idle. Two functional tabs plus the global stats screen.
+
+1. **Characters** — one card per registered fish; locked entries show a teaser silhouette and quest-hint riddle; unlocked entries show species, accent colour, cast count, expressions seen, the Personal Quest hint, and a "Where to find" location hint (zone, time of day, preferred lure) derived from currently active encounter recipes
+2. **Facts** — flag-gated discoveries: each character declares a `facts: FactDefinition[]` with a `flagKey`; when that flag becomes truthy, the fact unlocks in the Journal
+3. **Stats & Badges** — totals + 8 badge unlocks: First Line, First Ripple, Patient Angler (5 casts), Dedicated Fisher (10), Full Pond (meet all 9), Treasured Gift (stub), Deep Listener (10 facts), Night Owl (20 casts)
+
+The legacy "Keepsakes / Lure Box" tabs have been removed; some scaffolding remains in older save fields and is ignored on load.
+
+---
+
+## CG Gallery — 16 declared CGs
+
+Aggregated from all registered characters. See [CGGallerySystem.ts](../scripts/CGGallerySystem.ts).
+
+| Character | CGs |
 |---|---|
-| Platform | Mobile-only, portrait format |
-| Base canvas | 480×800 (portrait) |
-| Session target | 3–7 minutes per Cast |
-| Game type (Bible §A.3) | Romance + Slice-of-life hybrid |
-| Cast size | 6 fish characters |
-| Cadence | One-shot premium — no real-time gating |
-| Save model (Bible §A.4) | AUTO_ONLY — saves after every Beat resolution |
-| Mastery layers (Bible §A.6) | 2 — SYS-01-AFFECTION + SYS-23-GIFTS (lures) |
-| Monetization | Premium — out of scope for this GDD |
+| Nereia | portrait, reel ending, release ending |
+| Kasha | portrait, reel, release, drift-away |
+| Fugu | portrait, reel, release, drift-away |
+| Catfish, Carp, Perch, Eel, Pike, Trout | portrait only (one each) |
+
+- Portrait CG unlocks on first encounter
+- Ending CGs unlock at the corresponding choice / threshold
+- Locked CGs show a padlock and "???" placeholder; unlocked CGs open in a fullscreen tap-to-dismiss viewer
+- Unlock state persists in the save
 
 ---
 
-## Agent Capability Constraints
+## Dialogue / Ink Pipeline
 
-Design decisions made specifically to work within known agent capabilities:
+Stories are authored as Ink-like syntax stored in TypeScript files:
 
-### Leveraged (Agent Does Well)
-- Single-state sprite prompting: all fish use 4 independently prompted portraits
-- Full-art backgrounds: one per fish territory, prompted individually
-- CG art: each CG is self-contained full-screen illustration
-- Code animation: float bob, line tension, emotion icons, UI transitions
-- UI from description: all layout described in proportional anchors
-- System implementation with named references: all systems cited by SYS-NN-NAME
+- `Story_<Name>.ts` exports a const string (Nereia / Kasha / Fugu ~26–27KB each; NPCs ~4KB)
+- [InkParser.ts](../scripts/InkParser.ts) parses to AST (knots, stitches, choices, diverts, conditions, tags)
+- [InkBeatAdapter.ts](../scripts/InkBeatAdapter.ts) converts AST → `Beat[]` / `CastData`, cached by (characterId, startNode)
+- [InkRunner.ts](../scripts/InkRunner.ts) is the runtime engine for richer choice branching (Phase B)
 
-### Mitigated (Agent Struggles With)
-- Sprite consistency across states: limited to 4 max per fish, prompting each with identical base parameters
-- Cross-sprite composition: eliminated — fish sprites are standalone square portraits overlaid on background in code
-- Day/night variants: eliminated — each fish has one fixed time-of-day for their background
-- Anthropomorphic character consistency: eliminated — fish are stylised animals, not humanoid
-- Rigged animation: eliminated — expression changes are instant state swaps between 4 static images
-
-### Deferred to Future Iterations
-- Inter-run memory (SYS-12-NGPLUS) — pond resets cleanly in v1
-- Rivalry system (SYS-07-RIVALRY) — cross-fish flags handle this more simply
-- Additional fish beyond 6 — architecture supports easy addition
-- Localization — structure supports it but tooling not specified
+No `.ink` source files; everything ships as compiled TS strings.
 
 ---
 
-## Key References
+## Visual Style
 
-All implementation must reference:
-- **FLOATER_GDD_v1.0.md** — Complete game design specification
-- **FLOATER_VISUAL_BIBLE_v1.0.md** — Visual asset specifications and prompting templates
-- **VN_SYSTEMS_BIBLE_v2.0.md** — System implementation rules, anti-patterns, acceptance criteria
+See [ART_DIRECTION.md](ART_DIRECTION.md) for the full brief. Quick summary:
 
-When implementing any system, consult the Bible by SYS-NN-NAME for:
-- Data schema
-- Core rules (MUST/SHOULD/MAY)
-- Acceptance criteria
-- Anti-patterns to detect
-- Reference implementations
+- **Style:** Nocturnal Pond Illustration — Mobile Otome Premium (Tears of Themis colour discipline, chibi-aquatic subject)
+- **Palette:** dark dominant — `#080D14` void, `#0D1E35` pond deep, `#1A3A5C` water; warm lantern `#E8A84C`, cool moonlight `#C8D8E8`
+- **Fish portraits:** square 1:1, chibi proportions, large reflective eyes carry all emotion
+- **Backgrounds:** portrait 9:19.5, painterly, fishing rod tip at top-right, bottom 30% / left 25% darkened for UI
+- **Sprite emotion variants:** declared as optional in `CharacterPortraitAssets` (curious / warm / alarmed) but only `neutral` portraits currently exist for every character
 
 ---
 
+## Canvas Layout (480×800)
+
+- Background: full-screen pond illustration (day/night toggle available)
+- Fish portrait: centre, 35–65% vertical
+- Float: centre, ~58% vertical (code-drawn, sine bob + per-action dips)
+- Fishing line: top-right rod tip to float (code-drawn, tension curve)
+- Dialogue box: left-centre, semi-transparent `#0D1520` at 85%
+- Action menu: bottom 28–52%, full-width tap targets (≥44pt)
+- HUD top-left: fish thumbnail + name + tier label + mood icon
+- Day/Night toggle button: top-left utility button (☽/☀ icon), fades through black over 0.5s
+
 ---
 
-## Current Implementation State
+## Known Inconsistencies
 
-### Milestone 1 — Foundation (COMPLETE)
-All core systems implemented and compiled:
-- **Flag System** — Centralized key-value store with namespace validation and audit function
-- **Save System** — AUTO_ONLY model, saves after each Beat resolution
-- **Cast Loop** — Full Approach → Exchange → ActionSelect → FishReaction → Departure → Idle flow
-- **Action Menu** — 5 XAML buttons (Twitch, Wait, Slight Reel, Loosen Line, Firm Tug) with UiEvent bindings
-- **Skip System** — Per-beat seen tracking, skip button appears on repeated Beats
-- **DRIFT System** — Departure state persists and modifies next Cast behavior
-- **Nereia Tier 1 Content** — 2 Beats authored with all 5 action reactions per Beat
-- **Rendering** — Pond background, fish portrait (4 expressions), animated float (sine bob + action dips), fishing line with tension curve, dialogue box with typewriter effect
-- **Scene Setup** — ScreenSpace CustomUi entity with DrawingSurface + XAML overlays
+Tracked here so docs and code stay in sync:
 
-### Milestone 2 — Affection & Relationship Layer (COMPLETE)
-Relationship progression systems implemented:
-- **SYS-01-AFFECTION** — Formal `AffectionSystem` class with floor enforcement, ±30 per-action cap, peak tracking, stagnation session detection, and TIER_ONLY visibility (mood icon + tier name, never raw numbers)
-- **SYS-04-TIERS** — 5-tier ROMANCE_5ACT structure for Nereia with tier-based beat selection (`getBeatsForTier()`)
-- **Action → Affection Delta** — Every fishing action produces a tier-specific affection change
-- **Drift → Affection Modifier** — Arrival mood applies an affection modifier on Cast start (WARM +3, CHARMED +5, WARY -2, ANGRY -5)
-- **Tier Transition UI** — Centered notification overlay auto-dismisses after 2.5s on tier promotion; mood icon updates in HUD
-- **Nereia Tier 2 Content** — 2 new Beats (3 & 4) with "Curious" arc voice shift (occasional contractions, more openness)
-- **Save Persistence** — Extended save data includes peakValue, floor, lastChangeDelta, lastChangeSessionId with backward-compatible loading
-
-### Milestone 4 — Catch Sequence & Endings (COMPLETE)
-Catch sequence and endings systems implemented:
-- **Catch Sequence** — When fish reaches max affection tier (Bonded) and all beats played, two-choice moment appears: "Reel" or "[Fish's name]"
-- **Reel Ending** — Choosing Reel displays epitaph text, unlocks CG, marks catch as used
-- **Release Ending** — Choosing fish's name displays release epitaph, sets cross-fish flag
-- **Drift-Away Ending** — Triggered automatically when DRIFT_SCARED occurs 3× without recovery
-- **SYS-24-GALLERY (CG Collection)** — New Journal tab "Gallery" showing unlocked/locked CGs per character
-  - Unlocked CGs show name and description with "[Tap to view]" prompt
-  - Locked CGs show padlock icon and "???" placeholder
-  - Fullscreen CG viewer overlay with tap-to-dismiss
-  - CGs unlock automatically on Reel ending (first CG: Nereia's "The Last Morning")
-  - Unlock state persists in save data
-- **Nereia Full Arc Content** — Tiers 1–5 complete (10 Casts total) with catch sequence dialogue
-
-### Awaiting Playtest
-- Full Cast loop should be testable in Preview
-- Verify tap-to-advance dialogue, action selection, and departure flow
-- Verify tier progression: play 3+ Casts with patient actions (Wait, Loosen Line) to reach Tier 2
-- Verify tier transition notification appears when crossing from Unaware to Curious
-- Verify Tier 2 beats (deeper dialogue) unlock after tier promotion
-- Verify fishing cast mechanic: power gauge, float arc trajectory, splash VFX
-- Verify Journal accessible from title screen and idle state (3 tabs functional)
-- Verify Lure selection appears before each Cast (after pressing Cast button)
-- Verify selected lure affects fish's initial drift state
-- Verify Journal updates after each Cast with new observations
-
-### Milestone 3 — Journal & Hints (COMPLETE)
-Journal and Lure systems implemented:
-- **SYS-05-JOURNAL (MUSEUM variant)** — Three-tab journal (Pond Notes, Lure Box, Keepsakes) accessible from title screen and idle state. Scrollable text content, fish entries unlock on first meeting, locked fish shown as placeholder text.
-- **Personal Quest Hints** — Progressive precision hints per fish (Tier 1 poetic → Tier 2 specific → Tier 3 precise → Tier 4+ tactical). Always visible in Pond Notes tab per fish.
-- **SYS-23-GIFTS (Lures)** — Three starting lures (Red Spinner, Gold Teardrop, Feather Fly). Lure selection overlay appears before each Cast. Selected lure determines fish's initial drift state.
-- **Lure → Fish Attraction** — Each lure defines which fish it attracts and per-fish drift overrides. Resolution logic finds first valid candidate from lure's attraction list.
-- **Lure Reaction Tracking** — After each Cast, the lure-fish pair observation is recorded (positive/negative, cast count). Visible in Journal's Lure Box tab.
-- **Emotion Icons** — 9 emotion icon sprites generated (curiosity, surprise, warmth, shock, hesitation, contentment, sadness, boredom, delight) with premultiply alpha enabled.
-- **Save Persistence** — Save data extended with lure inventory, journal entries, and lure reactions. Backward-compatible with Milestone 2 saves (default values provided for missing fields).
-- Verify Journal opens from title and idle screens, all 3 tabs navigate correctly
-- Verify Lure selection appears before each Cast (after pressing "Cast" button)
-- Verify selected lure affects initial drift state of approaching fish
-- Verify Journal updates after each Cast with new observations
-
-### Milestone 3 — Journal & Hints (COMPLETE)
-Systems for player knowledge tracking and strategic lure selection:
-- **SYS-05-JOURNAL (MUSEUM variant)** — Three-tab journal accessible from title screen and idle state:
-  - Tab 1: Pond Notes — one entry per fish (locked/unlocked), species, known facts, Personal Quest hint
-  - Tab 2: Lure Box — all owned lures with observed reactions per fish
-  - Tab 3: Keepsakes — gifted items with dual perspective descriptions
-- **Personal Quest Hints** — Progressive precision from poetic (Tier 1) to tactical (Tier 4+), always visible in Journal
-- **SYS-23-GIFTS (Lures)** — Inventory-based equipment system:
-  - Starting set: Red Spinner (attracts all), Gold Teardrop (cautious fish), Feather Fly (surface dwellers)
-  - **Tackle Box** inventory overlay accessible from LakeIdle, Idle, and Title screens
-  - Player equips a lure from inventory; equipped lure persists across casts (no per-cast selection)
-  - Cast button gates on equipped lure — if none equipped, shows "Equip a lure first" warning (auto-dismiss 2s)
-  - Equipped lure name shown near Cast button in LakeIdle state
-  - Each lure defines fish attraction tables and initial drift modifiers per fish
-  - Observed reactions tracked across sessions for Journal display
-- **Emotion Icons** — 9 generated sprite icons (curiosity, surprise, warmth, shock, hesitation, contentment, sadness, boredom, delight) with premultiplied alpha
-- **Save Backward Compatibility** — Milestone 2 saves load cleanly with default lure/journal data
-
-### Fishing Cast Mechanic (NEW)
-Added a fishing minigame sequence before each dialogue Cast begins:
-- **Title Screen** — Button text changed to "Play"
-- **LakeIdle State** — After pressing Play (or Cast Again), pond is shown with only the float/line and an orange "Cast" button — no character visible
-- **CastCharging State** — Pressing Cast shows a vertical power gauge on the right side; indicator ping-pongs up and down (~1.5s cycle). Player taps screen to lock power level
-- **CastFlying State** — Float launches in a parabolic arc toward the center of the pond; arc height varies with locked power (higher power = higher arc)
-- **FloatLanded State** — Float arrives at rest position, expanding ripple VFX plays for 0.5s
-- **Approach** — Character fades in and dialogue begins as before
-
-This creates the flow: Title → LakeIdle → CastCharging → CastFlying → FloatLanded → Approach → Exchange → ... → Idle → (loop back to LakeIdle)
+1. `bone_whistle` listed in `KASHA_CHARACTER.preferredLures` but not declared in `LureData.ts` → no effect
+2. Every lure's `attractedFish` array contains only `['nereia']` — historical artifact; encounter routing actually uses zone + preferred/disliked weights
+3. Character `encounterRate` is uniformly `1.0` — no per-character base rarity yet
+4. `CharacterPortraitAssets` allows `curious / warm / alarmed` variants but only `neutral` portraits are shipped
+5. NPC combo casts (Catfish–Trout) show combo hints in quest text but the action-by-action feedback in their 4 beats is minimal — combo correctness is checked at the Reel finisher
 
 ---
 

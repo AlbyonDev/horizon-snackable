@@ -8,15 +8,17 @@
  * 2. Import and register here with characterRegistry.register(YOUR_CHARACTER)
  */
 
-import type { CharacterConfig, CastData, Beat, CatchSequenceData, CGData, LakeZone } from './Types';
+import type { CharacterConfig, CastData, Beat, CatchSequenceData, CGData } from './Types';
 import type { TextureAsset } from 'meta/worlds';
-import { NEREIA_CHARACTER } from './CharacterData_Nereia';
-import { KASHA_CHARACTER } from './CharacterData_Kasha';
 import { FUGU_CHARACTER } from './CharacterData_Fugu';
-import { CATFISH_CHARACTER } from './CharacterData_Catfish';
+import { KASHA_CHARACTER } from './CharacterData_Kasha';
+import { NEREIA_CHARACTER } from './CharacterData_Nereia';
+// Ambient NPCs — re-enabled to fill the lake outside the main fish slots.
+// They use priority 0 so the 3 story fish always win on shared triplets.
 import { CARP_CHARACTER } from './CharacterData_Carp';
-import { PERCH_CHARACTER } from './CharacterData_Perch';
+import { CATFISH_CHARACTER } from './CharacterData_Catfish';
 import { EEL_CHARACTER } from './CharacterData_Eel';
+import { PERCH_CHARACTER } from './CharacterData_Perch';
 import { PIKE_CHARACTER } from './CharacterData_Pike';
 import { TROUT_CHARACTER } from './CharacterData_Trout';
 
@@ -58,50 +60,6 @@ class CharacterRegistry {
     return out;
   }
 
-  /**
-   * Get characters available given current flags and equipped lure.
-   * Checks unlockCondition and lure attraction.
-   */
-  getAvailableCharacters(
-    flags: Record<string, boolean | number>,
-    equippedLureId?: string,
-  ): CharacterConfig[] {
-    return this.getAllCharacters().filter(c => {
-      if (!c.unlockCondition(flags)) return false;
-      if (equippedLureId) {
-        return c.preferredLures.includes(equippedLureId) ||
-               !c.dislikedLures.includes(equippedLureId);
-      }
-      return true;
-    });
-  }
-
-  /** Get characters that prefer a given lure */
-  getCharactersByLure(lureId: string): CharacterConfig[] {
-    return this.getAllCharacters().filter(c =>
-      c.preferredLures.includes(lureId) && !c.dislikedLures.includes(lureId),
-    );
-  }
-
-  /** Get characters that dislike a given lure */
-  getCharactersDislikingLure(lureId: string): CharacterConfig[] {
-    return this.getAllCharacters().filter(c => c.dislikedLures.includes(lureId));
-  }
-
-  /** Get characters that appear in a given lake zone */
-  getCharactersByZone(zone: LakeZone): CharacterConfig[] {
-    return this.getAllCharacters().filter(c => c.lakeZones.includes(zone));
-  }
-
-  /** Get characters that match both a zone and lure preference */
-  getCharactersForZoneAndLure(zone: LakeZone, lureId: string): CharacterConfig[] {
-    return this.getAllCharacters().filter(c =>
-      c.lakeZones.includes(zone) &&
-      c.preferredLures.includes(lureId) &&
-      !c.dislikedLures.includes(lureId),
-    );
-  }
-
   /** Get a cast by index for a character (clamped to valid range). */
   getCast(characterId: string, castIndex: number): CastData | undefined {
     const character = this.characters.get(characterId);
@@ -118,6 +76,7 @@ class CharacterRegistry {
     if (!cast) return [];
     return cast.beats.map(b => ({ ...b, seen: false }));
   }
+
 
   /** Total number of casts in this character's arc. */
   getCastCount(characterId: string): number {
@@ -183,12 +142,14 @@ class CharacterRegistry {
 export const characterRegistry = new CharacterRegistry();
 
 // === Register all implemented characters ===
-characterRegistry.register(NEREIA_CHARACTER);
-characterRegistry.register(KASHA_CHARACTER);
+// Registration order = display order in journal/lake idle.
+// Main characters first, then ambient NPCs (priority 0 in their recipes).
 characterRegistry.register(FUGU_CHARACTER);
-characterRegistry.register(CATFISH_CHARACTER);
-characterRegistry.register(CARP_CHARACTER);
+characterRegistry.register(KASHA_CHARACTER);
+characterRegistry.register(NEREIA_CHARACTER);
 characterRegistry.register(PERCH_CHARACTER);
 characterRegistry.register(EEL_CHARACTER);
-characterRegistry.register(PIKE_CHARACTER);
 characterRegistry.register(TROUT_CHARACTER);
+characterRegistry.register(CATFISH_CHARACTER);
+characterRegistry.register(CARP_CHARACTER);
+characterRegistry.register(PIKE_CHARACTER);

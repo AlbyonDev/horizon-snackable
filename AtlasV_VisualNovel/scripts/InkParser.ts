@@ -43,7 +43,10 @@ export type Value = boolean | number | string;
 
 export type Expr =
   | { kind: 'ref'; name: string; negated: boolean }
-  | { kind: 'literal'; value: Value };
+  | { kind: 'literal'; value: Value }
+  /** Equality comparison: flag value vs string/number/bool literal.
+   *  Used for bridge dialogues like `{ mood.fugu.last_drift == "WARY" : ... }`. */
+  | { kind: 'eq'; name: string; value: Value; negated: boolean };
 
 export interface Tag {
   key: string;
@@ -55,7 +58,7 @@ export type Stmt =
   | { kind: 'divert'; target: string }
   | { kind: 'assign'; name: string; value: Value }
   | { kind: 'cond'; branches: { condition?: Expr; body: Stmt[] }[] }
-  | { kind: 'choice'; label: string; tags: Tag[]; condition?: Expr; body: Stmt[] };
+  | { kind: 'choice'; label: string; intent?: string; tags: Tag[]; condition?: Expr; body: Stmt[] };
 
 export interface Knot {
   name: string;
@@ -81,7 +84,10 @@ const RE_VAR_DECL = /^VAR\s+([\w.]+)\s*=\s*(.+)$/;
 const RE_PLAIN_ASSIGN = /^([\w.]+)\s*=\s*(.+)$/;
 const RE_DIVERT = /^->\s*([\w.]+)\s*$/;
 const RE_CHOICE = /^\*\s*(?:\{\s*([^}]+?)\s*\}\s*)?\[\s*(.+?)\s*\]\s*(.*)$/;
-const RE_TAG = /#([\w-]+):([^\s#]+)/g;
+// Tag value can be either:
+//   - "quoted string with spaces"
+//   - bareword (no spaces, no #)
+const RE_TAG = /#([\w-]+):(?:"([^"]*)"|([^\s#]+))/g;
 const RE_BLOCK_OPEN = /^\{\s*([^}:]+?)\s*:\s*$/;
 const RE_BRANCH = /^-\s*(.+?)\s*:\s*$/;
 const RE_INLINE_COND = /^\{\s*([^}:]+?)\s*\}\s*(.+)$/;
@@ -272,13 +278,20 @@ export function parseInk(source: string): Story {
       // inside it that the author forgot to close).
       closeChoiceFrame();
 
+      // The trailing portion after `]` is "intent text #tag:value #tag:value".
+      // Everything before the first #tag is the intent (Ink-native syntax for
+      // hold-to-preview tooltip); the rest are technical tags.
+      const trailing = mChoice[3] || '';
+      const intentSplit = splitIntentAndTags(trailing);
+
       const stmt: Extract<Stmt, { kind: 'choice' }> = {
         kind: 'choice',
         label: mChoice[2],
         condition: mChoice[1] ? parseExpr(mChoice[1]) : undefined,
-        tags: extractTags(mChoice[3] || ''),
+        tags: extractTags(intentSplit.tagsRaw),
         body: [],
       };
+      if (intentSplit.intent) stmt.intent = intentSplit.intent;
       appendStmt(stmt);
       frames.push({ kind: 'choice', stmt });
       continue;
@@ -312,9 +325,38 @@ export function parseInk(source: string): Story {
  * as it isn't followed by `key:value` syntax at the end of the line.
  */
 function splitLineTags(line: string): { text: string; tags: Tag[] } {
-  const m = /^(.*?)((?:\s+#[\w-]+:[^\s#]+)+)\s*$/.exec(line);
+  const m = /^(.*?)((?:\s+#[\w-]+:(?:"[^"]*"|[^\s#]+))+)\s*$/.exec(line);
   if (!m) return { text: line, tags: [] };
   return { text: m[1].trimEnd(), tags: extractTags(m[2]) };
+}
+
+/**
+ * Split a choice's trailing portion (after `]`) into:
+ *   - intent: free narrative text that prefixes the technical tags (Ink-native
+ *             syntax for hold-to-preview tooltip), or undefined if absent
+ *   - tagsRaw: the remaining `#key:value` run, ready for extractTags()
+ *
+ * Example input: ' Stay still. Let him see you. #delta:3 #expr:warm'
+ *   → { intent: 'Stay still. Let him see you.', tagsRaw: '#delta:3 #expr:warm' }
+ *
+ * Example input: ' #delta:3 #expr:warm'
+ *   → { intent: undefined, tagsRaw: '#delta:3 #expr:warm' }
+ */
+function splitIntentAndTags(trailing: string): { intent?: string; tagsRaw: string } {
+  const trimmed = trailing.trim();
+  if (!trimmed) return { tagsRaw: '' };
+  const hashIdx = trimmed.indexOf('#');
+  if (hashIdx < 0) {
+    // All intent, no tags
+    return { intent: trimmed, tagsRaw: '' };
+  }
+  if (hashIdx === 0) {
+    // All tags, no intent
+    return { tagsRaw: trimmed };
+  }
+  const intent = trimmed.slice(0, hashIdx).trim();
+  const tagsRaw = trimmed.slice(hashIdx);
+  return { intent: intent || undefined, tagsRaw };
 }
 
 function extractTags(rest: string): Tag[] {
@@ -322,7 +364,9 @@ function extractTags(rest: string): Tag[] {
   const re = new RegExp(RE_TAG.source, 'g');
   let m: RegExpExecArray | null;
   while ((m = re.exec(rest)) !== null) {
-    tags.push({ key: m[1], value: m[2] });
+    // m[2] = quoted value (without quotes), m[3] = bareword value
+    const value = m[2] !== undefined ? m[2] : m[3];
+    tags.push({ key: m[1], value });
   }
   return tags;
 }
@@ -346,6 +390,19 @@ function parseExpr(raw: string): Expr {
   const t = raw.trim();
   if (t === 'true') return { kind: 'literal', value: true };
   if (t === 'false') return { kind: 'literal', value: false };
+
+  // Equality comparison: `<name> == <literal>` or `<name> != <literal>`.
+  // Literal is a quoted string, an unquoted number, or `true`/`false`.
+  const eqMatch = /^([\w.]+)\s*(==|!=)\s*(.+)$/.exec(t);
+  if (eqMatch) {
+    return {
+      kind: 'eq',
+      name: eqMatch[1],
+      value: parseScalar(eqMatch[3]),
+      negated: eqMatch[2] === '!=',
+    };
+  }
+
   if (t.startsWith('!')) {
     return { kind: 'ref', name: t.slice(1).trim(), negated: true };
   }

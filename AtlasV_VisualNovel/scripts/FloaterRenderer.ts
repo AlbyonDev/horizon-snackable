@@ -33,12 +33,21 @@ import {
   COLOR_GAUGE_BG, COLOR_GAUGE_FILL, COLOR_GAUGE_INDICATOR, COLOR_GAUGE_BORDER,
   EMOTION_ICON_SIZE, EMOTION_ICON_BOUNCE_TIME, EMOTION_ICON_FADE_TIME,
   CHAR_RIPPLE_Y_SQUISH,
+  CAST_TRAJ_START_X, CAST_TRAJ_START_Y,
+  CAST_TRAJ_LANDING_NEAR_Y, CAST_TRAJ_LANDING_FAR_Y,
+  CAST_TRAJ_CTRL_OFFSET_Y,
+  CAST_TRAJ_LINE_WIDTH, CAST_TRAJ_LINE_COLOR_R, CAST_TRAJ_LINE_COLOR_G,
+  CAST_TRAJ_LINE_COLOR_B, CAST_TRAJ_LINE_ALPHA,
+  CAST_TRAJ_DOT_RADIUS, CAST_TRAJ_DOT_ALPHA,
+  CAST_TRAJ_LANDING_MIN_X, CAST_TRAJ_LANDING_MAX_X,
+  ZONE_NEAR_TOP_Y, ZONE_NEAR_BOTTOM_Y, ZONE_MID_BOTTOM_Y, ZONE_FAR_BOTTOM_Y,
 } from './Constants';
 import type { SplashRipple, FloatingEmotionIcon } from './Types';
 import { EmotionIconType } from './Types';
 import { Vec3D } from './Vec3D';
 import {
   bgLilyShallowsTexture,
+  bgLilyDayTexture,
   titleBackgroundTexture,
   emotionCuriosityTexture, emotionSurpriseTexture, emotionWarmthTexture,
   emotionShockTexture, emotionHesitationTexture, emotionContentmentTexture,
@@ -68,6 +77,7 @@ export class FloaterRenderer {
   private builder: DrawingCommandsBuilder;
 
   private bgBrush: ImageBrush;
+  private dayBgBrush: ImageBrush;
   private titleBgBrush: ImageBrush;
   private floatBrush: ImageBrush;
   private lineBrush: SolidBrush;
@@ -76,6 +86,7 @@ export class FloaterRenderer {
   constructor(builder: DrawingCommandsBuilder) {
     this.builder = builder;
     this.bgBrush = new ImageBrush(bgLilyShallowsTexture, { stretch: Stretch.UniformToFill });
+    this.dayBgBrush = new ImageBrush(bgLilyDayTexture, { stretch: Stretch.UniformToFill });
     this.titleBgBrush = new ImageBrush(titleBackgroundTexture, { stretch: Stretch.UniformToFill });
     this.floatBrush = new ImageBrush(fishingFloatTexture);
     this.lineBrush = new SolidBrush(new Color(0.78, 0.85, 0.91, 0.5));
@@ -85,8 +96,9 @@ export class FloaterRenderer {
   clear(): void { this.builder.clear(); }
   build(): DrawingCommandData { return this.builder.build(); }
 
-  drawBackground(): void {
-    this.builder.drawRect(this.bgBrush, null, { x: 0, y: 0, width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
+  drawBackground(isDayMode: boolean = false): void {
+    const brush = isDayMode ? this.dayBgBrush : this.bgBrush;
+    this.builder.drawRect(brush, null, { x: 0, y: 0, width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
   }
 
   drawTitleBackground(): void {
@@ -161,24 +173,44 @@ export class FloaterRenderer {
     const dy = floaterY - startY;
 
     // Control point: sag proportional to distance, adjusted by flight progress
+    // During flight (flightProgress < 1.0): "rope lag" model — large sag early (slack line),
+    // gradually becoming taut as the float reaches its landing spot.
+    // Sag direction is DOWNWARD (positive Y in canvas coords) to simulate gravity on slack line.
     let sagFactor: number;
-    if (flightProgress < 0.5) {
-      sagFactor = 0.1 + flightProgress * 0.1;
+    let sagDown: boolean; // true = sag downward (flight), false = sag upward (resting)
+    if (flightProgress < 0.3) {
+      // Early flight: heavy slack — line hangs loose behind the float
+      sagFactor = 0.4 + (1 - flightProgress * 3.33) * 0.3;
+      sagDown = true;
+    } else if (flightProgress < 0.7) {
+      // Mid flight: reducing sag as line catches up
+      sagFactor = 0.4 * (1 - (flightProgress - 0.3) * 2.5);
+      sagDown = true;
     } else if (flightProgress < 1.0) {
-      sagFactor = 0.15 + (flightProgress - 0.5) * 0.2;
+      // Late flight: nearly taut, minimal sag
+      sagFactor = 0.1 * (1 - (flightProgress - 0.7) * 3.33);
+      sagDown = true;
     } else {
+      // Resting state (flightProgress >= 1.0): gentle upward sag (original behavior)
       sagFactor = 0.15;
+      sagDown = false;
     }
 
     const controlX = midX + Math.abs(dy) * 0.05;
-    const controlY = midY - Math.abs(dx) * sagFactor;
+    // Flip sag direction: downward during flight (+ in canvas), upward at rest (-)
+    const controlY = sagDown
+      ? midY + Math.abs(dx) * sagFactor
+      : midY - Math.abs(dx) * sagFactor;
 
     // Connect line to top center of float (where the brass ring is) instead of center
     const lineEndY = floaterY - FLOAT_HEIGHT / 2 + 5;
 
     // --- Wind effect: sample points along the base Bézier, apply sinusoidal displacement ---
     const NUM_WIND_POINTS = 8;
-    const WIND_AMPLITUDE = 3.0;  // Max horizontal displacement in pixels
+    // Wind amplitude depends on flight phase: strong early (loose rope), minimal when taut
+    const baseWindAmplitude = flightProgress < 1.0
+      ? 3.0 * (1 - flightProgress) * (1 - flightProgress) + 1.0
+      : 3.0;
     const WIND_SPEED = 1.8;      // Oscillation speed
     const WIND_WAVE_LENGTH = 2.5; // Spatial frequency along the line
 
@@ -192,7 +224,10 @@ export class FloaterRenderer {
 
       // Wind displacement: strongest in the middle, zero at endpoints
       const windEnvelope = Math.sin(t * Math.PI); // 0 at ends, 1 at middle
-      const windOffset = Math.sin(time * WIND_SPEED + t * WIND_WAVE_LENGTH * Math.PI) * WIND_AMPLITUDE * windEnvelope;
+      // Primary wave + second harmonic for more organic movement
+      const primaryWave = Math.sin(time * WIND_SPEED + t * WIND_WAVE_LENGTH * Math.PI);
+      const secondHarmonic = Math.sin(time * WIND_SPEED * 1.7 + t * WIND_WAVE_LENGTH * Math.PI * 2) * 0.3;
+      const windOffset = (primaryWave + secondHarmonic) * baseWindAmplitude * windEnvelope;
 
       points.push({ x: bx + windOffset, y: by + windOffset * 0.3 });
     }
@@ -229,18 +264,29 @@ export class FloaterRenderer {
     }
   }
 
-  /** Draw float at position with scale (for POV depth effect) */
-  drawFloatAtScaled(x: number, y: number, scale: number, inWater: boolean = false): void {
+  /** Draw float at position with scale (for POV depth effect) and optional rotation */
+  drawFloatAtScaled(x: number, y: number, scale: number, inWater: boolean = false, rotation: number = 0): void {
     if (scale <= 0.01) return;
     const scaledW = FLOAT_WIDTH * scale;
     const scaledH = FLOAT_HEIGHT * scale;
 
-    this.builder.drawRect(this.floatBrush, null,
-      { x: x - scaledW / 2, y: y - scaledH / 2, width: scaledW, height: scaledH });
-
-    // Overlay a water submersion gradient when the float is resting in water
-    if (inWater) {
-      this.drawWaterGradientOverlay(x - scaledW / 2, y - scaledH / 2, scaledW, scaledH);
+    if (rotation !== 0) {
+      // Use transform stack for rotation: translate to center, rotate, draw offset
+      this.builder.pushTranslate({ x, y });
+      this.builder.pushRotate(rotation, { x: 0, y: 0 });
+      this.builder.drawRect(this.floatBrush, null,
+        { x: -scaledW / 2, y: -scaledH / 2, width: scaledW, height: scaledH });
+      if (inWater) {
+        this.drawWaterGradientOverlay(-scaledW / 2, -scaledH / 2, scaledW, scaledH);
+      }
+      this.builder.pop(); // rotate
+      this.builder.pop(); // translate
+    } else {
+      this.builder.drawRect(this.floatBrush, null,
+        { x: x - scaledW / 2, y: y - scaledH / 2, width: scaledW, height: scaledH });
+      if (inWater) {
+        this.drawWaterGradientOverlay(x - scaledW / 2, y - scaledH / 2, scaledW, scaledH);
+      }
     }
   }
 
@@ -505,5 +551,102 @@ export class FloaterRenderer {
       }
       this.builder.pop(); // translate
     }
+  }
+
+  /**
+   * Draw a bezier curve trajectory preview during cast aiming.
+   * Shows where the cast will land based on distance (0..1) and xOffset (-1..1).
+   * Curve goes from rod tip (bottom) to the landing point (upper pond area).
+   * If landingX/landingY are provided, they override the geometric endpoint with
+   * the physics-simulated landing position for accurate preview.
+   */
+  drawCastTrajectoryBezier(distance: number, xOffset: number, landingX?: number, landingY?: number): void {
+    if (distance < 0) return;
+
+    // Start point: rod tip at bottom center
+    const startX = CAST_TRAJ_START_X;
+    const startY = CAST_TRAJ_START_Y;
+
+    // End point: use physics landing if provided, otherwise geometric fallback
+    let endX: number;
+    let endY: number;
+    if (landingX !== undefined && landingY !== undefined) {
+      endX = landingX;
+      endY = landingY;
+    } else {
+      const centerX = CANVAS_WIDTH / 2;
+      const xRange = (CAST_TRAJ_LANDING_MAX_X - CAST_TRAJ_LANDING_MIN_X) / 2;
+      const rawEndX = centerX + xOffset * xRange;
+      endX = Math.max(CAST_TRAJ_LANDING_MIN_X, Math.min(CAST_TRAJ_LANDING_MAX_X, rawEndX));
+      endY = CAST_TRAJ_LANDING_NEAR_Y + distance * (CAST_TRAJ_LANDING_FAR_Y - CAST_TRAJ_LANDING_NEAR_Y);
+    }
+
+    // Control point: midpoint X shifted proportionally with endX, elevated above midpoint Y for arc
+    const midX = (startX + endX) / 2;
+    const midY = (startY + endY) / 2;
+    const ctrlX = midX;
+    const ctrlY = midY + CAST_TRAJ_CTRL_OFFSET_Y * (0.5 + distance * 0.5);
+
+    // Draw the quadratic bezier curve as SVG path
+    const pathData = `M ${startX.toFixed(1)} ${startY.toFixed(1)} Q ${ctrlX.toFixed(1)} ${ctrlY.toFixed(1)} ${endX.toFixed(1)} ${endY.toFixed(1)}`;
+
+    const trajBrush = new LinearGradientBrush(
+      { x: startX, y: startY },
+      { x: endX, y: endY },
+      [
+        { offset: 0, color: new Color(CAST_TRAJ_LINE_COLOR_R, CAST_TRAJ_LINE_COLOR_G, CAST_TRAJ_LINE_COLOR_B, CAST_TRAJ_LINE_ALPHA) },
+        { offset: 1, color: new Color(CAST_TRAJ_LINE_COLOR_R, CAST_TRAJ_LINE_COLOR_G, CAST_TRAJ_LINE_COLOR_B, CAST_TRAJ_LINE_ALPHA) },
+      ]
+    );
+    const trajPen = new Pen(trajBrush, CAST_TRAJ_LINE_WIDTH);
+    this.builder.drawPath(null, trajPen, pathData);
+
+    // Draw landing target dot
+    const dotBrush = new SolidBrush(new Color(
+      CAST_TRAJ_LINE_COLOR_R, CAST_TRAJ_LINE_COLOR_G,
+      CAST_TRAJ_LINE_COLOR_B, CAST_TRAJ_DOT_ALPHA
+    ));
+    this.builder.drawEllipse(dotBrush, null,
+      { x: endX, y: endY },
+      { x: CAST_TRAJ_DOT_RADIUS, y: CAST_TRAJ_DOT_RADIUS * 0.5 });
+  }
+
+  /** Draw semi-transparent colored rectangles showing NEAR/MID/FAR cast zones */
+  public drawDebugZoneOverlay(): void {
+    const x = CAST_TRAJ_LANDING_MIN_X;
+    const width = CAST_TRAJ_LANDING_MAX_X - CAST_TRAJ_LANDING_MIN_X;
+
+    // NEAR zone (green) — bottom of range (high Y = near shore)
+    const nearBrush = new SolidBrush(new Color(0, 1, 0, 0.2));
+    const nearY = ZONE_NEAR_BOTTOM_Y;
+    const nearH = ZONE_NEAR_TOP_Y - ZONE_NEAR_BOTTOM_Y;
+    this.builder.drawRect(nearBrush, null, { x, y: nearY, width, height: nearH });
+
+    // MID zone (yellow)
+    const midBrush = new SolidBrush(new Color(1, 1, 0, 0.2));
+    const midY = ZONE_MID_BOTTOM_Y;
+    const midH = ZONE_NEAR_BOTTOM_Y - ZONE_MID_BOTTOM_Y;
+    this.builder.drawRect(midBrush, null, { x, y: midY, width, height: midH });
+
+    // FAR zone (red) — top of range (low Y = far from shore)
+    const farBrush = new SolidBrush(new Color(1, 0, 0, 0.2));
+    const farY = ZONE_FAR_BOTTOM_Y;
+    const farH = ZONE_MID_BOTTOM_Y - ZONE_FAR_BOTTOM_Y;
+    this.builder.drawRect(farBrush, null, { x, y: farY, width, height: farH });
+
+    // Labels
+    const labelBrush = new SolidBrush(new Color(1, 1, 1, 0.8));
+    const labelFont = new Font(FontFamily.Roboto, FontWeight.Bold, FontStyle.Normal, FontStretch.Normal);
+    const labelW = width;
+    const labelH = 20;
+
+    this.builder.drawText('NEAR', { x, y: nearY + nearH / 2 - labelH / 2, width: labelW, height: labelH },
+      14, labelBrush, labelFont, { textAlignment: DrawTextAlignment.Center });
+
+    this.builder.drawText('MID', { x, y: midY + midH / 2 - labelH / 2, width: labelW, height: labelH },
+      14, labelBrush, labelFont, { textAlignment: DrawTextAlignment.Center });
+
+    this.builder.drawText('FAR', { x, y: farY + farH / 2 - labelH / 2, width: labelW, height: labelH },
+      14, labelBrush, labelFont, { textAlignment: DrawTextAlignment.Center });
   }
 }

@@ -5,7 +5,7 @@
  */
 
 import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
-import { DriftState, EmotionIconType, ExpressionState } from './Types';
+import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { perchNeutralTexture } from './Assets';
 
@@ -53,14 +53,13 @@ export const PERCH_CHARACTER: CharacterConfig = {
   portraitTexture: perchNeutralTexture,
   portraitSpritePath: PERCH_PORTRAIT_SPRITE,
 
-  preferredLures: [],
-  dislikedLures: [],
-
-  lakeZones: ['near'],
+  // Ambient NPC — fills the near + Day slot when no main fish matches.
+  // priority defaults to 0 → loses ties against main fish (priority: 1).
+  recipes: [
+    { id: 'home', zone: 'near', phase: Phase.Day, lure: ANY_LURE, initial: true },
+  ],
 
   unlockCondition: () => true,
-
-  encounterRate: 1.0,
 
   questName: 'The Perch',
   questHint: 'Twitch to get its attention. Wait to earn its trust. Twitch again to seal it.',

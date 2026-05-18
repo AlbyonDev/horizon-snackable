@@ -5,11 +5,13 @@
  * Now uses CharacterRegistry for fish data instead of hardcoded arrays.
  */
 
-import { ExpressionState } from './Types';
-import type { JournalFishEntry, JournalSaveData, LureReaction } from './Types';
+import { ExpressionState, Phase, ANY_LURE } from './Types';
+import type { JournalFishEntry, JournalSaveData, LureReaction, Recipe } from './Types';
 import { characterRegistry } from './CharacterRegistry';
 import { QuestSystem } from './QuestSystem';
 import { FlagSystem } from './FlagSystem';
+import { isRecipeActive } from './EncounterSystem';
+import { ALL_LURES } from './LureData';
 import { AffectionSystem } from './AffectionSystem';
 
 /**
@@ -114,6 +116,59 @@ export class JournalSystem {
     return characterRegistry.getQuestHint(fishId);
   }
 
+  /**
+   * Find the most-specific active recipe for a fish — the one the player
+   * should aim for next. Mirrors the encounter system's tie-break: a recipe
+   * with a specific lure beats an ANY_LURE wildcard. Returns null if no
+   * recipe is currently active (e.g. fish has finished its arc).
+   */
+  getTargetRecipe(fishId: string, flags: Record<string, boolean | number>): Recipe | null {
+    const character = characterRegistry.getCharacter(fishId);
+    if (!character) return null;
+    // Build a lightweight FlagSystem-like view from the flags snapshot so we
+    // can reuse isRecipeActive's rules. Re-use the live FlagSystem when one
+    // is available would be cleaner but the journal only sees serialized flags.
+    const fakeFlagSystem = {
+      has: (k: string) => k in flags,
+      check: (k: string) => {
+        const v = flags[k];
+        return v === true || (typeof v === 'number' && v > 0);
+      },
+    } as FlagSystem;
+
+    let specific: Recipe | null = null;
+    let wildcard: Recipe | null = null;
+    for (const recipe of character.recipes) {
+      if (!isRecipeActive(fishId, recipe, fakeFlagSystem)) continue;
+      if (recipe.lure === ANY_LURE) {
+        if (!wildcard) wildcard = recipe;
+      } else {
+        if (!specific) specific = recipe;
+      }
+    }
+    return specific ?? wildcard;
+  }
+
+  /** Render a recipe's (zone, phase, lure) triplet as a human-readable line. */
+  private formatRecipe(recipe: Recipe): string {
+    const zoneLabel: Record<string, string> = {
+      near: 'Near bank',
+      mid: 'Mid waters',
+      far: 'Deep waters',
+    };
+    const phaseLabel = recipe.phase === Phase.Night ? 'Night' : 'Day';
+    const lureLabel = recipe.lure === ANY_LURE
+      ? 'Any lure'
+      : (ALL_LURES[recipe.lure]?.name ?? recipe.lure);
+    return `${zoneLabel[recipe.zone] ?? recipe.zone} - ${phaseLabel} - ${lureLabel}`;
+  }
+
+  getLocationHint(fishId: string, flags: Record<string, boolean | number>): string {
+    const recipe = this.getTargetRecipe(fishId, flags);
+    if (!recipe) return '';
+    return this.formatRecipe(recipe);
+  }
+
   getQuestNameForFish(fishId: string): string {
     return characterRegistry.getQuestName(fishId);
   }
@@ -151,6 +206,13 @@ export class JournalSystem {
 
     lines.push(`\u2014 Personal Quest: ${this.getQuestNameForFish(fishId)} \u2014`);
     lines.push(this.getQuestHintForFish(fishId));
+    lines.push('');
+
+    const targetRecipe = this.getTargetRecipe(fishId, flags);
+    if (targetRecipe) {
+      lines.push('\u2014 Where to find \u2014');
+      lines.push(this.formatRecipe(targetRecipe));
+    }
 
     return lines.join('\n');
   }
@@ -285,13 +347,14 @@ export class JournalSystem {
     return cards;
   }
 
-  private getTeaserHint(char: { id: string; species: string; lakeZones: string[] }): string {
+  private getTeaserHint(char: { id: string; species: string; recipes: { zone: string }[] }): string {
     const zoneHints: Record<string, string> = {
       near: 'Likes shallow waters...',
       mid: 'Dwells in the middle depths...',
       far: 'Hides in the deep...',
     };
-    const zone = char.lakeZones[0] ?? 'mid';
+    // Derive zone from the first recipe; fish with no recipes get a generic teaser.
+    const zone = char.recipes[0]?.zone ?? 'mid';
     return zoneHints[zone] ?? 'A mysterious presence beneath the surface...';
   }
 

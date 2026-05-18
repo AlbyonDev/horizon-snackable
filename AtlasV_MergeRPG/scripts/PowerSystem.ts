@@ -42,7 +42,7 @@ export class PowerResolver {
   /** Execute a hero's power. Returns the resolved damage / healing / target count. */
   executeHero(heroIndex: number): PowerResult {
     const hero = this.teamState.heroes[heroIndex];
-    if (!hero) {
+    if (!hero || hero.currentHp <= 0) {
       return { ...EMPTY_RESULT };
     }
 
@@ -58,7 +58,7 @@ export class PowerResolver {
   /** Execute an enemy's power against the heroes. */
   executeEnemy(enemyIndex: number): PowerResult {
     const enemy = this.teamState.enemies[enemyIndex];
-    if (!enemy) {
+    if (!enemy || enemy.currentHp <= 0) {
       return { ...EMPTY_RESULT };
     }
 

@@ -1,15 +1,13 @@
 /**
  * CharacterData_Fugu — Fugu's character configuration.
  *
- * Dialogue content lives in Story_Fugu.ts (Ink format) and is compiled
- * into Beat[] on demand by InkBeatAdapter. This file holds only the
- * metadata, departures, catch sequence, and character config.
- *
- * Casts progress in the order declared in FUGU_CAST_DEFS — no tiers.
+ * Dialogue content (including the fish's goodbye lines per Ink Authoring
+ * Guide §4.4) lives in Story_Fugu.ts. This file only holds metadata,
+ * catch sequence, and character config.
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
-import { DriftState, EmotionIconType, ExpressionState } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData, Recipe } from './Types';
+import { DriftState, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { fuguNeutralTexture, cgFuguDriftAwayTexture, cgFuguLoveEndTexture, cgFuguReleaseEndTexture } from './Assets';
 
@@ -17,7 +15,7 @@ const CHARACTER_ID = 'fugu';
 const FUGU_PORTRAIT_SPRITE = 'sprites/char_pufferfish_neutral.png';
 
 // ============================================================
-// Cast definitions — dialogue pulled from Ink, departures from side table
+// Cast definitions — dialogue pulled from Ink
 // ============================================================
 
 interface CastDef {
@@ -39,80 +37,6 @@ const FUGU_CAST_DEFS: CastDef[] = [
 ];
 
 // ============================================================
-// Departures per cast (keyed by cast id)
-// ============================================================
-
-const FUGU_DEPARTURES: Record<string, CastData['departures']> = {
-  fugu_t1_c1: {
-    [DriftState.Charmed]:   { dialogue: ['Hey!', 'You\'re coming back tomorrow right?', 'Right?!', 'SAY YES!', '...please.', 'Trust me, I\'ll be here!'], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:      { dialogue: ['Ok! Ok ok ok!', 'That was good!', 'Tomorrow? Same time?', '...even if you don\'t have a time. Just... come.'], icon: EmotionIconType.Curiosity },
-    [DriftState.Neutral]:   { dialogue: ['...', 'Well.', 'That was... that was something.', 'Better than talking to rocks.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Wary]:      { dialogue: ['...', 'You\'re a little scared huh?', 'It\'s ok.', 'Me too.', 'Of everything. All the time.'], icon: EmotionIconType.Sadness },
-    [DriftState.Scared]:    { dialogue: ['...', '*slowly deflates*', '...', 'Forget about me.', 'Everyone does.'], icon: EmotionIconType.Shock },
-  },
-  fugu_t1_c2: {
-    [DriftState.Charmed]:   { dialogue: ['TWICE!', 'You came TWICE!', 'That\'s a record! MY record!', 'Tomorrow! Tomorrow tomorrow tomorrow!', 'Trust me!'], icon: EmotionIconType.Delight },
-    [DriftState.Warm]:      { dialogue: ['Hey...', 'Thanks for coming back.', 'Really.', '...tomorrow?'], icon: EmotionIconType.Warmth },
-    [DriftState.Neutral]:   { dialogue: ['...', 'It\'s over already?', 'Ok.', 'Maybe tomorrow.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Wary]:      { dialogue: ['...', 'Did I say something wrong?', 'I always say something wrong.', '...sorry.'], icon: EmotionIconType.Sadness },
-    [DriftState.Scared]:    { dialogue: ['...', '...', 'At least rocks don\'t hurt.'], icon: EmotionIconType.Shock },
-  },
-  fugu_t2_c3: {
-    [DriftState.Charmed]:   { dialogue: ['You know what you are?', 'You\'re brave.', 'Or crazy.', 'Both is good.', 'Tomorrow! Trust me!'], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:      { dialogue: ['Thanks.', 'For... for not backing away.', 'Tomorrow.'], icon: EmotionIconType.Curiosity },
-    [DriftState.Neutral]:   { dialogue: ['...', 'The spines are a lot huh?', 'I get it.', 'Tomorrow if you want.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Wary]:      { dialogue: ['...', 'You backed away.', 'It\'s normal.', '...it\'s always normal.'], icon: EmotionIconType.Sadness },
-    [DriftState.Scared]:    { dialogue: ['...', 'I\'m scary.', 'I know.', '...I\'m sorry for being like this.'], icon: EmotionIconType.Shock },
-  },
-  fugu_t2_c4: {
-    [DriftState.Charmed]:   { dialogue: ['Tonight I\'m not talking to rocks!', 'Tonight I\'m thinking about tomorrow!', 'Because tomorrow you\'ll be here!', 'TRUST ME!'], icon: EmotionIconType.Delight },
-    [DriftState.Warm]:      { dialogue: ['Tonight...', 'I\'m going to practice more.', 'With the spines.', 'For you.'], icon: EmotionIconType.Warmth },
-    [DriftState.Neutral]:   { dialogue: ['...', 'See you tomorrow.', 'Maybe.', 'I hope.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Wary]:      { dialogue: ['...', 'I talked too much.', 'Like always.', '...sorry.'], icon: EmotionIconType.Sadness },
-    [DriftState.Scared]:    { dialogue: ['...', 'Goodnight.', '...', '*sinks into the depths*'], icon: EmotionIconType.Shock },
-  },
-  fugu_t3_c5: {
-    [DriftState.Charmed]:   { dialogue: ['You know...', 'Bizu, Plop, and Big Algae...', 'They were fine.', 'But you\'re better.', 'Because you\'re real.', 'Trust me.'], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:      { dialogue: ['Tomorrow...', 'Can we just... be here?', 'Without me telling sad stuff?', '...although I still have sad stuff.'], icon: EmotionIconType.Curiosity },
-    [DriftState.Neutral]:   { dialogue: ['...', 'Sorry about the heavy stuff.', 'Tomorrow I\'ll be lighter.', 'Promise.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Wary]:      { dialogue: ['...', 'I shouldn\'t have talked about the imaginary ones.', 'It\'s weird.', '...I\'m weird.'], icon: EmotionIconType.Sadness },
-    [DriftState.Scared]:    { dialogue: ['...', 'Back to the rocks.', '...', 'At least they don\'t judge.'], icon: EmotionIconType.Shock },
-  },
-  fugu_t3_c6: {
-    [DriftState.Charmed]:   { dialogue: ['Hey.', '...', 'Thanks.', 'For telling me I\'m not a monster.', 'Even without words.', 'Tomorrow. Trust me.'], icon: EmotionIconType.Warmth, flagsToSet: ['mood.fugu.not_monster_confirmed'] },
-    [DriftState.Warm]:      { dialogue: ['Tomorrow.', '...', 'We\'ll talk about lighter stuff.', '...maybe.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]:   { dialogue: ['...', 'It\'s a big question.', 'Take your time.', '...but come back.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Wary]:      { dialogue: ['...', 'I shouldn\'t have asked.', '...', 'Forget it.'], icon: EmotionIconType.Sadness },
-    [DriftState.Scared]:    { dialogue: ['...', 'Maybe I am a monster.', '...', 'Maybe that\'s just what I am.'], icon: EmotionIconType.Shock },
-  },
-  fugu_t4_c7: {
-    [DriftState.Charmed]:   { dialogue: ['...', '...', '*smiles*', '...', 'See you tomorrow.', '...', 'Trust me.'], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:      { dialogue: ['That was...', 'That was calm.', 'I like calm now.', 'Because of you.'], icon: EmotionIconType.Contentment },
-    [DriftState.Neutral]:   { dialogue: ['...', 'That was weird right?', 'The silence?', '...ok maybe it was just me.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Wary]:      { dialogue: ['...', 'I tried.', 'The silence.', 'It\'s hard when the other one doesn\'t help.'], icon: EmotionIconType.Sadness },
-    [DriftState.Scared]:    { dialogue: ['...', 'I opened up.', 'And you...', '...no. It\'s over.'], icon: EmotionIconType.Shock },
-  },
-  fugu_t4_c8: {
-    [DriftState.Charmed]:   { dialogue: ['Friend.', '...', 'FRIEND!', 'My FRIEND!', 'TOMORROW MY FRIEND!', '*dances in circles*', 'TRUST ME!'], icon: EmotionIconType.Delight },
-    [DriftState.Warm]:      { dialogue: ['Friend.', '...', 'That feels good to say.', 'Tomorrow.'], icon: EmotionIconType.Warmth },
-    [DriftState.Neutral]:   { dialogue: ['...', 'It\'s a lot huh?', 'Take your time.', 'I\'ll be here tomorrow. Like always.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Wary]:      { dialogue: ['...', 'Was it too much?', 'The word "friend" is too much?', '...sorry.'], icon: EmotionIconType.Sadness },
-    [DriftState.Scared]:    { dialogue: ['...', 'You don\'t want to be my friend.', '...', 'It\'s ok. I\'m used to it.', '...no it\'s not ok. But that\'s life.'], icon: EmotionIconType.Shock },
-  },
-  fugu_t5_c9: {
-    [DriftState.Charmed]:   { dialogue: ['Tomorrow.', '...', 'I\'ll be here.', 'Like always.', '...', 'But tomorrow is special.', 'You\'ll see.', 'Trust me.'], icon: EmotionIconType.Warmth, flagsToSet: ['mood.fugu.tomorrow_special'] },
-    [DriftState.Warm]:      { dialogue: ['Tomorrow.', '...', 'I still have something to tell you.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Neutral]:   { dialogue: ['...', 'Tomorrow.', 'If you want.'], icon: EmotionIconType.Hesitation },
-    [DriftState.Wary]:      { dialogue: ['...', 'I said too much.', 'Again.', '...but it was true.'], icon: EmotionIconType.Sadness },
-    [DriftState.Scared]:    { dialogue: ['...', 'You know everything now.', 'And you still want to take.', '...'], icon: EmotionIconType.Shock },
-  },
-  fugu_t5_c10: {
-    [DriftState.Charmed]: { dialogue: ['...'], icon: EmotionIconType.Warmth },
-    [DriftState.Warm]:    { dialogue: ['...'], icon: EmotionIconType.Hesitation },
-  },
-};
-
-// ============================================================
 // Catch sequence + drift-away journal text
 // ============================================================
 
@@ -129,11 +53,7 @@ const FUGU_DRIFT_AWAY_JOURNAL_TEXT =
 // ============================================================
 
 function getCasts(): CastData[] {
-  return FUGU_CAST_DEFS.map(d => {
-    const castId = d.start.replace(/_b\d+$/, '');
-    const departures = FUGU_DEPARTURES[castId] ?? {};
-    return inkCast(CHARACTER_ID, d.start, d.name, departures);
-  });
+  return FUGU_CAST_DEFS.map(d => inkCast(CHARACTER_ID, d.start, d.name));
 }
 
 // ============================================================
@@ -179,6 +99,29 @@ const FUGU_CGS: CGData[] = [
   },
 ];
 
+// ============================================================
+// Encounter recipes — Fugu's 5-tier arc
+// ============================================================
+// Each tier transition activates the next recipe via Ink (`#flag:recipe.fugu.X`)
+// and clears the previous one. `home` is the only `initial: true` slot.
+//
+//   home       → T1 introduction      (Near + Day + any lure)
+//   nightT2    → T2 quieter night     (Near + Night + any lure)
+//   spinnerT3  → T3 he wants the red  (Near + Night + red_spinner)
+//   parkT4     → T4 daytime in park   (Near + Day + any lure)
+//   climaxT5   → T5 the feather fly   (Near + Day + feather_fly)
+// Main-fish recipes use priority: 1 to win ties over ambient NPCs.
+// T1 is accessible day OR night for first contact (home + homeNight, both initial).
+// Their dispatcher routes both to the same beat; the dialogue is time-agnostic.
+const FUGU_RECIPES: Recipe[] = [
+  { id: 'home',      zone: 'near', phase: Phase.Day,   lure: ANY_LURE,     initial: true, priority: 1 },
+  { id: 'homeNight', zone: 'near', phase: Phase.Night, lure: ANY_LURE,     initial: true, priority: 1 },
+  { id: 'nightT2',   zone: 'near', phase: Phase.Night, lure: ANY_LURE,     priority: 1 },
+  { id: 'spinnerT3', zone: 'near', phase: Phase.Night, lure: 'red_spinner', priority: 1 },
+  { id: 'parkT4',    zone: 'near', phase: Phase.Day,   lure: ANY_LURE,     priority: 1 },
+  { id: 'climaxT5',  zone: 'near', phase: Phase.Day,   lure: 'feather_fly', priority: 1 },
+];
+
 export const FUGU_CHARACTER: CharacterConfig = {
   id: CHARACTER_ID,
   name: 'Fugu',
@@ -191,14 +134,9 @@ export const FUGU_CHARACTER: CharacterConfig = {
   portraitTexture: fuguNeutralTexture,
   portraitSpritePath: FUGU_PORTRAIT_SPRITE,
 
-  preferredLures: ['feather_fly', 'red_spinner'],
-  dislikedLures: ['gold_teardrop', 'bare_hook'],
-
-  lakeZones: ['near', 'far'],
+  recipes: FUGU_RECIPES,
 
   unlockCondition: () => true,
-
-  encounterRate: 1.0,
 
   questName: 'The True Friend',
   questHint: 'He just wants to be heard. Come back. Play. Stay. Don\'t take. Time is the proof — every visit counts.',
@@ -218,6 +156,21 @@ export const FUGU_CHARACTER: CharacterConfig = {
 
   catchSequenceData: FUGU_CATCH_SEQUENCE_DATA,
   driftAwayJournalText: FUGU_DRIFT_AWAY_JOURNAL_TEXT,
+
+  // 10-step narrative progression for the HUD gauge. Each cast set its flag
+  // at the terminal beat; reaching them all means the full arc is unlocked.
+  progressionMilestones: [
+    'met.fugu',                // c1 first contact
+    'quest.fugu.t1_done',      // c2 end of T1
+    'quest.fugu.t2_c3_done',   // c3 end
+    'quest.fugu.t2_done',      // c4 end of T2
+    'quest.fugu.t3_c5_done',   // c5 end
+    'quest.fugu.t3_done',      // c6 end of T3
+    'quest.fugu.t4_c7_done',   // c7 end
+    'quest.fugu.t4_done',      // c8 end of T4
+    'quest.fugu.t5_c9_done',   // c9 end
+    'fugu.ending_complete',    // c10 ending reached (any of Reel/Release/DriftAway)
+  ],
 
   facts: [
     {

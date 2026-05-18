@@ -5,10 +5,12 @@
  */
 
 // Valid namespace prefixes
-const VALID_NAMESPACES = ['met.', 'secret.', 'quest.', 'mood.', 'count.', 'cross.', 'run.', 'time.', 'fact.'];
+const VALID_NAMESPACES = ['met.', 'secret.', 'quest.', 'mood.', 'count.', 'cross.', 'run.', 'time.', 'fact.', 'recipe.', 'from.'];
+
+export type FlagValue = boolean | number | string;
 
 export class FlagSystem {
-  private flags: Map<string, boolean | number> = new Map();
+  private flags: Map<string, FlagValue> = new Map();
   private registeredKeys: Set<string> = new Set();
 
   /** Register a flag key (for orphan detection) */
@@ -17,14 +19,15 @@ export class FlagSystem {
     this.registeredKeys.add(key);
   }
 
-  /** Set a boolean flag */
-  set(key: string, value: boolean | number): void {
+  /** Set a flag (boolean, number, or string — strings are used for enum-like
+   *  state like `mood.<fishId>.last_drift = "WARY"`). */
+  set(key: string, value: FlagValue): void {
     this.validateNamespace(key);
     this.flags.set(key, value);
   }
 
   /** Get a flag value (default false for boolean, 0 for number) */
-  get(key: string): boolean | number {
+  get(key: string): FlagValue {
     return this.flags.get(key) ?? false;
   }
 
@@ -32,6 +35,11 @@ export class FlagSystem {
   check(key: string): boolean {
     const val = this.flags.get(key);
     return val === true || (typeof val === 'number' && val > 0);
+  }
+
+  /** Check if a flag key has ever been set (regardless of truthiness). */
+  has(key: string): boolean {
+    return this.flags.has(key);
   }
 
   /** Increment a numeric flag */
@@ -48,10 +56,13 @@ export class FlagSystem {
     this.flags.delete(key);
   }
 
-  /** Serialize all flags for save */
+  /** Serialize all flags for save. Strings are skipped — they are
+   *  ephemeral runtime markers (e.g. `mood.<fishId>.last_drift`) re-derived
+   *  on cast start from persisted fish state. */
   serialize(): Record<string, boolean | number> {
     const result: Record<string, boolean | number> = {};
     for (const [k, v] of this.flags) {
+      if (typeof v === 'string') continue;
       result[k] = v;
     }
     return result;

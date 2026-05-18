@@ -25,6 +25,8 @@ import { CustomUiComponent, DrawingCommandsBuilder, SolidBrush } from 'meta/cust
 import {
   FocusedInteractionService,
   OnFocusedInteractionInputStartedEvent,
+  OnFocusedInteractionInputMovedEvent,
+  OnFocusedInteractionInputEndedEvent,
   OnFocusedInteractionInputEventPayload,
   NetworkingService,
   EventService,
@@ -41,6 +43,7 @@ import {
   onFloaterNewCast,
   onFloaterSkipBeat,
   onFloaterCastStart,
+  onDayNightToggle,
   onJournalOpen,
   onJournalClose,
   onJournalTabSwitch,
@@ -66,11 +69,14 @@ import { SaveSystem } from './SaveSystem';
 import { AffectionSystem } from './AffectionSystem';
 import { createDefaultCharacter, getBeats, getCast, getCastCount } from './CastData';
 import { characterRegistry } from './CharacterRegistry';
+import { resolveFishEntryKnot, buildBeatsFromInk } from './InkBeatAdapter';
 import { QuestSystem } from './QuestSystem';
-import { EncounterSystem } from './EncounterSystem';
+import { EncounterSystem, getZoneFromPower, recipeFromFlag } from './EncounterSystem';
+import type { EncounterResult } from './EncounterSystem';
 import { ALL_LURES } from './LureData';
 import { CGGallerySystem } from './CGGallerySystem';
 import { JournalSystem } from './JournalSystem';
+import { lureRedSpinnerTexture, lureGoldTeardropTexture, lureFeatherFlyTexture } from './Assets';
 import { GlobalStatsSystem } from './GlobalStatsSystem';
 import {
   OnSaveDataLoaded,
@@ -106,9 +112,15 @@ import {
   CAST_3D_GRAVITY_Y, CAST_3D_NUM_LINE_SEGMENTS, CAST_3D_SEGMENT_LENGTH,
   CAST_3D_FOCAL_LENGTH, CAST_3D_WATER_Y, CAST_3D_MAX_FLIGHT_TIME,
   CAST_3D_BASE_SPEED, CAST_3D_POWER_MULTIPLIER, CAST_3D_START_DEPTH, CAST_3D_SCALE_MULTIPLIER,
-  CAST_3D_CALC_MIN_FLIGHT_TIME, CAST_3D_CALC_MAX_FLIGHT_TIME,
+  CAST_3D_CALC_MIN_FLIGHT_TIME, CAST_3D_CALC_MAX_FLIGHT_TIME, CAST_3D_Y_BOOST_MULTIPLIER,
+  VERLET_ROPE_NUM_PARTICLES, VERLET_ROPE_SEGMENT_LENGTH,
+  VERLET_ROPE_GRAVITY, VERLET_ROPE_CONSTRAINT_ITERATIONS, VERLET_ROPE_DAMPING,
   CAST_LANDING_NEAR_Y, CAST_LANDING_FAR_Y, CAST_LANDING_X_VARIANCE,
   CAST_LANDING_X_OFFSET,
+  CAST_TRAJ_START_X, CAST_TRAJ_START_Y,
+  CAST_TRAJ_LANDING_NEAR_Y, CAST_TRAJ_LANDING_FAR_Y,
+  CAST_TRAJ_DRAG_SENSITIVITY, CAST_TRAJ_X_SENSITIVITY, CAST_TRAJ_LANDING_MIN_X, CAST_TRAJ_LANDING_MAX_X,
+  CAST_TRAJ_CTRL_OFFSET_Y,
   POV_CAST_START_X, POV_CAST_START_Y, POV_CAST_START_SCALE, POV_CAST_END_SCALE, POV_CAST_FLIGHT_TIME,
   POV_CAST_PEAK_X, POV_CAST_PEAK_Y, POV_CAST_PEAK_SCALE, POV_CAST_PEAK_T,
   POV_LINE_START_X, POV_LINE_START_Y,
@@ -126,9 +138,9 @@ import {
 import { Vec3D } from './Vec3D';
 import {
   GamePhase, DriftState, ExpressionState,
-  EmotionIconType, EndingType,
+  EmotionIconType, EndingType, Phase, ANY_LURE,
 } from './Types';
-import type { Beat, ActionEffect, FishCharacter, FishAffection, SaveData, SplashRipple, FloatingEmotionIcon, EmotionIconAnchor, CharacterConfig, FishSaveData, LureReaction } from './Types';
+import type { Beat, ActionEffect, FishCharacter, FishAffection, SaveData, SplashRipple, FloatingEmotionIcon, EmotionIconAnchor, FishSaveData, LureReaction } from './Types';
 
 @component()
 export class FloaterGame extends Component {
@@ -173,6 +185,10 @@ export class FloaterGame extends Component {
   private textProgress: number = 0;
   private isTextComplete: boolean = false;
   private isShowingReaction: boolean = false;
+  /** True when the currently playing reaction comes from a terminal choice
+   *  (Ink `-> END`). When the reaction finishes, the engine triggers the
+   *  visual departure directly — no side-table lookup. */
+  private currentReactionIsTerminal: boolean = false;
 
   // Timing
   private time: number = 0;
@@ -187,6 +203,28 @@ export class FloaterGame extends Component {
   private fadeState: 'none' | 'fading_out' | 'fading_in' = 'none';
   private fadeTimer: number = 0;
   private fadeAlpha: number = 0;
+
+  // Intro cinematic state \u2014 single paragraph progressively revealed in a
+  // typewriter pass, then auto-fades to LakeIdle. No tap required.
+  private introActive: boolean = false;
+  private introTextProgress: number = 0; // seconds elapsed in typewriter
+  private introHoldTimer: number = 0;    // seconds held on fully-revealed paragraph
+  private introFadeTimer: number = 0;    // seconds elapsed in fade-out
+  private introState: 'typing' | 'hold' | 'fading' = 'typing';
+  private readonly introFullText: string =
+    'A pond, still under the moon.\n' +
+    'The water holds its breath.\n\n' +
+    'They say the fish here are different \u2014 they come close, and they speak.\n' +
+    'All you need is patience\u2026 and the right lure.';
+  private static readonly INTRO_CHAR_SPEED: number = 0.035; // seconds per character
+  private static readonly INTRO_HOLD_DURATION: number = 1.8; // pause on full text
+  private static readonly INTRO_FADE_DURATION: number = 1.0; // fade overlay out
+
+  // Day/Night Toggle
+  private isDayMode: boolean = false;
+  private dayNightFadeState: 'none' | 'fading_out' | 'fading_in' = 'none';
+  private dayNightFadeTimer: number = 0;
+  private dayNightFadeAlpha: number = 0;
 
   // Action Button Animation State
   private actionMenuAnimState: 'hidden' | 'appearing' | 'visible' | 'responding' | 'disappearing' = 'hidden';
@@ -222,8 +260,15 @@ export class FloaterGame extends Component {
   // Fish approach/departure
   private fishAlpha: number = 0;
 
-  // Skip system
+  // Skip system — VN-style fast-forward through dialogue.
+  // `canSkip` gates whether the button is shown (any dialogue phase).
+  // `skipActive` is the player-toggled fast-forward state. When active, dialogue
+  // auto-advances on a short timer and the typewriter completes instantly.
+  // Skip auto-cancels at unseen beats, action choices, and endings.
   private canSkip: boolean = false;
+  private skipActive: boolean = false;
+  private skipAdvanceTimer: number = 0;
+  private static readonly SKIP_LINE_INTERVAL: number = 0.06; // seconds between auto-advances
 
   // Character Ripples (expansion + fade, spawned periodically when portrait visible)
   private characterRipples: SplashRipple[] = [];
@@ -231,6 +276,16 @@ export class FloaterGame extends Component {
 
   // Cast Mechanics
   private powerGaugeValue: number = 0;
+
+  // Cast Trajectory Preview (touch-drag on LakeIdle)
+  private isInCastAiming: boolean = false; // true after Cast button tapped, before release
+  private isCastTouching: boolean = false;
+  private castTouchStartY: number = 0;
+  private castTouchStartX: number = 0;
+  private castTrajectoryDistance: number = 0; // 0..1 (0=near, 1=far)
+  private castTrajectoryOffsetX: number = 0; // -1..1 (left..right)
+  private previewLandingX: number = 0; // Physics-simulated landing point (2D canvas X)
+  private previewLandingY: number = 0; // Physics-simulated landing point (2D canvas Y)
 
   // Float Idle Ripples (periodic expansion + fade while float is stationary)
   private floatIdleRipples: SplashRipple[] = [];
@@ -241,6 +296,22 @@ export class FloaterGame extends Component {
   private castFloatX: number = 0;
   private castFloatY: number = 0;
   private castFloatScale: number = 1.0;
+  private castFloatRotation: number = 0; // degrees, derived from bezier tangent + wobble
+  private prevCastFloatScreenX: number = 0;
+  private prevCastFloatScreenY: number = 0;
+
+  // === Bezier Flight (Phase 2 prototype) ===
+  private isBezierFlying: boolean = false;
+  private bezierFlightT: number = 0;
+  private bezierFlightDuration: number = 0.6; // seconds
+  private bezierP0: { x: number; y: number } = { x: 0, y: 0 };
+
+  // === Verlet Rope Simulation (for bezier flight line) ===
+  private verletPositions: Vec3D[] = [];
+  private verletPrevPositions: Vec3D[] = [];
+  private bezierP1: { x: number; y: number } = { x: 0, y: 0 }; // control point
+  private bezierP2: { x: number; y: number } = { x: 0, y: 0 }; // endpoint
+
   private splashRipples: SplashRipple[] = [];
   private splashTimer: number = 0;
   private floatLandedTimer: number = 0;
@@ -254,7 +325,7 @@ export class FloaterGame extends Component {
   private showingSurpriseEmoji: boolean = false;
 
   // Pre-determined encounter result (resolved at bounce start, consumed by startCast)
-  private pendingEncounterCharacter: CharacterConfig | null = null;
+  private pendingEncounter: EncounterResult | null = null;
 
   // Flag snapshot at cast start (for detecting newly discovered facts)
   private flagsAtCastStart: Record<string, boolean | number> = {};
@@ -321,6 +392,14 @@ export class FloaterGame extends Component {
       }
     });
 
+    // Seed Day/Night from the player's wall-clock hour (6h-18h = Day).
+    // Not persisted: the player can toggle freely; on next launch we re-seed.
+    const hour = new Date().getHours();
+    this.isDayMode = hour >= 6 && hour < 18;
+    floaterVM.isDayMode = this.isDayMode;
+
+    floaterVM.dayNightButtonRotation = this.isDayMode ? 180 : 0;
+
     this.loadGame();
     this.render();
     console.log('[FloaterGame] Created');
@@ -343,6 +422,8 @@ export class FloaterGame extends Component {
 
     this.saveSystem.update(clampedDt, () => this.buildSaveData());
     this.updateFadeTransition(clampedDt);
+    this.updateDayNightFade(clampedDt);
+    this.updateIntro(clampedDt);
     this.updatePhase(clampedDt);
     this.updateFloat(clampedDt);
     this.updateActionAnimation(clampedDt);
@@ -365,6 +446,10 @@ export class FloaterGame extends Component {
     this.globalStatsSystem.incrementPlaySession();
     this.saveSystem.requestSave();
 
+    // titleVisible stays true through the fade-to-black; it flips false at
+    // fadeAlpha=1 (in updateFadeTransition) so the title is hidden under the
+    // black screen, never as a hard pop. The syncViewModelFromState guard
+    // prevents async save loads from re-showing it once the fade has begun.
     this.fadeState = 'fading_out';
     this.fadeTimer = 0;
     this.fadeAlpha = 0;
@@ -388,22 +473,128 @@ export class FloaterGame extends Component {
   @subscribe(onFloaterSkipBeat)
   onSkipBeat(): void {
     if (!this.canSkip) return;
-    this.advanceBeat();
+    // Toggle VN-style fast-forward. The per-frame tick in updatePhase() drives
+    // line-by-line progression while active; it auto-cancels at unseen beats,
+    // action choices, and endings.
+    this.skipActive = !this.skipActive;
+    this.skipAdvanceTimer = 0;
+    floaterVM.skipButtonOpacity = 1;
+    if (this.skipActive) {
+      // Don't sit idle through the inter-beat pause while skipping.
+      this.beatPauseTimer = 0;
+    }
+    console.log(`[FloaterGame] Skip toggled: active=${this.skipActive}, phase=${this.phase}, beatIndex=${this.currentBeatIndex}`);
   }
 
+  /** Cancel any active fast-forward. Button visibility is owned by whoever
+   *  changed the phase — this only tears down the skip *state*, never reveals
+   *  the button. Otherwise canceling from ActionSelect (where the button must
+   *  be hidden) would flash it back into view. */
+  private cancelSkip(): void {
+    if (this.skipActive) {
+      this.skipActive = false;
+      this.skipAdvanceTimer = 0;
+    }
+  }
+
+  /**
+   * Per-frame skip tick. Called from updatePhase() for any phase where
+   * dialogue is being read. Completes the current typewriter line instantly
+   * and then advances one line per SKIP_LINE_INTERVAL. Auto-cancels when the
+   * next step would expose unseen content or hand control to the player.
+   */
+  private updateSkip(dt: number): void {
+    if (!this.skipActive) return;
+    // Inter-beat pause: skip past it by firing startNextBeat() now. We must
+    // NOT just zero the timer and fall through to advanceDialogue — the
+    // current `currentLines`/`currentLineIndex` still point at the previous
+    // beat's text (e.g. reaction tail), and advanceDialogue would mis-route
+    // by reading the next beat's actionEffects against stale line state.
+    // startNextBeat is the canonical entry point that loads the new beat.
+    if (this.beatPauseTimer > 0 && this.phase === GamePhase.Exchange) {
+      this.beatPauseTimer = 0;
+      this.skipAdvanceTimer = 0;
+      this.startNextBeat();
+      return;
+    }
+    // Snap typewriter to end instantly.
+    if (!this.isTextComplete) {
+      this.completeCurrentText();
+    }
+    this.skipAdvanceTimer += dt;
+    if (this.skipAdvanceTimer < FloaterGame.SKIP_LINE_INTERVAL) return;
+    this.skipAdvanceTimer = 0;
+
+    // Stop at unseen beats: if we're about to wrap to the next beat in Exchange
+    // and that beat has never been seen, hand control back to the player.
+    if (this.phase === GamePhase.Exchange && !this.isShowingReaction) {
+      const atLastLine = this.currentLineIndex >= this.currentLines.length - 1;
+      if (atLastLine) {
+        const currentBeat = this.beats[this.currentBeatIndex];
+        const noChoices = currentBeat && Object.keys(currentBeat.actionEffects).length === 0;
+        if (noChoices) {
+          // Monologue beat: advanceDialogue() will roll to the next beat.
+          const nextBeat = this.beats[this.currentBeatIndex + 1];
+          if (nextBeat && !this.seenBeats.has(nextBeat.beatId)) {
+            this.cancelSkip();
+            return;
+          }
+        }
+        // Beats with action choices stop skip naturally: advanceDialogue will
+        // enter ActionSelect, which cancels skip in updatePhase below.
+      }
+    }
+    // Stop at unseen reaction tails too: once reaction finishes, next beat will
+    // start. Mirror the seen-beat guard.
+    if (this.phase === GamePhase.FishReaction && this.isShowingReaction) {
+      const atLastLine = this.currentLineIndex >= this.currentLines.length - 1;
+      if (atLastLine && !this.currentReactionIsTerminal) {
+        const nextBeat = this.beats[this.currentBeatIndex + 1];
+        if (nextBeat && !this.seenBeats.has(nextBeat.beatId)) {
+          this.cancelSkip();
+          return;
+        }
+      }
+    }
+
+    // Advance one line. Routes match onTouchStart's tap handling.
+    if (this.phase === GamePhase.Exchange || this.phase === GamePhase.FishReaction) {
+      this.advanceDialogue();
+    } else if (this.phase === GamePhase.Departure) {
+      // Stop skip on the final departure line so the fish's fade-out anim
+      // (gated on lineIndex >= length - 1 in updatePhase) can actually play.
+      // Without this, skip blows past the last line before fishAlpha reaches 0.
+      if (this.currentLineIndex >= this.currentLines.length - 1) {
+        this.cancelSkip();
+        return;
+      }
+      this.advanceDepartureDialogue();
+    } else if (this.phase === GamePhase.NothingBites) {
+      // NothingBites is a single-line timed message; just complete it and let
+      // the existing timer return to LakeIdle. No advance needed.
+    }
+  }
+
+  @subscribe(onDayNightToggle)
+  onDayNightToggle(): void {
+    // Don't allow toggling while a day/night transition is already in progress
+    if (this.dayNightFadeState !== 'none') return;
+    console.log('[FloaterGame] Day/Night toggle pressed');
+    this.dayNightFadeState = 'fading_out';
+    this.dayNightFadeTimer = 0;
+    this.dayNightFadeAlpha = 0;
+  }
+
+  // === Cast Aiming Mode ===
+  // When the Cast button is tapped, we enter "aiming mode": hide idle bar,
+  // show drag instruction, and gate touch input so only drags trigger casting.
   @subscribe(onFloaterCastStart)
   onCastStart(): void {
     if (this.phase !== GamePhase.LakeIdle) return;
-    console.log('[FloaterGame] Cast button pressed → CastCharging');
-    this.phase = GamePhase.CastCharging;
-    this.powerGaugeValue = 0;
-    this.powerGaugeDir = 1;
-    // Disable idle buttons during the entire cast sequence
-    floaterVM.idleBaitBtnEnabled = false;
-    floaterVM.idleCastBtnEnabled = false;
-    floaterVM.idleJournalBtnEnabled = false;
-    // Hide idle bar immediately when cast starts (animate out)
+    console.log('[FloaterGame] Cast button tapped → entering aiming mode');
+    this.isInCastAiming = true;
     this.hideIdleBar();
+    floaterVM.castInstructionVisible = true;
   }
 
   // === Journal/Inventory Events ===
@@ -502,6 +693,35 @@ export class FloaterGame extends Component {
         : 'No observations yet.';
     } else {
       floaterVM.charDetailObservations = 'No observations yet.';
+    }
+
+    const targetRecipe = this.journalSystem.getTargetRecipe(charId, currentFlags);
+    if (targetRecipe) {
+      const zoneLabels: Record<string, string> = {
+        near: 'Near bank',
+        mid: 'Mid waters',
+        far: 'Deep waters',
+      };
+      floaterVM.charDetailLocationZone = zoneLabels[targetRecipe.zone] ?? targetRecipe.zone;
+
+      // Lure icon
+      if (targetRecipe.lure === ANY_LURE) {
+        floaterVM.charDetailLocationLureVisible = false;
+      } else {
+        floaterVM.charDetailLocationLureVisible = true;
+        const lureTextureMap: Record<string, typeof lureRedSpinnerTexture> = {
+          'red_spinner': lureRedSpinnerTexture,
+          'gold_teardrop': lureGoldTeardropTexture,
+          'feather_fly': lureFeatherFlyTexture,
+        };
+        floaterVM.charDetailLocationLureTexture = lureTextureMap[targetRecipe.lure];
+      }
+
+      // Phase rotation: Night=0°, Day=180°
+      floaterVM.charDetailLocationPhaseRotation = targetRecipe.phase === Phase.Day ? 180 : 0;
+      floaterVM.charDetailLocationVisible = true;
+    } else {
+      floaterVM.charDetailLocationVisible = false;
     }
 
     floaterVM.charDetailVisible = true;
@@ -730,6 +950,11 @@ export class FloaterGame extends Component {
     floaterVM.castButtonVisible = false;
     floaterVM.endingVisible = false;
     floaterVM.dialogueVisible = false;
+    floaterVM.skipButtonVisible = false;
+    floaterVM.skipButtonOpacity = 0;
+    this.canSkip = false;
+    this.skipActive = false;
+    this.skipAdvanceTimer = 0;
     floaterVM.inventoryVisible = false;
     floaterVM.journalVisible = false;
     floaterVM.inventoryButtonVisible = false;
@@ -740,6 +965,8 @@ export class FloaterGame extends Component {
     this.idleBarAnimState = 'hidden';
     floaterVM.cgViewerVisible = false;
     floaterVM.resetConfirmVisible = false;
+    floaterVM.introVisible = false;
+    this.introActive = false;
 
     console.log('[FloaterGame] All state reset to initial');
     this.render();
@@ -770,6 +997,11 @@ export class FloaterGame extends Component {
   onTouchStart(payload: OnFocusedInteractionInputEventPayload): void {
     if (payload.interactionIndex !== 0) return;
 
+    if (this.introActive) {
+      this.advanceIntro();
+      return;
+    }
+
     if (this.phase === GamePhase.Ending) {
       if (!this.epitaphTextComplete) {
         // First tap during typewriter: complete the text instantly
@@ -793,11 +1025,25 @@ export class FloaterGame extends Component {
       return;
     }
 
-    if (this.phase === GamePhase.CastCharging) {
-      this.castPower = this.powerGaugeValue;
-      this.launchFloat();
+    if (this.phase === GamePhase.LakeIdle) {
+      // Only allow cast drag when in aiming mode (after Cast button tapped)
+      if (!this.isInCastAiming) return;
+      const pos = this.screenToCanvas(payload.screenPosition);
+      this.isCastTouching = true;
+      this.castTouchStartY = pos.y;
+      this.castTouchStartX = pos.x;
+      this.castTrajectoryDistance = 0.5;
+      this.castTrajectoryOffsetX = 0;
+      // Immediately compute landing point at center so trajectory preview shows on first frame
+      const startLanding = this.computePhysicsLandingPoint(0.5, 0);
+      this.previewLandingX = startLanding.x;
+      this.previewLandingY = startLanding.y;
+      // Hide cast instruction once drag starts
+      floaterVM.castInstructionVisible = false;
       return;
     }
+
+
 
     if (this.phase === GamePhase.Departure) {
       if (this.isTextComplete) { this.advanceDepartureDialogue(); }
@@ -817,6 +1063,132 @@ export class FloaterGame extends Component {
     }
   }
 
+  @subscribe(OnFocusedInteractionInputMovedEvent)
+  onTouchMove(payload: OnFocusedInteractionInputEventPayload): void {
+    if (payload.interactionIndex !== 0) return;
+    if (!this.isCastTouching || this.phase !== GamePhase.LakeIdle) return;
+
+    const pos = this.screenToCanvas(payload.screenPosition);
+    // Moving finger DOWN (increasing Y) = more distance (further cast)
+    const deltaY = this.castTouchStartY - pos.y;
+    // Normalize: positive deltaY means further cast, clamped 0..1
+    const rawDistance = (deltaY * CAST_TRAJ_DRAG_SENSITIVITY) / (CANVAS_HEIGHT * 0.3);
+    this.castTrajectoryDistance = Math.max(0, Math.min(1, 0.5 + rawDistance));
+
+    // Horizontal offset: moving finger left/right from start position
+    const deltaX = pos.x - this.castTouchStartX;
+    const rawOffsetX = (deltaX * CAST_TRAJ_X_SENSITIVITY) / (CANVAS_WIDTH * 0.5);
+    this.castTrajectoryOffsetX = Math.max(-1, Math.min(1, rawOffsetX));
+
+    // Compute physics-accurate landing point for preview curve
+    const landing = this.computePhysicsLandingPoint(this.castTrajectoryDistance, this.castTrajectoryOffsetX);
+    this.previewLandingX = landing.x;
+    this.previewLandingY = landing.y;
+  }
+
+  @subscribe(OnFocusedInteractionInputEndedEvent)
+  onTouchEnd(payload: OnFocusedInteractionInputEventPayload): void {
+    if (payload.interactionIndex !== 0) return;
+
+    // === 3D Ballistic Flight Launch: If in LakeIdle with a valid trajectory, launch the float ===
+    // isCastTouching guard ensures we only launch when the touch STARTED during LakeIdle
+    // (prevents spurious casts when a tap dismisses Ending/NothingBites and transitions to LakeIdle mid-touch)
+    if (this.phase === GamePhase.LakeIdle && this.isCastTouching && this.castTrajectoryDistance >= 0) {
+      const distance = this.castTrajectoryDistance;
+      const xOffset = this.castTrajectoryOffsetX;
+
+      // Compute 2D landing target (same logic as trajectory preview)
+      const startX = CAST_TRAJ_START_X;
+      const startY = CAST_TRAJ_START_Y;
+      const centerX = CANVAS_WIDTH / 2;
+      const xRange = (CAST_TRAJ_LANDING_MAX_X - CAST_TRAJ_LANDING_MIN_X) / 2;
+      const rawEndX = centerX + xOffset * xRange;
+      const endX = Math.max(CAST_TRAJ_LANDING_MIN_X, Math.min(CAST_TRAJ_LANDING_MAX_X, rawEndX));
+      const endY = CAST_TRAJ_LANDING_NEAR_Y + distance * (CAST_TRAJ_LANDING_FAR_Y - CAST_TRAJ_LANDING_NEAR_Y);
+
+      // Unproject start and end to 3D space
+      const start3D = this.unproject2Dto3D(startX, startY, 1.0);
+      const target3D = this.unproject2Dto3D(endX, endY, 1.0);
+
+      // Flight time: higher distance (power) = shorter time
+      const flightTime = CAST_3D_CALC_MAX_FLIGHT_TIME + distance * (CAST_3D_CALC_MIN_FLIGHT_TIME - CAST_3D_CALC_MAX_FLIGHT_TIME);
+
+      // Calculate ballistic velocity, then boost Y for dramatic arc
+      const velocity = this.calculateBallisticVelocity(start3D, target3D, flightTime);
+      velocity.y *= CAST_3D_Y_BOOST_MULTIPLIER;
+
+      // Set 3D flight state
+      this.floater3DPos = start3D;
+      this.floater3DVel = velocity;
+      this.isBezierFlying = true;
+      this.bezierFlightT = 0;
+      // Store bezier duration as our estimated flight time (used by updateCastFlight)
+      this.bezierFlightDuration = flightTime;
+
+      // Store landing targets for onFloatLanded
+      this.landingTargetX = endX;
+      this.landingTargetY = endY;
+      this.lastCastPower = distance * 100; // 0-100 scale
+
+      // Initialize Verlet rope: distribute particles from rod tip to float start position
+      const rodTip3D = this.unproject2Dto3D(POV_LINE_START_X, POV_LINE_START_Y, 1.2);
+      this.verletPositions = [];
+      this.verletPrevPositions = [];
+      for (let i = 0; i < VERLET_ROPE_NUM_PARTICLES; i++) {
+        const t = i / (VERLET_ROPE_NUM_PARTICLES - 1);
+        const pos = new Vec3D(
+          rodTip3D.x + (start3D.x - rodTip3D.x) * t,
+          rodTip3D.y + (start3D.y - rodTip3D.y) * t,
+          rodTip3D.z + (start3D.z - rodTip3D.z) * t
+        );
+        this.verletPositions.push(pos);
+        this.verletPrevPositions.push(pos.clone());
+      }
+
+      // Project initial position to set castFloat screen coords
+      const projected = this.project3Dto2D(start3D);
+      this.castFloatX = projected.x;
+      this.castFloatY = projected.y;
+      this.castFloatScale = projected.scale;
+      this.prevCastFloatScreenX = projected.x;
+      this.prevCastFloatScreenY = projected.y;
+
+      // Transition to CastFlying phase
+      this.phase = GamePhase.CastFlying;
+      this.castFlightT = 0;
+
+      // Track lure usage for quest system
+      if (this.equippedLureId) {
+        this.questSystem.recordLureUsed(this.equippedLureId);
+      }
+
+      // Disable idle buttons (same as onCastStart)
+      floaterVM.idleBaitBtnEnabled = false;
+      floaterVM.idleCastBtnEnabled = false;
+      floaterVM.idleJournalBtnEnabled = false;
+      this.hideIdleBar();
+
+      console.log(`[FloaterGame] 3D Ballistic flight launched: distance=${distance.toFixed(2)}, endX=${endX.toFixed(0)}, endY=${endY.toFixed(0)}, flightTime=${flightTime.toFixed(2)}s`);
+    }
+
+    const wasCastTouching = this.isCastTouching;
+    this.isCastTouching = false;
+    this.castTrajectoryDistance = 0;
+    this.castTrajectoryOffsetX = 0;
+
+    // Exit aiming mode ONLY if this touch-end corresponds to an actual cast drag
+    // (wasCastTouching true). If false, this touch-end is from the Cast button tap itself
+    // and should NOT cancel aiming mode.
+    if (this.isInCastAiming && wasCastTouching) {
+      this.isInCastAiming = false;
+      floaterVM.castInstructionVisible = false;
+      // If the touch was too short to launch (no valid trajectory), restore idle bar
+      if (this.phase === GamePhase.LakeIdle) {
+        this.showIdleBar();
+      }
+    }
+  }
+
   // === Phase Logic ===
   private updateFadeTransition(dt: number): void {
     if (this.fadeState === 'none') return;
@@ -832,7 +1204,11 @@ export class FloaterGame extends Component {
         this.fadeTimer = 0;
         // Perform the actual state transition while screen is black
         floaterVM.titleVisible = false;
-        this.enterLakeIdle();
+        if (!this.flagSystem.check('run.intro_seen')) {
+          this.startIntro();
+        } else {
+          this.enterLakeIdle();
+        }
         console.log('[FloaterGame] Fade out complete → entering LakeIdle, fading in');
       }
     } else if (this.fadeState === 'fading_in') {
@@ -845,15 +1221,43 @@ export class FloaterGame extends Component {
     }
   }
 
+  private updateDayNightFade(dt: number): void {
+    if (this.dayNightFadeState === 'none') return;
+
+    const DAY_NIGHT_FADE_DURATION = 0.25;
+    this.dayNightFadeTimer += dt;
+
+    if (this.dayNightFadeState === 'fading_out') {
+      this.dayNightFadeAlpha = Math.min(1, this.dayNightFadeTimer / DAY_NIGHT_FADE_DURATION);
+      if (this.dayNightFadeAlpha >= 1) {
+        this.dayNightFadeAlpha = 1;
+        this.dayNightFadeState = 'fading_in';
+        this.dayNightFadeTimer = 0;
+        // Swap background while screen is black
+        this.isDayMode = !this.isDayMode;
+        floaterVM.isDayMode = this.isDayMode;
+        floaterVM.dayNightButtonRotation = this.isDayMode ? 180 : 0;
+        console.log(`[FloaterGame] Day/Night swap: isDayMode=${this.isDayMode}`);
+      }
+    } else if (this.dayNightFadeState === 'fading_in') {
+      this.dayNightFadeAlpha = Math.max(0, 1 - this.dayNightFadeTimer / DAY_NIGHT_FADE_DURATION);
+      if (this.dayNightFadeAlpha <= 0) {
+        this.dayNightFadeAlpha = 0;
+        this.dayNightFadeState = 'none';
+        console.log('[FloaterGame] Day/Night fade complete');
+      }
+    }
+  }
+
   private updatePhase(dt: number): void {
     switch (this.phase) {
-      case GamePhase.CastCharging: this.updatePowerGauge(dt); break;
       case GamePhase.CastFlying: this.updateCastFlight(dt); break;
       case GamePhase.FloatLanded: this.updateFloatLanded(dt); break;
       case GamePhase.FloatBounce: this.updateFloatBounce(dt); break;
       case GamePhase.NothingBites:
         this.nothingBitesTimer -= dt;
         this.updateTypewriter(dt);
+        this.updateSkip(dt);
         if (this.nothingBitesTimer <= 0) {
           console.log('[FloaterGame] Nothing bites timer expired → LakeIdle');
           floaterVM.dialogueVisible = false;
@@ -877,9 +1281,12 @@ export class FloaterGame extends Component {
         }
         if (this.phaseTimer >= APPROACH_DURATION) this.enterExchange();
         break;
-      case GamePhase.Exchange: this.updateTypewriter(dt); break;
-      case GamePhase.FishReaction: this.updateTypewriter(dt); break;
+      case GamePhase.Exchange: this.updateTypewriter(dt); this.updateSkip(dt); break;
+      case GamePhase.FishReaction: this.updateTypewriter(dt); this.updateSkip(dt); break;
       case GamePhase.ActionSelect:
+        // Action choices always require explicit player input — cancel any
+        // active fast-forward so the player doesn't blow past their own choice.
+        if (this.skipActive) this.cancelSkip();
         // Update silent beat timer during ActionSelect
         if (this.silentBeatActive && !this.silentBeatUnlocked) {
           this.silentBeatTimer += dt;
@@ -895,11 +1302,22 @@ export class FloaterGame extends Component {
       case GamePhase.Departure:
         this.phaseTimer += dt;
         this.updateTypewriter(dt);
+        this.updateSkip(dt);
         // Character stays fully visible during departure dialogue.
         // Fade out only starts when showing the LAST departure line.
         if (this.currentLineIndex >= this.currentLines.length - 1) {
           this.departureFadeTimer += dt;
           this.fishAlpha = Math.max(0, 1 - this.departureFadeTimer / DEPARTURE_DURATION);
+          // Auto-finalize once the fish has fully faded AND the last line's
+          // typewriter has finished. The player can still tap during the fade
+          // to advance immediately (existing onTouchStart path), but if they
+          // wait, we transition to LakeIdle automatically — no extra tap
+          // required at the end of a cast.
+          if (this.isTextComplete
+              && this.departureFadeTimer >= DEPARTURE_DURATION
+              && this.fishAlpha <= 0) {
+            this.advanceDepartureDialogue();
+          }
         } else {
           this.fishAlpha = 1;
         }
@@ -1093,8 +1511,9 @@ export class FloaterGame extends Component {
     this.flagsAtCastStart = { ...this.flagSystem.serialize() };
 
     // Use pre-determined encounter result from enterFloatBounce()
-    const selectedCharacter = this.pendingEncounterCharacter;
-    this.pendingEncounterCharacter = null;
+    const encounter = this.pendingEncounter;
+    this.pendingEncounter = null;
+    const selectedCharacter = encounter?.character ?? null;
 
     if (!selectedCharacter) {
       // Nothing bites — no fish matches zone/lure conditions
@@ -1145,14 +1564,52 @@ export class FloaterGame extends Component {
       this.displayedAffectionLabel = this.affectionSystem.getAffectionLabel(this.fishAffection.value);
     }
 
-    // Get per-fish cast index, clamped to the last available cast.
+    // Recipe-driven dispatch: ask Ink's <fishId>_entry knot to route to the
+    // right cast based on `from.<fishId>.<recipeId>` flags. The encounter
+    // system set that flag in enterFloatBounce(); after dispatch, we clear
+    // every `from.<fishId>.*` so the signal doesn't linger.
+    //
+    // We also expose the fish's previous departure drift as a synthetic
+    // string flag `mood.<fishId>.last_drift` so Ink bridge dialogues can
+    // branch on it (e.g. `{ mood.fugu.last_drift == "WARY" : ... }`).
+    // It's ephemeral — not persisted via `serialize()`; re-derived from
+    // `fish.currentDrift` (which IS persisted) every time we dispatch.
+    const lastDriftKey = `mood.${this.fish.id}.last_drift`;
+    // DriftState enum values are 'DRIFT_X' / 'none'. Normalize to the bare
+    // uppercase token used in Ink (`#drift:WARY` and `== "WARY"`).
+    const driftToken = this.fish.currentDrift === DriftState.None
+      ? 'NONE'
+      : this.fish.currentDrift.replace(/^DRIFT_/, '');
+    this.flagSystem.set(lastDriftKey, driftToken);
+
     const totalCasts = getCastCount(this.fish.id);
     this.currentCastIndex = Math.min(this.perFishCastIndex[this.fish.id] ?? 0, Math.max(0, totalCasts - 1));
 
-    const currentCast = getCast(this.currentCastIndex, this.fish.id);
-    console.log(`[FloaterGame] startCast: castCount=${this.castCount}, currentCastIndex=${this.currentCastIndex}/${totalCasts}, castName="${currentCast.name}", castId="${currentCast.id}"`);
-    this.beats = getBeats(this.currentCastIndex, this.fish.id);
-    console.log(`[FloaterGame] Loaded ${this.beats.length} beats for cast "${currentCast.name}"`);
+    const startNodeId = resolveFishEntryKnot(this.fish.id, this.flagSystem);
+
+    if (!startNodeId) {
+      // Defensive: missing entry knot or no matching branch. Fall back to
+      // the legacy index-based cast for now so we don't crash mid-play.
+      console.error(`[FloaterGame] No entry-knot dispatch for ${this.fish.id}; falling back to index ${this.currentCastIndex}.`);
+      this.beats = getBeats(this.currentCastIndex, this.fish.id);
+    } else {
+      console.log(`[FloaterGame] startCast: castCount=${this.castCount}, recipe="${encounter!.recipe.id}" → entry dispatched to "${startNodeId}"`);
+      // Build beats with flags so bridge dialogues (e.g. `{ mood.fugu.last_drift == "WARY" : ... }`)
+      // evaluate against current state. Must happen BEFORE we clear last_drift.
+      this.beats = buildBeatsFromInk(this.fish.id, startNodeId, this.flagSystem).map((b: Beat) => ({ ...b, seen: false }));
+    }
+
+    // Clear every `from.<fishId>.*` one-shot signal — they've now been read
+    // by the dispatcher and by the bridge-aware beat builder. Doing this in
+    // the engine means Ink dispatchers no longer need explicit
+    // `~ from.fugu.X = false` lines.
+    const fromPrefix = `from.${this.fish.id}.`;
+    for (const key of Object.keys(this.flagSystem.serialize())) {
+      if (key.startsWith(fromPrefix)) this.flagSystem.clear(key);
+    }
+    // last_drift is also ephemeral — clear so it doesn't leak into other paths.
+    this.flagSystem.clear(lastDriftKey);
+    console.log(`[FloaterGame] Loaded ${this.beats.length} beats for cast`);
 
     this.phase = GamePhase.Approach;
     this.phaseTimer = 0;
@@ -1170,13 +1627,22 @@ export class FloaterGame extends Component {
 
   private enterExchange(): void {
     this.phase = GamePhase.Exchange;
+    // Skip button visible across all dialogue phases. Opacity reflects active
+    // (1.0) vs idle (0.6) state; the per-frame updateSkip drives the rest.
+    this.canSkip = true;
+    floaterVM.skipButtonVisible = true;
+    floaterVM.skipButtonOpacity = 1;
     this.startNextBeat();
   }
 
   private startNextBeat(): void {
     if (this.currentBeatIndex >= this.beats.length) {
-      if (this.flagSystem.check(`${this.fish.id}.release_ready`)
-       || this.flagSystem.check(`${this.fish.id}.catch_available`)) {
+      // Climax flags determine the narrative ending. Reel takes priority over
+      // Release if both happen to be set (defensive — the Ink author should
+      // set only one). See climax beats in Story_<fish>.ts.
+      if (this.flagSystem.check(`${this.fish.id}.catch_available`)) {
+        this.triggerEnding(EndingType.Reel);
+      } else if (this.flagSystem.check(`${this.fish.id}.release_ready`)) {
         this.triggerEnding(EndingType.Release);
       } else {
         this.enterDeparture(this.fish.currentDrift || DriftState.Warm);
@@ -1186,11 +1652,17 @@ export class FloaterGame extends Component {
 
     const beat = this.beats[this.currentBeatIndex];
     console.log(`[FloaterGame] startNextBeat: beatIndex=${this.currentBeatIndex}, beatId="${beat.beatId}", firstLine="${beat.fishLines[0]}"`);
-    if (this.seenBeats.has(beat.beatId)) {
-      this.canSkip = true; floaterVM.skipButtonVisible = true; floaterVM.skipButtonOpacity = 1;
-    } else {
-      this.canSkip = false; floaterVM.skipButtonVisible = false; floaterVM.skipButtonOpacity = 0;
-    }
+    // Skip button visibility is managed by enterExchange() — always visible during Exchange
+
+    // Push per-action intent tooltips for this Beat (optional, contextual).
+    // Falls back to the action name (Wait/Twitch/Drift/Reel) for debug visibility
+    // when the author hasn't written a context-specific intent yet.
+    floaterVM.setActionIntents(
+      beat.actionEffects[ActionId.Wait]?.intent ?? 'Wait',
+      beat.actionEffects[ActionId.Twitch]?.intent ?? 'Twitch',
+      beat.actionEffects[ActionId.Drift]?.intent ?? 'Drift',
+      beat.actionEffects[ActionId.Reel]?.intent ?? 'Reel',
+    );
 
     // Handle silent beat (Four Minutes mechanic)
     if (beat.silentBeat) {
@@ -1233,13 +1705,21 @@ export class FloaterGame extends Component {
         this.seenBeats.add(beat.beatId);
         this.saveSystem.requestSave();
 
-        if (this.currentBeatIndex >= this.beats.length) {
-          if (this.flagSystem.check(`${this.fish.id}.release_ready`)
-           || this.flagSystem.check(`${this.fish.id}.catch_available`)) {
-            this.triggerEnding(EndingType.Release);
-          } else {
-            this.enterDeparture(this.fish.currentDrift || DriftState.Warm);
-          }
+        // Climax flag dispatch: catch_available → Reel, release_ready → Release.
+        // A terminal choice (-> END in Ink) ends the cast regardless of beat
+        // position — an early wrong choice in a multi-beat puzzle is just as
+        // terminal as reaching the last beat.
+        if (this.flagSystem.check(`${this.fish.id}.catch_available`)) {
+          this.triggerEnding(EndingType.Reel);
+        } else if (this.flagSystem.check(`${this.fish.id}.release_ready`)) {
+          this.triggerEnding(EndingType.Release);
+        } else if (this.currentReactionIsTerminal) {
+          // Ink-driven departure: goodbye lines were already part of the
+          // reaction. Skip the side-table lookup and go straight to the
+          // visual fade-out.
+          this.enterInkDeparture(this.fish.currentDrift || DriftState.Warm);
+        } else if (this.currentBeatIndex >= this.beats.length) {
+          this.enterDeparture(this.fish.currentDrift || DriftState.Warm);
         } else {
           this.beatPauseTimer = BEAT_PAUSE_DURATION;
           this.phase = GamePhase.Exchange;
@@ -1262,8 +1742,10 @@ export class FloaterGame extends Component {
         this.saveSystem.requestSave();
         this.currentBeatIndex++;
         if (this.currentBeatIndex >= this.beats.length) {
-          if (this.flagSystem.check(`${this.fish.id}.release_ready`)
-           || this.flagSystem.check(`${this.fish.id}.catch_available`)) {
+          // Climax flag dispatch: catch_available → Reel, release_ready → Release.
+          if (this.flagSystem.check(`${this.fish.id}.catch_available`)) {
+            this.triggerEnding(EndingType.Reel);
+          } else if (this.flagSystem.check(`${this.fish.id}.release_ready`)) {
             this.triggerEnding(EndingType.Release);
           } else {
             this.enterDeparture(this.fish.currentDrift || DriftState.Warm);
@@ -1284,7 +1766,7 @@ export class FloaterGame extends Component {
         floaterVM.actionTwitchEnabled = false;
         floaterVM.actionDriftEnabled = false;
         floaterVM.actionReelEnabled = false;
-        floaterVM.skipButtonVisible = false; floaterVM.skipButtonOpacity = 0;
+        this.canSkip = false; floaterVM.skipButtonVisible = false; floaterVM.skipButtonOpacity = 0;
       } else {
         this.phase = GamePhase.ActionSelect;
         this.showActionButtons();
@@ -1292,7 +1774,7 @@ export class FloaterGame extends Component {
         floaterVM.actionTwitchEnabled = true;
         floaterVM.actionDriftEnabled = true;
         floaterVM.actionReelEnabled = true;
-        floaterVM.skipButtonVisible = false; floaterVM.skipButtonOpacity = 0;
+        this.canSkip = false; floaterVM.skipButtonVisible = false; floaterVM.skipButtonOpacity = 0;
       }
     } else {
       this.startNewLine();
@@ -1306,11 +1788,10 @@ export class FloaterGame extends Component {
   }
 
   private handleAction(actionId: ActionId): void {
-    // REEL at max affection → trigger Reel ending directly, regardless of beat effects.
-    if (actionId === ActionId.Reel && this.affectionSystem.isCatchReady(this.fishAffection)) {
-      this.triggerEnding(EndingType.Reel);
-      return;
-    }
+    // Catch/Release endings are now driven exclusively by narrative climax
+    // flags (`catch_available` / `release_ready`) set on the final cast's
+    // terminal choice. There is no longer an "instant Reel at max affection"
+    // shortcut — the ending always emerges from a written, chosen moment.
 
     const beat = this.beats[this.currentBeatIndex];
     const effect = beat.actionEffects[actionId];
@@ -1337,6 +1818,21 @@ export class FloaterGame extends Component {
     if (effect.flagsToSet) {
       for (const flag of effect.flagsToSet) { this.flagSystem.set(flag, true); }
     }
+    // Clear flags — RESET TO DEFAULT semantics.
+    //   `#clear-flag:X` removes the flag entirely. For `recipe.X` flags whose
+    //   recipe is `initial:true`, this RE-ACTIVATES the recipe (loops back to
+    //   home). To explicitly DISABLE a recipe (tier closure), use
+    //   `#disable-flag:X` instead.
+    if (effect.flagsToClear) {
+      for (const flag of effect.flagsToClear) { this.flagSystem.clear(flag); }
+    }
+    // Disable flags — EXPLICIT FALSE semantics.
+    //   `#disable-flag:X` stores false so `isRecipeActive` returns false even
+    //   for `initial:true` recipes. Used at tier transitions to permanently
+    //   close a recipe slot.
+    if (effect.flagsToDisable) {
+      for (const flag of effect.flagsToDisable) { this.flagSystem.set(flag, false); }
+    }
 
     // Spawn emotion icon
     if (effect.emotionIcon && effect.emotionIcon !== EmotionIconType.None) {
@@ -1349,9 +1845,14 @@ export class FloaterGame extends Component {
     // Show reaction
     this.phase = GamePhase.FishReaction;
     this.isShowingReaction = true;
+    this.currentReactionIsTerminal = effect.terminal === true;
     this.currentLines = effect.responseLines;
     this.currentLineIndex = 0;
     this.startNewLine();
+    // Re-enable skip for reaction dialogue (ActionSelect cleared it).
+    this.canSkip = true;
+    floaterVM.skipButtonVisible = true;
+    floaterVM.skipButtonOpacity = 1;
 
     // Update HUD
     this.syncAffectionDisplay();
@@ -1381,7 +1882,13 @@ export class FloaterGame extends Component {
     const effectiveDrift = (drift === DriftState.None) ? DriftState.Warm : drift;
     this.fish.currentDrift = effectiveDrift;
     this.hideActionButtons();
+    // Departure is short, auto-finalizes after the fade, and is meant to be
+    // watched — hide the skip button entirely here.
+    this.canSkip = false;
+    this.skipActive = false;
+    this.skipAdvanceTimer = 0;
     floaterVM.skipButtonVisible = false;
+    floaterVM.skipButtonOpacity = 0;
 
     // Clear emoji icons at the start of departure (they don't need to stay)
     this.floatingIcons = [];
@@ -1401,7 +1908,7 @@ export class FloaterGame extends Component {
         for (const flag of departureData.flagsToSet) { this.flagSystem.set(flag, true); }
       }
     } else {
-      this.currentLines = ['She drifts away...'];
+      this.currentLines = ['*She drifts away...*'];
     }
 
     this.currentLineIndex = 0;
@@ -1420,11 +1927,52 @@ export class FloaterGame extends Component {
     console.log(`[FloaterGame] Departure: ${drift}`);
   }
 
+  /**
+   * Ink-driven departure: the fish's goodbye lines were written inline in the
+   * terminal choice's response (per Ink Authoring Guide §4.4) and have just
+   * been spoken during the FishReaction phase. This skips the side-table
+   * lookup, starts the visual fade immediately, and finalizes the cast on
+   * the next player tap (same bookkeeping as advanceDepartureDialogue).
+   */
+  private enterInkDeparture(drift: DriftState): void {
+    this.phase = GamePhase.Departure;
+    this.phaseTimer = 0;
+    this.departureFadeTimer = 0;
+    const effectiveDrift = (drift === DriftState.None) ? DriftState.Warm : drift;
+    this.fish.currentDrift = effectiveDrift;
+    this.hideActionButtons();
+    floaterVM.skipButtonVisible = false;
+    this.floatingIcons = [];
+    this.fishAlpha = 1;
+
+    // No extra dialogue — goodbye already shown. Single empty "line" so the
+    // existing tap-to-advance flow finalizes the cast on the next tap, and
+    // the Departure-phase fade-out logic (`lineIndex >= length - 1`) starts
+    // immediately.
+    this.currentLines = [''];
+    this.currentLineIndex = 0;
+    this.displayedText = '';
+    this.isTextComplete = true;
+
+    floaterVM.departureVisible = false;
+    floaterVM.dialogueVisible = false;
+
+    if (this.fishAffection.value <= AFFECTION_DRIFT_AWAY_THRESHOLD) {
+      console.log(`[FloaterGame] Affection ${this.fishAffection.value} <= ${AFFECTION_DRIFT_AWAY_THRESHOLD}, triggering Drift-Away (ink path)`);
+      this.triggerEnding(EndingType.DriftAway);
+      return;
+    }
+
+    console.log(`[FloaterGame] Ink departure: ${drift}`);
+  }
+
   private advanceDepartureDialogue(): void {
     console.log(`[FloaterGame] advanceDepartureDialogue: lineIdx=${this.currentLineIndex}, totalLines=${this.currentLines.length}, currentCastIndex=${this.currentCastIndex}`);
     this.currentLineIndex++;
     if (this.currentLineIndex >= this.currentLines.length) {
-      // All departure lines shown — increment cast index and go to LakeIdle
+      // All departure lines shown — increment cast index (a global counter
+      // for affection/tier display + stats). Narrative progression itself is
+      // governed by Ink flags, not by this index.
       const oldIdx = this.currentCastIndex;
       this.currentCastIndex++;
       this.perFishCastIndex[this.fish.id] = this.currentCastIndex;
@@ -1567,6 +2115,12 @@ export class FloaterGame extends Component {
     floaterVM.departureVisible = false;
     floaterVM.hudVisible = false;
     this.hideActionButtons();
+    // Endings are intentionally tap-gated (epitaph reveal). Cancel skip and
+    // hide the button so the player must read the closing beat.
+    this.canSkip = false;
+    this.skipActive = false;
+    floaterVM.skipButtonVisible = false;
+    floaterVM.skipButtonOpacity = 0;
 
     console.log(`[FloaterGame] Ending triggered: ${type}, cg=${cgShown}, text=${textShown}`);
   }
@@ -1995,10 +2549,33 @@ export class FloaterGame extends Component {
   }
 
   private syncAffectionDisplay(): void {
-    const range = AFFECTION_MAX - AFFECTION_DRIFT_AWAY_THRESHOLD;
-    const normalized = (this.fishAffection.value - AFFECTION_DRIFT_AWAY_THRESHOLD) / range;
-    const percent = Math.max(0, Math.min(1, normalized)) * 100;
-    floaterVM.affectionBarWidth = (percent / 100) * 200; // 200px max width
+    // The gauge bar displays NARRATIVE PROGRESSION, not raw affection.
+    //
+    //   - Main fish (have `progressionMilestones`): count how many of the
+    //     character's narrative milestones (quest flags) are set. Cumulative
+    //     across casts; reflects the player's overall journey with this fish.
+    //
+    //   - Other fish (NPCs / no milestones): fall back to the affection ratio
+    //     so the gauge fills during the per-cast puzzle and resets when the
+    //     fish leaves (affection back to 0 on a fresh encounter).
+    //
+    // The catch-ready marker on the gauge stays tied to actual affection so
+    // the player sees when REEL would trigger the catch.
+    const config = characterRegistry.getCharacter(this.fish.id);
+    const milestones = config?.progressionMilestones;
+    let progress: number; // 0..1
+    if (milestones && milestones.length > 0) {
+      let reached = 0;
+      for (const key of milestones) {
+        if (this.flagSystem.check(key)) reached++;
+      }
+      progress = reached / milestones.length;
+    } else {
+      const range = AFFECTION_MAX - AFFECTION_DRIFT_AWAY_THRESHOLD;
+      const normalized = (this.fishAffection.value - AFFECTION_DRIFT_AWAY_THRESHOLD) / range;
+      progress = Math.max(0, Math.min(1, normalized));
+    }
+    floaterVM.affectionBarWidth = progress * 200; // 200px max width
     floaterVM.updateGaugeMarker(this.fishAffection.value);
 
     // HUD: portrait, name, no mood/tier text anymore
@@ -2018,14 +2595,108 @@ export class FloaterGame extends Component {
     floaterVM.setProgressDots(this.progressDotsTotal, this.progressDotsFilled);
   }
 
+  // === Intro Cinematic ===
+  // Single paragraph progressively revealed (cinematic typewriter), then a
+  // brief hold, then a fade to LakeIdle. No tap required — the Start button
+  // is already hidden via `titleVisible = false` during the title fade-out.
+  // A tap during typewriter skips to the full paragraph; a tap during hold
+  // ends the intro immediately.
+  private startIntro(): void {
+    console.log('[FloaterGame] Starting intro cinematic');
+    this.introActive = true;
+    this.introState = 'typing';
+    this.introTextProgress = 0;
+    this.introHoldTimer = 0;
+    this.introFadeTimer = 0;
+    // Ensure the title screen is hidden the moment the intro takes over,
+    // independent of fade-out state.
+    floaterVM.titleVisible = false;
+    floaterVM.introVisible = true;
+    floaterVM.introOverlayOpacity = 1;
+    floaterVM.introText = '';
+    floaterVM.introTapVisible = false;
+    // Prevent fade-in while intro is showing
+    this.fadeState = 'none';
+    this.fadeAlpha = 0;
+  }
+
+  /** Called from onTouchStart when intro is active: skip ahead one stage. */
+  private advanceIntro(): void {
+    if (this.introState === 'typing') {
+      // Reveal the whole paragraph immediately and enter hold.
+      floaterVM.introText = this.introFullText;
+      this.introState = 'hold';
+      this.introHoldTimer = 0;
+    } else if (this.introState === 'hold') {
+      // Skip the hold — start the fade now.
+      this.introState = 'fading';
+      this.introFadeTimer = 0;
+    }
+    // During 'fading' a tap is ignored — fade is short and finishing it
+    // cleanly avoids visual jumps into the lake.
+  }
+
+  /** Per-frame update for the intro cinematic. */
+  private updateIntro(dt: number): void {
+    if (!this.introActive) return;
+    if (this.introState === 'typing') {
+      this.introTextProgress += dt;
+      const charsRevealed = Math.floor(this.introTextProgress / FloaterGame.INTRO_CHAR_SPEED);
+      if (charsRevealed >= this.introFullText.length) {
+        floaterVM.introText = this.introFullText;
+        this.introState = 'hold';
+        this.introHoldTimer = 0;
+      } else {
+        floaterVM.introText = this.introFullText.substring(0, charsRevealed);
+      }
+    } else if (this.introState === 'hold') {
+      this.introHoldTimer += dt;
+      if (this.introHoldTimer >= FloaterGame.INTRO_HOLD_DURATION) {
+        this.introState = 'fading';
+        this.introFadeTimer = 0;
+      }
+    } else if (this.introState === 'fading') {
+      this.introFadeTimer += dt;
+      const t = Math.min(1, this.introFadeTimer / FloaterGame.INTRO_FADE_DURATION);
+      floaterVM.introOverlayOpacity = 1 - t;
+      if (t >= 1) {
+        console.log('[FloaterGame] Intro complete → LakeIdle');
+        this.flagSystem.set('run.intro_seen', true);
+        // CRITICAL: flush immediately so the flag persists. Without this the
+        // flag lives only in memory and the intro replays on next launch.
+        // `requestSave` is the safety net: if the immediate flush is rejected
+        // (e.g. the persistent-data load hasn't arrived yet → SaveSystem not
+        // ready), the deferred timer-driven save will retry once ready.
+        this.saveSystem.requestSave();
+        this.saveSystem.flushImmediate(() => this.buildSaveData());
+        floaterVM.introVisible = false;
+        floaterVM.introOverlayOpacity = 1; // reset for next time
+        this.introActive = false;
+        this.enterLakeIdle();
+      }
+    }
+  }
+
   // === Cast Mechanics ===
   private enterLakeIdle(): void {
     this.phase = GamePhase.LakeIdle;
     this.fishAlpha = 0;
+    this.isInCastAiming = false;
+    floaterVM.castInstructionVisible = false;
     floaterVM.castButtonVisible = false;
     floaterVM.hudVisible = false;
     floaterVM.inventoryButtonVisible = false;
     floaterVM.journalButtonVisible = false;
+    // Defensive: ensure the title screen (Start button + rod sprite) is hidden
+    // once we reach LakeIdle. Normally cleared by the fade-out, but a skipped
+    // intro can land here without that having run.
+    floaterVM.titleVisible = false;
+    // Hide skip button when returning to lake idle
+    this.canSkip = false;
+    this.skipActive = false;
+    this.skipAdvanceTimer = 0;
+    floaterVM.skipButtonVisible = false;
+    floaterVM.skipButtonOpacity = 0;
     // Re-enable idle buttons when returning to lake idle
     floaterVM.idleBaitBtnEnabled = true;
     floaterVM.idleCastBtnEnabled = true;
@@ -2057,6 +2728,8 @@ export class FloaterGame extends Component {
       this.castFloatX = projected.x;
       this.castFloatY = projected.y;
       this.castFloatScale = projected.scale;
+      this.prevCastFloatScreenX = projected.x;
+      this.prevCastFloatScreenY = projected.y;
     } else if (USE_POV_CAST_ANIMATION) {
       this.castFloatX = POV_CAST_START_X;
       this.castFloatY = POV_CAST_START_Y;
@@ -2069,6 +2742,134 @@ export class FloaterGame extends Component {
   }
 
   private updateCastFlight(dt: number): void {
+    // === 3D Ballistic Flight (replaces flat bezier) ===
+    if (this.isBezierFlying) {
+      // Integrate gravity: vel.y += gravity * dt
+      this.floater3DVel = new Vec3D(
+        this.floater3DVel.x,
+        this.floater3DVel.y + CAST_3D_GRAVITY_Y * dt,
+        this.floater3DVel.z
+      );
+
+      // Integrate position: pos += vel * dt
+      this.floater3DPos = new Vec3D(
+        this.floater3DPos.x + this.floater3DVel.x * dt,
+        this.floater3DPos.y + this.floater3DVel.y * dt,
+        this.floater3DPos.z + this.floater3DVel.z * dt
+      );
+
+      // Project 3D position to screen space
+      const projected = this.project3Dto2D(this.floater3DPos);
+      this.castFloatX = projected.x;
+      this.castFloatY = projected.y;
+      this.castFloatScale = projected.scale;
+
+      // Compute rotation from frame-to-frame projected position delta
+      const dx = this.castFloatX - this.prevCastFloatScreenX;
+      const dy = this.castFloatY - this.prevCastFloatScreenY;
+      const tangentAngle = (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01)
+        ? Math.atan2(dy, dx) * (180 / Math.PI)
+        : this.castFloatRotation; // keep previous if no movement
+      this.prevCastFloatScreenX = this.castFloatX;
+      this.prevCastFloatScreenY = this.castFloatY;
+      // Damped wobble based on flight progress
+      this.bezierFlightT += dt / this.bezierFlightDuration;
+      const wobble = Math.sin(this.bezierFlightT * Math.PI * 3) * (1 - Math.min(1, this.bezierFlightT)) * 15;
+      this.castFloatRotation = tangentAngle + wobble;
+
+      // Check landing: flight time elapsed (projectile has reached target3D)
+      if (this.bezierFlightT >= 1.0) {
+        this.isBezierFlying = false;
+        // Use pre-computed landing target from onTouchEnd (correct endX/endY)
+        this.castFloatX = this.landingTargetX;
+        this.castFloatY = this.landingTargetY;
+        this.castFloatScale = 1.0;
+        this.castFloatRotation = 0;
+        this.onFloatLanded();
+        return;
+      }
+
+      // Safety: max flight time exceeded
+      if (this.bezierFlightT >= 1.5) {
+        this.isBezierFlying = false;
+        // Keep final projected position instead of snapping to pre-computed landing target
+        this.landingTargetX = this.castFloatX;
+        this.landingTargetY = this.castFloatY;
+        this.castFloatScale = 1.0;
+        this.castFloatRotation = 0;
+        this.onFloatLanded();
+        return;
+      }
+
+      // === Verlet Rope Simulation ===
+      // Anchor endpoints: particle 0 = rod tip, particle N-1 = float
+      const rodTip3D = this.unproject2Dto3D(POV_LINE_START_X, POV_LINE_START_Y, 1.2);
+      const floatScale = this.castFloatScale > 0.01 ? this.castFloatScale : 0.5;
+      const float3D = this.unproject2Dto3D(this.castFloatX, this.castFloatY, floatScale);
+      const numP = this.verletPositions.length;
+
+      if (numP >= 2) {
+        // Verlet integration for interior particles
+        for (let i = 1; i < numP - 1; i++) {
+          const cur = this.verletPositions[i];
+          const prev = this.verletPrevPositions[i];
+          // velocity = current - previous (Verlet implicit velocity)
+          const vx = (cur.x - prev.x) * VERLET_ROPE_DAMPING;
+          const vy = (cur.y - prev.y) * VERLET_ROPE_DAMPING;
+          const vz = (cur.z - prev.z) * VERLET_ROPE_DAMPING;
+          // Apply gravity (Y is up, gravity is negative Y)
+          const newPos = new Vec3D(
+            cur.x + vx,
+            cur.y + vy + VERLET_ROPE_GRAVITY * dt * dt,
+            cur.z + vz
+          );
+          this.verletPrevPositions[i] = cur;
+          this.verletPositions[i] = newPos;
+        }
+
+        // Pin endpoints
+        this.verletPrevPositions[0] = this.verletPositions[0];
+        this.verletPositions[0] = rodTip3D;
+        this.verletPrevPositions[numP - 1] = this.verletPositions[numP - 1];
+        this.verletPositions[numP - 1] = float3D;
+
+        // Distance constraint iterations
+        for (let iter = 0; iter < VERLET_ROPE_CONSTRAINT_ITERATIONS; iter++) {
+          // Pin endpoints each iteration
+          this.verletPositions[0] = rodTip3D;
+          this.verletPositions[numP - 1] = float3D;
+
+          for (let i = 0; i < numP - 1; i++) {
+            const a = this.verletPositions[i];
+            const b = this.verletPositions[i + 1];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const dz = b.z - a.z;
+            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (dist < 0.001) continue;
+            const diff = (dist - VERLET_ROPE_SEGMENT_LENGTH) / dist;
+            const offsetX = dx * 0.5 * diff;
+            const offsetY = dy * 0.5 * diff;
+            const offsetZ = dz * 0.5 * diff;
+
+            // Don't move pinned endpoints
+            if (i > 0) {
+              this.verletPositions[i] = new Vec3D(
+                a.x + offsetX, a.y + offsetY, a.z + offsetZ
+              );
+            }
+            if (i + 1 < numP - 1) {
+              this.verletPositions[i + 1] = new Vec3D(
+                b.x - offsetX, b.y - offsetY, b.z - offsetZ
+              );
+            }
+          }
+        }
+      }
+
+      return;
+    }
+
     if (USE_3D_PHYSICS_CAST) {
       this.updateCastFlying3D(dt);
     } else if (USE_POV_CAST_ANIMATION) {
@@ -2246,6 +3047,21 @@ export class FloaterGame extends Component {
     return velocity;
   }
 
+  /** Compute the 2D landing point directly from distance and xOffset.
+   *  The 3D simulation produced incorrect results because z-depth never varied
+   *  (both start and target unprojected at desiredScale=1.0), causing the
+   *  y-threshold landing to always project to the same screen Y. Instead, we
+   *  return the geometric landing point directly — this is what the preview
+   *  curve targets and what the flight should land at. */
+  private computePhysicsLandingPoint(distance: number, xOffset: number): { x: number; y: number } {
+    const centerX = CANVAS_WIDTH / 2;
+    const xRange = (CAST_TRAJ_LANDING_MAX_X - CAST_TRAJ_LANDING_MIN_X) / 2;
+    const rawEndX = centerX + xOffset * xRange;
+    const endX = Math.max(CAST_TRAJ_LANDING_MIN_X, Math.min(CAST_TRAJ_LANDING_MAX_X, rawEndX));
+    const endY = CAST_TRAJ_LANDING_NEAR_Y + distance * (CAST_TRAJ_LANDING_FAR_Y - CAST_TRAJ_LANDING_NEAR_Y);
+    return { x: endX, y: endY };
+  }
+
   /** Initialize 3D cast physics state with designed upward arc.
    *  Y velocity is calculated to peak at 60% of planned flight time (when line fully extends).
    *  X/Z velocities target the pond center based on actual time to reach water level.
@@ -2420,6 +3236,27 @@ export class FloaterGame extends Component {
           };
         }
       }
+    } else if (this.verletPositions.length >= 2) {
+      // Verlet rope was active during bezier flight — project to 2D for snapshot
+      this.landingLineSnapshot = [];
+      for (let i = 0; i < this.verletPositions.length; i++) {
+        const p = this.project3Dto2D(this.verletPositions[i]);
+        this.landingLineSnapshot.push({ x: p.x, y: p.y });
+      }
+      // Force first point to off-screen anchor and blend early points
+      if (this.landingLineSnapshot.length > 0) {
+        const anchor = { x: POV_LINE_START_X, y: POV_LINE_START_Y };
+        this.landingLineSnapshot[0] = anchor;
+        const fadeCount = Math.min(3, this.landingLineSnapshot.length - 1);
+        for (let i = 1; i < fadeCount; i++) {
+          const blendT = 1 - (i / fadeCount);
+          const blendFactor = blendT * 0.6;
+          this.landingLineSnapshot[i] = {
+            x: this.landingLineSnapshot[i].x + (anchor.x - this.landingLineSnapshot[i].x) * blendFactor,
+            y: this.landingLineSnapshot[i].y + (anchor.y - this.landingLineSnapshot[i].y) * blendFactor,
+          };
+        }
+      }
     } else {
       this.landingLineSnapshot = [];
     }
@@ -2459,19 +3296,25 @@ export class FloaterGame extends Component {
     this.showingSurpriseEmoji = false;
     this.surpriseEmojiTimer = 0;
 
-    // Pre-determine encounter at bounce start so "!" can appear immediately
-    const selectedCharacter = this.encounterSystem.selectCharacter(
-      this.lastCastPower,
+    // Pre-determine encounter at bounce start so "!" can appear immediately.
+    // Recipe-driven: (zone, phase, lure) → deterministic fish + recipe.
+    const zone = getZoneFromPower(this.lastCastPower);
+    const phase = this.getCurrentPhase();
+    const encounter = this.encounterSystem.selectCharacter(
+      zone,
+      phase,
       this.equippedLureId,
       this.flagSystem,
-      this.questSystem,
     );
-    this.pendingEncounterCharacter = selectedCharacter;
+    this.pendingEncounter = encounter;
 
-    if (selectedCharacter) {
-      // Fish found — spawn surprise emoji NOW (at the start of the bob)
+    if (encounter) {
+      // Set the one-shot "from" signal so the fish's entry knot can dispatch
+      // to the right dialogue. Ink will clear this flag immediately on entry.
+      this.flagSystem.set(recipeFromFlag(encounter.character.id, encounter.recipe.id), true);
+
       this.spawnEmotionIcon(EmotionIconType.Surprise, 'float');
-      console.log('[FloaterGame] FloatBounce started — fish found, surprise emoji spawned!');
+      console.log(`[FloaterGame] FloatBounce started — ${encounter.character.id} matched recipe "${encounter.recipe.id}"`);
     } else {
       console.log('[FloaterGame] FloatBounce started — nothing bites');
     }
@@ -2630,15 +3473,24 @@ export class FloaterGame extends Component {
     if (!this.renderer) return;
     this.renderer.clear();
 
-    // Use title background on title screen, pond background elsewhere
-    if (this.phase === GamePhase.Title) {
+    // Title art is shown only when the player is actually on the title screen
+    // — not during the Start-button fade-out, not during the intro, and not
+    // during the intro's fade-out. Once `titleVisible` flips false (in
+    // `onStartGame`) we treat the title as gone, even though `phase` is still
+    // `Title` until `enterLakeIdle` runs at the end of the intro.
+    const onTitleScreen = this.phase === GamePhase.Title
+      && !this.introActive
+      && floaterVM.titleVisible;
+    if (onTitleScreen) {
       this.renderer.drawTitleBackground();
     } else {
-      this.renderer.drawBackground();
+      this.renderer.drawBackground(this.isDayMode);
     }
 
     // Draw title logo and decorative floater on title screen
-    if (this.phase === GamePhase.Title) {
+    // (suppressed while the intro cinematic is showing so the overlay isn't
+    // backed by the title's rod/float/line bleeding through.)
+    if (onTitleScreen) {
       // Draw idle ripples behind the float
       this.renderer.drawSplashRipples(this.floatIdleRipples);
       // Draw fishing line from off-screen to the bobbing float
@@ -2663,29 +3515,41 @@ export class FloaterGame extends Component {
       // floatDip provides action animation feedback (Twitch/Reel dip the float)
       const bobOffset = Math.sin(this.time * FLOAT_BOB_SPEED) * FLOAT_BOB_AMPLITUDE;
       const dipOffset = this.floatDip;
-      const floatDrawX = this.landingTargetX + this.actionAnimOffsetX;
-      const floatDrawY = this.landingTargetY + bobOffset + dipOffset + this.actionAnimOffsetY;
-      // Draw periodic idle ripples FIRST (behind float)
-      this.renderer.drawSplashRipples(this.floatIdleRipples);
-      this.renderer.drawCastFishingLine(floatDrawX, floatDrawY, 1.0, USE_POV_CAST_ANIMATION, undefined, undefined, this.time);
-      // During FloatBounce, draw float with bounce offset
+      let floatDrawX = this.landingTargetX + this.actionAnimOffsetX;
+      let floatDrawY = this.landingTargetY + bobOffset + dipOffset + this.actionAnimOffsetY;
+
+      // During FloatBounce, override line endpoint to match the actual bounce sprite position
       if (this.phase === GamePhase.FloatBounce && !this.showingSurpriseEmoji) {
         const t = this.floatBounceTimer / FLOAT_BOUNCE_DURATION;
         const amplitude = FLOAT_BOUNCE_AMPLITUDE * (1 - t);
         const bobY = amplitude * Math.sin(t * FLOAT_BOUNCE_COUNT * 2 * Math.PI);
-        this.renderer.drawFloatAtScaled(this.landingTargetX, this.landingTargetY + bobY, 1.0, true);
-      } else {
-        this.renderer.drawFloatAtScaled(floatDrawX, floatDrawY, 1.0, true);
+        floatDrawX = this.landingTargetX;
+        floatDrawY = this.landingTargetY + bobY;
       }
+
+      // Draw periodic idle ripples FIRST (behind float)
+      this.renderer.drawSplashRipples(this.floatIdleRipples);
+      this.renderer.drawCastFishingLine(floatDrawX, floatDrawY, 1.0, USE_POV_CAST_ANIMATION, undefined, undefined, this.time);
+      // Draw float sprite at same position as line endpoint
+      this.renderer.drawFloatAtScaled(floatDrawX, floatDrawY, 1.0, true);
     }
 
     if (this.phase === GamePhase.CastFlying) {
-      if (USE_3D_PHYSICS_CAST) {
+      // Draw fishing line attached to float during bezier flight
+      if (this.isBezierFlying) {
+        // Use Verlet rope simulation rendered via 3D segmented line
+        if (this.verletPositions.length >= 2) {
+          this.renderer.drawSegmentedLine3D(this.verletPositions, (v: Vec3D) => this.project3Dto2D(v));
+        } else {
+          // Fallback to flat bezier line if Verlet not initialized
+          this.renderer.drawCastFishingLine(this.castFloatX, this.castFloatY, this.bezierFlightT, true, undefined, undefined, this.time);
+        }
+      } else if (USE_3D_PHYSICS_CAST) {
         this.renderer.drawSegmentedLine3D(this.lineSegments3D, (v: Vec3D) => this.project3Dto2D(v));
       } else {
         this.renderer.drawCastFishingLine(this.castFloatX, this.castFloatY, this.castFlightT, USE_POV_CAST_ANIMATION, undefined, undefined, this.time);
       }
-      this.renderer.drawFloatAtScaled(this.castFloatX, this.castFloatY, this.castFloatScale);
+      this.renderer.drawFloatAtScaled(this.castFloatX, this.castFloatY, this.castFloatScale, false, this.castFloatRotation);
     }
     if (this.phase === GamePhase.FloatLanded) {
       // FIX Issues 2+3: Use transition line that lerps from snapshot to resting curve
@@ -2698,7 +3562,14 @@ export class FloaterGame extends Component {
       this.renderer.drawFloatAt(this.castFloatX, this.castFloatY, true);
       this.renderer.drawSplashRipples(this.splashRipples);
     }
-    if (this.phase === GamePhase.CastCharging) this.renderer.drawPowerGauge(this.powerGaugeValue);
+    // Cast trajectory preview during LakeIdle touch-drag
+    // (zone debug overlay disabled — uncomment for level tuning)
+    // if (this.isInCastAiming) {
+    //   this.renderer.drawDebugZoneOverlay();
+    // }
+    if (this.phase === GamePhase.LakeIdle && this.isCastTouching) {
+      this.renderer.drawCastTrajectoryBezier(this.castTrajectoryDistance, this.castTrajectoryOffsetX, this.previewLandingX, this.previewLandingY);
+    }
     if (this.fishAlpha > 0) {
       this.renderer.drawCharacterRipples(this.characterRipples, this.fishAlpha);
       this.renderer.drawFishPortrait(this.fishAlpha, this.portraitOffsetX, this.portraitOffsetY, this.getPortraitTexture());
@@ -2726,6 +3597,10 @@ export class FloaterGame extends Component {
       || this.phase === GamePhase.NothingBites;
     const showDialogue = isDialoguePhase;
     floaterVM.dialogueVisible = showDialogue;
+    // Hide dialogue during ink-driven departure (empty text, fade-out only)
+    if (this.phase === GamePhase.Departure && this.displayedText === '' && this.isTextComplete) {
+      floaterVM.dialogueVisible = false;
+    }
     // Affection gauge visible during dialogue exchange phases (not Departure or NothingBites).
     const showGauge = this.phase === GamePhase.Exchange
       || this.phase === GamePhase.FishReaction
@@ -2755,6 +3630,15 @@ export class FloaterGame extends Component {
       floaterVM.tapIndicatorVisible = this.isTextComplete;
     } else {
       floaterVM.tapIndicatorVisible = false;
+    }
+
+    // Draw day/night transition overlay
+    if (this.dayNightFadeAlpha > 0) {
+      const dayNightBrush = new SolidBrush(new Color(0, 0, 0, this.dayNightFadeAlpha));
+      this.builder.drawRect(dayNightBrush, null, {
+        x: 0, y: 0,
+        width: CANVAS_WIDTH, height: CANVAS_HEIGHT,
+      });
     }
 
     // Draw fade overlay (on top of everything)
@@ -2818,9 +3702,16 @@ export class FloaterGame extends Component {
   }
 
   private syncViewModelFromState(): void {
-    floaterVM.titleVisible = this.phase === GamePhase.Title;
+    // `titleVisible` is owned by the title→intro→LakeIdle flow (set false in
+    // `onStartGame` and stays false from then on). Don't derive it from
+    // `phase === Title` here: this method runs when save data loads, which
+    // can land mid-fade-out and would re-show the title XAML grid (Start
+    // button + rod) on top of the fading screen.
+    if (this.phase === GamePhase.Title && this.fadeState === 'none' && !this.introActive) {
+      floaterVM.titleVisible = true;
+    }
     floaterVM.hudVisible = this.phase !== GamePhase.Title && this.phase !== GamePhase.Idle
-      && this.phase !== GamePhase.LakeIdle && this.phase !== GamePhase.CastCharging
+      && this.phase !== GamePhase.LakeIdle
       && this.phase !== GamePhase.CastFlying && this.phase !== GamePhase.FloatLanded
       && this.phase !== GamePhase.Ending;
     floaterVM.actionMenuVisible = this.phase === GamePhase.ActionSelect || this.phase === GamePhase.FishReaction || this.phase === GamePhase.Exchange;
@@ -2875,6 +3766,10 @@ export class FloaterGame extends Component {
       || this.phase === GamePhase.NothingBites;
     const showDialogueSync = isDialoguePhaseSync;
     floaterVM.dialogueVisible = showDialogueSync;
+    // Hide dialogue during ink-driven departure (empty text, fade-out only)
+    if (this.phase === GamePhase.Departure && this.displayedText === '' && this.isTextComplete) {
+      floaterVM.dialogueVisible = false;
+    }
     // Gauge visible during exchange/reaction/action phases.
     const showGaugeSync = this.phase === GamePhase.Exchange
       || this.phase === GamePhase.FishReaction
@@ -2899,5 +3794,10 @@ export class FloaterGame extends Component {
     } else {
       floaterVM.tapIndicatorVisible = false;
     }
+  }
+
+  /** Current Day/Night phase. Consumed by the encounter recipe system. */
+  getCurrentPhase(): Phase {
+    return this.isDayMode ? Phase.Day : Phase.Night;
   }
 }

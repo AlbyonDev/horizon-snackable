@@ -66,6 +66,13 @@ export class CombatFlowController {
   private pendingOutcome: boolean | null = null;
   /** Queue of enemy indices whose powers are ready; drained one cinematic at a time. */
   private pendingEnemyPowers: number[] = [];
+  /**
+   * Seconds spent in the current non-PlayerTurn phase. If a phase ever exceeds
+   * STUCK_PHASE_TIMEOUT, the controller force-advances to PlayerTurn so the
+   * board never permanently locks if a callback fails to fire.
+   */
+  private phaseElapsed: number = 0;
+  private lastPhase: CombatPhase = CombatPhase.PlayerTurn;
 
   constructor(deps: CombatFlowDeps) { this.deps = deps; }
 
@@ -92,10 +99,14 @@ export class CombatFlowController {
     this.lastEnemyResult = null;
     this.pendingOutcome = null;
     this.pendingEnemyPowers = [];
+    this.phaseElapsed = 0;
+    this.lastPhase = CombatPhase.PlayerTurn;
   }
 
   /** Per-frame tick. Phases that wait on visuals advance here. */
   update(dt: number): void {
+    this.tickWatchdog(dt);
+
     if (this._phase === CombatPhase.CombatAnimating) {
       this.tickEnemyVisuals(dt);
       if (this.deps.teamState.turnOwner === TurnOwner.Player) {
@@ -154,12 +165,14 @@ export class CombatFlowController {
       if (this.lastEnemyResult && this.lastEnemyResult.killed) {
         const deadIdx = this.lastEnemyResult.targetHeroIndex;
         const deadHero = team.heroes[deadIdx];
-        team.markDead(team.heroVisuals, deadIdx);
-        team.reassignColorsOnDeath(deadHero.id);
-        this.deathOccurred = true;
+        if (deadHero) {
+          team.markDead(team.heroVisuals, deadIdx);
+          team.reassignColorsOnDeath(deadHero.id);
+          this.deathOccurred = true;
 
-        if (team.allPlayersDead()) {
-          this.pendingOutcome = false;
+          if (team.allPlayersDead()) {
+            this.pendingOutcome = false;
+          }
         }
       }
     }
@@ -330,7 +343,8 @@ export class CombatFlowController {
     const team = this.deps.teamState;
     const enemy = team.enemies[enemyIdx];
     const visual = team.enemyVisuals[enemyIdx];
-    if (!enemy || !visual) {
+    // Skip if the caster died (DoT, hero-power kill) since the queue was built.
+    if (!enemy || !visual || enemy.currentHp <= 0) {
       this.playNextEnemyPower(onAllDone);
       return;
     }
@@ -372,16 +386,21 @@ export class CombatFlowController {
 
     executeEnemyPower(team, enemyIdx);
 
-    for (let i = 0; i < team.heroes.length; i++) {
-      const dmg = hpBefore[i] - team.heroes[i].currentHp;
-      const gotStatusEffect = team.heroes[i].statusEffects.length > statusCountBefore[i];
+    // Iterate the intersection of before/after — reorganize could splice heroes
+    // mid-callback in principle, so don't trust either length alone.
+    const len = Math.min(hpBefore.length, team.heroes.length);
+    for (let i = 0; i < len; i++) {
+      const hero = team.heroes[i];
+      const visual = team.heroVisuals[i];
+      if (!hero || !visual) continue;
+      const dmg = hpBefore[i] - hero.currentHp;
+      const gotStatusEffect = hero.statusEffects.length > statusCountBefore[i];
       if (dmg <= 0 && !gotStatusEffect) continue;
       team.triggerHurtFlash(team.heroVisuals, i);
       if (dmg > 0) {
-        const heroVisual = team.heroVisuals[i];
         this.deps.damagePopups.spawn(
-          heroVisual.x + 80 * heroVisual.scale,
-          heroVisual.y - 5,
+          visual.x + 80 * visual.scale,
+          visual.y - 5,
           String(dmg),
           { fontColor: POPUP_COLOR_ENEMY_DAMAGE, fontSize: POPUP_ENEMY_FONT },
         );
@@ -402,7 +421,7 @@ export class CombatFlowController {
 
     this.lastEnemyResult = CombatSystem.executeEnemyTurn(team);
 
-    if (this.lastEnemyResult.damage > 0) {
+    if (this.lastEnemyResult.damage > 0 || this.lastEnemyResult.shielded) {
       team.triggerAttack(team.enemyVisuals, team.frontEnemyIndex, false);
 
       // Schedule the hurt flash + popup at the lunge peak, and the sequence-end
@@ -424,6 +443,49 @@ export class CombatFlowController {
   }
 
   // ===== Internal =====
+
+  /**
+   * Safety net: if the controller stays in a non-PlayerTurn phase for too long,
+   * something upstream (cinematic callback, animation settle) silently dropped
+   * a transition. Force-recover to PlayerTurn so the player can keep playing
+   * instead of having to use the flee button.
+   */
+  private tickWatchdog(dt: number): void {
+    const STUCK_PHASE_TIMEOUT = 8.0; // seconds — longer than any legitimate phase
+    if (this._phase !== this.lastPhase) {
+      this.lastPhase = this._phase;
+      this.phaseElapsed = 0;
+      return;
+    }
+    if (this._phase === CombatPhase.PlayerTurn || this._phase === CombatPhase.CombatOver) {
+      this.phaseElapsed = 0;
+      return;
+    }
+    this.phaseElapsed += dt;
+    if (this.phaseElapsed >= STUCK_PHASE_TIMEOUT) {
+      console.warn(`[CombatFlow] watchdog: phase ${CombatPhase[this._phase]} stuck for ${this.phaseElapsed.toFixed(1)}s — forcing PlayerTurn.`);
+      this.forceRecover();
+    }
+  }
+
+  /**
+   * Tear down any pending phase state and return control to the player. Called
+   * by tickWatchdog when a phase has been wedged past its expected duration.
+   */
+  private forceRecover(): void {
+    this.enemyHitDelay = -1;
+    this.enemySequenceRemaining = -1;
+    this.timer = 0;
+    this.pendingEnemyPowers = [];
+    this.lastEnemyResult = null;
+    this.pendingOutcome = null;
+    this.deps.animSystem.reset();
+    this.deps.teamState.turnOwner = TurnOwner.Player;
+    this._phase = CombatPhase.PlayerTurn;
+    this.phaseElapsed = 0;
+    this.lastPhase = CombatPhase.PlayerTurn;
+    this.deps.onPlayerTurnReady();
+  }
 
   /** Tick down the enemy-strike timeline and fire the hurt flash + popup at peak. */
   private tickEnemyVisuals(dt: number): void {
@@ -450,9 +512,16 @@ export class CombatFlowController {
     const visual = team.heroVisuals[idx];
     const cx = visual.x + 80 * visual.scale;
     const cy = visual.y - 5;
-    this.deps.damagePopups.spawn(cx, cy, String(this.lastEnemyResult.damage), {
-      fontColor: POPUP_COLOR_ENEMY_DAMAGE,
-      fontSize: POPUP_ENEMY_FONT,
-    });
+    if (this.lastEnemyResult.shielded) {
+      this.deps.damagePopups.spawn(cx, cy, 'Blocked', {
+        fontColor: '#AADDFF',
+        fontSize: POPUP_ENEMY_FONT,
+      });
+    } else {
+      this.deps.damagePopups.spawn(cx, cy, String(this.lastEnemyResult.damage), {
+        fontColor: POPUP_COLOR_ENEMY_DAMAGE,
+        fontSize: POPUP_ENEMY_FONT,
+      });
+    }
   }
 }

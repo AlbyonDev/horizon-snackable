@@ -209,6 +209,9 @@ export class PowerAnimationSystem {
     isResolveSettled?: () => boolean,
   ): void {
     if (this.isActive) {
+      console.warn(
+        `[PowerAnimationSystem] start() called while phase=${CinematicPhase[this.state.phase]} — dropping new cast for "${caster.powerName}". onComplete will NOT fire.`,
+      );
       return;
     }
     this.onApplyEffect = onApplyEffect;
@@ -331,11 +334,16 @@ export class PowerAnimationSystem {
 
   private updateApplyEffect(_dt: number): void {
     // Fire the gameplay callback once at the start of the phase, so particles
-    // + popups + lunge spawn while the board is fully visible.
+    // + popups + lunge spawn while the board is fully visible. Catch errors so
+    // a buggy effect handler can't strand the cinematic — phase still completes.
     if (!this.applyEffectFired) {
       this.applyEffectFired = true;
       if (this.onApplyEffect) {
-        this.onApplyEffect(this.state.caster.heroIndex);
+        try {
+          this.onApplyEffect(this.state.caster.heroIndex);
+        } catch (err) {
+          console.error('[PowerAnimationSystem] onApplyEffect threw — cinematic will still complete.', err);
+        }
       }
     }
 
@@ -352,14 +360,19 @@ export class PowerAnimationSystem {
     if ((minReached && settled) || maxReached) {
       // Clear callbacks BEFORE firing onComplete so that if onComplete calls
       // start() to chain a new cinematic, the newly registered callbacks are
-      // not immediately nulled out by the lines below.
+      // not immediately nulled out by the lines below. Wrap in try/catch so a
+      // throwing handler can't leave the phase machine in a half-advanced state.
       this.state = this.createIdleState();
       const onComplete = this.onComplete;
       this.onApplyEffect = null;
       this.onComplete = null;
       this.isResolveSettled = null;
       if (onComplete) {
-        onComplete();
+        try {
+          onComplete();
+        } catch (err) {
+          console.error('[PowerAnimationSystem] onComplete threw — combat flow may be stuck; watchdog will recover.', err);
+        }
       }
     }
   }

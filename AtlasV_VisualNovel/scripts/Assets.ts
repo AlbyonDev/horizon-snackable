@@ -32,6 +32,7 @@ export const fishingFloatTexture: TextureAsset = new TextureAsset("@sprites/floa
 
 // === Backgrounds ===
 export const bgLilyShallowsTexture: TextureAsset = new TextureAsset("@sprites/bg_lily_shallows.png");
+export const bgLilyDayTexture: TextureAsset = new TextureAsset("@sprites/bg_lily_day.png");
 export const titleBackgroundTexture: TextureAsset = new TextureAsset("@sprites/title_background.png");
 
 // === Emotion Icons (9 icons for dialogue) ===
@@ -70,5 +71,6 @@ export const cgFuguDriftAwayTexture: TextureAsset = new TextureAsset("@sprites/f
 export const cgFuguLoveEndTexture: TextureAsset = new TextureAsset("@sprites/fugu_love_end.png");
 export const cgFuguReleaseEndTexture: TextureAsset = new TextureAsset("@sprites/fugu_release_end.png");
 export const cgKashaLoveEndTexture: TextureAsset = new TextureAsset("@sprites/kasha_love_end.png");
+export const cgKashaReleaseEndTexture: TextureAsset = new TextureAsset("@sprites/kasha_release_end.png");
 export const cgKashaDriftAwayTexture: TextureAsset = new TextureAsset("@sprites/kasha_drift_away.png");
 

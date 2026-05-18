@@ -98,6 +98,23 @@ export interface ActionEffect {
   resultDrift?: DriftState;
   emotionIcon?: EmotionIconType;
   flagsToSet?: string[];
+  /** Flags to CLEAR (delete) when this action is picked — resets to default.
+   *  For `recipe.X` flags whose recipe is `initial:true`, this re-activates
+   *  the recipe (loop back to home). Use this for one-shot signals like
+   *  `from.<fishId>.<recipeId>` or for re-enabling default home recipes. */
+  flagsToClear?: string[];
+  /** Flags to DISABLE (set false) when this action is picked — explicit off.
+   *  Stores `false` so `isRecipeActive` returns false even for `initial:true`
+   *  recipes. Used at tier transitions to permanently close a recipe slot. */
+  flagsToDisable?: string[];
+  /** Tooltip shown while the action button is pressed (hold-to-preview).
+   *  Optional and context-specific: written per-Beat from Ink via #intent:"...". */
+  intent?: string;
+  /** True when this choice ends the cast (diverts to `END` or has no divert).
+   *  The engine plays `responseLines` then triggers the visual departure
+   *  directly — no side-table lookup. Lines should already contain the
+   *  fish's goodbye, per Ink Authoring Guide §4.4. */
+  terminal?: boolean;
 }
 
 // === Beat ===
@@ -194,6 +211,58 @@ export interface JournalFishEntry {
 // === Lake Zones ===
 export type LakeZone = 'near' | 'mid' | 'far';
 
+// === Day/Night Phase ===
+// Used by the encounter recipe system (Zone + Phase + Lure → Fish).
+// The player toggles this manually via the Day/Night button on the idle screen;
+// time never advances on its own.
+export enum Phase {
+  Day = 'day',
+  Night = 'night',
+}
+
+// === Lure Wildcard ===
+// A recipe with `lure: ANY_LURE` accepts any equipped lure (or no lure).
+// Used for early-game encounters where the player hasn't unlocked specific
+// lures yet, and for waiting-loop dialogues.
+export const ANY_LURE = 'ANY' as const;
+
+// === Recipe (Deterministic Encounter) ===
+// A recipe is a *fixed slot* where a fish can appear, identified by an id.
+// It doesn't change over the arc. Ink controls activation via flags:
+//
+//   <fishId>.recipe.<id>.on    truthy → recipe is active
+//                              falsy with `initial: true` → still active
+//                              explicitly false → inactive
+//
+// When the encounter system matches a recipe, it sets a one-shot signal flag
+// `<fishId>.from.<id>` and launches the fish's single entry knot
+// (`<fishId>_entry`). The knot uses that signal to dispatch to the right
+// dialogue, then clears the flag.
+//
+// Selection algorithm (zero RNG):
+//   1. For each fish, gather its enabled recipes (per flag rules above).
+//   2. Filter by zone + phase exact match.
+//   3. Prefer recipe with lure == equippedLureId (specific).
+//   4. Else, recipe with lure == ANY_LURE (wildcard).
+//   5. Else, nothing bites.
+//   6. Tie-break: specific > wildcard, then fishId alphabetic, then recipe
+//      array order.
+export interface Recipe {
+  /** Stable, fish-local id (e.g. 'home', 'rdvT1', 'homeT2'). */
+  id: string;
+  zone: LakeZone;
+  phase: Phase;
+  /** Lure id (e.g. 'feather_fly') or ANY_LURE for wildcard. */
+  lure: string;
+  /** If true, this recipe is active by default unless the activation flag
+   *  is explicitly set to false. */
+  initial?: boolean;
+  /** Higher priority wins ties at the same (zone, phase, lure-specificity).
+   *  Main characters use priority 1; NPCs/fallback use 0 (default).
+   *  Lets the 3 story fish always win over ambient NPCs in their slot. */
+  priority?: number;
+}
+
 // === Quest Requirement Types ===
 export type QuestRequirement =
   | { type: 'use_lure'; lureId: string }
@@ -241,12 +310,10 @@ export interface CharacterConfig {
   portraitTexture: TextureAsset;
   /** Sprite path string for XAML Image.Source bindings (e.g. 'sprites/foo.png'). */
   portraitSpritePath: string;
-  preferredLures: string[];
-  dislikedLures: string[];
-  lakeZones: LakeZone[];
+  /** Deterministic encounter recipes. Empty array = fish never appears. */
+  recipes: Recipe[];
   questRequirement?: QuestRequirement;
   unlockCondition: (flags: Record<string, boolean | number>) => boolean;
-  encounterRate: number;
   questName: string;
   questHint: string;
   getCasts: () => CastData[];
@@ -254,6 +321,11 @@ export interface CharacterConfig {
   catchSequenceData?: CatchSequenceData;
   driftAwayJournalText?: string;
   facts: FactDefinition[];
+  /** Ordered list of flag keys that mark narrative progression milestones.
+   *  Used to drive the HUD progress gauge instead of raw affection.
+   *  When omitted, the gauge falls back to the affection ratio (good for
+   *  per-cast puzzle NPCs where affection itself measures progress). */
+  progressionMilestones?: string[];
   /** CGs owned by this character (portraits, endings). Aggregated by registry. */
   cgs?: CGData[];
 }

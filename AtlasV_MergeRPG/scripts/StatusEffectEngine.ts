@@ -44,7 +44,7 @@ const STATUS_HANDLERS: Record<StatusEffectType, StatusHandler> = {
     ticksWithTurns: true,
   },
   [StatusEffectType.SHIELD]: {
-    ticksWithTurns: false,
+    ticksWithTurns: true,
   },
   [StatusEffectType.REGEN]: {
     hotHeal: (e) => Math.round(e.value),
@@ -125,14 +125,14 @@ export class StatusEffectEngine {
     return { damage, heal };
   }
 
-  /** Tick buff/debuff durations for every member of `group`. */
+  /** Tick buff/debuff/shield durations for every member of `group`. */
   tickBuffs<T extends Hero | Enemy>(group: T[]): void {
     for (const member of group) {
       for (const e of member.statusEffects) {
         const handler = STATUS_HANDLERS[e.type];
-        // Buffs/debuffs (atk-modifying turn-based effects). DOT is ticked
-        // separately by tickDots; SHIELD has ticksWithTurns=false.
-        if (handler.ticksWithTurns && handler.atkModifier) {
+        // Turn-based effects (buffs, debuffs, shield). DOTs are ticked
+        // separately by tickDots, which already decrements their turns.
+        if (handler.ticksWithTurns && !handler.dotDamage && !handler.hotHeal) {
           e.turnsRemaining--;
         }
       }

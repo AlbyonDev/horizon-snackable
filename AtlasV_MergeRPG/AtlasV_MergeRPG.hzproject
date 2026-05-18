@@ -49,5 +49,6 @@
     },
     "updatePackageAuthorOnOrgChange": true,
     "editorVersion": "79.0.0.15.107",
-    "starterWorldType": "BPBlank2DGame"
+    "starterWorldType": "BPBlank2DGame",
+    "remotePackageId": "28045451761721501"
 }

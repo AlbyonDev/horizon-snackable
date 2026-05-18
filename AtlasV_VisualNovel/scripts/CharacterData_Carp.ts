@@ -5,7 +5,7 @@
  */
 
 import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
-import { DriftState, EmotionIconType, ExpressionState } from './Types';
+import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { carpNeutralTexture } from './Assets';
 
@@ -53,14 +53,12 @@ export const CARP_CHARACTER: CharacterConfig = {
   portraitTexture: carpNeutralTexture,
   portraitSpritePath: CARP_PORTRAIT_SPRITE,
 
-  preferredLures: [],
-  dislikedLures: [],
-
-  lakeZones: ['far'],
+  // Ambient NPC — fills the far + Day slot.
+  recipes: [
+    { id: 'home', zone: 'far', phase: Phase.Day, lure: ANY_LURE, initial: true },
+  ],
 
   unlockCondition: () => true,
-
-  encounterRate: 1.0,
 
   questName: 'The Carp',
   questHint: 'Patience is the oldest wisdom. Wait, drift, wait — then strike.',

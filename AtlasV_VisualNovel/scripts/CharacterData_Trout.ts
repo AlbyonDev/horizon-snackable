@@ -5,7 +5,7 @@
  */
 
 import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
-import { DriftState, EmotionIconType, ExpressionState } from './Types';
+import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { troutNeutralTexture } from './Assets';
 
@@ -53,14 +53,12 @@ export const TROUT_CHARACTER: CharacterConfig = {
   portraitTexture: troutNeutralTexture,
   portraitSpritePath: TROUT_PORTRAIT_SPRITE,
 
-  preferredLures: [],
-  dislikedLures: [],
-
-  lakeZones: ['near'],
+  // Ambient NPC — fills the mid + Day slot.
+  recipes: [
+    { id: 'home', zone: 'mid', phase: Phase.Day, lure: ANY_LURE, initial: true },
+  ],
 
   unlockCondition: () => true,
-
-  encounterRate: 1.0,
 
   questName: 'The Trout',
   questHint: 'Show it everything. Wait, twitch, drift — it craves variety.',
