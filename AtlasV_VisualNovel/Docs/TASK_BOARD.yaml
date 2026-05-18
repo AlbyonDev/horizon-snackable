@@ -144,6 +144,12 @@ tasks:
       - name: Write Story_Soma.ts dialogue file (full 5-tier arc, 10 casts)
         status: done
 
+  - name: Delay CG display until after epitaph finishes
+    status: done
+    reference: "Visual novel ending sequence timing"
+    summary: CG deferred until user taps to dismiss epitaph overlay — sequence is epitaph → tap to close → CG → tap to close → back to gameplay
+    files: [scripts/FloaterGame.ts]
+
 chopping_block:
   disabled_systems: []
   temp_scaffolding: []

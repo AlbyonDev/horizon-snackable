@@ -388,6 +388,7 @@ export class FloaterGame extends Component {
   private epitaphFullText: string = '';
   private epitaphTextProgress: number = 0;
   private epitaphTextComplete: boolean = false;
+  private pendingEndingCG: boolean = false;
   private readonly EPITAPH_FADE_DURATION: number = 1.0; // seconds to fade in overlay
   private readonly EPITAPH_TEXT_SPEED: number = 0.03; // seconds per character (typewriter)
 
@@ -947,6 +948,7 @@ export class FloaterGame extends Component {
     floaterVM.idleBarTranslateY = 40;
     this.idleBarAnimState = 'hidden';
     floaterVM.cgViewerVisible = false;
+    this.pendingEndingCG = false;
     floaterVM.resetConfirmVisible = false;
     floaterVM.introVisible = false;
     this.introActive = false;
@@ -995,10 +997,32 @@ export class FloaterGame extends Component {
         console.log('[FloaterGame] Ending text completed via tap');
         return;
       }
-      // Second tap: dismiss ending screen and return to gameplay
+      // Second tap: three-state dismissal (epitaph → CG → LakeIdle)
+      if (this.pendingEndingCG) {
+        // State 1: Epitaph is showing, CG is pending → dismiss epitaph, show CG
+        console.log('[FloaterGame] Ending epitaph dismissed via tap → showing CG');
+        floaterVM.endingVisible = false;
+        this.pendingEndingCG = false;
+        this.openMostRecentEndingCG();
+        return;
+      }
+      if (floaterVM.cgViewerVisible) {
+        // State 2: CG is showing → dismiss CG, advance cast, return to LakeIdle
+        console.log('[FloaterGame] Ending CG dismissed via tap → returning to LakeIdle');
+        this.cgGallerySystem.closeViewer();
+        floaterVM.cgViewerVisible = false;
+        floaterVM.endingVisible = false;
+        // Increment cast index for the character whose ending just completed
+        this.currentCastIndex++;
+        this.perFishCastIndex[this.fish.id] = this.currentCastIndex;
+        // CRITICAL: Flush immediately (cast index advancement is critical state)
+        this.saveSystem.flushImmediate(() => this.buildSaveData());
+        this.enterLakeIdle();
+        return;
+      }
+      // State 3: No pending CG and no CG visible → just dismiss ending
       console.log('[FloaterGame] Ending dismissed via tap → returning to LakeIdle');
       floaterVM.endingVisible = false;
-      floaterVM.cgViewerVisible = false;
       // Increment cast index for the character whose ending just completed
       this.currentCastIndex++;
       this.perFishCastIndex[this.fish.id] = this.currentCastIndex;
@@ -2062,7 +2086,6 @@ export class FloaterGame extends Component {
     this.questSystem.recordTalkedToFish(this.fish.id);
     this.questSystem.recordFishLeft(this.fish.id);
     this.journalSystem.recordCast(this.fish.id, [this.fish.currentExpression]);
-    this.cgGallerySystem.unlockPortraitCG(this.fish.id);
     this.persistCGData();
     const newFacts = this.journalSystem.checkFactUnlocks(this.flagSystem.serialize(), this.flagsAtCastStart);
     if (newFacts.length > 0) {
@@ -2081,14 +2104,24 @@ export class FloaterGame extends Component {
     // CRITICAL: Flush immediately at ending (journal/stats/flags just updated)
     this.saveSystem.flushImmediate(() => this.buildSaveData());
 
-    // CG fullscreen viewer: opened only if the Ink choice's `#unlock-cg:` tag
-    // unlocked a CG just now (the unlock itself happened in handleAction).
-    // Pick the most recently unlocked CG attached to this fish for display.
-    const cgShown = this.openMostRecentEndingCG();
-
     // Optional ending text overlay — skipped entirely if the character has
     // no epitaph for this ending id.
     const textShown = !!epitaphText;
+
+    // CG fullscreen viewer: opened only if the Ink choice's `#unlock-cg:` tag
+    // unlocked a CG just now (the unlock itself happened in handleAction).
+    // Pick the most recently unlocked CG attached to this fish for display.
+    // If epitaph text is present, DEFER the CG until the text finishes displaying.
+    let cgShown: boolean;
+    if (textShown) {
+      // Defer CG — only if a CG was actually unlocked this cast
+      const hasCGToShow = this.cgsUnlockedThisCast.size > 0;
+      this.pendingEndingCG = hasCGToShow;
+      cgShown = hasCGToShow; // Only treat as "will be shown" if there's actually a CG
+    } else {
+      this.epitaphTextComplete = true; // No epitaph to display — mark as complete so CG touch handler works immediately
+      cgShown = this.openMostRecentEndingCG();
+    }
     if (textShown) {
       this.epitaphFullText = epitaphText!;
       this.epitaphFadeTimer = 0;

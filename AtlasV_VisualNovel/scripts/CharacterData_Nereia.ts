@@ -72,7 +72,6 @@ function getCasts(): CastData[] {
 // T1 is accessible day OR night for first contact.
 const NEREIA_RECIPES: Recipe[] = [
   { id: 'home',          zone: 'far',  phase: Phase.Day,   lure: ANY_LURE,        initial: true, priority: 1 },
-  { id: 'homeNight',     zone: 'far',  phase: Phase.Night, lure: ANY_LURE,        initial: true, priority: 1 },
   { id: 'anomalyT2',     zone: 'far',  phase: Phase.Day,   lure: 'gold_teardrop', priority: 1 },
   { id: 'directiveT3',   zone: 'far',  phase: Phase.Day,   lure: 'gold_teardrop', priority: 1 },
   { id: 'inheritanceT4', zone: 'near', phase: Phase.Day,   lure: 'gold_teardrop', priority: 1 },
