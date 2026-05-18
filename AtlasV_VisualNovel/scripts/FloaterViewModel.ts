@@ -37,7 +37,6 @@ export const onCGItemTapped = new UiEvent('onCGItemTapped', FloaterTabSelectedPa
 export const onInventoryOpen = new UiEvent('onInventoryOpen');
 export const onInventoryClose = new UiEvent('onInventoryClose');
 export const onInventoryEquip = new UiEvent('onInventoryEquip', FloaterLureSelectedPayload);
-export const onInventorySelect = new UiEvent('onInventorySelect', FloaterLureSelectedPayload);
 
 // Character detail events
 export const onCharacterDetailOpen = new UiEvent('onCharacterDetailOpen', FloaterTabSelectedPayload);
@@ -209,7 +208,6 @@ export class FloaterViewModel extends UiViewModel {
     onInventoryOpen,
     onInventoryClose,
     onInventoryEquip,
-    onInventorySelect,
     onCGViewerDismiss,
     onCGItemTapped,
     onResetSavePressed,
@@ -229,15 +227,6 @@ export class FloaterViewModel extends UiViewModel {
   journalTab1Visible: boolean = true;
   journalTab2Visible: boolean = false;
   journalTab3Visible: boolean = false;
-  journalTab4Visible: boolean = false;
-  journalTab5Visible: boolean = false;
-  journalPondNotesText: string = '';
-  journalLureBoxText: string = '';
-  journalKeepsakesText: string = '';
-  journalCollectionText: string = '';
-  journalCharactersText: string = '';
-  journalStatsText: string = '';
-  journalBadgesText: string = '';
   journalMetCounter: string = '';
 
   // Structured stats & badges for polished Tab 3
@@ -363,9 +352,6 @@ export class FloaterViewModel extends UiViewModel {
   idleCastBtnEnabled: boolean = true;
   idleJournalBtnEnabled: boolean = true;
 
-  // === Journal Button (legacy, kept for backward compat) ===
-  journalButtonVisible: boolean = false;
-
   /** Update gauge marker position from affection value (-10 to 50). */
   updateGaugeMarker(affectionValue: number): void {
     // Clamp to display range [-10, 50]
@@ -424,14 +410,11 @@ export class FloaterViewModel extends UiViewModel {
     this.badgeProgressText = `${earned}/${items.length} earned`;
   }
 
-  /** Switch journal tab by index (0-4). */
+  /** Switch journal tab by index (0-2). */
   setJournalTab(tabIndex: number): void {
     this.journalTab1Visible = tabIndex === 0;
     this.journalTab2Visible = tabIndex === 1;
     this.journalTab3Visible = tabIndex === 2;
-    this.journalTab4Visible = tabIndex === 3;
-    this.journalTab5Visible = tabIndex === 4;
-    // Update tab button colors (active = gold, inactive = grey)
     const active = '#E8A84C';
     const inactive = '#8A9AB0';
     this.journalTab1Color = tabIndex === 0 ? active : inactive;

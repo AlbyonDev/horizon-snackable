@@ -391,7 +391,7 @@
       <!-- Layer 4b: Affection Gauge (right side, during dialogue) -->
       <Grid x:Name="GaugeRoot" HorizontalAlignment="Right" VerticalAlignment="Center"
             Visibility="{Binding gaugeVisible, Converter={StaticResource BoolToVis}}"
-            Margin="0,0,10,0" Width="60" Height="260" Opacity="0.95" d:IsHidden="True">
+            Margin="0,40,10,0" Width="60" Height="260" Opacity="0.95" d:IsHidden="True">
         <!-- Gauge container with labels to the right -->
         <Grid x:Name="GaugeContainer" VerticalAlignment="Center" HorizontalAlignment="Left" Width="60" Height="220">
           <!-- "Bond" label above gauge bar -->
@@ -1282,7 +1282,7 @@
               <StackPanel Visibility="{Binding journalTab1Visible, Converter={StaticResource BoolToVis}}">
                 <Border Background="#D90D1520" BorderBrush="#2A4060" BorderThickness="1"
                         CornerRadius="12" Padding="10,14">
-                  <ItemsControl ItemsSource="{Binding characterCards}">
+                  <ItemsControl x:Name="fishdetails" ItemsSource="{Binding characterCards}">
                     <ItemsControl.ItemsPanel>
                       <ItemsPanelTemplate>
                         <UniformGrid Columns="3" />
@@ -1313,7 +1313,7 @@
                                       </Grid.Clip>
                                       <TextBlock Text="?" FontSize="28" FontWeight="Bold" Foreground="#3A4A5A"
                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                      <Image Stretch="UniformToFill"
+                                      <Image Stretch="Uniform"
                                              Width="70" Height="70" Margin="0,8,0,0"
                                              Opacity="{Binding portraitOpacity}"
                                              Visibility="{Binding unlocked, Converter={StaticResource BoolToVis}}">
@@ -1353,7 +1353,7 @@
                 <TextBlock Text="{Binding cgCollectionProgress}" FontSize="14" FontWeight="Bold"
                            Foreground="#E8A84C" Margin="0,0,0,10" />
 
-                <ItemsControl ItemsSource="{Binding cgCards}">
+                <ItemsControl x:Name="fishes" ItemsSource="{Binding cgCards}">
                   <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                       <UniformGrid Columns="3" />
@@ -1378,7 +1378,7 @@
                                   <Grid Margin="8,8,8,4">
                                     <TextBlock Text="?" FontSize="32" FontWeight="Bold" Foreground="#3A4A5A"
                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    <Image Stretch="UniformToFill"
+                                    <Image Stretch="Uniform"
                                            Visibility="{Binding unlocked, Converter={StaticResource BoolToVis}}">
                                       <Image.Source>
                                         <Binding Path="texture" />
@@ -1546,8 +1546,7 @@
                 <Grid.Clip>
                   <EllipseGeometry Center="45,45" RadiusX="42" RadiusY="42" />
                 </Grid.Clip>
-                <Image Stretch="UniformToFill"
-                       Width="90" Height="90" Margin="0,12,0,0">
+                <Image Width="90" Height="90" Margin="0,12,0,0">
                   <Image.Source>
                     <Binding Path="charDetailPortrait" />
                   </Image.Source>

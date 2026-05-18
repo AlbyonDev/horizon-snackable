@@ -4,7 +4,7 @@
  * Combo: DRIFT → DRIFT → DRIFT → REEL (fluid, patient, surrender-based).
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, EndingData } from './Types';
 import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { eelNeutralTexture } from './Assets';
@@ -19,8 +19,8 @@ const EEL_DEPARTURES: CastData['departures'] = {
   },
 };
 
-const EEL_CATCH_SEQUENCE_DATA: CatchSequenceData = {
-  reelEpitaph: 'The eel has been caught.',
+const EEL_ENDINGS: Record<string, EndingData> = {
+  reel: { epitaph: 'The eel has been caught.' },
 };
 
 function getCasts(): CastData[] {
@@ -76,7 +76,7 @@ export const EEL_CHARACTER: CharacterConfig = {
     portrait: eelNeutralTexture,
   }),
 
-  catchSequenceData: EEL_CATCH_SEQUENCE_DATA,
+  endings: EEL_ENDINGS,
 
   facts: [
     {

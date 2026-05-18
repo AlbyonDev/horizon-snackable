@@ -67,13 +67,6 @@ const BADGE_DEFINITIONS: BadgeDefinition[] = [
     },
   },
   {
-    id: 'first_keepsake',
-    name: 'Treasured Gift',
-    description: 'Unlock your first CG',
-    icon: '🎁',
-    condition: (s) => (s as any).totalKeepsakes >= 1 || false,
-  },
-  {
     id: 'ten_facts',
     name: 'Deep Listener',
     description: 'Discover 10 facts about fish',
@@ -125,11 +118,6 @@ export class GlobalStatsSystem {
     return newBadges;
   }
 
-  /** Update keepsake count (deprecated, kept for backward compat) */
-  setKeepsakeCount(count: number): void {
-    // No-op: keepsakes removed
-  }
-
   /** Increment play sessions */
   incrementPlaySession(): void {
     this.stats.totalPlaySessions++;
@@ -170,57 +158,6 @@ export class GlobalStatsSystem {
       description: badge.description,
       unlocked: this.stats.unlockedBadges.includes(badge.id),
     }));
-  }
-
-  /** Get formatted stats text for journal display */
-  getStatsText(): string {
-    const totalChars = characterRegistry.getAllCharacterIds().length;
-    const lines: string[] = [];
-    lines.push('— Angler Statistics —');
-    lines.push('');
-    lines.push(`🎣 Total Casts: ${this.stats.totalCasts}`);
-    lines.push(`🐟 Characters Met: ${this.stats.totalCharactersMet}/${totalChars}`);
-    lines.push(`📖 Facts Discovered: ${this.stats.totalFactsDiscovered}`);
-    lines.push(`🌙 Sessions: ${this.stats.totalPlaySessions}`);
-    return lines.join('\n');
-  }
-
-  /** Get formatted badges text for journal display */
-  getBadgesText(): string {
-    const lines: string[] = [];
-    lines.push('— Achievements —');
-    lines.push('');
-
-    const unlocked = BADGE_DEFINITIONS.filter(b =>
-      this.stats.unlockedBadges.includes(b.id));
-    const locked = BADGE_DEFINITIONS.filter(b =>
-      !this.stats.unlockedBadges.includes(b.id));
-
-    if (unlocked.length > 0) {
-      for (const badge of unlocked) {
-        lines.push(`${badge.icon} ${badge.name}`);
-        lines.push(`   ${badge.description}`);
-        lines.push('');
-      }
-    }
-
-    if (locked.length > 0) {
-      lines.push('— Locked —');
-      for (const badge of locked) {
-        lines.push(`🔒 ${badge.name}`);
-        lines.push(`   ${badge.description}`);
-        lines.push('');
-      }
-    }
-
-    lines.push(`${unlocked.length}/${BADGE_DEFINITIONS.length} earned`);
-    return lines.join('\n');
-  }
-
-  /** Get the character met counter string */
-  getMetCounterText(): string {
-    const total = characterRegistry.getAllCharacterIds().length;
-    return `${this.stats.totalCharactersMet}/${total} characters met`;
   }
 
   /** Get raw stats data */

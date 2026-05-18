@@ -5,7 +5,7 @@
  * No ending CG. Catch shows a one-line epitaph; release/departure are silent.
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, EndingData } from './Types';
 import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { catfishNeutralTexture } from './Assets';
@@ -20,8 +20,8 @@ const CATFISH_DEPARTURES: CastData['departures'] = {
   },
 };
 
-const CATFISH_CATCH_SEQUENCE_DATA: CatchSequenceData = {
-  reelEpitaph: 'Catfish has been caught.',
+const CATFISH_ENDINGS: Record<string, EndingData> = {
+  reel: { epitaph: 'Catfish has been caught.' },
 };
 
 function getCasts(): CastData[] {
@@ -77,7 +77,7 @@ export const CATFISH_CHARACTER: CharacterConfig = {
     portrait: catfishNeutralTexture,
   }),
 
-  catchSequenceData: CATFISH_CATCH_SEQUENCE_DATA,
+  endings: CATFISH_ENDINGS,
 
   facts: [
     {

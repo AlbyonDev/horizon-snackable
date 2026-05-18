@@ -1,17 +1,19 @@
 /**
+/**
  * SYS-01-AFFECTION: Per-fish hidden affection meter.
  *
  * Single linear meter per character — no tiers, no floor locks.
- * Two thresholds matter:
- *   - Catch trigger: usually set via flag (`<id>.catch_available`) by the
- *     dialogue itself, then resolved by the catch sequence flow.
- *   - Drift-away threshold: when affection drops to or below this value,
- *     the character is treated as having abandoned the player and the
- *     drift-away ending fires.
+ * Two thresholds matter, exposed as Ink-readable flags:
+ *   - `affection.peak.<id>`  — set when value >= AFFECTION_MAX, cleared otherwise
+ *   - `affection.floor.<id>` — set when value <= AFFECTION_DRIFT_AWAY_THRESHOLD,
+ *                              cleared otherwise
+ * The Ink author consults these flags to dispatch to peak/floor knots; the
+ * engine no longer triggers any ending automatically based on the value.
  *
  * Rules:
  *   - Single action delta capped to ±30
- *   - Value clamped to [0, ceiling] (default ceiling = AFFECTION_MAX)
+ *   - Value clamped to [AFFECTION_DRIFT_AWAY_THRESHOLD, ceiling]
+ *     (default ceiling = AFFECTION_MAX)
  */
 
 import { AFFECTION_MAX, AFFECTION_DRIFT_AWAY_THRESHOLD } from './Constants';
@@ -51,11 +53,6 @@ export class AffectionSystem {
     affection.value = newValue;
     affection.lastChangeDelta = newValue - oldValue;
     affection.lastChangeSessionId = sessionId;
-
-    if (newValue > affection.peakValue) {
-      affection.peakValue = newValue;
-    }
-
     return affection.lastChangeDelta;
   }
 
@@ -102,7 +99,6 @@ export class AffectionSystem {
       ceiling: AFFECTION_MAX,
       lastChangeSessionId: '',
       lastChangeDelta: 0,
-      peakValue: 0,
     };
   }
 
@@ -122,14 +118,14 @@ export class AffectionSystem {
    * HUD, journal, and all other displays.
    * Each of the 8 affection labels has a unique color, progressing
    * from cold to warm:
-   *   Tier 0: Estranged  (< -5)  — #5A6A7A grey froid
-   *   Tier 1: Wary       (< 0)   — #6A8AA8 bleu-gris
-   *   Tier 2: Indifferent (= 0)  — #77BBEE bleu clair
-   *   Tier 3: Curious    (<= 12) — #8AC8D8 cyan pâle
-   *   Tier 4: Interested (<= 25) — #48C8B0 turquoise
-   *   Tier 5: Fond       (<= 37) — #88D888 vert tendre
-   *   Tier 6: Devoted    (<= 46) — #E8A84C or lanterne
-   *   Tier 7: Bonded     (> 46)  — #C8A0FF violet
+   *   Tier 0: Estranged   (< -5)  — #5A6A7A cold grey
+   *   Tier 1: Wary        (< 0)   — #6A8AA8 blue-grey
+   *   Tier 2: Indifferent (= 0)   — #77BBEE pale blue
+   *   Tier 3: Curious     (<= 12) — #8AC8D8 pale cyan
+   *   Tier 4: Interested  (<= 25) — #48C8B0 turquoise
+   *   Tier 5: Fond        (<= 37) — #88D888 soft green
+   *   Tier 6: Devoted     (<= 46) — #E8A84C lantern gold
+   *   Tier 7: Bonded      (> 46)  — #C8A0FF violet
    */
   getTierInfo(affectionValue: number): { name: string; color: string; tier: number } {
     const label = this.getAffectionLabel(affectionValue);

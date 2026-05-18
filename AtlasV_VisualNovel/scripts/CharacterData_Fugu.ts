@@ -6,7 +6,7 @@
  * catch sequence, and character config.
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData, Recipe } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, EndingData, Recipe } from './Types';
 import { DriftState, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { fuguNeutralTexture, cgFuguDriftAwayTexture, cgFuguLoveEndTexture, cgFuguReleaseEndTexture } from './Assets';
@@ -40,13 +40,17 @@ const FUGU_CAST_DEFS: CastDef[] = [
 // Catch sequence + drift-away journal text
 // ============================================================
 
-const FUGU_CATCH_SEQUENCE_DATA: CatchSequenceData = {
-  reelEpitaph: 'In a round bowl, Fugu swims in circles.\n\nHe smiles.\n\nFor the first time, he\'s not alone.\n\nEven if it\'s forever.',
-  releaseEpitaph: 'Fugu dives into the depths, then surfaces again.\n\nHe swims in joyful circles at the surface.\n\nHe learned that you can be loved without being possessed.\n\nHe comes back every morning. Every morning.',
+const FUGU_ENDINGS: Record<string, EndingData> = {
+  reel: {
+    epitaph: 'In a small apartment, Fugu paces in tight circles.\n\nHe smiles.\n\nFor the first time, he\'s not alone.\n\nEven if it\'s forever.',
+  },
+  release: {
+    epitaph: 'Fugu walks home alone, then loops back twice to wave.\n\nHe still keeps his sleeves down past his wrists.\n\nBut he learned that you can be loved without being possessed.\n\nHe comes back every morning. Every morning.',
+  },
+  drift_away: {
+    epitaph: 'The alley is empty.\n\nFugu has gone back to the rocks.\n\nMaybe he still talks to them.',
+  },
 };
-
-const FUGU_DRIFT_AWAY_JOURNAL_TEXT =
-  'The bubbles rise alone.\n\nFugu has returned to the depths.\n\nMaybe he still talks to the rocks.';
 
 // ============================================================
 // Cast lookup — built lazily on demand (adapter caches internally)
@@ -65,7 +69,7 @@ const FUGU_CGS: CGData[] = [
     id: 'portrait_fugu',
     characterId: CHARACTER_ID,
     name: 'Fugu',
-    description: 'First encounter with the lonesome pufferfish.',
+    description: 'First encounter with the lonesome poison-skinned boy.',
     unlockCondition: 'Meet Fugu for the first time',
     thumbnailPath: FUGU_PORTRAIT_SPRITE,
     thumbnailTexture: fuguNeutralTexture,
@@ -73,8 +77,8 @@ const FUGU_CGS: CGData[] = [
   {
     id: 'ending_fugu_drift_away',
     characterId: CHARACTER_ID,
-    name: 'The Bubbles Rise Alone',
-    description: 'Fugu has returned to the depths. Maybe he still talks to the rocks.',
+    name: 'The Alley Is Empty',
+    description: 'Fugu has gone back to the alleys. Maybe he still talks to the rocks.',
     unlockCondition: 'Fugu drifts away after being scared 3 times',
     thumbnailPath: 'sprites/fugu_drift_away.png',
     thumbnailTexture: cgFuguDriftAwayTexture,
@@ -82,7 +86,7 @@ const FUGU_CGS: CGData[] = [
   {
     id: 'ending_fugu_reel',
     characterId: CHARACTER_ID,
-    name: 'In a Round Bowl',
+    name: 'Tight Circles',
     description: 'For the first time, he\'s not alone. Even if it\'s forever.',
     unlockCondition: 'Choose "Reel" in Fugu\'s catch sequence',
     thumbnailPath: 'sprites/fugu_love_end.png',
@@ -91,8 +95,8 @@ const FUGU_CGS: CGData[] = [
   {
     id: 'ending_fugu_release',
     characterId: CHARACTER_ID,
-    name: 'Joyful Circles',
-    description: 'Fugu dives into the depths, then surfaces again.\n\nHe swims in joyful circles at the surface.\n\nHe learned that you can be loved without being possessed.\n\nHe comes back every morning. Every morning.',
+    name: 'Walks Home Alone',
+    description: 'Fugu walks home alone, then turns around to wave.\n\nHe loops back twice just to make sure you saw.\n\nHe learned that you can be loved without being possessed.\n\nHe comes back every morning. Every morning.',
     unlockCondition: 'Choose "Release" in Fugu\'s catch sequence',
     thumbnailPath: 'sprites/fugu_release_end.png',
     thumbnailTexture: cgFuguReleaseEndTexture,
@@ -115,7 +119,6 @@ const FUGU_CGS: CGData[] = [
 // Their dispatcher routes both to the same beat; the dialogue is time-agnostic.
 const FUGU_RECIPES: Recipe[] = [
   { id: 'home',      zone: 'near', phase: Phase.Day,   lure: ANY_LURE,     initial: true, priority: 1 },
-  { id: 'homeNight', zone: 'near', phase: Phase.Night, lure: ANY_LURE,     initial: true, priority: 1 },
   { id: 'nightT2',   zone: 'near', phase: Phase.Night, lure: ANY_LURE,     priority: 1 },
   { id: 'spinnerT3', zone: 'near', phase: Phase.Night, lure: 'red_spinner', priority: 1 },
   { id: 'parkT4',    zone: 'near', phase: Phase.Day,   lure: ANY_LURE,     priority: 1 },
@@ -154,8 +157,7 @@ export const FUGU_CHARACTER: CharacterConfig = {
     portrait: fuguNeutralTexture,
   }),
 
-  catchSequenceData: FUGU_CATCH_SEQUENCE_DATA,
-  driftAwayJournalText: FUGU_DRIFT_AWAY_JOURNAL_TEXT,
+  endings: FUGU_ENDINGS,
 
   // 10-step narrative progression for the HUD gauge. Each cast set its flag
   // at the terminal beat; reaching them all means the full arc is unlocked.
@@ -175,7 +177,7 @@ export const FUGU_CHARACTER: CharacterConfig = {
   facts: [
     {
       flagKey: 'fact.fugu.appearance',
-      text: 'Warm-colored pufferfish in orange and gold.',
+      text: 'Warm orange and gold, always layered in long sleeves.',
     },
     {
       flagKey: 'fact.fugu.talks',
@@ -183,11 +185,11 @@ export const FUGU_CHARACTER: CharacterConfig = {
     },
     {
       flagKey: 'fact.fugu.toxic',
-      text: 'His toxic spines scare away all other fish.',
+      text: 'Carries a hidden poison in his skin — spines that rise when he panics.',
     },
     {
       flagKey: 'fact.fugu.alone',
-      text: 'Grew up alone with imaginary friends.',
+      text: 'Grew up alone. His family called his condition a curse and left him.',
     },
     {
       flagKey: 'fact.fugu.dream',
@@ -195,7 +197,7 @@ export const FUGU_CHARACTER: CharacterConfig = {
     },
     {
       flagKey: 'fact.fugu.puffs',
-      text: 'Puffs up when excited or scared.',
+      text: 'The spines bristle through his sleeves when he gets too excited or too scared.',
     },
   ],
 

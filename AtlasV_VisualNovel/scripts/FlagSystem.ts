@@ -5,7 +5,7 @@
  */
 
 // Valid namespace prefixes
-const VALID_NAMESPACES = ['met.', 'secret.', 'quest.', 'mood.', 'count.', 'cross.', 'run.', 'time.', 'fact.', 'recipe.', 'from.'];
+const VALID_NAMESPACES = ['met.', 'secret.', 'quest.', 'mood.', 'count.', 'cross.', 'run.', 'time.', 'fact.', 'recipe.', 'from.', 'affection.'];
 
 export type FlagValue = boolean | number | string;
 

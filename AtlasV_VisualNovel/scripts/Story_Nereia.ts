@@ -1286,7 +1286,7 @@ I do not know who I am without it. You would be meeting someone new.
 Both are real choices. Neither is wrong.
 Choose.
 
-* [WAIT] Remain silent. #delta:5 #expr:warm #icon:sadness #drift:CHARMED #flag:nereia.release_ready
+* [WAIT] Remain silent. #delta:5 #expr:warm #icon:sadness #drift:CHARMED #ending:release #unlock-cg:ending_nereia_release
     ...
     You said nothing.
     That is the answer.
@@ -1301,7 +1301,7 @@ Choose.
     Goodbye.
     -> END
 
-* [TWITCH] Joke. #delta:3 #expr:warm #icon:hesitation #drift:CHARMED #flag:nereia.release_ready
+* [TWITCH] Joke. #delta:3 #expr:warm #icon:hesitation #drift:CHARMED #ending:release #unlock-cg:ending_nereia_release
     ...
     I cannot.
     Where I am going does not have a postal service.
@@ -1314,7 +1314,7 @@ Choose.
     Goodbye.
     -> END
 
-* [DRIFT] Promise. #delta:4 #expr:warm #icon:sadness #drift:OPENED #flag:nereia.release_ready
+* [DRIFT] Promise. #delta:4 #expr:warm #icon:sadness #drift:OPENED #ending:release #unlock-cg:ending_nereia_release
     ...
     You will. I have no doubt.
     ...
@@ -1325,7 +1325,7 @@ Choose.
     Goodbye.
     -> END
 
-* [REEL] Demand. #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:nereia.catch_available #flag:mood.nereia.chose_to_stay
+* [REEL] Demand. #delta:5 #expr:warm #icon:warmth #drift:CHARMED #ending:reel #unlock-cg:ending_nereia_reel #flag:mood.nereia.chose_to_stay
     ...
     ...
     You asked.

@@ -1,17 +1,15 @@
 /**
  * SYS-05-JOURNAL: Journal Data Management
- * Manages: fish entry unlocking, observation recording, keepsake tracking.
+ * Manages: fish entry unlocking, observation recording, character cards.
  *
- * Now uses CharacterRegistry for fish data instead of hardcoded arrays.
+ * Uses CharacterRegistry for fish data instead of hardcoded arrays.
  */
 
-import { ExpressionState, Phase, ANY_LURE } from './Types';
-import type { JournalFishEntry, JournalSaveData, LureReaction, Recipe } from './Types';
+import { ExpressionState, ANY_LURE } from './Types';
+import type { JournalFishEntry, JournalSaveData, Recipe } from './Types';
 import { characterRegistry } from './CharacterRegistry';
-import { QuestSystem } from './QuestSystem';
 import { FlagSystem } from './FlagSystem';
 import { isRecipeActive } from './EncounterSystem';
-import { ALL_LURES } from './LureData';
 import { AffectionSystem } from './AffectionSystem';
 
 /**
@@ -149,26 +147,6 @@ export class JournalSystem {
     return specific ?? wildcard;
   }
 
-  /** Render a recipe's (zone, phase, lure) triplet as a human-readable line. */
-  private formatRecipe(recipe: Recipe): string {
-    const zoneLabel: Record<string, string> = {
-      near: 'Near bank',
-      mid: 'Mid waters',
-      far: 'Deep waters',
-    };
-    const phaseLabel = recipe.phase === Phase.Night ? 'Night' : 'Day';
-    const lureLabel = recipe.lure === ANY_LURE
-      ? 'Any lure'
-      : (ALL_LURES[recipe.lure]?.name ?? recipe.lure);
-    return `${zoneLabel[recipe.zone] ?? recipe.zone} - ${phaseLabel} - ${lureLabel}`;
-  }
-
-  getLocationHint(fishId: string, flags: Record<string, boolean | number>): string {
-    const recipe = this.getTargetRecipe(fishId, flags);
-    if (!recipe) return '';
-    return this.formatRecipe(recipe);
-  }
-
   getQuestNameForFish(fishId: string): string {
     return characterRegistry.getQuestName(fishId);
   }
@@ -177,135 +155,6 @@ export class JournalSystem {
   isFishUnlocked(fishId: string): boolean {
     return this.fishEntries.get(fishId)?.unlocked ?? false;
   }
-
-  // === Formatted Display Text (for ViewModel binding) ===
-
-  getPondNotesText(fishId: string, flags: Record<string, boolean | number> = {}): string {
-    const entry = this.fishEntries.get(fishId);
-    if (!entry || !entry.unlocked) {
-      return '[ Unknown Fish ]\n\nA dark shape seen beneath the surface.\nNot yet approached.';
-    }
-
-    const character = characterRegistry.getCharacter(fishId);
-    const lines: string[] = [];
-    lines.push(`${fishId.charAt(0).toUpperCase() + fishId.slice(1)} \u2014 ${entry.species}`);
-    lines.push(`Casts: ${entry.castsMade}`);
-    lines.push('');
-
-    lines.push('\u2014 Observations \u2014');
-    if (character?.facts) {
-      for (const factDef of character.facts) {
-        if (flags[factDef.flagKey]) {
-          lines.push(`\u2022 ${factDef.text}`);
-        } else {
-          lines.push(`\u2022 ${factDef.hintText ?? '???'}`);
-        }
-      }
-    }
-    lines.push('');
-
-    lines.push(`\u2014 Personal Quest: ${this.getQuestNameForFish(fishId)} \u2014`);
-    lines.push(this.getQuestHintForFish(fishId));
-    lines.push('');
-
-    const targetRecipe = this.getTargetRecipe(fishId, flags);
-    if (targetRecipe) {
-      lines.push('\u2014 Where to find \u2014');
-      lines.push(this.formatRecipe(targetRecipe));
-    }
-
-    return lines.join('\n');
-  }
-
-  getQuestStatusText(questSystem: QuestSystem, flagSystem: FlagSystem): string {
-    const allCharacters = characterRegistry.getAllCharacters();
-    const flags = flagSystem.serialize();
-    const lines: string[] = [];
-    lines.push('\u2014 Active Quests \u2014');
-    lines.push('');
-
-    let hasActiveQuests = false;
-    for (const char of allCharacters) {
-      if (!char.questRequirement) continue;
-      const progressText = questSystem.getQuestProgressText(char.id, char.questRequirement, flagSystem);
-      const isComplete = progressText.startsWith('\u2713');
-      if (!isComplete) {
-        hasActiveQuests = true;
-        lines.push(`\u25c6 ${getCharDisplayName(char.id, flags)}`);
-        lines.push(`  ${progressText}`);
-        lines.push('');
-      }
-    }
-
-    if (!hasActiveQuests) {
-      lines.push('No active quests.');
-      lines.push('');
-    }
-
-    const completedLines: string[] = [];
-    for (const char of allCharacters) {
-      if (!char.questRequirement) continue;
-      const progressText = questSystem.getQuestProgressText(char.id, char.questRequirement, flagSystem);
-      if (progressText.startsWith('\u2713')) {
-        completedLines.push(`\u2713 ${getCharDisplayName(char.id, flags)} \u2014 ${progressText.substring(2)}`);
-      }
-    }
-
-    if (completedLines.length > 0) {
-      lines.push('\u2014 Completed \u2014');
-      for (const cl of completedLines) {
-        lines.push(cl);
-      }
-    }
-
-    return lines.join('\n');
-  }
-
-  getAllPondNotesText(flags: Record<string, boolean | number> = {}): string {
-    const allIds = characterRegistry.getAllCharacterIds();
-    const sections: string[] = [];
-    for (const fishId of allIds) {
-      sections.push(this.getPondNotesText(fishId, flags));
-    }
-    return sections.join('\n\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n');
-  }
-
-  getLureBoxText(ownedLureIds: string[], reactions: LureReaction[]): string {
-    if (ownedLureIds.length === 0) {
-      return 'No lures in inventory.';
-    }
-
-    const lureNames: Record<string, string> = {
-      red_spinner: 'Red Spinner',
-      gold_teardrop: 'Gold Teardrop',
-      feather_fly: 'Feather Fly',
-      night_lure: 'Night Lure',
-      shell_hook: 'Shell Hook',
-      bare_hook: 'Bare Hook',
-    };
-
-    const lines: string[] = [];
-    for (const lureId of ownedLureIds) {
-      const name = lureNames[lureId] ?? lureId;
-      lines.push(`\u25c6 ${name}`);
-
-      const lureReactions = reactions.filter(r => r.lureId === lureId);
-      if (lureReactions.length === 0) {
-        lines.push('  No observations recorded yet.');
-      } else {
-        for (const r of lureReactions) {
-          const fishName = r.fishId.charAt(0).toUpperCase() + r.fishId.slice(1);
-          const sentiment = r.positiveActions > r.negativeActions ? '(positive)' :
-                           r.negativeActions > r.positiveActions ? '(wary)' : '(neutral)';
-          lines.push(`  \u2022 Used with ${fishName} \u00d7${r.castCount} ${sentiment}`);
-        }
-      }
-      lines.push('');
-    }
-
-    return lines.join('\n');
-  }
-
 
   // === Character Teasing System ===
 
@@ -373,30 +222,6 @@ export class JournalSystem {
       if (entry.unlocked) met++;
     }
     return met;
-  }
-
-  getCharacterListText(): string {
-    const cards = this.getCharacterCardsData();
-    const lines: string[] = [];
-
-    lines.push(`\u2014 ${this.getMetCounterText()} \u2014`);
-    lines.push('');
-
-    for (const card of cards) {
-      if (card.unlocked) {
-        const nameCapitalized = card.name.charAt(0).toUpperCase() + card.name.slice(1);
-        lines.push(`\u25c8 ${nameCapitalized} \u2014 ${card.species}`);
-        lines.push(`  ${card.castsMade} casts \u00b7 ${card.observationCount} observations`);
-        lines.push(`  Quest: ${card.questName}`);
-        lines.push(`  \u21b3 ${card.questHint}`);
-      } else {
-        lines.push('\ud83d\udd12 ??? \u2014 Unknown');
-        lines.push(`  ${card.teaserHint}`);
-      }
-      lines.push('');
-    }
-
-    return lines.join('\n');
   }
 
   // === Save/Load ===

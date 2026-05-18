@@ -6,7 +6,7 @@
  * catch sequence, recipes, and character config.
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData, Recipe } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, EndingData, Recipe } from './Types';
 import { DriftState, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { kashaNeutralTexture, cgKashaLoveEndTexture, cgKashaReleaseEndTexture, cgKashaDriftAwayTexture } from './Assets';
@@ -45,13 +45,17 @@ const KASHA_CAST_DEFS: CastDef[] = [
 // Catch sequence + drift-away journal text
 // ============================================================
 
-const KASHA_CATCH_SEQUENCE_DATA: CatchSequenceData = {
-  reelEpitaph: 'She wanted to be chosen.\n\nChosen is not the same as taken.\n\nShe had told you the difference.',
-  releaseEpitaph: 'She wanted to be a person.\n\nNot a prize.\n\nYou let her be the person she was.\n\nShe comes back tomorrow.\n\nShe will keep coming back.',
+const KASHA_ENDINGS: Record<string, EndingData> = {
+  reel: {
+    epitaph: 'She wanted to be chosen.\n\nChosen is not the same as taken.\n\nShe had told you the difference.',
+  },
+  release: {
+    epitaph: 'She wanted to be a person.\n\nNot a prize.\n\nYou let her be the person she was.\n\nShe comes back tomorrow.\n\nShe will keep coming back.',
+  },
+  drift_away: {
+    epitaph: 'The corner is empty.\n\nOther voices, briefly, mention that she talked about you a lot.\n\nThey are surprised that you are not surprised.',
+  },
 };
-
-const KASHA_DRIFT_AWAY_JOURNAL_TEXT =
-  'The corner is empty.\n\nOther voices, briefly, mention that she talked about you a lot.\n\nThey are surprised that you are not surprised.';
 
 // ============================================================
 // Cast lookup — built lazily on demand (adapter caches internally)
@@ -152,8 +156,7 @@ export const KASHA_CHARACTER: CharacterConfig = {
     portrait: kashaNeutralTexture,
   }),
 
-  catchSequenceData: KASHA_CATCH_SEQUENCE_DATA,
-  driftAwayJournalText: KASHA_DRIFT_AWAY_JOURNAL_TEXT,
+  endings: KASHA_ENDINGS,
 
   // 10-step narrative progression for the HUD gauge.
   progressionMilestones: [

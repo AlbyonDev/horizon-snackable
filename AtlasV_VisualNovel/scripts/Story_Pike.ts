@@ -2,7 +2,8 @@
  * Story_Pike — NPC pike (single 4-beat puzzle).
  *
  * Predator, intense: respects aggression and direct provocation.
- * Only confident, repeated challenges will earn its respect.
+ * Wild fish: no dialogue, only narration. Each line is wrapped in *...* so
+ * the engine's scenery mode kicks in (italic, centered, no speaker name).
  *
  * Puzzle combo: TWITCH → TWITCH → TWITCH → REEL.
  *   Any wrong action → pike leaves immediately (-> END).
@@ -29,7 +30,7 @@ export const PIKE_STORY: string = `
     *The pike loses interest. Prey does not sit still.*
     -> END
 
-* [TWITCH] #delta:18 #icon:curiosity #flag:fact.pike.predator
+* [TWITCH] #delta:18 #expr:curious #icon:curiosity #flag:fact.pike.predator
     *The bait jerks.*
     *The pike surges forward — then stops. Measuring.*
     *It respects what fights back.*
@@ -40,7 +41,7 @@ export const PIKE_STORY: string = `
     *The pike turns away. Weakness.*
     -> END
 
-* [REEL] #delta:0 #icon:shock
+* [REEL] #delta:0 #expr:alarmed #icon:shock
     *The line screams.*
     *The pike bares teeth and vanishes. Not like this.*
     -> END
@@ -60,7 +61,7 @@ export const PIKE_STORY: string = `
     *The pike's attention drifts to something else. Gone.*
     -> END
 
-* [TWITCH] #delta:17 #icon:delight #flag:fact.pike.intense
+* [TWITCH] #delta:17 #expr:curious #icon:delight #flag:fact.pike.intense
     *Another twitch — sharp, defiant.*
     *The pike's body tightens. Good.*
     *A worthy challenge.*
@@ -68,10 +69,10 @@ export const PIKE_STORY: string = `
 
 * [DRIFT] #delta:0 #icon:boredom
     *The float goes slack.*
-    *The pike does not chase the weak. It is gone.*
+    *The pike does not chase the weak. Gone.*
     -> END
 
-* [REEL] #delta:0 #icon:shock
+* [REEL] #delta:0 #expr:alarmed #icon:shock
     *Metal on scale.*
     *The pike thrashes once and breaks free.*
     -> END
@@ -91,7 +92,7 @@ export const PIKE_STORY: string = `
     *The pike's fire dims. It sinks back into the green.*
     -> END
 
-* [TWITCH] #delta:15 #icon:shock #flag:fact.pike.respect
+* [TWITCH] #delta:15 #expr:warm #icon:shock #flag:fact.pike.respect
     *The bait snaps sideways.*
     *The pike lunges — stops — trembles with energy.*
     *Respect. Earned through defiance.*
@@ -102,7 +103,7 @@ export const PIKE_STORY: string = `
     *The pike turns away in disgust.*
     -> END
 
-* [REEL] #delta:0 #icon:shock
+* [REEL] #delta:0 #expr:alarmed #icon:shock
     *Too soon — the pike was ready, and you were not.*
     *It spits the hook and dives.*
     -> END
@@ -132,7 +133,7 @@ export const PIKE_STORY: string = `
     *The pike watches it go with contempt.*
     -> END
 
-* [REEL] #delta:1 #icon:shock
+* [REEL] #delta:1 #expr:warm #icon:shock
     *The hook bites deep.*
     *The pike fights — but you hold.*
     -> END

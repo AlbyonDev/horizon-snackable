@@ -4,7 +4,7 @@
  * Combo: WAIT → TWITCH → DRIFT → REEL (balanced, variety-seeking).
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, EndingData } from './Types';
 import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { troutNeutralTexture } from './Assets';
@@ -19,8 +19,8 @@ const TROUT_DEPARTURES: CastData['departures'] = {
   },
 };
 
-const TROUT_CATCH_SEQUENCE_DATA: CatchSequenceData = {
-  reelEpitaph: 'The trout has been caught.',
+const TROUT_ENDINGS: Record<string, EndingData> = {
+  reel: { epitaph: 'The trout has been caught.' },
 };
 
 function getCasts(): CastData[] {
@@ -76,7 +76,7 @@ export const TROUT_CHARACTER: CharacterConfig = {
     portrait: troutNeutralTexture,
   }),
 
-  catchSequenceData: TROUT_CATCH_SEQUENCE_DATA,
+  endings: TROUT_ENDINGS,
 
   facts: [
     {

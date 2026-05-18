@@ -138,9 +138,9 @@ import {
 import { Vec3D } from './Vec3D';
 import {
   GamePhase, DriftState, ExpressionState,
-  EmotionIconType, EndingType, Phase, ANY_LURE,
+  EmotionIconType, Phase, ANY_LURE,
 } from './Types';
-import type { Beat, ActionEffect, FishCharacter, FishAffection, SaveData, SplashRipple, FloatingEmotionIcon, EmotionIconAnchor, FishSaveData, LureReaction } from './Types';
+import type { Beat, ActionEffect, FishCharacter, FishAffection, SaveData, SplashRipple, FloatingEmotionIcon, EmotionIconAnchor, FishSaveData } from './Types';
 
 @component()
 export class FloaterGame extends Component {
@@ -172,6 +172,19 @@ export class FloaterGame extends Component {
   private fish: FishCharacter = createDefaultCharacter();
   private beats: Beat[] = [];
   private currentBeatIndex: number = 0;
+  /** Id of the beat to jump to once the current beat's reaction finishes. Set
+   *  by `handleAction` from the chosen `ActionEffect.nextBeatId`. When null,
+   *  `advanceToNextBeat` falls back to the next entry in `beats` order. */
+  private pendingNextBeatId: string | null = null;
+  /** Ending id to trigger once the current beat's reaction finishes. Set by
+   *  `handleAction` from the chosen `ActionEffect.triggerEnding` (Ink tag
+   *  `#ending:<id>`). Drives the only ending dispatch path — there are no
+   *  longer any code-side ending fallbacks. */
+  private pendingTriggerEnding: string | null = null;
+  /** CG ids unlocked during the current cast via `#unlock-cg:` tags. Read by
+   *  `triggerEnding` to pick which CG to display fullscreen (the auteur's
+   *  most recent ending unlock wins). Reset at cast start. */
+  private cgsUnlockedThisCast: Set<string> = new Set();
   private seenBeats: Set<string> = new Set();
   private castCount: number = 0;
   private currentCastIndex: number = 0;
@@ -371,7 +384,6 @@ export class FloaterGame extends Component {
   private progressDotsFilled: number = 0;
 
   // Ending
-  private currentEnding: EndingType = EndingType.Reel;
   private epitaphFadeTimer: number = 0;
   private epitaphFullText: string = '';
   private epitaphTextProgress: number = 0;
@@ -533,7 +545,8 @@ export class FloaterGame extends Component {
         const currentBeat = this.beats[this.currentBeatIndex];
         const noChoices = currentBeat && Object.keys(currentBeat.actionEffects).length === 0;
         if (noChoices) {
-          // Monologue beat: advanceDialogue() will roll to the next beat.
+          // Monologue beat: advanceDialogue() will roll to the next beat
+          // via array-order fallback (no per-choice divert exists here).
           const nextBeat = this.beats[this.currentBeatIndex + 1];
           if (nextBeat && !this.seenBeats.has(nextBeat.beatId)) {
             this.cancelSkip();
@@ -545,11 +558,14 @@ export class FloaterGame extends Component {
       }
     }
     // Stop at unseen reaction tails too: once reaction finishes, next beat will
-    // start. Mirror the seen-beat guard.
+    // start. Use pendingNextBeatId when set (per-choice divert), fall back to
+    // array order otherwise.
     if (this.phase === GamePhase.FishReaction && this.isShowingReaction) {
       const atLastLine = this.currentLineIndex >= this.currentLines.length - 1;
       if (atLastLine && !this.currentReactionIsTerminal) {
-        const nextBeat = this.beats[this.currentBeatIndex + 1];
+        const nextBeat = this.pendingNextBeatId !== null
+          ? this.beats.find(b => b.beatId === this.pendingNextBeatId)
+          : this.beats[this.currentBeatIndex + 1];
         if (nextBeat && !this.seenBeats.has(nextBeat.beatId)) {
           this.cancelSkip();
           return;
@@ -618,14 +634,9 @@ export class FloaterGame extends Component {
   @subscribe(onJournalTabSwitch)
   onJournalTabSwitchEvent(payload: FloaterTabSelectedPayload): void {
     const idx = parseInt(payload.parameter, 10);
-    if (idx >= 0 && idx <= 4) {
+    if (idx >= 0 && idx <= 2) {
       floaterVM.setJournalTab(idx);
-      if (idx === 1 || idx === 3) {
-        floaterVM.journalCollectionText = this.cgGallerySystem.getCollectionText();
-      }
-      if (idx === 2 || idx === 4) {
-        floaterVM.journalStatsText = this.globalStatsSystem.getStatsText();
-        floaterVM.journalBadgesText = this.globalStatsSystem.getBadgesText();
+      if (idx === 2) {
         floaterVM.setStatItems(this.globalStatsSystem.getStructuredStats());
         floaterVM.setBadgeItems(this.globalStatsSystem.getStructuredBadges());
       }
@@ -735,23 +746,8 @@ export class FloaterGame extends Component {
 
   /** Refresh all journal data from current game state */
   private refreshJournalData(): void {
-    // Pond Notes (observations per fish)
-    floaterVM.journalPondNotesText = this.journalSystem.getAllPondNotesText(this.flagSystem.serialize());
-    // Characters tab (teasing list)
-    floaterVM.journalCharactersText = this.journalSystem.getCharacterListText();
-    // Lure Box
-    floaterVM.journalLureBoxText = this.journalSystem.getLureBoxText(
-      this.getOwnedLures(), this.getLureReactions()
-    );
-    // Keepsakes (removed)
-    // Gallery
-    floaterVM.journalCollectionText = this.cgGallerySystem.getCollectionText();
-    // Stats & Badges
-    floaterVM.journalStatsText = this.globalStatsSystem.getStatsText();
-    floaterVM.journalBadgesText = this.globalStatsSystem.getBadgesText();
     floaterVM.setStatItems(this.globalStatsSystem.getStructuredStats());
     floaterVM.setBadgeItems(this.globalStatsSystem.getStructuredBadges());
-    // Met counter
     floaterVM.journalMetCounter = this.journalSystem.getMetCounterText();
 
     // Character cards (Fish tab) — built from registry, no per-id branching.
@@ -790,21 +786,6 @@ export class FloaterGame extends Component {
     const cgJson = JSON.stringify(cgArray);
     EventService.sendGlobally(OnCGSaveRequested, { data: cgJson });
     console.log(`[FloaterGame] Persisting ${cgArray.length} CG unlocks to separate PVar`);
-  }
-
-  /** Get owned lure IDs for journal display */
-  private getOwnedLures(): string[] {
-    // Return at least 'bare_hook' as default + any equipped
-    const lures: string[] = ['bare_hook'];
-    if (this.equippedLureId && !lures.includes(this.equippedLureId)) {
-      lures.push(this.equippedLureId);
-    }
-    return lures;
-  }
-
-  /** Get lure reactions (placeholder - returns empty for now) */
-  private getLureReactions(): LureReaction[] {
-    return [];
   }
 
   @subscribe(onInventoryOpen)
@@ -919,6 +900,9 @@ export class FloaterGame extends Component {
     this.fishAffection = this.affectionSystem.createAffection(characterRegistry.getDefaultCharacterId());
     this.beats = [];
     this.currentBeatIndex = 0;
+    this.pendingNextBeatId = null;
+    this.pendingTriggerEnding = null;
+    this.cgsUnlockedThisCast = new Set();
     this.seenBeats = new Set();
     this.castCount = 0;
     this.currentCastIndex = 0;
@@ -958,7 +942,6 @@ export class FloaterGame extends Component {
     floaterVM.inventoryVisible = false;
     floaterVM.journalVisible = false;
     floaterVM.inventoryButtonVisible = false;
-    floaterVM.journalButtonVisible = false;
     floaterVM.idleBarVisible = false;
     floaterVM.idleBarOpacity = 0;
     floaterVM.idleBarTranslateY = 40;
@@ -1444,7 +1427,7 @@ export class FloaterGame extends Component {
       this.floatIdleRippleTimer -= FLOAT_IDLE_RIPPLE_INTERVAL;
       this.floatIdleRipples.push({
         x: rippleX,
-        y: rippleY + 12, // Descend de 12px pour être au niveau de l'eau
+        y: rippleY + 12, // Drop 12px so ripples align with the water surface
         radius: 0,
         maxRadius: FLOAT_IDLE_RIPPLE_MAX_RADIUS,
         alpha: 1,
@@ -1506,6 +1489,9 @@ export class FloaterGame extends Component {
   private startCast(): void {
     this.castCount++;
     this.currentBeatIndex = 0;
+    this.pendingNextBeatId = null;
+    this.pendingTriggerEnding = null;
+    this.cgsUnlockedThisCast = new Set();
 
     // Snapshot flags at cast start for detecting newly discovered facts later
     this.flagsAtCastStart = { ...this.flagSystem.serialize() };
@@ -1552,7 +1538,6 @@ export class FloaterGame extends Component {
         this.fish.currentDrift = savedFishData.drift;
         this.fishAffection = this.affectionSystem.restoreFromSave(selectedCharacter.id, {
           value: savedFishData.affection,
-          peakValue: savedFishData.peakValue ?? savedFishData.affection,
           lastChangeSessionId: savedFishData.lastChangeSessionId ?? '',
           lastChangeDelta: savedFishData.lastChangeDelta ?? 0,
         });
@@ -1636,17 +1621,10 @@ export class FloaterGame extends Component {
   }
 
   private startNextBeat(): void {
-    if (this.currentBeatIndex >= this.beats.length) {
-      // Climax flags determine the narrative ending. Reel takes priority over
-      // Release if both happen to be set (defensive — the Ink author should
-      // set only one). See climax beats in Story_<fish>.ts.
-      if (this.flagSystem.check(`${this.fish.id}.catch_available`)) {
-        this.triggerEnding(EndingType.Reel);
-      } else if (this.flagSystem.check(`${this.fish.id}.release_ready`)) {
-        this.triggerEnding(EndingType.Release);
-      } else {
-        this.enterDeparture(this.fish.currentDrift || DriftState.Warm);
-      }
+    if (this.isAtEndOfCast()) {
+      // Endings are now exclusively Ink-driven via `#ending:<id>`. Reaching
+      // the end of the cast without an ending tag means a normal departure.
+      this.enterDeparture(this.fish.currentDrift || DriftState.Warm);
       return;
     }
 
@@ -1699,26 +1677,27 @@ export class FloaterGame extends Component {
         // All reaction lines shown — advance to next beat
         // Keep selected button state persistent (don't reset until new choices appear)
         this.isShowingReaction = false;
-        this.currentBeatIndex++;
 
-        const beat = this.beats[this.currentBeatIndex - 1];
-        this.seenBeats.add(beat.beatId);
+        const finishedBeat = this.beats[this.currentBeatIndex];
+        this.seenBeats.add(finishedBeat.beatId);
         this.saveSystem.requestSave();
 
-        // Climax flag dispatch: catch_available → Reel, release_ready → Release.
-        // A terminal choice (-> END in Ink) ends the cast regardless of beat
-        // position — an early wrong choice in a multi-beat puzzle is just as
-        // terminal as reaching the last beat.
-        if (this.flagSystem.check(`${this.fish.id}.catch_available`)) {
-          this.triggerEnding(EndingType.Reel);
-        } else if (this.flagSystem.check(`${this.fish.id}.release_ready`)) {
-          this.triggerEnding(EndingType.Release);
+        this.advanceToNextBeat();
+
+        // Priority order:
+        //   1. Ink-authored #ending:<id> wins.
+        //   2. Terminal choice (-> END in Ink) → Ink-driven departure.
+        //   3. End of cast → normal departure.
+        const inkEnding = this.pendingTriggerEnding;
+        this.pendingTriggerEnding = null;
+        if (inkEnding !== null) {
+          this.triggerEnding(inkEnding);
         } else if (this.currentReactionIsTerminal) {
           // Ink-driven departure: goodbye lines were already part of the
           // reaction. Skip the side-table lookup and go straight to the
           // visual fade-out.
           this.enterInkDeparture(this.fish.currentDrift || DriftState.Warm);
-        } else if (this.currentBeatIndex >= this.beats.length) {
+        } else if (this.isAtEndOfCast()) {
           this.enterDeparture(this.fish.currentDrift || DriftState.Warm);
         } else {
           this.beatPauseTimer = BEAT_PAUSE_DURATION;
@@ -1740,16 +1719,12 @@ export class FloaterGame extends Component {
       if (currentBeat && Object.keys(currentBeat.actionEffects).length === 0) {
         this.seenBeats.add(currentBeat.beatId);
         this.saveSystem.requestSave();
-        this.currentBeatIndex++;
-        if (this.currentBeatIndex >= this.beats.length) {
-          // Climax flag dispatch: catch_available → Reel, release_ready → Release.
-          if (this.flagSystem.check(`${this.fish.id}.catch_available`)) {
-            this.triggerEnding(EndingType.Reel);
-          } else if (this.flagSystem.check(`${this.fish.id}.release_ready`)) {
-            this.triggerEnding(EndingType.Release);
-          } else {
-            this.enterDeparture(this.fish.currentDrift || DriftState.Warm);
-          }
+        // Monologue beats have no per-choice divert — pendingNextBeatId stays
+        // null and advanceToNextBeat falls back to the next entry in array order.
+        this.advanceToNextBeat();
+        if (this.isAtEndOfCast()) {
+          // Monologue end-of-cast → normal departure (endings are tag-driven).
+          this.enterDeparture(this.fish.currentDrift || DriftState.Warm);
         } else {
           this.beatPauseTimer = BEAT_PAUSE_DURATION;
           this.phase = GamePhase.Exchange;
@@ -1788,10 +1763,8 @@ export class FloaterGame extends Component {
   }
 
   private handleAction(actionId: ActionId): void {
-    // Catch/Release endings are now driven exclusively by narrative climax
-    // flags (`catch_available` / `release_ready`) set on the final cast's
-    // terminal choice. There is no longer an "instant Reel at max affection"
-    // shortcut — the ending always emerges from a written, chosen moment.
+    // Endings are exclusively Ink-driven via `#ending:<id>` tags on terminal
+    // choices. The engine no longer infers endings from flags or thresholds.
 
     const beat = this.beats[this.currentBeatIndex];
     const effect = beat.actionEffects[actionId];
@@ -1809,6 +1782,7 @@ export class FloaterGame extends Component {
     // Apply affection
     this.affectionSystem.applyDelta(this.fishAffection, effect.affectionDelta, this.sessionId);
     this.fish.affection = this.fishAffection.value;
+    this.syncAffectionBoundaryFlags();
 
     // Apply expression and drift
     this.fish.currentExpression = effect.resultExpression;
@@ -1834,6 +1808,30 @@ export class FloaterGame extends Component {
       for (const flag of effect.flagsToDisable) { this.flagSystem.set(flag, false); }
     }
 
+    // CG unlocks — Ink `#unlock-cg:<cgId>`. Tracked per-cast so triggerEnding
+    // can pick the fullscreen viewer's CG without relying on a hardcoded
+    // `ending_<id>_<type>` convention.
+    if (effect.cgsToUnlock) {
+      for (const cgId of effect.cgsToUnlock) {
+        if (!this.cgGallerySystem.getCG(cgId)) {
+          console.warn(`[FloaterGame] #unlock-cg references unknown CG '${cgId}'`);
+          continue;
+        }
+        const newlyUnlocked = this.cgGallerySystem.unlockCG(cgId);
+        if (newlyUnlocked) {
+          console.log(`[FloaterGame] CG unlocked via Ink tag: ${cgId}`);
+          this.persistCGData();
+        }
+        // Track both first-time and repeat unlocks within this cast so the
+        // ending viewer can still surface the CG even on a replay.
+        this.cgsUnlockedThisCast.add(cgId);
+      }
+    }
+
+    // Ink-authored ending dispatch — `#ending:<type>`. Stored and consumed
+    // after the reaction lines finish playing (see advanceDialogue).
+    this.pendingTriggerEnding = effect.triggerEnding ?? null;
+
     // Spawn emotion icon
     if (effect.emotionIcon && effect.emotionIcon !== EmotionIconType.None) {
       this.spawnEmotionIcon(effect.emotionIcon);
@@ -1846,6 +1844,9 @@ export class FloaterGame extends Component {
     this.phase = GamePhase.FishReaction;
     this.isShowingReaction = true;
     this.currentReactionIsTerminal = effect.terminal === true;
+    // Capture this choice's per-action divert (from Ink `-> target`). Consumed
+    // by advanceToNextBeat() when the reaction finishes.
+    this.pendingNextBeatId = effect.nextBeatId ?? null;
     this.currentLines = effect.responseLines;
     this.currentLineIndex = 0;
     this.startNewLine();
@@ -1858,19 +1859,51 @@ export class FloaterGame extends Component {
     this.syncAffectionDisplay();
   }
 
-  private advanceBeat(): void {
-    this.currentBeatIndex++;
-    this.seenBeats.add(this.beats[this.currentBeatIndex - 1].beatId);
-    floaterVM.skipButtonVisible = false;
-    this.canSkip = false;
+  /** Maintain `affection.floor.<id>` / `affection.peak.<id>` flags so the Ink
+   *  can react to extreme states (e.g. dispatch to a drift-away knot in
+   *  `<id>_entry` when the floor is reached). Both flags are set/cleared on
+   *  every affection change — if the fish recovers above the floor, the flag
+   *  goes false so the Ink can also react to a redemption arc. */
+  private syncAffectionBoundaryFlags(): void {
+    const v = this.fishAffection.value;
+    const floorKey = `affection.floor.${this.fish.id}`;
+    const peakKey = `affection.peak.${this.fish.id}`;
+    if (v <= AFFECTION_DRIFT_AWAY_THRESHOLD) this.flagSystem.set(floorKey, true);
+    else this.flagSystem.clear(floorKey);
+    if (v >= AFFECTION_MAX) this.flagSystem.set(peakKey, true);
+    else this.flagSystem.clear(peakKey);
+  }
 
-    if (this.currentBeatIndex >= this.beats.length) {
-      this.enterDeparture(DriftState.Warm);
-    } else {
-      this.beatPauseTimer = BEAT_PAUSE_DURATION;
-      // Keep currentLines and displayedText intact so dialogue box stays visible
-      this.isTextComplete = false; // Prevent premature advance during pause
+  /** Move currentBeatIndex to the beat that follows the just-finished one.
+   *
+   *  Navigation is fully id-based. If `pendingNextBeatId` is set (from the
+   *  chosen action's `-> target` divert, or carried over from a monologue
+   *  beat's own `-> target`), jump there. Otherwise the cast ends — a beat
+   *  with no successor is treated as an implicit END, mirroring the choice-
+   *  level rule (a choice without `-> X` is treated as terminal).
+   *
+   *  Sets `currentBeatIndex` to `beats.length` (off-the-end) when no
+   *  successor is found, which the callers treat as "cast finished". */
+  private advanceToNextBeat(): void {
+    const targetId = this.pendingNextBeatId;
+    this.pendingNextBeatId = null;
+    if (targetId === null) {
+      this.currentBeatIndex = this.beats.length;
+      return;
     }
+    const idx = this.beats.findIndex(b => b.beatId === targetId);
+    if (idx >= 0) {
+      this.currentBeatIndex = idx;
+      return;
+    }
+    console.warn(`[FloaterGame] nextBeatId '${targetId}' not found in beat graph — ending cast`);
+    this.currentBeatIndex = this.beats.length;
+  }
+
+  /** True when no beat is currently available — used to trigger the cast's
+   *  ending/departure dispatch. */
+  private isAtEndOfCast(): boolean {
+    return this.currentBeatIndex >= this.beats.length;
   }
 
   private enterDeparture(drift: DriftState): void {
@@ -1917,12 +1950,11 @@ export class FloaterGame extends Component {
     // Don't show old departure overlay — use dialogue panel instead
     floaterVM.departureVisible = false;
 
-    // Check affection threshold for Drift-Away ending
-    if (this.fishAffection.value <= AFFECTION_DRIFT_AWAY_THRESHOLD) {
-      console.log(`[FloaterGame] Affection ${this.fishAffection.value} <= ${AFFECTION_DRIFT_AWAY_THRESHOLD}, triggering Drift-Away`);
-      this.triggerEnding(EndingType.DriftAway);
-      return;
-    }
+    // Hitting the affection floor exposes `affection.floor.<id>` as a flag
+    // (maintained by syncAffectionBoundaryFlags after every action). The
+    // drift-away ending is no longer fired here — the Ink author is expected
+    // to consult that flag in `<id>_entry` and dispatch to a bad-ending knot,
+    // which terminates the cast with `#ending:drift_away`.
 
     console.log(`[FloaterGame] Departure: ${drift}`);
   }
@@ -1957,12 +1989,7 @@ export class FloaterGame extends Component {
     floaterVM.departureVisible = false;
     floaterVM.dialogueVisible = false;
 
-    if (this.fishAffection.value <= AFFECTION_DRIFT_AWAY_THRESHOLD) {
-      console.log(`[FloaterGame] Affection ${this.fishAffection.value} <= ${AFFECTION_DRIFT_AWAY_THRESHOLD}, triggering Drift-Away (ink path)`);
-      this.triggerEnding(EndingType.DriftAway);
-      return;
-    }
-
+    // Drift-away is now Ink-driven (see enterDeparture comment).
     console.log(`[FloaterGame] Ink departure: ${drift}`);
   }
 
@@ -2018,11 +2045,19 @@ export class FloaterGame extends Component {
 
   // === Endings ===
   /**
-   * Trigger the ending for the current fish. Each piece (CG, text screen) is
-   * optional and shown only if the character declares it — NPCs without
-   * endings just have their state advanced without any visual.
+   * Dispatch an Ink-authored ending by id.
+   *
+   * Lookup: `CharacterConfig.endings[endingId].epitaph` for an optional
+   * fullscreen overlay text. The id is free-form — anything the auteur tags
+   * with `#ending:<id>` works. CGs are NOT unlocked here; the auteur opts in
+   * via `#unlock-cg:<cgId>` on the same choice when a visual finale is wanted.
+   *
+   * Always sets `<id>.ending_complete` (removing the fish from future
+   * encounters) and runs the standard end-of-cast bookkeeping (journal/stats).
+   * If the character has no epitaph for this ending id, the overlay is
+   * skipped and the cast advances directly back to LakeIdle.
    */
-  private triggerEnding(type: EndingType): void {
+  private triggerEnding(endingId: string): void {
     // Track journal/CG/stats (same as advanceDepartureDialogue — endings bypass departure)
     this.questSystem.recordTalkedToFish(this.fish.id);
     this.questSystem.recordFishLeft(this.fish.id);
@@ -2039,60 +2074,29 @@ export class FloaterGame extends Component {
     );
 
     const character = characterRegistry.getCharacter(this.fish.id);
-    const catchData = character?.catchSequenceData;
-
-    // Resolve epitaph text + CG id per ending type.
-    let epitaphText: string | undefined;
-    let cgId: string | undefined;
-    switch (type) {
-      case EndingType.Reel:
-        epitaphText = catchData?.reelEpitaph;
-        cgId = `ending_${this.fish.id}_reel`;
-        break;
-      case EndingType.Release:
-        epitaphText = catchData?.releaseEpitaph;
-        cgId = `ending_${this.fish.id}_release`;
-        this.flagSystem.set(`cross.${this.fish.id}.released`, true);
-        break;
-      case EndingType.DriftAway:
-        epitaphText = character?.driftAwayJournalText;
-        cgId = `ending_${this.fish.id}_drift_away`;
-        break;
-    }
+    const epitaphText = character?.endings?.[endingId]?.epitaph;
 
     // Bookkeeping always runs — the ending logically happened.
-    this.flagSystem.set(`${this.fish.id}.catch_available`, false);
     this.flagSystem.set(`${this.fish.id}.ending_complete`, true);
     // CRITICAL: Flush immediately at ending (journal/stats/flags just updated)
     this.saveSystem.flushImmediate(() => this.buildSaveData());
 
-    // Optional fullscreen CG — shown only if the character declares one
-    // for this ending (and only on first unlock, preserving prior behavior).
-    let cgShown = false;
-    if (cgId && this.cgGallerySystem.getCG(cgId)) {
-      const newlyUnlocked = this.cgGallerySystem.unlockCG(cgId);
-      if (newlyUnlocked) {
-        this.cgGallerySystem.openViewer(cgId);
-        floaterVM.cgViewerVisible = true;
-        floaterVM.cgViewerImage = this.cgGallerySystem.getCGTexture(cgId);
-        cgShown = true;
-        console.log(`[FloaterGame] CG unlocked and displayed: ${cgId}`);
-        this.persistCGData();
-      }
-    }
+    // CG fullscreen viewer: opened only if the Ink choice's `#unlock-cg:` tag
+    // unlocked a CG just now (the unlock itself happened in handleAction).
+    // Pick the most recently unlocked CG attached to this fish for display.
+    const cgShown = this.openMostRecentEndingCG();
 
-    // Optional ending text overlay — skipped entirely if the character
-    // has no epitaph for this ending type.
+    // Optional ending text overlay — skipped entirely if the character has
+    // no epitaph for this ending id.
     const textShown = !!epitaphText;
     if (textShown) {
-      // Initialize epitaph animation state (fade-in + typewriter)
       this.epitaphFullText = epitaphText!;
       this.epitaphFadeTimer = 0;
       this.epitaphTextProgress = 0;
       this.epitaphTextComplete = false;
-      floaterVM.endingText = ''; // Start empty, typewriter fills it
-      floaterVM.endingOverlayOpacity = 0; // Start transparent, fades in
-      floaterVM.endingTapVisible = false; // Hidden until typewriter completes
+      floaterVM.endingText = '';
+      floaterVM.endingOverlayOpacity = 0;
+      floaterVM.endingTapVisible = false;
       floaterVM.endingVisible = true;
     } else {
       floaterVM.endingVisible = false;
@@ -2100,10 +2104,9 @@ export class FloaterGame extends Component {
 
     // Nothing to display → advance straight back to lake idle.
     if (!cgShown && !textShown) {
-      console.log(`[FloaterGame] No ending visuals for ${this.fish.id}/${type} — skipping ending phase`);
+      console.log(`[FloaterGame] No ending visuals for ${this.fish.id}/${endingId} — skipping ending phase`);
       this.currentCastIndex++;
       this.perFishCastIndex[this.fish.id] = this.currentCastIndex;
-      // CRITICAL: Flush immediately (cast index advancement is critical state)
       this.saveSystem.flushImmediate(() => this.buildSaveData());
       this.enterLakeIdle();
       return;
@@ -2111,18 +2114,40 @@ export class FloaterGame extends Component {
 
     // Enter the ending phase — wait for the player tap to dismiss.
     this.phase = GamePhase.Ending;
-    this.currentEnding = type;
     floaterVM.departureVisible = false;
     floaterVM.hudVisible = false;
     this.hideActionButtons();
-    // Endings are intentionally tap-gated (epitaph reveal). Cancel skip and
-    // hide the button so the player must read the closing beat.
     this.canSkip = false;
     this.skipActive = false;
     floaterVM.skipButtonVisible = false;
     floaterVM.skipButtonOpacity = 0;
 
-    console.log(`[FloaterGame] Ending triggered: ${type}, cg=${cgShown}, text=${textShown}`);
+    console.log(`[FloaterGame] Ending triggered: ${endingId}, cg=${cgShown}, text=${textShown}`);
+  }
+
+  /** Open the fullscreen CG viewer on the most recently unlocked CG owned
+   *  by the current fish, if any was unlocked this cast. Returns true if a
+   *  CG was opened. Used by `triggerEnding` so the auteur's `#unlock-cg:`
+   *  tag drives the visual finale instead of a hardcoded id convention. */
+  private openMostRecentEndingCG(): boolean {
+    const character = characterRegistry.getCharacter(this.fish.id);
+    if (!character?.cgs) return false;
+    // Iterate fish CGs in reverse declaration order so the most recently
+    // added ending CG (typically the one matching the current ending) wins
+    // when several are unlocked. Skip the portrait CG — not an ending visual.
+    for (let i = character.cgs.length - 1; i >= 0; i--) {
+      const cg = character.cgs[i];
+      if (cg.id === `portrait_${this.fish.id}`) continue;
+      if (!this.cgGallerySystem.isCGUnlocked(cg.id)) continue;
+      // Only show if this CG was unlocked during the current cast.
+      if (!this.cgsUnlockedThisCast.has(cg.id)) continue;
+      this.cgGallerySystem.openViewer(cg.id);
+      floaterVM.cgViewerVisible = true;
+      floaterVM.cgViewerImage = this.cgGallerySystem.getCGTexture(cg.id);
+      console.log(`[FloaterGame] Ending CG displayed: ${cg.id}`);
+      return true;
+    }
+    return false;
   }
 
   // === Emotion Icons ===
@@ -2686,7 +2711,6 @@ export class FloaterGame extends Component {
     floaterVM.castButtonVisible = false;
     floaterVM.hudVisible = false;
     floaterVM.inventoryButtonVisible = false;
-    floaterVM.journalButtonVisible = false;
     // Defensive: ensure the title screen (Start button + rod sprite) is hidden
     // once we reach LakeIdle. Normally cleared by the fade-out, but a skipped
     // intro can land here without that having run.
@@ -3416,7 +3440,6 @@ export class FloaterGame extends Component {
         this.fish.currentDrift = fishData.drift;
         this.fishAffection = this.affectionSystem.restoreFromSave(this.fish.id, {
           value: fishData.affection,
-          peakValue: fishData.peakValue ?? fishData.affection,
           lastChangeSessionId: fishData.lastChangeSessionId ?? '',
           lastChangeDelta: fishData.lastChangeDelta ?? 0,
         });
@@ -3734,7 +3757,6 @@ export class FloaterGame extends Component {
     floaterVM.skipButtonOpacity = this.canSkip ? 1 : 0;
     floaterVM.castButtonVisible = false;
     floaterVM.inventoryButtonVisible = false;
-    floaterVM.journalButtonVisible = false;
     floaterVM.fishNameText = this.getFishDisplayName();
     floaterVM.inventoryVisible = false;
     floaterVM.journalVisible = false;

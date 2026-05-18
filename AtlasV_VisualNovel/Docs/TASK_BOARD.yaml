@@ -119,12 +119,30 @@ tasks:
     files: [scripts/FloaterGame.ts, scripts/FloaterViewModel.ts, xaml/floater.xaml]
 
   - name: Intro text as progressive paragraph (not one-line-at-a-time)
-    status: in_progress
+    status: done
     reference: "Film/VN intro crawl style"
+    summary: Progressive paragraph intro completed
 
-  - name: New Character Story - Dramatic Arc (Ink only)
-    status: in_progress
-    reference: "Visual novel dramatic branching narrative"
+  - name: Integrate Sōma into the game
+    status: done
+    reference: "Full character integration — CharacterData, recipes, registry, assets"
+    summary: Created CharacterData_Soma.ts with 5 recipe tiers and 10 casts, registered in CharacterRegistry, Stories, and Assets. Fully playable.
+    files: [scripts/CharacterData_Soma.ts, scripts/CharacterRegistry.ts, scripts/Stories.ts, scripts/Assets.ts]
+
+  - name: Generate Sōma portrait sprite
+    status: done
+    reference: "fish-portraits skill, chibi tench character"
+    summary: Generated chibi tench portrait using locked fish-portraits template, processed and saved to sprites/soma_neutral.png with premultiply alpha enabled
+    files: [sprites/soma_neutral.png, Docs/characters.md]
+
+  - name: New Character Story - Sōma the Tench (Ink only)
+    status: done
+    reference: "Gintoki Sakata (Gintama) - humour as shield, exhausted healer archetype"
+    summary: Complete 5-tier, 10-cast Ink story for Sōma the Tench. Dry humor, burnout arc, mundane humanization, all ink-authoring rules followed.
+    files: [scripts/Story_Soma.ts]
+    subtasks:
+      - name: Write Story_Soma.ts dialogue file (full 5-tier arc, 10 casts)
+        status: done
 
 chopping_block:
   disabled_systems: []

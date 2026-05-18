@@ -4,7 +4,7 @@
  * Combo: TWITCH → TWITCH → TWITCH → REEL (aggressive, direct provocation).
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, EndingData } from './Types';
 import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { pikeNeutralTexture } from './Assets';
@@ -19,8 +19,8 @@ const PIKE_DEPARTURES: CastData['departures'] = {
   },
 };
 
-const PIKE_CATCH_SEQUENCE_DATA: CatchSequenceData = {
-  reelEpitaph: 'The pike has been caught.',
+const PIKE_ENDINGS: Record<string, EndingData> = {
+  reel: { epitaph: 'The pike has been caught.' },
 };
 
 function getCasts(): CastData[] {
@@ -76,7 +76,7 @@ export const PIKE_CHARACTER: CharacterConfig = {
     portrait: pikeNeutralTexture,
   }),
 
-  catchSequenceData: PIKE_CATCH_SEQUENCE_DATA,
+  endings: PIKE_ENDINGS,
 
   facts: [
     {

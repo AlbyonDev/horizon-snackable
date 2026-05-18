@@ -1,7 +1,7 @@
 ---
 name: ink-authoring
 summary: Information on how to write dialog files in ink format for Hooked on a Feeling
-include: on_context
+include: always
 agents: [global]
 ---
 

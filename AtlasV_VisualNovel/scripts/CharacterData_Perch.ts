@@ -4,7 +4,7 @@
  * Combo: TWITCH → WAIT → TWITCH → REEL (active, then calm, then active).
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, EndingData } from './Types';
 import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { perchNeutralTexture } from './Assets';
@@ -19,8 +19,8 @@ const PERCH_DEPARTURES: CastData['departures'] = {
   },
 };
 
-const PERCH_CATCH_SEQUENCE_DATA: CatchSequenceData = {
-  reelEpitaph: 'The perch has been caught.',
+const PERCH_ENDINGS: Record<string, EndingData> = {
+  reel: { epitaph: 'The perch has been caught.' },
 };
 
 function getCasts(): CastData[] {
@@ -77,7 +77,7 @@ export const PERCH_CHARACTER: CharacterConfig = {
     portrait: perchNeutralTexture,
   }),
 
-  catchSequenceData: PERCH_CATCH_SEQUENCE_DATA,
+  endings: PERCH_ENDINGS,
 
   facts: [
     {

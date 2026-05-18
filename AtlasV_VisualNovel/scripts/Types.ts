@@ -48,13 +48,6 @@ export interface FloatingEmotionIcon {
   anchor: EmotionIconAnchor;
 }
 
-// === Ending Types ===
-export enum EndingType {
-  Reel = 'reel',
-  Release = 'release',
-  DriftAway = 'drift_away',
-}
-
 // === Splash Ripple ===
 export interface SplashRipple {
   x: number;
@@ -115,6 +108,22 @@ export interface ActionEffect {
    *  directly — no side-table lookup. Lines should already contain the
    *  fish's goodbye, per Ink Authoring Guide §4.4. */
   terminal?: boolean;
+  /** Beat id this choice diverts to. When absent and not terminal, the engine
+   *  falls back to the next beat in CastData.beats order (legacy linear flow).
+   *  Authored via `-> beat_id` after a choice in the Ink source. */
+  nextBeatId?: string;
+  /** CG ids to unlock when this choice is picked. Authored via `#unlock-cg:<cgId>`.
+   *  Used for every CG unlock — endings, bonuses, mid-arc reveals. The engine
+   *  does NOT auto-unlock any CG on ending dispatch; the author opts in
+   *  explicitly. */
+  cgsToUnlock?: string[];
+  /** When set, the engine fires `triggerEnding(endingId)` after the reaction
+   *  lines finish playing. Authored via `#ending:<id>`. The id is free-form —
+   *  any string the auteur wants. If the character declares
+   *  `endings[id].epitaph`, it's shown in the ending overlay; otherwise the
+   *  overlay is skipped. Either way, `<id>.ending_complete` is set and the
+   *  fish is removed from future encounters. */
+  triggerEnding?: string;
 }
 
 // === Beat ===
@@ -142,14 +151,16 @@ export interface CastData {
   departures: Partial<Record<DriftState, DepartureData>>;
 }
 
-// === Catch Sequence Data ===
-// REEL action triggers the Reel ending directly; reaching the end of dialogue
-// of an ending-eligible cast (release_ready or catch_available flag) triggers
-// the Release ending. Both epitaphs are optional — when omitted, the ending
-// overlay is skipped entirely (NPC-friendly).
-export interface CatchSequenceData {
-  reelEpitaph?: string;
-  releaseEpitaph?: string;
+// === Ending Data ===
+// Author-defined ending content, keyed by free-form id. The Ink tag
+// `#ending:<id>` looks up `CharacterConfig.endings[id]` and displays the
+// epitaph (if any) before transitioning back to LakeIdle. CGs are NOT
+// auto-unlocked — the author chains `#unlock-cg:<cgId>` on the same choice
+// when a visual finale is wanted.
+export interface EndingData {
+  /** Optional epitaph shown in the fullscreen ending overlay. When omitted,
+   *  the overlay is skipped entirely (NPC-friendly, or for silent endings). */
+  epitaph?: string;
 }
 
 // === Fish Character ===
@@ -173,7 +184,6 @@ export interface FishAffection {
   ceiling: number;
   lastChangeSessionId: string;
   lastChangeDelta: number;
-  peakValue: number;
 }
 
 // === Lure Types (SYS-23-GIFTS) ===
@@ -318,8 +328,10 @@ export interface CharacterConfig {
   questHint: string;
   getCasts: () => CastData[];
   initialState: () => FishCharacter;
-  catchSequenceData?: CatchSequenceData;
-  driftAwayJournalText?: string;
+  /** Map ending id → ending data. Looked up by `triggerEnding(id)` via the
+   *  Ink tag `#ending:<id>`. Endings without an entry still fire (set
+   *  `<id>.ending_complete`, remove from encounters) but show no overlay. */
+  endings?: Record<string, EndingData>;
   facts: FactDefinition[];
   /** Ordered list of flag keys that mark narrative progression milestones.
    *  Used to drive the HUD progress gauge instead of raw affection.

@@ -6,7 +6,7 @@
  * catch sequence, recipes, and character config.
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData, Recipe } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, EndingData, Recipe } from './Types';
 import { DriftState, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { nereiaNeutralTexture, cgNereiaLoveEndTexture, cgNereiaReleaseEndTexture } from './Assets';
@@ -40,13 +40,16 @@ const NEREIA_CAST_DEFS: CastDef[] = [
 // Catch sequence + drift-away journal text
 // ============================================================
 
-const NEREIA_CATCH_SEQUENCE_DATA: CatchSequenceData = {
-  reelEpitaph: 'The data ends here.\n\nThe lake remembers.\n\nShe had said it would be enough.',
-  releaseEpitaph: 'The file is closed.\n\nThe lake remembers.\n\nYou will remember.\n\nIt is more than enough.',
+const NEREIA_ENDINGS: Record<string, EndingData> = {
+  reel: {
+    epitaph: 'The data ends here.\n\nThe lake remembers.\n\nShe had said it would be enough.',
+  },
+  release: {
+    epitaph: 'The file is closed.\n\nThe lake remembers.\n\nYou will remember.\n\nIt is more than enough.',
+  },
+  // No drift_away ending for Nereia — her arc cannot reach affection ≤ -10
+  // (min reachable is -4; see __audit_drift_away.js).
 };
-
-const NEREIA_DRIFT_AWAY_JOURNAL_TEXT =
-  'She was not there.\n\nThe file was closed.\n\n7:14. The surface was empty.\n\nThe deviation was zero centimetres.';
 
 // ============================================================
 // Cast lookup — built lazily on demand (adapter caches internally)
@@ -142,8 +145,7 @@ export const NEREIA_CHARACTER: CharacterConfig = {
     portrait: nereiaNeutralTexture,
   }),
 
-  catchSequenceData: NEREIA_CATCH_SEQUENCE_DATA,
-  driftAwayJournalText: NEREIA_DRIFT_AWAY_JOURNAL_TEXT,
+  endings: NEREIA_ENDINGS,
 
   // 10-step narrative progression for the HUD gauge.
   progressionMilestones: [

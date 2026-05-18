@@ -82,7 +82,18 @@ export function resolveFishEntryKnot(
   return resolveEntryDivert(entry.body, flags);
 }
 
-/** Walk the linear chain of beats starting from a given knot.
+/** Build the graph of beats reachable from a given knot via BFS.
+ *
+ *  Each choice's `-> target` is preserved as `actionEffect.nextBeatId`, so a
+ *  beat with WAIT -> branch_a and TWITCH -> branch_b will reach both. Multiple
+ *  choices targeting the same beat are deduplicated (the beat is emitted
+ *  exactly once). Beats referenced by `-> END` / `-> DONE` produce a
+ *  `terminal` ActionEffect with no `nextBeatId`.
+ *
+ *  The returned array's order is "BFS discovery order from startNode". The
+ *  engine navigates by id via `nextBeatId`, not by index, so the order only
+ *  matters as a legacy fallback when `nextBeatId` is absent.
+ *
  *  Cached unless `flags` is supplied — flags enable bridge dialogue
  *  evaluation, which depends on runtime state and must rebuild each cast. */
 export function buildBeatsFromInk(
@@ -99,15 +110,19 @@ export function buildBeatsFromInk(
 
   const story = getStory(characterId);
   const beats: Beat[] = [];
-  const seen = new Set<string>();
+  const emitted = new Set<string>();
+  const queue: string[] = [startNodeId];
 
-  let nodeId: string | null = startNodeId;
-  while (nodeId && nodeId !== 'END' && nodeId !== 'DONE' && !seen.has(nodeId)) {
-    seen.add(nodeId);
+  while (queue.length > 0) {
+    const nodeId = queue.shift()!;
+    if (nodeId === 'END' || nodeId === 'DONE') continue;
+    if (emitted.has(nodeId)) continue;
+    emitted.add(nodeId);
+
     const knot = story.knots.get(nodeId);
     if (!knot) {
       console.warn(`[InkBeatAdapter] Missing knot '${nodeId}' for '${characterId}'`);
-      break;
+      continue;
     }
 
     const fishLines: string[] = [];
@@ -115,18 +130,18 @@ export function buildBeatsFromInk(
     collectBeatBody(knot.body, fishLines, choiceStmts, flags);
 
     const actionEffects = {} as Record<ActionId, ActionEffect>;
-    let nextNode: string | null = null;
     for (const c of choiceStmts) {
       const action = labelToActionId(c.label);
       if (action === null) continue;
 
       const choiceDivert = findFirstDivert(c.body);
       const isTerminal = choiceDivert === null || choiceDivert === 'END' || choiceDivert === 'DONE';
-      actionEffects[action] = buildActionEffect(c.tags, c.body, c.intent, isTerminal);
-
-      if (nextNode === null && !isTerminal && choiceDivert) {
-        nextNode = choiceDivert;
+      const effect = buildActionEffect(c.tags, c.body, c.intent, isTerminal);
+      if (!isTerminal && choiceDivert) {
+        effect.nextBeatId = choiceDivert;
+        queue.push(choiceDivert);
       }
+      actionEffects[action] = effect;
     }
 
     const silentSec = getNumericTag(knot.tags, 'silent', 0);
@@ -142,7 +157,6 @@ export function buildBeatsFromInk(
     }
 
     beats.push(beat);
-    nodeId = nextNode;
   }
 
   if (useCache) BEATS_CACHE.set(cacheKey, beats);
@@ -206,6 +220,17 @@ function buildActionEffect(tags: Tag[], body: Stmt[], intent?: string, terminal?
   if (flags.length > 0) effect.flagsToSet = flags;
   if (flagsToClear.length > 0) effect.flagsToClear = flagsToClear;
   if (flagsToDisable.length > 0) effect.flagsToDisable = flagsToDisable;
+
+  // `#unlock-cg:<cgId>` — generic CG unlock, decoupled from endings.
+  const cgsToUnlock = getAllTags(tags, 'unlock-cg');
+  if (cgsToUnlock.length > 0) effect.cgsToUnlock = cgsToUnlock;
+
+  // `#ending:<id>` — Ink-authored ending dispatch. The id is free-form;
+  // the engine looks up CharacterConfig.endings[id] for the optional epitaph.
+  const endingTag = getTag(tags, 'ending');
+  if (endingTag !== undefined && endingTag.length > 0) {
+    effect.triggerEnding = endingTag;
+  }
 
   if (intent !== undefined && intent.length > 0) effect.intent = intent;
   if (terminal) effect.terminal = true;

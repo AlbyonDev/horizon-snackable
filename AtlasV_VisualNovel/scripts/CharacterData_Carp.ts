@@ -4,7 +4,7 @@
  * Combo: WAIT → DRIFT → WAIT → REEL (patient, calm approach).
  */
 
-import type { CharacterConfig, CGData, CastData, FishCharacter, CatchSequenceData } from './Types';
+import type { CharacterConfig, CGData, CastData, FishCharacter, EndingData } from './Types';
 import { DriftState, EmotionIconType, ExpressionState, Phase, ANY_LURE } from './Types';
 import { inkCast } from './InkBeatAdapter';
 import { carpNeutralTexture } from './Assets';
@@ -19,8 +19,8 @@ const CARP_DEPARTURES: CastData['departures'] = {
   },
 };
 
-const CARP_CATCH_SEQUENCE_DATA: CatchSequenceData = {
-  reelEpitaph: 'The old carp has been caught.',
+const CARP_ENDINGS: Record<string, EndingData> = {
+  reel: { epitaph: 'The old carp has been caught.' },
 };
 
 function getCasts(): CastData[] {
@@ -76,7 +76,7 @@ export const CARP_CHARACTER: CharacterConfig = {
     portrait: carpNeutralTexture,
   }),
 
-  catchSequenceData: CARP_CATCH_SEQUENCE_DATA,
+  endings: CARP_ENDINGS,
 
   facts: [
     {

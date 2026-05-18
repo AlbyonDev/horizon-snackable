@@ -42,7 +42,13 @@ export const KASHA_STORY: string = `
 // ============================================================
 
 === kasha_entry ===
-{ from.kasha.name :
+// Bad-ending dispatch wins over every other branch: once Kasha has been
+// pushed past her breaking point (affection.floor.kasha set after a cast
+// exit), the next encounter is the drift-away farewell, regardless of
+// which recipe routed this cast.
+{ affection.floor.kasha :
+    -> kasha_drift_away
+- from.kasha.name :
     // T5 is locked-in by the T4 choice (c8_b2): REEL → catch branch,
     // DRIFT → release branch. If neither was chosen at T4 (player took
     // WAIT/TWITCH), fall back to the release branch (default: she lets go).
@@ -120,7 +126,68 @@ export const KASHA_STORY: string = `
 -> END
 
 // ============================================================
-// TIER 1 — THE CHAMPION: This corner is taken
+// BAD ENDING — Drift-Away.
+// Reached when affection.floor.kasha is set (cast exited at affection ≤ -10).
+// Kasha doesn't break loudly. She breaks by going still. The bravado is
+// gone, the onomatopoeia is gone, and so is "baka." All four choices close
+// the cast with #ending:drift_away.
+// ============================================================
+
+=== kasha_drift_away ===
+*Kasha is sitting on the corner. Just sitting. Not pacing. Not punching air.*
+*The hair-flip move she does when she's about to start a fight — she doesn't do it.*
+You're back.
+...
+I had a whole speech.
+About how the corner stays mine. How nobody walks in here and acts like — anyway.
+I'm not doing the speech.
+The champion act got tiring. Around the third time you came back to wound me, specifically.
+...
+*She doesn't look at you. She looks at the corner.*
+This was the place I was a person. Just for a little while. The rest of the time I was a costume.
+You knew. You had to know.
+That's the part I can't get past. That you knew.
+
+* [WAIT] Stand. #delta:0 #expr:alarmed #icon:sadness #drift:SCARED #ending:drift_away #unlock-cg:ending_kasha_drift_away
+    ...
+    Yeah. Standing there.
+    That's your move. I know your move now.
+    She — I — used to think it was strength. The not-flinching.
+    It wasn't. It was you waiting to see what hurt.
+    ...
+    Go stand somewhere else.
+    -> END
+
+* [TWITCH] Joke. #delta:0 #expr:alarmed #icon:hesitation #drift:SCARED #ending:drift_away #unlock-cg:ending_kasha_drift_away
+    ...
+    No.
+    The bit is over. The champion is done.
+    You don't get the joke today.
+    ...
+    *She finally looks at you. Just once. Her face is empty.*
+    That was the joke. The whole time. Me, here, doing this.
+    Pretty good one, in the end.
+    -> END
+
+* [DRIFT] Yield. #delta:0 #expr:alarmed #icon:sadness #drift:SCARED #ending:drift_away #unlock-cg:ending_kasha_drift_away
+    ...
+    Don't.
+    Don't give me the soft voice now. Don't fold for me.
+    I don't need that from you. Especially not from you.
+    ...
+    The second person liked the first person more. Remember?
+    You were never the first person. I should've stopped pretending sooner.
+    -> END
+
+* [REEL] Confront. #delta:0 #expr:alarmed #icon:shock #drift:SCARED #ending:drift_away #unlock-cg:ending_kasha_drift_away
+    Of course.
+    Of course it ends like this. The push. The grab.
+    The hand on the costume to see what's underneath.
+    ...
+    *She stands. Slowly. Not for a fight.*
+    There's nothing under it. That's the secret. There's just a corner and a champion of nothing.
+    Tell whoever sent you. The fight's over. They can have it.
+    -> END
 // ============================================================
 
 === kasha_t1_c1_b1 ===
@@ -679,8 +746,8 @@ I'm telling you that you could. I would let you.
 
 // =============================================================
 // DECISIVE CHOICE — this beat locks in the T5 ending track.
-//   [DRIFT] declines the offer  → release branch  (kasha.release_ready)
-//   [REEL]  accepts the offer   → catch branch    (kasha.catch_available)
+//   [DRIFT] declines the offer  → release branch (mood.kasha.t4_chose_release)
+//   [REEL]  accepts the offer   → catch branch   (mood.kasha.t4_chose_catch)
 //
 //   [WAIT] / [TWITCH] are DODGES. They DO NOT set quest.kasha.t4_c8_done,
 //   so the dispatcher routes the player back to kasha_t4_c8_b1 on the next
@@ -707,7 +774,7 @@ I'm telling you that you could. I would let you.
     The corner waits. So do I. Tch.
     -> END
 
-* [DRIFT] Empathize. #delta:4 #icon:hesitation #drift:OPENED #flag:quest.kasha.t4_c8_done #flag:mood.kasha.first_gift #flag:mood.kasha.t4_chose_release #flag:kasha.release_ready
+* [DRIFT] Empathize. #delta:4 #icon:hesitation #drift:OPENED #flag:quest.kasha.t4_c8_done #flag:mood.kasha.first_gift #flag:mood.kasha.t4_chose_release
     I know.
     It's the first time I've wanted to give somebody something.
     Don't make me explain it more than that.
@@ -715,7 +782,7 @@ I'm telling you that you could. I would let you.
     Tomorrow. I need to think about today.
     -> END
 
-* [REEL] Command. #delta:5 #icon:warmth #drift:CHARMED #flag:quest.kasha.t4_c8_done #flag:mood.kasha.want_you_received #flag:mood.kasha.t4_chose_catch #flag:kasha.catch_available
+* [REEL] Command. #delta:5 #icon:warmth #drift:CHARMED #flag:quest.kasha.t4_c8_done #flag:mood.kasha.want_you_received #flag:mood.kasha.t4_chose_catch
     Oh.
     That's a lot.
     Say it again. Slower.
@@ -798,12 +865,12 @@ Until you showed up.
 // ============================================================
 // TIER 5 — THE NAME: Aki
 // ============================================================
-// The T5 branch is locked in by the T4 c8_b2 choice:
-//   REEL at T4  → catch branch (kasha_t5_catch_*)   → kasha.catch_available
-//   DRIFT at T4 → release branch (kasha_t5_release_*) → kasha.release_ready
+// The T5 branch is locked in by the T4 c8_b2 choice (mood.kasha.t4_chose_*).
+//   REEL at T4  → catch branch (kasha_t5_catch_*)   → #ending:reel
+//   DRIFT at T4 → release branch (kasha_t5_release_*) → #ending:release
 //   WAIT/TWITCH at T4 → default release branch (she keeps her corner)
-// The ending flag is already set at T4; the T5 dialogue is a cinematic
-// walk to that ending. Player choices in T5 cannot flip the outcome.
+// The ending tag is on every terminal choice of the T5 knots; player choices
+// in T5 cannot flip the outcome track.
 // ============================================================
 
 
@@ -898,29 +965,30 @@ I am yours.
 Aren't I.
 Don't answer. I know.
 
-// NOTE: kasha.release_ready is already set by the T4 c8_b2 [DRIFT] choice.
-// Any choice here ends the cast, the engine reads the flag, plays Release.
-// If the player took WAIT/TWITCH at T4 (neither flag), no ending flag is
-// set, so the cast just ends with a soft departure — no ending CG.
+// All four options here close the Release branch the player committed to at
+// T4 c8_b2 [DRIFT]. Each ends the cast with the Release ending + its CG.
+// If the player took WAIT/TWITCH at T4 instead of DRIFT/REEL, the branch
+// dispatch in kasha_entry never routes here — so reaching this knot already
+// means Release is the right outcome.
 
-* [WAIT] Stand. #delta:5 #icon:warmth #drift:CHARMED
+* [WAIT] Stand. #delta:5 #icon:warmth #drift:CHARMED #ending:release #unlock-cg:ending_kasha_release
     Don't say it.
     I said don't.
     Thank you for saying it.
     -> END
 
-* [TWITCH] Joke. #delta:3 #icon:warmth #drift:CHARMED
+* [TWITCH] Joke. #delta:3 #icon:warmth #drift:CHARMED #ending:release #unlock-cg:ending_kasha_release
     Hah.
     There she is. There you are.
     Baka. Hikaru.
     -> END
 
-* [DRIFT] Yield. #delta:4 #icon:warmth #drift:CHARMED
+* [DRIFT] Yield. #delta:4 #icon:warmth #drift:CHARMED #ending:release #unlock-cg:ending_kasha_release
     Okay.
     Okay. That's enough words for today.
     -> END
 
-* [REEL] Command. #delta:5 #icon:warmth #drift:CHARMED
+* [REEL] Command. #delta:5 #icon:warmth #drift:CHARMED #ending:release #unlock-cg:ending_kasha_release
     Then it's settled, in your way.
     Aki and Hikaru. Both names — you carry them.
     That's the championship. Of letting things stay theirs.
@@ -1017,28 +1085,28 @@ that comes with me. Folded into a pocket.
 You're holding the other half of it.
 We're walking out together.
 
-// NOTE: kasha.catch_available is already set by the T4 c8_b2 [REEL] choice.
-// All four options here end the cast → engine reads the flag → Catch ending.
+// All four options here close the Catch branch the player committed to at
+// T4 c8_b2 [REEL]. Each ends the cast with the Reel ending + its CG.
 
-* [WAIT] Stand. #delta:5 #icon:warmth #drift:CHARMED
+* [WAIT] Stand. #delta:5 #icon:warmth #drift:CHARMED #ending:reel #unlock-cg:ending_kasha_reel
     Yeah.
     Okay.
     Let's go.
     -> END
 
-* [TWITCH] Joke. #delta:3 #icon:warmth #drift:CHARMED
+* [TWITCH] Joke. #delta:3 #icon:warmth #drift:CHARMED #ending:reel #unlock-cg:ending_kasha_reel
     Don't make a big speech.
     The bench heard enough of those.
     Aki and Hikaru. Walking. Out.
     -> END
 
-* [DRIFT] Comfort. #delta:4 #icon:warmth #drift:CHARMED
+* [DRIFT] Comfort. #delta:4 #icon:warmth #drift:CHARMED #ending:reel #unlock-cg:ending_kasha_reel
     I know. I'll miss the corner too. A little.
     Mostly I'll miss having something to be the champion of.
     But I have you, baka. That's the new championship.
     -> END
 
-* [REEL] Command. #delta:5 #icon:warmth #drift:CHARMED
+* [REEL] Command. #delta:5 #icon:warmth #drift:CHARMED #ending:reel #unlock-cg:ending_kasha_reel
     Then it's settled.
     Aki and Hikaru. Out the door.
     Don't look back at the bench, baka. It's just a bench.

@@ -9,6 +9,9 @@ export const fuguNeutralTexture: TextureAsset = new TextureAsset("@sprites/char_
 // === Kasha Sprites ===
 export const kashaNeutralTexture: TextureAsset = new TextureAsset("@sprites/char_veiltail_neutral.png");
 
+// === Sōma Sprites ===
+export const somaNeutralTexture: TextureAsset = new TextureAsset("@sprites/soma_neutral.png");
+
 // === Catfish (NPC) Sprites ===
 export const catfishNeutralTexture: TextureAsset = new TextureAsset("@sprites/char_catfish_neutral.png");
 
@@ -73,4 +76,6 @@ export const cgFuguReleaseEndTexture: TextureAsset = new TextureAsset("@sprites/
 export const cgKashaLoveEndTexture: TextureAsset = new TextureAsset("@sprites/kasha_love_end.png");
 export const cgKashaReleaseEndTexture: TextureAsset = new TextureAsset("@sprites/kasha_release_end.png");
 export const cgKashaDriftAwayTexture: TextureAsset = new TextureAsset("@sprites/kasha_drift_away.png");
+export const cgSomaLoveEndTexture: TextureAsset = new TextureAsset("@sprites/soma_neutral.png");
+export const cgSomaReleaseEndTexture: TextureAsset = new TextureAsset("@sprites/soma_neutral.png");
 

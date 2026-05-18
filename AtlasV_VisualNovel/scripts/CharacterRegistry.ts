@@ -8,11 +8,12 @@
  * 2. Import and register here with characterRegistry.register(YOUR_CHARACTER)
  */
 
-import type { CharacterConfig, CastData, Beat, CatchSequenceData, CGData } from './Types';
+import type { CharacterConfig, CastData, Beat, CGData } from './Types';
 import type { TextureAsset } from 'meta/worlds';
 import { FUGU_CHARACTER } from './CharacterData_Fugu';
 import { KASHA_CHARACTER } from './CharacterData_Kasha';
 import { NEREIA_CHARACTER } from './CharacterData_Nereia';
+import { SOMA_CHARACTER } from './CharacterData_Soma';
 // Ambient NPCs — re-enabled to fill the lake outside the main fish slots.
 // They use priority 0 so the 3 story fish always win on shared triplets.
 import { CARP_CHARACTER } from './CharacterData_Carp';
@@ -90,11 +91,6 @@ class CharacterRegistry {
     return castIndex >= this.getCastCount(characterId);
   }
 
-  /** Get catch sequence data for a character */
-  getCatchSequenceData(characterId: string): CatchSequenceData | undefined {
-    return this.characters.get(characterId)?.catchSequenceData;
-  }
-
   /** Get the (single) quest hint string for a character. */
   getQuestHint(characterId: string): string {
     return this.characters.get(characterId)?.questHint ?? 'A mystery remains...';
@@ -147,6 +143,7 @@ export const characterRegistry = new CharacterRegistry();
 characterRegistry.register(FUGU_CHARACTER);
 characterRegistry.register(KASHA_CHARACTER);
 characterRegistry.register(NEREIA_CHARACTER);
+characterRegistry.register(SOMA_CHARACTER);
 characterRegistry.register(PERCH_CHARACTER);
 characterRegistry.register(EEL_CHARACTER);
 characterRegistry.register(TROUT_CHARACTER);

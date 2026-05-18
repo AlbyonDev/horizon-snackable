@@ -41,7 +41,13 @@ export const FUGU_STORY: string = `
 // ============================================================
 
 === fugu_entry ===
-{ from.fugu.climaxT5 :
+// Bad-ending dispatch wins over every other branch: once Fugu has been
+// pushed past his breaking point (affection.floor.fugu set after a cast
+// exit), the next encounter is the drift-away farewell, regardless of
+// which recipe routed this cast.
+{ affection.floor.fugu :
+    -> fugu_drift_away
+- from.fugu.climaxT5 :
     { quest.fugu.t5_c9_done :
         -> fugu_t5_c10_b1
     - else :
@@ -97,6 +103,73 @@ export const FUGU_STORY: string = `
 -> END
 
 // ============================================================
+// BAD ENDING — Drift-Away.
+// Reached when affection.floor.fugu is set (cast exited at affection ≤ -10).
+// All four choices close the cast with #ending:drift_away. The CG unlock
+// is on every branch — Fugu doesn't get a "right" answer here, just a last
+// look from the player.
+// ============================================================
+
+=== fugu_drift_away ===
+You came back.
+Why did you come back?
+...
+No. Don't answer. I already know.
+You came back to make sure.
+Make sure I'm still the joke. The one who flinches. The one with the spines.
+The one who can't stop talking even when nobody's listening.
+...
+*The spines along his arms are flat. Not relaxed — given up. You've never seen him without them up at least a little.*
+...
+I thought... I really thought this time was different.
+I told a rock about you. Trust me, I — I told a rock.
+"This time," I said. "This one stays."
+The rock didn't answer. Rocks never do.
+But you didn't either.
+
+* [WAIT] Stay. #delta:0 #expr:alarmed #icon:sadness #drift:SCARED #ending:drift_away #unlock-cg:ending_fugu_drift_away
+    ...
+    You're doing the silent thing. The thing I used to think was kindness.
+    It isn't. It's the worst one of all.
+    Because I keep talking and you keep not. And every word I say is just... noise into nothing.
+    Slowpoke at least died. He had an excuse.
+    ...
+    Go. Please. Before I say something I can't take back.
+    -> END
+
+* [TWITCH] Joke. #delta:0 #expr:alarmed #icon:shock #drift:SCARED #ending:drift_away #unlock-cg:ending_fugu_drift_away
+    ...
+    No. Not this time.
+    I'm not doing the bit. I'm not making it small.
+    You don't get the joke version. You don't get to laugh and leave.
+    ...
+    *His spines are flat. They've never been flat.*
+    Just go. I'm done performing.
+    -> END
+
+* [DRIFT] Apologize. #delta:0 #expr:alarmed #icon:sadness #drift:SCARED #ending:drift_away #unlock-cg:ending_fugu_drift_away
+    ...
+    What does sorry do, exactly. Tell me.
+    Does it un-tell the rock? Does it un-count the visits I counted?
+    ...
+    No. You don't have to answer.
+    I know what sorry is. It's the thing people say on their way out.
+    -> END
+
+* [REEL] Reach. #delta:0 #expr:alarmed #icon:shock #drift:SCARED #ending:drift_away #unlock-cg:ending_fugu_drift_away
+    Don't.
+    DON'T.
+    ...
+    *He recoils. His whole body becomes spines again — but inward this time, curled around himself.*
+    ...
+    You don't get to do that now. You don't get to want me now.
+    I'm toxic. I told you. I told you and told you and told you.
+    Maybe believing it took this long because I needed to.
+    ...
+    Go. I'm going under.
+    -> END
+
+// ============================================================
 // TIER 1 — UNAWARE: The desperate need to be seen
 // ============================================================
 
@@ -117,8 +190,8 @@ Please tell me you're not lost. Please say you're staying!
 * [TWITCH] Greet. #delta:5 #icon:delight #drift:CHARMED #flag:met.fugu #flag:fact.fugu.appearance #flag:fact.fugu.puffs
     Nice to meet you too!
     Whoa, we are so in sync already! I feel it!
-    Wait, my heart is beating so fast I'm gonna... *puffs up with excitement*
-    Oops! Sorry! I puff up when I get too excited.
+    Wait, my heart is beating so fast — *the spines along his forearms prickle up through his sleeves, sharp and visible.*
+    Oops! Sorry! That happens when I get too excited.
     But I'm just so glad you're here, trust me!
     -> fugu_t1_c1_b2
 
@@ -200,7 +273,7 @@ Hi. I'm not very good at this.
 * [DRIFT] Comfort. #delta:2 #icon:contentment #drift:WARM
     It was a perfect hi?
     ... Really?
-    Wow. You know exactly what to say to make my spikes lay flat.
+    Wow. You know exactly what to say to make my spines lay flat.
     -> fugu_t1_c2_b2
 
 * [REEL] Push. #delta:-3 #icon:shock #drift:SCARED
@@ -262,9 +335,9 @@ You know you're weird?
 No! Not mean weird! Good weird!
 Like... you're not scared of me.
 Look.
-*extends an arm*
-See these? If I get stressed, my spikes come out. With poison.
-A lot of poison.
+*He rolls up a sleeve carefully, by the cuff. The skin underneath is dotted with hard ridges — spines, lying flat for now.*
+See these? When I get stressed, they come out. With poison. Real poison.
+A lot of it.
 
 * [WAIT] Stand. #delta:4 #icon:warmth #drift:CHARMED #flag:fact.fugu.toxic
     You're not going anywhere.
@@ -276,8 +349,8 @@ A lot of poison.
 * [TWITCH] Probe. #delta:3 #icon:curiosity #drift:WARM #flag:fact.fugu.toxic
     It doesn't hurt me. If that's what you're asking.
     But it hurts everyone else.
-    Wait, I can puff up more! *POOF*
-    Tadaaaa! See?! I'm like a toxic balloon!
+    Watch — *He tenses on purpose, and a row of spines bristles all at once down his arm.*
+    Tadaaaa! Look! A walking hazard sign! Limited edition!
     -> fugu_t2_c3_b2
 
 * [DRIFT] Yield. #delta:-1 #icon:sadness #drift:WARY #flag:fact.fugu.toxic
@@ -324,20 +397,20 @@ When my toxins got too strong, they said I was a curse.
 
 * [REEL] Judge. #delta:-3 #icon:shock #drift:SCARED #flag:quest.fugu.t2_c3_done
     Go after them?
-    Stop! I puff up when I'm scared!
+    Stop! When I panic the spines come out, they — please —
     I couldn't! I was a kid, and I was dangerous!
-    That's why they left! All of them!
+    My mother called it the family curse. That's why they left! All of them!
     -> END
 
 === fugu_t2_c4_b1 ===
 { mood.fugu.last_drift == "SCARED" :
-    I'm calm today. I promise. No sudden spikes.
+    I'm calm today. I promise. Spines all the way down.
 - else :
     Hey. I thought of something last night.
 }
 ...
 If I concentrate really, really hard...
-I can keep my spikes in. Even when I'm happy.
+I can keep my spines down. Even when I'm happy.
 Look! I'm happy right now. And nothing's coming out!
 ...ok maybe one. But just one!
 
@@ -362,7 +435,7 @@ Look! I'm happy right now. And nothing's coming out!
 
 * [REEL] Warn. #delta:-2 #icon:shock #drift:SCARED
     Still too dangerous?
-    NO! *POOF — puffs up in panic*
+    NO! *Every spine snaps up at once — sleeves catch on them, sharp through the fabric.*
     See?! See what happens when you doubt me?!
     The second someone pushes me, I lose control!
     -> fugu_t2_c4_b2
@@ -442,7 +515,7 @@ I talked to them every day. For a long time.
 
 * [REEL] Judge. #delta:-3 #icon:shock #drift:SCARED #flag:fact.fugu.alone
     Grow up?
-    *puffs up defensively*
+    *His spines snap up — a wall between him and you.*
     I DID grow up! I survived on my own!
     You don't know what it was like!
     -> fugu_t3_c5_b2
@@ -490,7 +563,7 @@ Tell me you're real.
 ...
 Are you scared of me?
 It's ok if yes. I'd understand.
-My spikes. The poison. The fact that I puff up when I'm stressed.
+The spines. The poison. The way they come out when I'm stressed.
 Everyone who walks past me on the street is scared.
 What about you?
 
@@ -598,7 +671,7 @@ That's what a monster is right? Hurting just by existing?
 
 === fugu_t4_c7_b2 ===
 I'm gonna tell you something. The biggest secret.
-I control my spikes now. Completely.
+I control my spines now. Completely.
 I've been training for days.
 So I could...
 *steps closer, arms open*
@@ -616,8 +689,8 @@ For the first time in my life.
 * [TWITCH] High-five. #delta:3 #icon:delight #drift:CHARMED #flag:quest.fugu.t4_c7_done
     A high-five?!
     REALLY?!
-    *concentrates very hard and slaps your hand*
-    SEE?! Nothing! No spikes!
+    *He concentrates very hard, then slaps your hand. Just skin. Soft.*
+    SEE?! Nothing! Not one spine!
     *tears of joy*
     -> END
 
@@ -751,8 +824,9 @@ From... hope. For the first time in my life.
 Fugu isn't my real name.
 My real name is the one my family gave me. Before they packed up.
 But Fugu is the name I chose for myself.
-Because it's what I am. A pufferfish. Dangerous on the outside.
-But on the inside... just someone who wants to be loved.
+It's what my grandmother used to call my condition. A word from her language. I don't think she meant it kindly. But I took it.
+Because at least it's mine. The spines, the poison, the name — all of it. Mine.
+On the outside, hazard signs. On the inside... just someone who wants to be loved.
 There. Now you know everything. Absolutely everything.
 
 * [WAIT] Accept. #delta:5 #icon:warmth #drift:CHARMED #flag:quest.fugu.t5_c9_done
@@ -790,27 +864,27 @@ That's what I want, trust me!
 But... if you walk away... I'll walk away knowing I had a true friend.
 So... what do you choose?
 
-* [WAIT] Hesitate. #delta:3 #icon:warmth #drift:CHARMED #flag:fugu.release_ready
+* [WAIT] Hesitate. #delta:3 #icon:warmth #drift:CHARMED #ending:release #unlock-cg:ending_fugu_release
     You need a moment.
     Yeah. It's a big choice.
     Whatever you decide... it was good. All of it.
     Trust me.
     -> END
 
-* [TWITCH] Tease. #delta:2 #icon:curiosity #drift:WARM #flag:fugu.release_ready
+* [TWITCH] Tease. #delta:2 #icon:curiosity #drift:WARM #ending:release #unlock-cg:ending_fugu_release
     Guess?
     Even now. Even at the end, you're playing with me.
     That's why you're my best friend.
     -> END
 
-* [DRIFT] Leave. #delta:1 #icon:hesitation #drift:WARM #flag:fugu.release_ready
+* [DRIFT] Leave. #delta:1 #icon:hesitation #drift:WARM #ending:release #unlock-cg:ending_fugu_release
     You have to go.
     ...
     That's... that's your answer?
     ...ok. I'll never forget you.
     -> END
 
-* [REEL] Choose. #delta:0 #icon:surprise #drift:CHARMED #flag:fugu.catch_available
+* [REEL] Choose. #delta:0 #icon:surprise #drift:CHARMED #ending:reel #unlock-cg:ending_fugu_reel
     You're taking me with you.
     You're choosing me.
     Ok.
