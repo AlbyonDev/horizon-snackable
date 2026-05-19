@@ -126,7 +126,7 @@ export const PERCH_STORY: string = `
     *The perch does not chase what leaves.*
     -> END
 
-* [REEL] #delta:1 #icon:shock
+* [REEL] #delta:1 #icon:shock #ending:reel
     *The hook sets.*
     *The perch thrashes once — then surrenders.*
     -> END

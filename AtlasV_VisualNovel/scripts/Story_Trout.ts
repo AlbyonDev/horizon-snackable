@@ -132,7 +132,7 @@ export const TROUT_STORY: string = `
     *The trout watches it leave.*
     -> END
 
-* [REEL] #delta:1 #icon:delight
+* [REEL] #delta:1 #icon:delight #ending:reel
     *The line sings tight.*
     *The trout leaps once — bright and brilliant — then yields.*
     -> END

@@ -125,7 +125,7 @@ export const CATFISH_STORY: string = `
     *The line goes slack.*
     -> END
 
-* [REEL] #delta:1 #icon:shock
+* [REEL] #delta:1 #icon:shock #ending:reel
     *The line snaps tight.*
     -> END
 

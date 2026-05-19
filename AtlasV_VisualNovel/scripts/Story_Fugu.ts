@@ -515,7 +515,7 @@ I talked to them every day. For a long time.
 
 * [REEL] Judge. #delta:-3 #icon:shock #drift:SCARED #flag:fact.fugu.alone
     Grow up?
-    *His spines snap up — a wall between him and you.*
+    *His spines snap up — a wall between him and the float.*
     I DID grow up! I survived on my own!
     You don't know what it was like!
     -> fugu_t3_c5_b2
@@ -689,7 +689,7 @@ For the first time in my life.
 * [TWITCH] High-five. #delta:3 #icon:delight #drift:CHARMED #flag:quest.fugu.t4_c7_done
     A high-five?!
     REALLY?!
-    *He concentrates very hard, then bumps your fin. Just skin. Soft.*
+    *He concentrates very hard, then bumps the float's edge. Just skin. Soft.*
     SEE?! Nothing! Not one spine!
     *a few tiny bubbles rise from his eyes*
     -> END

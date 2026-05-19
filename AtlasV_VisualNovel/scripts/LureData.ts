@@ -61,41 +61,6 @@ export const LURE_FEATHER_FLY: LureDefinition = {
   isGifted: false,
 };
 
-// === Unlockable Lures (for future milestones) ===
-
-export const LURE_NIGHT_LURE: LureDefinition = {
-  id: 'night_lure',
-  name: 'Night Lure',
-  description: 'A dark lure that glows faintly. Deep dwellers and hidden fish notice it.',
-  attractedFish: ['nereia'], // Add new character IDs when implemented
-  initialDrift: DriftState.Troubled,
-  driftModifiers: {},
-  isGifted: false,
-};
-
-export const LURE_SHELL_HOOK: LureDefinition = {
-  id: 'shell_hook',
-  name: 'Shell Hook',
-  description: 'A hook adorned with a freshwater shell. Gifted by a generous catfish.',
-  attractedFish: ['nereia'],
-  initialDrift: DriftState.Charmed,
-  driftModifiers: {
-    nereia: DriftState.Charmed,
-  },
-  isGifted: true,
-  giftedBy: 'merlan', // Future character reference
-};
-
-export const LURE_BARE_HOOK: LureDefinition = {
-  id: 'bare_hook',
-  name: 'Bare Hook',
-  description: 'Nothing on it. A statement of vulnerability — or carelessness.',
-  attractedFish: ['nereia'], // Add new character IDs when implemented
-  initialDrift: DriftState.Troubled,
-  driftModifiers: {},
-  isGifted: false,
-};
-
 // === All Lures Registry ===
 
 export const ALL_LURES: Record<string, LureDefinition> = {
@@ -103,9 +68,6 @@ export const ALL_LURES: Record<string, LureDefinition> = {
   red_spinner: LURE_RED_SPINNER,
   gold_teardrop: LURE_GOLD_TEARDROP,
   feather_fly: LURE_FEATHER_FLY,
-  night_lure: LURE_NIGHT_LURE,
-  shell_hook: LURE_SHELL_HOOK,
-  bare_hook: LURE_BARE_HOOK,
 };
 
 // === Starting Lure IDs ===

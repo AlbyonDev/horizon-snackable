@@ -69,10 +69,10 @@ function getCasts(): CastData[] {
 // Main-fish recipes use priority: 1 to win ties over ambient NPCs.
 const SOMA_RECIPES: Recipe[] = [
   { id: 'home',     zone: 'mid', phase: Phase.Night, lure: ANY_LURE,    initial: true, priority: 1 },
-  { id: 'benchT2',  zone: 'mid',  phase: Phase.Night, lure: ANY_LURE,    priority: 1 },
-  { id: 'nightT3',  zone: 'mid',  phase: Phase.Night, lure: ANY_LURE,    priority: 1 },
-  { id: 'parkT4',   zone: 'far',  phase: Phase.Day,   lure: ANY_LURE,    priority: 1 },
-  { id: 'climaxT5', zone: 'far',  phase: Phase.Night, lure: 'bare_hook', priority: 1 },
+  { id: 'benchT2',  zone: 'mid',  phase: Phase.Night, lure: ANY_LURE,    priority: 2 },
+  { id: 'nightT3',  zone: 'mid',  phase: Phase.Night, lure: ANY_LURE,    priority: 3 },
+  { id: 'parkT4',   zone: 'far',  phase: Phase.Day,   lure: ANY_LURE,    priority: 4 },
+  { id: 'climaxT5', zone: 'far',  phase: Phase.Night, lure: 'bare_hook', priority: 5 },
 ];
 
 // ============================================================

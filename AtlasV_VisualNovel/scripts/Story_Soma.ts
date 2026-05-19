@@ -175,7 +175,7 @@ You're still here.
     Look, I wasn't trying to be rude last time. That's just... how I talk.
 - mood.soma.last_drift == "SCARED" :
     ...
-    *He sees you and almost drifts away.*
+    *He sees the bobber and almost drifts away.*
     *Settles back down.*
     ...fine. Sit down.
 - else :
@@ -904,7 +904,7 @@ And trying is the scariest thing I've ever done.
 
 * [DRIFT] Release. #delta:1 #expr:warm #icon:sadness #drift:WARM #ending:release #unlock-cg:ending_soma_release
     ...
-    *He watches you drift back.*
+    *He watches the bobber drift back.*
     ...
     Okay.
     ...

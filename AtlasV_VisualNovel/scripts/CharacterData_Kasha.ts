@@ -72,11 +72,10 @@ function getCasts(): CastData[] {
 // T1 is accessible day OR night for first contact.
 const KASHA_RECIPES: Recipe[] = [
   { id: 'home',      zone: 'mid', phase: Phase.Day,   lure: ANY_LURE,      initial: true, priority: 1 },
-  { id: 'homeNight', zone: 'mid', phase: Phase.Night, lure: ANY_LURE,      initial: true, priority: 1 },
-  { id: 'challenge', zone: 'mid', phase: Phase.Day,   lure: 'red_spinner', priority: 1 },
-  { id: 'corner',    zone: 'mid', phase: Phase.Night, lure: 'bare_hook',   priority: 1 },
-  { id: 'offer',     zone: 'mid', phase: Phase.Night, lure: ANY_LURE,      priority: 1 },
-  { id: 'name',      zone: 'mid', phase: Phase.Day,   lure: ANY_LURE,      priority: 1 },
+  { id: 'challenge', zone: 'mid', phase: Phase.Day,   lure: 'red_spinner', priority: 2 },
+  { id: 'corner',    zone: 'mid', phase: Phase.Night, lure: 'none',        priority: 3 },
+  { id: 'offer',     zone: 'mid', phase: Phase.Night, lure: ANY_LURE,      priority: 4 },
+  { id: 'name',      zone: 'mid', phase: Phase.Day,   lure: ANY_LURE,      priority: 5 },
 ];
 
 // ============================================================

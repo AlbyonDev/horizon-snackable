@@ -132,7 +132,7 @@ export const EEL_STORY: string = `
     *It watches you go.*
     -> END
 
-* [REEL] #delta:1 #icon:shock
+* [REEL] #delta:1 #icon:shock #ending:reel
     *The line tightens around the coil.*
     *The eel holds — caught in its own embrace.*
     -> END

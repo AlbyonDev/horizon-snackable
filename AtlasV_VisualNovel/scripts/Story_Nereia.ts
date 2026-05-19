@@ -105,7 +105,7 @@ export const NEREIA_STORY: string = `
 === nereia_loop ===
 *Nereia drifts near the surface, gold filigree catching the low light.*
 *Her fins trace a slow pattern in the water. Then stop.*
-*She does not turn toward you.*
+*She does not turn toward the bobber.*
 -> END
 
 // ============================================================

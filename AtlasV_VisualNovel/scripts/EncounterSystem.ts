@@ -80,9 +80,13 @@ export class EncounterSystem {
     phase: Phase,
     equippedLureId: string | null,
     flagSystem: FlagSystem,
+    getAffection?: (fishId: string) => number,
   ): EncounterResult | null {
-    const lureKey = equippedLureId && equippedLureId !== 'none' ? equippedLureId : null;
-    console.log(`[EncounterSystem] Selecting: zone=${zone}, phase=${phase}, lure=${lureKey ?? 'none'}`);
+    // Normalize cast state: null/undefined/'none' all collapse to 'none' so
+    // a recipe with `lure: 'none'` matches even before the player has opened
+    // the tackle box.
+    const lureKey = equippedLureId && equippedLureId !== 'none' ? equippedLureId : 'none';
+    console.log(`[EncounterSystem] Selecting: zone=${zone}, phase=${phase}, lure=${lureKey}`);
 
     type Candidate = { character: CharacterConfig; recipe: Recipe; specific: boolean };
     const specificMatches: Candidate[] = [];
@@ -97,7 +101,7 @@ export class EncounterSystem {
         if (recipe.zone !== zone) continue;
         if (recipe.phase !== phase) continue;
 
-        if (lureKey !== null && recipe.lure === lureKey) {
+        if (recipe.lure === lureKey) {
           specificMatches.push({ character, recipe, specific: true });
         } else if (recipe.lure === ANY_LURE) {
           wildcardMatches.push({ character, recipe, specific: false });
@@ -111,17 +115,23 @@ export class EncounterSystem {
       return null;
     }
 
-    // Tie-break: higher priority first (main fish win over ambient NPCs),
-    // then fishId alphabetic for deterministic stable order.
+    // Tie-break: higher priority first (main fish win over ambient NPCs, and
+    // higher-tier recipes can be authored with bumped priority), then higher
+    // affection (the fish the player has built more rapport with leads), then
+    // fishId alphabetic for deterministic stable order.
     pool.sort((a, b) => {
       const pa = a.recipe.priority ?? 0;
       const pb = b.recipe.priority ?? 0;
       if (pa !== pb) return pb - pa;
+      const aa = getAffection ? getAffection(a.character.id) : 0;
+      const ab = getAffection ? getAffection(b.character.id) : 0;
+      if (aa !== ab) return ab - aa;
       return a.character.id.localeCompare(b.character.id);
     });
 
     const winner = pool[0];
-    console.log(`[EncounterSystem] Matched: ${winner.character.id} / recipe="${winner.recipe.id}" (${winner.specific ? 'specific' : 'wildcard'}, priority=${winner.recipe.priority ?? 0})`);
+    const winnerAffection = getAffection ? getAffection(winner.character.id) : 0;
+    console.log(`[EncounterSystem] Matched: ${winner.character.id} / recipe="${winner.recipe.id}" (${winner.specific ? 'specific' : 'wildcard'}, priority=${winner.recipe.priority ?? 0}, affection=${winnerAffection})`);
     return { character: winner.character, recipe: winner.recipe };
   }
 }

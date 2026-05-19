@@ -3362,6 +3362,9 @@ export class FloaterGame extends Component {
       phase,
       this.equippedLureId,
       this.flagSystem,
+      (fishId) => fishId === this.fish.id
+        ? this.fishAffection.value
+        : (this.savedFishRecords[fishId]?.affection ?? 0),
     );
     this.pendingEncounter = encounter;
 
@@ -3574,13 +3577,17 @@ export class FloaterGame extends Component {
       let floatDrawX = this.landingTargetX + this.actionAnimOffsetX;
       let floatDrawY = this.landingTargetY + bobOffset + dipOffset + this.actionAnimOffsetY;
 
-      // During FloatBounce, override line endpoint to match the actual bounce sprite position
+      // During FloatBounce, override line endpoint to match the actual bounce sprite position.
+      // Skip the bob entirely when nothing bites — ripples still play, but the float stays still.
       if (this.phase === GamePhase.FloatBounce && !this.showingSurpriseEmoji) {
         const t = this.floatBounceTimer / FLOAT_BOUNCE_DURATION;
         const amplitude = FLOAT_BOUNCE_AMPLITUDE * (1 - t);
         const bobY = amplitude * Math.sin(t * FLOAT_BOUNCE_COUNT * 2 * Math.PI);
         floatDrawX = this.landingTargetX;
         floatDrawY = this.landingTargetY + bobY;
+      } else if (this.phase === GamePhase.FloatBounce) {
+        floatDrawX = this.landingTargetX;
+        floatDrawY = this.landingTargetY;
       }
 
       // Draw periodic idle ripples FIRST (behind float)

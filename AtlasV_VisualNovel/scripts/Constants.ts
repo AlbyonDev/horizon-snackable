@@ -117,7 +117,7 @@ export const FLOAT_LANDED_PAUSE = 0.5;
 // === Float Bounce (after landing) ===
 export const FLOAT_BOUNCE_DURATION = 0.8;
 export const FLOAT_BOUNCE_COUNT = 3;
-export const FLOAT_BOUNCE_AMPLITUDE = 8;
+export const FLOAT_BOUNCE_AMPLITUDE = 4;
 
 // === Rod Casting Animation ===
 export const ROD_CAST_DURATION = 0.25;

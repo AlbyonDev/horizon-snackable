@@ -262,7 +262,10 @@ export interface Recipe {
   id: string;
   zone: LakeZone;
   phase: Phase;
-  /** Lure id (e.g. 'feather_fly') or ANY_LURE for wildcard. */
+  /** Lure id (e.g. 'feather_fly') or ANY_LURE for wildcard. Use 'none' to
+   *  require the player to be casting without a lure (including before they
+   *  have ever opened the tackle box — a null/undefined cast lure is
+   *  normalized to 'none' by the encounter system). */
   lure: string;
   /** If true, this recipe is active by default unless the activation flag
    *  is explicitly set to false. */

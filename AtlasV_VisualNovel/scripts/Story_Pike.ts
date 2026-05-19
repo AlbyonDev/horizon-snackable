@@ -133,7 +133,7 @@ export const PIKE_STORY: string = `
     *The pike watches it go with contempt.*
     -> END
 
-* [REEL] #delta:1 #expr:warm #icon:shock
+* [REEL] #delta:1 #expr:warm #icon:shock #ending:reel
     *The hook bites deep.*
     *The pike fights — but you hold.*
     -> END

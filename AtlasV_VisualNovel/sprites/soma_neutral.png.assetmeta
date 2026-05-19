@@ -2,7 +2,7 @@
     "class": "horizon::AssetMetadata",
     "version": 1,
     "data": {
-        "id": "7791920351499220465",
+        "id": "11286419685892035299",
         "pipelineVersion": 1,
         "assetBuilderSettings": [
             {
@@ -10,7 +10,7 @@
                 "version": 10003,
                 "data": {
                     "target": "tex",
-                    "streamable": true,
+                    "streamable": false,
                     "streamCount": 2,
                     "cpuReadable": false,
                     "textureSettings": {

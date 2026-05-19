@@ -122,7 +122,7 @@ export const KASHA_STORY: string = `
 === kasha_loop ===
 *Kasha is circling the shallows, fins flared wide against her own reflection.*
 *Snap. Flare. Snap. Turn.*
-*She does not notice you.*
+*She does not notice the bobber.*
 -> END
 
 // ============================================================
@@ -143,7 +143,7 @@ About how the corner stays mine. How nobody walks in here and acts like — anyw
 I'm not doing the speech.
 The champion act got tiring. Around the third time you came back to wound me, specifically.
 ...
-*She doesn't turn toward you. She stares at the lakebed.*
+*She doesn't turn toward the bobber. She stares at the lakebed.*
 This was the place I was a person. Just for a little while. The rest of the time I was a costume.
 You knew. You had to know.
 That's the part I can't get past. That you knew.
@@ -164,7 +164,7 @@ That's the part I can't get past. That you knew.
     The bit is over. The champion is done.
     You don't get the joke today.
     ...
-    *She finally turns toward you. Just once. Her face is empty.*
+    *She finally turns toward the float. Just once. Her face is empty.*
     That was the joke. The whole time. Me, here, doing this.
     Pretty good one, in the end.
     -> END

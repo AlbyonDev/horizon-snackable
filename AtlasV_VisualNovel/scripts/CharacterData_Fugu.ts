@@ -119,10 +119,10 @@ const FUGU_CGS: CGData[] = [
 // Their dispatcher routes both to the same beat; the dialogue is time-agnostic.
 const FUGU_RECIPES: Recipe[] = [
   { id: 'home',      zone: 'near', phase: Phase.Day,   lure: ANY_LURE,     initial: true, priority: 1 },
-  { id: 'nightT2',   zone: 'near', phase: Phase.Night, lure: ANY_LURE,     priority: 1 },
-  { id: 'spinnerT3', zone: 'near', phase: Phase.Night, lure: 'red_spinner', priority: 1 },
-  { id: 'parkT4',    zone: 'near', phase: Phase.Day,   lure: ANY_LURE,     priority: 1 },
-  { id: 'climaxT5',  zone: 'near', phase: Phase.Day,   lure: 'feather_fly', priority: 1 },
+  { id: 'nightT2',   zone: 'near', phase: Phase.Night, lure: ANY_LURE,     priority: 2 },
+  { id: 'spinnerT3', zone: 'near', phase: Phase.Night, lure: 'red_spinner', priority: 3 },
+  { id: 'parkT4',    zone: 'near', phase: Phase.Day,   lure: ANY_LURE,     priority: 4},
+  { id: 'climaxT5',  zone: 'near', phase: Phase.Day,   lure: 'feather_fly', priority: 5 },
 ];
 
 export const FUGU_CHARACTER: CharacterConfig = {

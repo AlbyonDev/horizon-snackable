@@ -129,7 +129,7 @@ export const CARP_STORY: string = `
     *The carp watches it go.*
     -> END
 
-* [REEL] #delta:1 #icon:delight
+* [REEL] #delta:1 #icon:delight #ending:reel
     *The line tightens.*
     *The old carp yields.*
     -> END
