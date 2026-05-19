@@ -91,7 +91,7 @@ export const SOMA_STORY: string = `
 // ============================================================
 
 === soma_loop ===
-*Sōma is resting on the lakebed. Same spot. Same thermos-shaped stone beside him.*
+*Sōma is resting on the lakebed. Same spot. Same stone beside him.*
 *He flicks a fin upward, then settles back into the silt.*
 *He doesn't seem inclined to move.*
 -> END
@@ -636,7 +636,7 @@ That's a problem.
 
 * [REEL] Confront. #delta:-2 #expr:neutral #icon:shock #drift:WARY #flag:fact.soma.afraid
     ...
-    *His hands tighten on the thermos.*
+    *His fins tighten on the stone.*
     ...I know. I know that's what I'm doing.
     Knowing doesn't make it easier.
     -> soma_t4_c7_b2
