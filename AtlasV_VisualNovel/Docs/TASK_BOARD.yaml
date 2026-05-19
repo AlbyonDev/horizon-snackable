@@ -156,6 +156,11 @@ tasks:
     summary: All scenery lines in 4 story files rewritten from human/city imagery to fish/pond behavior matching each species
     files: [scripts/Story_Nereia.ts, scripts/Story_Kasha.ts, scripts/Story_Fugu.ts, scripts/Story_Soma.ts]
 
+  - name: Dynamic Tackle Box Item Grid
+    status: done
+    summary: Replaced hardcoded lure buttons with dynamic ItemsControl grid populated via LureCardViewModel collection from code
+    files: [scripts/FloaterViewModel.ts, xaml/floater.xaml, scripts/FloaterGame.ts]
+
 chopping_block:
   disabled_systems: []
   temp_scaffolding: []

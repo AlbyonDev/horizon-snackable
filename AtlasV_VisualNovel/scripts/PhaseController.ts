@@ -363,7 +363,8 @@ export class PhaseController implements PhaseTransitions {
         for (const flag of departureData.flagsToSet) { this.flagSystemRef.current.set(flag, true); }
       }
     } else {
-      this.dialogue.beginDeparture(['*She drifts away...*']);
+      const species = (this.state.fish.species || 'fish').toLowerCase();
+      this.dialogue.beginDeparture([`*The ${species} drifts away...*`]);
     }
 
     floaterVM.departureVisible = false;

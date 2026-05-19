@@ -86,6 +86,7 @@ import {
 } from './SaveEvents';
 
 import { ALL_LURES } from './LureData';
+import { lureNoneTexture, lureRedSpinnerTexture, lureGoldTeardropTexture, lureFeatherFlyTexture } from './Assets';
 import { GamePhase } from './Types';
 
 import { FloaterSharedState } from './FloaterSharedState';
@@ -190,6 +191,26 @@ export class FloaterGame extends Component {
 
     // Compose VM + draw.
     this.presenter.present(this.dialogue.snapshot());
+  }
+
+  // === Lure card population helper ===
+
+  private readonly lureTextureMap: Record<string, typeof lureNoneTexture> = {
+    'none': lureNoneTexture,
+    'red_spinner': lureRedSpinnerTexture,
+    'gold_teardrop': lureGoldTeardropTexture,
+    'feather_fly': lureFeatherFlyTexture,
+  };
+
+  private populateLureCards(): void {
+    const equippedId = this.state.equippedLureId ?? 'none';
+    const cards = Object.keys(ALL_LURES).map(id => ({
+      id,
+      name: ALL_LURES[id].name,
+      texture: this.lureTextureMap[id],
+      equipped: id === equippedId,
+    }));
+    floaterVM.setLureCards(cards);
   }
 
   // === Controller wiring ===
@@ -422,6 +443,7 @@ export class FloaterGame extends Component {
   onInventoryOpenEvent(): void {
     if (this.state.phase !== GamePhase.LakeIdle && this.state.phase !== GamePhase.Idle) return;
     this.anim.setIdleBarResponding('bait');
+    this.populateLureCards();
     floaterVM.inventoryVisible = true;
   }
 
@@ -440,14 +462,15 @@ export class FloaterGame extends Component {
 
     if (lureId === 'none') {
       this.state.equippedLureId = null;
-      floaterVM.setEquippedLure('none', 'None', 'No lure equipped. Fish will still bite, but lures can improve your chances.');
+      floaterVM.equippedLureName = 'None';
+      floaterVM.equippedLureDesc = 'No lure equipped. Fish will still bite, but lures can improve your chances.';
     } else {
       this.state.equippedLureId = lureId;
       const lure = ALL_LURES[lureId];
-      const name = lure ? lure.name : lureId;
-      const desc = lure ? lure.description : '';
-      floaterVM.setEquippedLure(lureId, name, desc);
+      floaterVM.equippedLureName = lure ? lure.name : lureId;
+      floaterVM.equippedLureDesc = lure ? lure.description : '';
     }
+    this.populateLureCards();
     this.save.requestSave();
   }
 

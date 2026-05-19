@@ -31,7 +31,7 @@ const SOMA_CAST_DEFS: CastDef[] = [
   { start: 'soma_t3_c6_b1',  name: 'Without Purpose'  },
   { start: 'soma_t4_c7_b1',  name: 'The Problem'      },
   { start: 'soma_t4_c8_b1',  name: 'The Wall'         },
-  { start: 'soma_t5_c9_b1',  name: 'The Coin'         },
+  { start: 'soma_t5_c9_b1',  name: 'Deep Water'       },
   { start: 'soma_t5_c10_b1', name: 'The Choice'       },
 ];
 
@@ -41,7 +41,7 @@ const SOMA_CAST_DEFS: CastDef[] = [
 
 const SOMA_ENDINGS: Record<string, EndingData> = {
   reel: {
-    epitaph: 'The coin is warm.\n\nHe did not ask to be carried.\n\nBut he did not let go.',
+    epitaph: 'The coffee is warm.\n\nHe did not ask for it.\n\nBut he did not refuse.',
   },
   release: {
     epitaph: 'The bench is empty.\n\nThe coffee is cold.\n\nHe will sit somewhere else tomorrow.\n\nThat is enough.',
@@ -58,21 +58,28 @@ function getCasts(): CastData[] {
 }
 
 // ============================================================
-// Encounter recipes — Sōma's 5-tier arc
+// Encounter recipes — Sōma's narrative meeting points
 // ============================================================
-// Recipe ids match the `from.soma.<id>` branches in soma_entry.
-//   home       → T1 first contact (mid, night, any lure — he's apathetic)
-//   benchT2    → T2 the plaza opens up (mid, night)
-//   nightT3    → T3 the staircase (mid, night)
-//   parkT4     → T4 the problem surfaces (far, day)
-//   climaxT5   → T5 the coin (far, night, bare_hook — vulnerability)
-// Main-fish recipes use priority: 1 to win ties over ambient NPCs.
+// `home` is his default spot (the bench, mid + night). It stays active across
+// the arc and toggles off only when a cast tells the player "I am elsewhere
+// now". The home dispatcher (in Story_Soma.ts) routes by quest flags so a
+// single recipe covers c1, c2, c4, c6 and any "wrong-lure" loop.
+//
+// Other recipes are punctual rendez-vous that intercept home when they match:
+//   cafe       → c3 — the player brings something warm (gold_teardrop)
+//   staircase  → c5 — daytime parenthesis at the same bench (mid + day)
+//   parkT4     → c7/c8 — he has retreated to the far banks in daylight
+//   riverT5    → c9 — far + night, waiting before the climax
+//   climaxT5   → c10 — final cast, gold_teardrop required
+//
+// Main-fish recipes use higher priority to win ties over ambient NPCs.
 const SOMA_RECIPES: Recipe[] = [
-  { id: 'home',     zone: 'mid', phase: Phase.Night, lure: ANY_LURE,    initial: true, priority: 1 },
-  { id: 'benchT2',  zone: 'mid',  phase: Phase.Night, lure: ANY_LURE,    priority: 2 },
-  { id: 'nightT3',  zone: 'mid',  phase: Phase.Night, lure: ANY_LURE,    priority: 3 },
-  { id: 'parkT4',   zone: 'far',  phase: Phase.Day,   lure: ANY_LURE,    priority: 4 },
-  { id: 'climaxT5', zone: 'far',  phase: Phase.Night, lure: 'bare_hook', priority: 5 },
+  { id: 'home',      zone: 'mid', phase: Phase.Night, lure: ANY_LURE,        initial: true, priority: 1 },
+  { id: 'cafe',      zone: 'mid', phase: Phase.Night, lure: 'gold_teardrop', priority: 3 },
+  { id: 'staircase', zone: 'mid', phase: Phase.Day,   lure: ANY_LURE,        priority: 3 },
+  { id: 'parkT4',    zone: 'far', phase: Phase.Day,   lure: ANY_LURE,        priority: 4 },
+  { id: 'riverT5',   zone: 'far', phase: Phase.Night, lure: ANY_LURE,        priority: 5 },
+  { id: 'climaxT5',  zone: 'far', phase: Phase.Night, lure: 'gold_teardrop', priority: 6 },
 ];
 
 // ============================================================
@@ -92,8 +99,8 @@ const SOMA_CGS: CGData[] = [
   {
     id: 'ending_soma_reel',
     characterId: CHARACTER_ID,
-    name: 'The Coin',
-    description: 'The coin is warm. He did not ask to be carried. But he did not let go.',
+    name: 'The Warm Thing',
+    description: 'The coffee is warm. He did not ask for it. But he did not refuse.',
     unlockCondition: 'Choose "Reel" in Sōma\'s catch sequence',
     thumbnailPath: SOMA_PORTRAIT_SPRITE,
     thumbnailTexture: cgSomaLoveEndTexture,
@@ -164,7 +171,7 @@ export const SOMA_CHARACTER: CharacterConfig = {
   facts: [
     {
       flagKey: 'fact.soma.appearance',
-      text: 'Olive-green with tired eyes. Always carries a copper coin.',
+      text: 'Olive-green with tired eyes. Slow but precise movements — like someone conserving energy.',
     },
     {
       flagKey: 'fact.soma.reads',

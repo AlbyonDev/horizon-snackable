@@ -51,49 +51,53 @@ export const SOMA_STORY: string = `
 
 === soma_entry ===
 { from.soma.climaxT5 :
-    { quest.soma.t5_c9_done :
-        -> soma_t5_c10_b1
-    - else :
-        -> soma_t5_c9_b1
-    }
+    -> soma_t5_c10_b1
+- from.soma.riverT5 :
+    -> soma_t5_c9_b1
 - from.soma.parkT4 :
     { quest.soma.t4_c7_done :
         -> soma_t4_c8_b1
     - else :
         -> soma_t4_c7_b1
     }
-- from.soma.nightT3 :
-    { quest.soma.t3_c5_done :
-        -> soma_t3_c6_b1
-    - else :
-        -> soma_t3_c5_b1
-    }
-- from.soma.benchT2 :
-    { quest.soma.t2_c3_done :
-        -> soma_t2_c4_b1
-    - else :
-        -> soma_t2_c3_b1
-    }
+- from.soma.staircase :
+    -> soma_t3_c5_b1
+- from.soma.cafe :
+    -> soma_t2_c3_b1
 - from.soma.home :
-    { quest.soma.t1_done :
-        -> soma_loop
-    - met.soma :
-        -> soma_t1_c2_b1
-    - else :
-        -> soma_t1_c1_b1
-    }
+    -> soma_home_dispatch
+- else :
+    -> soma_t1_c1_b1
+}
+
+// home recipe is the bench at mid/night. It stays active across the arc and
+// routes by progression: c1/c2 first contacts, c4 after the cafe, c6 after
+// the daytime parenthesis, or a soft loop hint when the player has not yet
+// brought the warm thing.
+=== soma_home_dispatch ===
+{ quest.soma.t3_c5_done :
+    -> soma_t3_c6_b1
+- quest.soma.t2_c3_done :
+    -> soma_t2_c4_b1
+- quest.soma.t1_done :
+    -> soma_home_loop_cafe_hint
+- met.soma :
+    -> soma_t1_c2_b1
 - else :
     -> soma_t1_c1_b1
 }
 
 // ============================================================
-// FAIL-SAFE LOOP — reached when home is somehow still active after T1.
+// HOME LOOP — Sōma is on the bench but the rituel is incomplete.
+// The player observes him from the surface; only a stray murmur reaches them.
 // ============================================================
 
-=== soma_loop ===
-*Sōma is resting on the lakebed. Same spot. Same stone beside him.*
-*He flicks a fin upward, then settles back into the silt.*
-*He doesn't seem inclined to move.*
+=== soma_home_loop_cafe_hint ===
+*The tench drifts above the silt, close to the reeds. He sees you.*
+*A fin twitches once. He settles back down without rising.*
+*Something seems to be missing.*
+...
+Not in the mood, tonight.
 -> END
 
 // ============================================================
@@ -225,7 +229,7 @@ Best decision I ever made.
 ...second best. The first was this bench. Good lumbar support.
 *Almost stirs a fin. Doesn't.*
 
-* [WAIT] Accept. #delta:3 #expr:warm #icon:contentment #drift:CHARMED #flag:quest.soma.t1_done #flag:recipe.soma.benchT2 #disable-flag:recipe.soma.home
+* [WAIT] Accept. #delta:3 #expr:warm #icon:contentment #drift:CHARMED #flag:quest.soma.t1_done #flag:recipe.soma.cafe
     You're not going to ask why I stopped.
     ...
     Alright. You've earned... something. I don't know what.
@@ -233,20 +237,20 @@ Best decision I ever made.
     If you happen to pass by. No obligations.
     -> END
 
-* [TWITCH] Tease. #delta:2 #expr:neutral #icon:curiosity #drift:WARM #flag:quest.soma.t1_done #flag:recipe.soma.benchT2 #disable-flag:recipe.soma.home
+* [TWITCH] Tease. #delta:2 #expr:neutral #icon:curiosity #drift:WARM #flag:quest.soma.t1_done #flag:recipe.soma.cafe
     ...heh. You and the bench. Competing for the title.
     ...yeah. The bench doesn't ask follow-up questions.
     But it also doesn't show up twice.
     ...the plaza bench. Late evenings. If you want.
     -> END
 
-* [DRIFT] Validate. #delta:3 #expr:warm #icon:warmth #drift:WARM #flag:quest.soma.t1_done #flag:recipe.soma.benchT2 #disable-flag:recipe.soma.home
+* [DRIFT] Validate. #delta:3 #expr:warm #icon:warmth #drift:WARM #flag:quest.soma.t1_done #flag:recipe.soma.cafe
     ...don't therapize me.
     But... yeah.
-    Plaza bench. Late evenings. Don't bring anything. Especially not expectations.
+    Plaza bench. Late evenings. Don't bring expectations.
     -> END
 
-* [REEL] Demand. #delta:-4 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t1_done #flag:recipe.soma.benchT2 #disable-flag:recipe.soma.home
+* [REEL] Demand. #delta:-4 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t1_done #flag:recipe.soma.cafe
     ...
     *His jaw sets.*
     Because they never stopped taking.
@@ -310,28 +314,28 @@ And then I stood there for ten minutes feeling exhausted.
 From giving directions. To a twelve-year-old.
 Pathetic, right?
 
-* [WAIT] Listen. #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t2_c3_done
+* [WAIT] Listen. #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t2_c3_done #disable-flag:recipe.soma.cafe
     You didn't laugh.
     Most people would laugh. "Tired from giving directions? Come on."
     But you just... let it be what it is.
     ...I appreciate that more than I'll ever say out loud.
     -> END
 
-* [TWITCH] Joke. #delta:2 #expr:neutral #icon:curiosity #drift:WARM #flag:quest.soma.t2_c3_done
+* [TWITCH] Joke. #delta:2 #expr:neutral #icon:curiosity #drift:WARM #flag:quest.soma.t2_c3_done #disable-flag:recipe.soma.cafe
     The bakery shortcut is impressive?
     ...heh. Yeah. It saves four minutes.
     My one remaining superpower. Efficient navigation.
     ...forget it. See you around.
     -> END
 
-* [DRIFT] Empathize. #delta:4 #expr:warm #icon:sadness #drift:OPENED #flag:quest.soma.t2_c3_done
+* [DRIFT] Empathize. #delta:4 #expr:warm #icon:sadness #drift:OPENED #flag:quest.soma.t2_c3_done #disable-flag:recipe.soma.cafe
     ...
     You get it. You actually get it.
     It's not about the directions. It's about... having anything left.
     ...forget I said that.
     -> END
 
-* [REEL] Press. #delta:-3 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t2_c3_done
+* [REEL] Press. #delta:-3 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t2_c3_done #disable-flag:recipe.soma.cafe
     ...
     *His voice drops very quiet.*
     I don't owe you an explanation.
@@ -390,7 +394,7 @@ Woke up exhausted.
 ...
 Funny how dreams can take from you too.
 
-* [WAIT] Hold space. #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t2_done #flag:recipe.soma.nightT3 #disable-flag:recipe.soma.benchT2
+* [WAIT] Hold space. #delta:4 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t2_done #flag:recipe.soma.staircase #disable-flag:recipe.soma.home
     ...
     The silence after that. You just let it sit.
     ...
@@ -398,18 +402,18 @@ Funny how dreams can take from you too.
     Come by this area at night sometime. It's quieter.
     -> END
 
-* [TWITCH] Probe. #delta:2 #expr:curious #icon:curiosity #drift:WARM #flag:quest.soma.t2_done #flag:recipe.soma.nightT3 #disable-flag:recipe.soma.benchT2
+* [TWITCH] Probe. #delta:2 #expr:curious #icon:curiosity #drift:WARM #flag:quest.soma.t2_done #flag:recipe.soma.staircase #disable-flag:recipe.soma.home
     ...the kind that costs you everything and doesn't come with a receipt.
     ...forget it. I'll tell you more another time. At night, maybe. When it's quieter.
     -> END
 
-* [DRIFT] Comfort. #delta:3 #expr:warm #icon:sadness #drift:WARM #flag:quest.soma.t2_done #flag:recipe.soma.nightT3 #disable-flag:recipe.soma.benchT2
+* [DRIFT] Comfort. #delta:3 #expr:warm #icon:sadness #drift:WARM #flag:quest.soma.t2_done #flag:recipe.soma.staircase #disable-flag:recipe.soma.home
     ...my body doesn't know the difference.
     But... thanks. For saying that.
     Come by at night. This area. I'll tell you more when there's fewer ears around.
     -> END
 
-* [REEL] Confront. #delta:-4 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t2_done #flag:recipe.soma.nightT3 #disable-flag:recipe.soma.benchT2
+* [REEL] Confront. #delta:-4 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t2_done #flag:recipe.soma.staircase #disable-flag:recipe.soma.home
     ...
     *Very quiet.*
     I know I can't keep dodging it.
@@ -477,7 +481,7 @@ Couldn't move.
 ...
 That was two years ago. Haven't gone back.
 
-* [WAIT] Stay. #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t3_c5_done #flag:fact.soma.collapse
+* [WAIT] Stay. #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t3_c5_done #flag:fact.soma.collapse #disable-flag:recipe.soma.staircase #flag:recipe.soma.home
     ...
     You're just sitting with me. On this metaphorical staircase.
     ...
@@ -485,20 +489,20 @@ That was two years ago. Haven't gone back.
     That's the first time I've told anyone the staircase story.
     -> END
 
-* [TWITCH] Ask. #delta:2 #expr:curious #icon:hesitation #drift:WARM #flag:quest.soma.t3_c5_done #flag:fact.soma.collapse
+* [TWITCH] Ask. #delta:2 #expr:curious #icon:hesitation #drift:WARM #flag:quest.soma.t3_c5_done #flag:fact.soma.collapse #disable-flag:recipe.soma.staircase #flag:recipe.soma.home
     ...someone else drove them. They were fine.
     ...everyone was always fine without me. That's the punch line.
     ...forget it.
     -> END
 
-* [DRIFT] Validate. #delta:4 #expr:warm #icon:sadness #drift:OPENED #flag:quest.soma.t3_c5_done #flag:fact.soma.collapse
+* [DRIFT] Validate. #delta:4 #expr:warm #icon:sadness #drift:OPENED #flag:quest.soma.t3_c5_done #flag:fact.soma.collapse #disable-flag:recipe.soma.staircase #flag:recipe.soma.home
     ...
     *Very long silence.*
     ...yeah. Maybe it did.
     I never thought of it that way.
     -> END
 
-* [REEL] Diagnose. #delta:-3 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t3_c5_done #flag:fact.soma.collapse
+* [REEL] Diagnose. #delta:-3 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t3_c5_done #flag:fact.soma.collapse #disable-flag:recipe.soma.staircase #flag:recipe.soma.home
     ...
     *His voice drops to almost nothing.*
     I know what it is. I don't need a label from someone on a bench.
@@ -563,7 +567,7 @@ So I fill the hours with something. Anything.
 ...
 Without purpose you're just... a body on a bench.
 
-* [WAIT] Sit with. #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t3_done #flag:recipe.soma.parkT4 #disable-flag:recipe.soma.nightT3
+* [WAIT] Sit with. #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t3_done #flag:recipe.soma.parkT4 #disable-flag:recipe.soma.home
     ...
     Two bodies on a bench.
     ...
@@ -572,18 +576,18 @@ Without purpose you're just... a body on a bench.
     I go there when the weather's good. If you're ever in the area.
     -> END
 
-* [TWITCH] Reframe. #delta:3 #expr:curious #icon:curiosity #drift:WARM #flag:quest.soma.t3_done #flag:recipe.soma.parkT4 #disable-flag:recipe.soma.nightT3
+* [TWITCH] Reframe. #delta:3 #expr:curious #icon:curiosity #drift:WARM #flag:quest.soma.t3_done #flag:recipe.soma.parkT4 #disable-flag:recipe.soma.home
     ...that's generous. But I'll take it.
     "Professional bench-occupier and novel-critic."
     ...the park. Further out. I'm there sometimes. Days.
     -> END
 
-* [DRIFT] Comfort. #delta:3 #expr:warm #icon:hesitation #drift:WARM #flag:quest.soma.t3_done #flag:recipe.soma.parkT4 #disable-flag:recipe.soma.nightT3
+* [DRIFT] Comfort. #delta:3 #expr:warm #icon:hesitation #drift:WARM #flag:quest.soma.t3_done #flag:recipe.soma.parkT4 #disable-flag:recipe.soma.home
     ...I heard you. I don't believe it yet. But I heard you.
     The park. During the day. If you want.
     -> END
 
-* [REEL] Confront. #delta:-4 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t3_done #flag:recipe.soma.parkT4 #disable-flag:recipe.soma.nightT3
+* [REEL] Confront. #delta:-4 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t3_done #flag:recipe.soma.parkT4 #disable-flag:recipe.soma.home
     ...
     *Very quiet.*
     Maybe. But it's mine.
@@ -741,33 +745,33 @@ Just sat.
 And now the wall feels... less necessary.
 ...forget it. That's too much.
 
-* [WAIT] Let it stand. #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t4_done #flag:recipe.soma.climaxT5 #disable-flag:recipe.soma.parkT4 #flag:fact.soma.wall
+* [WAIT] Let it stand. #delta:5 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t4_done #flag:recipe.soma.riverT5 #disable-flag:recipe.soma.parkT4 #flag:fact.soma.wall
     ...
     *He exhales slowly.*
     ...
-    Tomorrow night. Same park. Bring that copper coin you always carry.
+    Tomorrow night. Further out. Bring that warm thing you brought me once.
     I want to... try something. An experiment.
     In being less walled.
     -> END
 
-* [TWITCH] Observe. #delta:3 #expr:curious #icon:curiosity #drift:WARM #flag:quest.soma.t4_done #flag:recipe.soma.climaxT5 #disable-flag:recipe.soma.parkT4 #flag:fact.soma.wall
+* [TWITCH] Observe. #delta:3 #expr:curious #icon:curiosity #drift:WARM #flag:quest.soma.t4_done #flag:recipe.soma.riverT5 #disable-flag:recipe.soma.parkT4 #flag:fact.soma.wall
     ...heh.
     Yeah. Professional-grade.
-    ...tomorrow night. The copper coin. Bring it.
+    ...tomorrow night. Further out. Bring the warm thing. Bring it.
     I have something I need to say out loud. With a witness.
     -> END
 
-* [DRIFT] Accept. #delta:4 #expr:warm #icon:sadness #drift:WARM #flag:quest.soma.t4_done #flag:recipe.soma.climaxT5 #disable-flag:recipe.soma.parkT4 #flag:fact.soma.wall
+* [DRIFT] Accept. #delta:4 #expr:warm #icon:sadness #drift:WARM #flag:quest.soma.t4_done #flag:recipe.soma.riverT5 #disable-flag:recipe.soma.parkT4 #flag:fact.soma.wall
     ...
     ...I heard you.
-    Tomorrow night. Bring the copper coin. Please.
+    Tomorrow night. Further out. Bring the warm thing. Please.
     -> END
 
-* [REEL] Press. #delta:-3 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t4_done #flag:recipe.soma.climaxT5 #disable-flag:recipe.soma.parkT4 #flag:fact.soma.wall
+* [REEL] Press. #delta:-3 #expr:neutral #icon:shock #drift:SCARED #flag:quest.soma.t4_done #flag:recipe.soma.riverT5 #disable-flag:recipe.soma.parkT4 #flag:fact.soma.wall
     ...
     *Very quiet.*
     I said "forget it" and you won't let me.
-    ...fine. Tomorrow. Night. The coin.
+    ...fine. Tomorrow. Night. Further out. Bring the warm thing.
     I'll... I'll be there. Whether I'm ready or not.
     -> END
 
@@ -778,20 +782,20 @@ And now the wall feels... less necessary.
 === soma_t5_c9_b1 ===
 { mood.soma.last_drift == "WARY" :
     ...
-    You brought the coin. Even after I shut down.
+    You came back. Even after I shut down.
     ...
     I don't deserve that. But here we are.
 - mood.soma.last_drift == "SCARED" :
     ...
     *He's risen off the lakebed. Not resting. First time.*
-    ...you came. With the coin.
+    ...you came.
     I... yeah. Okay.
 - else :
     ...
     *Night. The deep water. He's hovering above the lakebed, not resting on it.*
     You're here.
     ...
-    The coin. You brought it.
+    You came out this far. At this hour.
 }
 ...
 I'm going to say something. And I need you to just... let me finish.
@@ -837,36 +841,36 @@ And somehow... you made that enough.
 === soma_t5_c9_b2 ===
 ...
 So here it is. The real question.
-Tomorrow... I'll be here again.
-If you come with the coin... I'll take it. And that means... I'm choosing this. Choosing to let someone in again.
+Tomorrow night... I'll be here again. Same hour.
+If you come back. And you bring the warm thing — the one from the bench, weeks ago — I'll take it. And that means... I'm choosing this. Choosing to let someone in again.
 ...
-Or you don't come. And that's okay too.
+Or you don't come. Or you come without it. And that's okay too.
 It means you pass by. And I keep my bench. My books. My thermos.
 And I'll be okay. Because I got to sit with someone who understood.
 ...
 Either way... this was good. All of it.
 
-* [WAIT] Pause. #delta:3 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t5_c9_done
+* [WAIT] Pause. #delta:3 #expr:warm #icon:warmth #drift:CHARMED #flag:quest.soma.t5_c9_done #flag:recipe.soma.climaxT5 #disable-flag:recipe.soma.riverT5
     ...
     Take your time. Yeah.
     ...I mean it. Either way.
     ...
     -> END
 
-* [TWITCH] Acknowledge. #delta:2 #expr:curious #icon:hesitation #drift:WARM #flag:quest.soma.t5_c9_done
+* [TWITCH] Acknowledge. #delta:2 #expr:curious #icon:hesitation #drift:WARM #flag:quest.soma.t5_c9_done #flag:recipe.soma.climaxT5 #disable-flag:recipe.soma.riverT5
     Heavy.
     ...yeah. It is.
     ...
     But you're still standing here. So that's something.
     -> END
 
-* [DRIFT] Nod. #delta:1 #expr:warm #icon:sadness #drift:NEUTRAL #flag:quest.soma.t5_c9_done
+* [DRIFT] Nod. #delta:1 #expr:warm #icon:sadness #drift:NEUTRAL #flag:quest.soma.t5_c9_done #flag:recipe.soma.climaxT5 #disable-flag:recipe.soma.riverT5
     ...
     You understand.
     ...good.
     -> END
 
-* [REEL] Decide. #delta:0 #expr:neutral #icon:surprise #drift:NEUTRAL #flag:quest.soma.t5_c9_done
+* [REEL] Decide. #delta:0 #expr:neutral #icon:surprise #drift:NEUTRAL #flag:quest.soma.t5_c9_done #flag:recipe.soma.climaxT5 #disable-flag:recipe.soma.riverT5
     Already know?
     ...
     Do you?
@@ -884,7 +888,8 @@ You're here.
 ...
 I told myself I wouldn't hope. That whatever you chose, I'd be fine.
 But I'm not fine. I'm terrified.
-Because if you're here with that coin... it means I have to try again.
+Because you came back. And you brought it. The warm thing.
+That means I have to try again.
 And trying is the scariest thing I've ever done.
 
 * [WAIT] Hesitate. #delta:3 #expr:warm #icon:warmth #drift:CHARMED #ending:release #unlock-cg:ending_soma_release
@@ -897,7 +902,7 @@ And trying is the scariest thing I've ever done.
 
 * [TWITCH] Gesture. #delta:2 #expr:curious #icon:hesitation #drift:WARM #ending:release #unlock-cg:ending_soma_release
     ...
-    You're holding the coin but not giving it.
+    You came all the way out. You brought it. And you're not casting yet.
     Making me sweat?
     ...heh. Fair. I made you wait enough.
     -> END
@@ -915,14 +920,14 @@ And trying is the scariest thing I've ever done.
 
 * [REEL] Choose. #delta:0 #expr:warm #icon:surprise #drift:CHARMED #ending:reel #unlock-cg:ending_soma_reel
     ...
-    *You hold out the coin in the current.*
+    *The gold lure drifts down through the current.*
     ...
     *He stares at it for a very long time.*
     ...
     ...okay.
     ...
     Okay.
-    *He takes it. His fin is trembling.*
+    *He rises to meet it. A fin is trembling.*
     ...don't make me regret this.
     ...
     ...I won't regret this.

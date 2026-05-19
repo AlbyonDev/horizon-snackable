@@ -79,7 +79,11 @@ export function resolveFishEntryKnot(
     console.warn(`[InkBeatAdapter] Missing entry knot '${entryKnotId}' for '${characterId}'`);
     return null;
   }
-  return resolveEntryDivert(entry.body, flags);
+  // The entry knot is always a dispatcher (no text/choices), so resolve its
+  // divert first, then keep resolving through any further dispatcher knots.
+  const firstHop = resolveEntryDivert(entry.body, flags);
+  if (!firstHop) return null;
+  return resolveBeatKnot(characterId, firstHop, flags);
 }
 
 /** Build the graph of beats reachable from a given knot via BFS.
@@ -114,7 +118,11 @@ export function buildBeatsFromInk(
   const queue: string[] = [startNodeId];
 
   while (queue.length > 0) {
-    const nodeId = queue.shift()!;
+    const rawNodeId = queue.shift()!;
+    if (rawNodeId === 'END' || rawNodeId === 'DONE') continue;
+    // If flags are provided, resolve dispatcher knots transparently — the
+    // emitted beat is the first knot with playable content downstream.
+    const nodeId = flags ? resolveBeatKnot(characterId, rawNodeId, flags) : rawNodeId;
     if (nodeId === 'END' || nodeId === 'DONE') continue;
     if (emitted.has(nodeId)) continue;
     emitted.add(nodeId);
@@ -134,7 +142,10 @@ export function buildBeatsFromInk(
       const action = labelToActionId(c.label);
       if (action === null) continue;
 
-      const choiceDivert = findFirstDivert(c.body);
+      const choiceDivertRaw = findFirstDivert(c.body);
+      const choiceDivert = (flags && choiceDivertRaw && choiceDivertRaw !== 'END' && choiceDivertRaw !== 'DONE')
+        ? resolveBeatKnot(characterId, choiceDivertRaw, flags)
+        : choiceDivertRaw;
       const isTerminal = choiceDivert === null || choiceDivert === 'END' || choiceDivert === 'DONE';
       const effect = buildActionEffect(c.tags, c.body, c.intent, isTerminal);
       if (!isTerminal && choiceDivert) {
@@ -265,6 +276,50 @@ function evalExpr(expr: Expr | undefined, flags: FlagSystem): boolean {
   // expr.kind === 'ref'
   const value = flags.check(expr.name);
   return expr.negated ? !value : value;
+}
+
+/**
+ * Resolve a node id to the first knot that actually has playable content
+ * (text or choices). Knots that only contain diverts (and optionally assigns
+ * and cond blocks resolving to diverts) are treated as dispatchers: this
+ * function follows them transparently. A short hop limit prevents accidental
+ * loops in author-written dispatch chains.
+ */
+const RESOLVE_HOP_LIMIT = 16;
+
+export function resolveBeatKnot(
+  characterId: string,
+  startNodeId: string,
+  flags: FlagSystem,
+): string {
+  const story = getStory(characterId);
+  let current = startNodeId;
+  const visited = new Set<string>();
+  for (let hop = 0; hop < RESOLVE_HOP_LIMIT; hop++) {
+    if (current === 'END' || current === 'DONE') return current;
+    if (visited.has(current)) {
+      console.warn(`[InkBeatAdapter] Dispatcher loop detected for '${characterId}' at '${current}'`);
+      return current;
+    }
+    visited.add(current);
+
+    const knot = story.knots.get(current);
+    if (!knot) return current; // missing — caller will warn
+
+    // Walk body: evaluate cond branches, apply assigns, find first effective
+    // divert. If we encounter any text or choice along the way, this is a
+    // beat — stop here.
+    const fishLines: string[] = [];
+    const choiceStmts: Extract<Stmt, { kind: 'choice' }>[] = [];
+    collectBeatBody(knot.body, fishLines, choiceStmts, flags);
+    if (fishLines.length > 0 || choiceStmts.length > 0) return current;
+
+    const divert = resolveEntryDivert(knot.body, flags);
+    if (!divert) return current; // no content, no divert — let caller render the empty beat (warn surface)
+    current = divert;
+  }
+  console.warn(`[InkBeatAdapter] Dispatcher hop limit reached for '${characterId}' starting at '${startNodeId}'`);
+  return current;
 }
 
 /**
