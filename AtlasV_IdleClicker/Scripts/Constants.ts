@@ -8,7 +8,7 @@
 
 // ─── Debug ────────────────────────────────────────────────────────────────────
 /** Starting gems granted on session start. Set to 0 for normal play. */
-export const INITIAL_RESOURCES = 10000;
+export const INITIAL_RESOURCES = 0;
 
 // ─── Click ────────────────────────────────────────────────────────────────────
 export const BASE_CLICK_VALUE = 1;
