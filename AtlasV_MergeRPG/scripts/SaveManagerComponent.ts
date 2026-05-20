@@ -25,7 +25,7 @@ import {
 import { OnEntityStartEvent } from 'meta/platform_api';
 import type { Entity, Maybe } from 'meta/worlds';
 import { PlayerVariablesService } from 'meta/worlds';
-import { BasePlayerComponent } from 'meta/worlds_experimental';
+import { BasePlayerComponent } from 'meta/worlds';
 import {
   PuzzleSaveRequestEvent,
   PuzzleLoadRequestEvent,

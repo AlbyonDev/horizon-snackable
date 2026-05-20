@@ -11,10 +11,8 @@ import {
   NetworkingService,
   Vec2,
 } from 'meta/worlds';
-import {
-  CameraModeProvisionalService,
-} from 'meta/worlds_provisional';
 import { Color } from 'meta/platform_api';
+import { getScreenAspectRatio } from './CameraUtils';
 
 import {
   CANVAS_WIDTH,
@@ -216,7 +214,9 @@ export class InputHandler {
 
   /** Convert normalized screen position to canvas pixel coordinates */
   private screenToCanvas(screenPos: Vec2): { x: number; y: number } {
-    const screenAspect = CameraModeProvisionalService.get().aspectRatio;
+    const screenAspect = getScreenAspectRatio();
+    console.log(`[InputHandler] screenAspect = ${screenAspect}`);
+
     let canvasX: number;
     let canvasY: number;
 
