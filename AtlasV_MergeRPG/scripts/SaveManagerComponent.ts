@@ -18,14 +18,12 @@ import {
   subscribe,
   ExecuteOn,
   NetworkingService,
-  EntityService,
   Service,
   PlayerService,
 } from 'meta/worlds';
 import { OnEntityStartEvent } from 'meta/platform_api';
 import type { Entity, Maybe } from 'meta/worlds';
 import { PlayerVariablesService } from 'meta/worlds';
-import { BasePlayerComponent } from 'meta/worlds_experimental';
 import {
   PuzzleSaveRequestEvent,
   PuzzleLoadRequestEvent,
@@ -51,17 +49,9 @@ export class SaveManagerComponent extends Component {
   private findPlayer(): Maybe<Entity> {
     if (this.playerEntity) return this.playerEntity;
 
-    // Try PlayerService first (more reliable than EntityService for finding players)
     const players = PlayerService.get().getAllPlayers();
     if (players.length > 0) {
       this.playerEntity = players[0];
-      return this.playerEntity;
-    }
-
-    // Fallback to EntityService
-    const entities = EntityService.findEntitiesWithComponent(BasePlayerComponent);
-    if (entities.length > 0) {
-      this.playerEntity = entities[0];
       return this.playerEntity;
     }
 
