@@ -6,7 +6,7 @@
  * getWorldPositionInSubPath(wpIndex, subT): interpolates world position along a segment.
  * getGlobalT(wpIndex, subT): converts segment position to global path progress (used for targeting).
  * isPathCell(col, row): checks if a grid cell is occupied by the path (blocks tower placement).
- * cellToWorld(col, row) / worldToCell(x, z): converts between grid coords and world coords.
+ * cellToWorld(col, row): converts grid coords to world coords.
  * Note: col → Z axis, row → X axis (row 0 = top of screen).
  */
 import { Service, Vec3 } from 'meta/worlds';
@@ -33,8 +33,6 @@ interface ISubPath {
 export class PathService extends Service {
   private _waypoints: ReadonlyArray<readonly [number, number]> = [];
   private _subPaths:   ISubPath[] = [];
-  private _segments:   IPathSegment[] = [];
-  private _totalLength: number = 0;
   private _pathCells:  Set<number> = new Set();
 
   @subscribe(OnServiceReadyEvent)
@@ -46,8 +44,6 @@ export class PathService extends Service {
   async prewarm(): Promise<void> {
     // Path is baked into the scene as a texture — nothing to spawn.
   }
-
-  get totalLength(): number { return this._totalLength; }
 
   getWaypointCount(): number { return this._waypoints.length; }
 
@@ -98,36 +94,11 @@ export class PathService extends Service {
     );
   }
 
-  worldToCell(worldX: number, worldZ: number): readonly [number, number] {
-    const col = Math.round((worldZ - GRID_ORIGIN_Z) / CELL_HEIGHT);
-    const row = GRID_ROWS - 1 - Math.round((worldX - GRID_ORIGIN_X) / CELL_WIDTH);
-    return [col, row] as const;
-  }
-
-  getWorldPositionAtT(pathT: number): Vec3 {
-    const t = Math.max(0, Math.min(pathT, this._totalLength));
-    for (const seg of this._segments) {
-      const localT = t - seg.cumLength;
-      if (localT <= seg.length) {
-        const alpha = seg.length > 0 ? localT / seg.length : 0;
-        return new Vec3(
-          seg.startX + (seg.endX - seg.startX) * alpha,
-          GROUND_Y,
-          seg.startZ + (seg.endZ - seg.startZ) * alpha,
-        );
-      }
-    }
-    const last = this._segments[this._segments.length - 1];
-    return new Vec3(last.endX, GROUND_Y, last.endZ);
-  }
-
   // ── Private ──────────────────────────────────────────────────────────────────
 
   private _buildPath(): void {
     this._subPaths  = [];
-    this._segments  = [];
     this._pathCells = new Set();
-    let globalCum   = 0;
 
     for (let i = 0; i < this._waypoints.length - 1; i++) {
       const [c0, r0] = this._waypoints[i];
@@ -141,8 +112,6 @@ export class PathService extends Service {
 
       const subSeg: IPathSegment = { startX: start.x, startZ: start.z, endX: end.x, endZ: end.z, length, cumLength: 0 };
       this._subPaths.push({ segments: [subSeg], length });
-      this._segments.push({ ...subSeg, cumLength: globalCum });
-      globalCum += length;
 
       // Mark all cells along this waypoint segment
       const steps = Math.max(Math.abs(c1 - c0), Math.abs(r1 - r0));
@@ -152,7 +121,5 @@ export class PathService extends Service {
         this._pathCells.add(col * 100 + row);
       }
     }
-
-    this._totalLength = globalCum;
   }
 }

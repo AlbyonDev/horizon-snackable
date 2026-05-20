@@ -166,6 +166,13 @@
                     5.0
                 ]
             }
+        },
+        {
+            "name": "RenderGroup",
+            "value": {
+                "type": "String",
+                "stringValue": "masked"
+            }
         }
     ],
     "shaderAssetId": {

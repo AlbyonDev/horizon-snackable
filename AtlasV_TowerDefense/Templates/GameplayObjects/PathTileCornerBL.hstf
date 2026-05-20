@@ -28,17 +28,6 @@
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 9,
-                        "data": {
-                            "type": "StaticCollision",
-                            "useGravity": false
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
                 }
             ],
             "attributes": [
@@ -124,20 +113,6 @@
                         "class": "horizon::platform_api::TransformPlatformComponent",
                         "version": 3,
                         "data": {}
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::ColliderBoxPlatformComponent",
-                        "version": 3,
-                        "data": {
-                            "halfExtents": {
-                                "x": 0.5,
-                                "y": 0.009999999776482582,
-                                "z": 0.5
-                            }
-                        }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 }

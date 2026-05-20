@@ -28,17 +28,6 @@
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 9,
-                        "data": {
-                            "type": "StaticCollision",
-                            "useGravity": false
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
                 }
             ],
             "attributes": [
@@ -114,46 +103,12 @@
                 }
             ],
             "attributes": []
-        },
-        {
-            "id": "2a3a32ad-bd7e-4512-823a-184abea6a1ee",
-            "name": "Collider",
-            "components": [
-                {
-                    "data": {
-                        "class": "horizon::platform_api::TransformPlatformComponent",
-                        "version": 3,
-                        "data": {}
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::ColliderBoxPlatformComponent",
-                        "version": 3,
-                        "data": {
-                            "halfExtents": {
-                                "x": 0.5,
-                                "y": 0.009999999776482582,
-                                "z": 0.5
-                            }
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                }
-            ],
-            "attributes": []
         }
     ],
     "relationships": [
         {
             "relationshipType": "RelationChildOf",
             "source": "6d6fe204-48cc-40fd-84eb-e72ecc933766",
-            "destination": "5d369009-49ca-4c44-94d3-25cef1658463"
-        },
-        {
-            "relationshipType": "RelationChildOf",
-            "source": "2a3a32ad-bd7e-4512-823a-184abea6a1ee",
             "destination": "5d369009-49ca-4c44-94d3-25cef1658463"
         }
     ]

@@ -1,8 +1,7 @@
 /**
  * PlacementService — Drag-to-place touch input handler for tower placement.
  *
- * prewarm(): pre-spawns a preview entity and a range indicator entity.
- * selectTower(id, cost, range): activates placement mode for a given tower type.
+ * prewarm(): pre-spawns a range indicator entity.
  * Touch events (Started/Moved/Ended) convert screen coords to grid cells.
  * Preview entity snaps to nearest cell: green tint = valid, red = invalid.
  * Range indicator disc scales to tower range diameter around preview.

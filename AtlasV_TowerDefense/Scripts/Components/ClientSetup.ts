@@ -14,13 +14,12 @@
  *   the desired camera position and rotation.
  */
 import {
-  Component, OnEntityStartEvent,
+  Component,
   NetworkingService,
-  CameraService, CameraMode,
+  CameraService,
   FocusedInteractionService,
-  TransformComponent,
   type Maybe, type Entity,
-  ExecuteOn, component, property, subscribe,
+  component, property, subscribe,
   CameraComponent,
   OnPlayerCreateEvent,
 } from 'meta/worlds';
@@ -49,7 +48,6 @@ export class ClientSetup extends Component {
         disableFocusExitButton: true,
       });
 
-      const anchorTc = this.cameraAnchor?.getComponent(TransformComponent);
       const cameraC = this.cameraAnchor?.getComponent(CameraComponent);
       if (cameraC)
         CameraService.get().setActiveCamera({ camera: cameraC });

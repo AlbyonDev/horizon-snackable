@@ -558,6 +558,7 @@
                         "data": {
                             "cameraMode": "Custom",
                             "fieldOfView": 60.0,
+                            "farClippingPlane": 20.0,
                             "projection": "Perspective",
                             "orthographicSize": 9.0
                         }

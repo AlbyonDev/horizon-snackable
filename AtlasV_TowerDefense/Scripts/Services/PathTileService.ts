@@ -23,7 +23,7 @@ import { LEVEL_DEFS } from '../Defs/LevelDefs';
 import { Assets } from '../Assets';
 
 const LOG_TAG = '[PathTileService]';
-const TILE_Y_OFFSET = 0.01; // Slight offset above ground to prevent z-fighting
+const TILE_Y_OFFSET = -0.01;
 
 // Direction vectors in grid space [dCol, dRow]
 // col → Z, row → X
