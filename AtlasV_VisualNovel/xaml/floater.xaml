@@ -1019,162 +1019,59 @@
             </Border.Background>
           </Border>
 
-          <!-- Lure Grid: 3 columns, tap to equip directly -->
+          <!-- Lure Grid: dynamic ItemsControl bound to lureCards -->
           <Border Grid.Row="2" Background="#D90D1520" BorderBrush="#2A4060" BorderThickness="1" VerticalAlignment="Top"
                   CornerRadius="12" Padding="10,14">
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-              </Grid.ColumnDefinitions>
-              <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-              </Grid.RowDefinitions>
-
-              <!-- None -->
-              <Button Grid.Column="0" Grid.Row="0" Margin="4,4"
-                      Command="{Binding events.onInventoryEquip}" CommandParameter="none">
-                <Button.Template>
-                  <ControlTemplate TargetType="Button">
-                    <StackPanel HorizontalAlignment="Center">
-                      <Grid Width="74" Height="74" HorizontalAlignment="Center">
-                        <!-- Equipped border (gold, only visible when this lure is equipped) -->
-                        <Border Width="74" Height="74" CornerRadius="37"
-                                BorderBrush="#E8A84C" BorderThickness="3"
-                                Visibility="{Binding lureNoneEquipped, Converter={StaticResource BoolToVis}}" />
-                        <!-- Main circle -->
-                        <Border Width="70" Height="70" CornerRadius="35" ClipToBounds="True"
-                                HorizontalAlignment="Center" VerticalAlignment="Center">
-                          <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                              <GradientStop Color="#1A2A3A" Offset="0" />
-                              <GradientStop Color="#0D1520" Offset="1" />
-                            </LinearGradientBrush>
-                          </Border.Background>
-                          <Grid Margin="-2,-2,-2,-2">
-                            <Grid.Clip>
-                              <EllipseGeometry Center="35,35" RadiusX="33" RadiusY="33" />
-                            </Grid.Clip>
-                            <Image Stretch="UniformToFill" Width="50" Height="50"
-                                   Source="sprites/lure_none.png"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <ItemsControl ItemsSource="{Binding lureCards}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <UniformGrid Columns="3" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button Margin="4,4"
+                          Command="{Binding DataContext.events.onInventoryEquip, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                          CommandParameter="{Binding id}">
+                    <Button.Template>
+                      <ControlTemplate TargetType="Button">
+                        <StackPanel HorizontalAlignment="Center">
+                          <Grid Width="74" Height="74" HorizontalAlignment="Center">
+                            <!-- Equipped border (gold, only visible when this lure is equipped) -->
+                            <Border Width="74" Height="74" CornerRadius="37"
+                                    BorderBrush="#E8A84C" BorderThickness="3"
+                                    Visibility="{Binding equipped, Converter={StaticResource BoolToVis}}" />
+                            <!-- Main circle -->
+                            <Border Width="70" Height="70" CornerRadius="35" ClipToBounds="True"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                              <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                  <GradientStop Color="#1A2A3A" Offset="0" />
+                                  <GradientStop Color="#0D1520" Offset="1" />
+                                </LinearGradientBrush>
+                              </Border.Background>
+                              <Grid Margin="-2,-2,-2,-2">
+                                <Grid.Clip>
+                                  <EllipseGeometry Center="35,35" RadiusX="33" RadiusY="33" />
+                                </Grid.Clip>
+                                <Image Stretch="UniformToFill" Width="50" Height="50"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                                  <Image.Source>
+                                    <Binding Path="texture" />
+                                  </Image.Source>
+                                </Image>
+                              </Grid>
+                            </Border>
                           </Grid>
-                        </Border>
-                      </Grid>
-                      <TextBlock Text="None" FontSize="11" FontWeight="Bold"
-                                 Foreground="#8A9AB0" HorizontalAlignment="Center" Margin="0,5,0,0" />
-                    </StackPanel>
-                  </ControlTemplate>
-                </Button.Template>
-              </Button>
-
-              <!-- Red Spinner -->
-              <Button Grid.Column="1" Grid.Row="0" Margin="4,4"
-                      Command="{Binding events.onInventoryEquip}" CommandParameter="red_spinner">
-                <Button.Template>
-                  <ControlTemplate TargetType="Button">
-                    <StackPanel HorizontalAlignment="Center">
-                      <Grid Width="74" Height="74" HorizontalAlignment="Center">
-                        <Border Width="74" Height="74" CornerRadius="37"
-                                BorderBrush="#E8A84C" BorderThickness="3"
-                                Visibility="{Binding lureRedSpinnerEquipped, Converter={StaticResource BoolToVis}}" />
-                        <Border Width="70" Height="70" CornerRadius="35" ClipToBounds="True"
-                                HorizontalAlignment="Center" VerticalAlignment="Center">
-                          <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                              <GradientStop Color="#1A2A3A" Offset="0" />
-                              <GradientStop Color="#0D1520" Offset="1" />
-                            </LinearGradientBrush>
-                          </Border.Background>
-                          <Grid Margin="-2,-2,-2,-2">
-                            <Grid.Clip>
-                              <EllipseGeometry Center="35,35" RadiusX="33" RadiusY="33" />
-                            </Grid.Clip>
-                            <Image Stretch="UniformToFill" Width="50" Height="50"
-                                   Source="sprites/lure_red_spinner.png"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                          </Grid>
-                        </Border>
-                      </Grid>
-                      <TextBlock Text="Red Spinner" FontSize="11" FontWeight="Bold"
-                                 Foreground="#C8D8E8" HorizontalAlignment="Center" Margin="0,5,0,0" />
-                    </StackPanel>
-                  </ControlTemplate>
-                </Button.Template>
-              </Button>
-
-              <!-- Gold Teardrop -->
-              <Button Grid.Column="2" Grid.Row="0" Margin="4,4"
-                      Command="{Binding events.onInventoryEquip}" CommandParameter="gold_teardrop">
-                <Button.Template>
-                  <ControlTemplate TargetType="Button">
-                    <StackPanel HorizontalAlignment="Center">
-                      <Grid Width="74" Height="74" HorizontalAlignment="Center">
-                        <Border Width="74" Height="74" CornerRadius="37"
-                                BorderBrush="#E8A84C" BorderThickness="3"
-                                Visibility="{Binding lureGoldTeardropEquipped, Converter={StaticResource BoolToVis}}" />
-                        <Border Width="70" Height="70" CornerRadius="35" ClipToBounds="True"
-                                HorizontalAlignment="Center" VerticalAlignment="Center">
-                          <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                              <GradientStop Color="#1A2A3A" Offset="0" />
-                              <GradientStop Color="#0D1520" Offset="1" />
-                            </LinearGradientBrush>
-                          </Border.Background>
-                          <Grid Margin="-2,-2,-2,-2">
-                            <Grid.Clip>
-                              <EllipseGeometry Center="35,35" RadiusX="33" RadiusY="33" />
-                            </Grid.Clip>
-                            <Image Stretch="UniformToFill" Width="50" Height="50"
-                                   Source="sprites/lure_gold_teardrop.png"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                          </Grid>
-                        </Border>
-                      </Grid>
-                      <TextBlock Text="Gold Teardrop" FontSize="11" FontWeight="Bold"
-                                 Foreground="#C8D8E8" HorizontalAlignment="Center" Margin="0,5,0,0" />
-                    </StackPanel>
-                  </ControlTemplate>
-                </Button.Template>
-              </Button>
-
-              <!-- Feather Fly -->
-              <Button Grid.Column="0" Grid.Row="1" Margin="4,4"
-                      Command="{Binding events.onInventoryEquip}" CommandParameter="feather_fly">
-                <Button.Template>
-                  <ControlTemplate TargetType="Button">
-                    <StackPanel HorizontalAlignment="Center">
-                      <Grid Width="74" Height="74" HorizontalAlignment="Center">
-                        <Border Width="74" Height="74" CornerRadius="37"
-                                BorderBrush="#E8A84C" BorderThickness="3"
-                                Visibility="{Binding lureFeatherFlyEquipped, Converter={StaticResource BoolToVis}}" />
-                        <Border Width="70" Height="70" CornerRadius="35" ClipToBounds="True"
-                                HorizontalAlignment="Center" VerticalAlignment="Center">
-                          <Border.Background>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                              <GradientStop Color="#1A2A3A" Offset="0" />
-                              <GradientStop Color="#0D1520" Offset="1" />
-                            </LinearGradientBrush>
-                          </Border.Background>
-                          <Grid Margin="-2,-2,-2,-2">
-                            <Grid.Clip>
-                              <EllipseGeometry Center="35,35" RadiusX="33" RadiusY="33" />
-                            </Grid.Clip>
-                            <Image Stretch="UniformToFill" Width="50" Height="50"
-                                   Source="sprites/lure_feather_fly.png"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                          </Grid>
-                        </Border>
-                      </Grid>
-                      <TextBlock Text="Feather Fly" FontSize="11" FontWeight="Bold"
-                                 Foreground="#C8D8E8" HorizontalAlignment="Center" Margin="0,5,0,0" />
-                    </StackPanel>
-                  </ControlTemplate>
-                </Button.Template>
-              </Button>
-            </Grid>
+                          <TextBlock Text="{Binding name}" FontSize="11" FontWeight="Bold"
+                                     Foreground="#C8D8E8" HorizontalAlignment="Center" Margin="0,5,0,0" />
+                        </StackPanel>
+                      </ControlTemplate>
+                    </Button.Template>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </Border> 
 
           <!-- Equipped status card (with checkmark, name, and description) -->

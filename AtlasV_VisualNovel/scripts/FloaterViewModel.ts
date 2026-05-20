@@ -73,6 +73,14 @@ export class CharacterCardViewModel extends UiViewModel {
 }
 
 @uiViewModel()
+export class LureCardViewModel extends UiViewModel {
+  id: string = '';
+  name: string = '';
+  texture?: TextureAsset;
+  equipped: boolean = false;
+}
+
+@uiViewModel()
 export class CGCardViewModel extends UiViewModel {
   id: string = '';
   name: string = '???';
@@ -273,15 +281,9 @@ export class FloaterViewModel extends UiViewModel {
   inventoryButtonVisible: boolean = false;
   equippedLureName: string = 'None';
   equippedLureDesc: string = 'No lure equipped. Fish will still bite, but lures can improve your chances.';
-  lure1Equipped: boolean = false;
-  lure2Equipped: boolean = false;
-  lure3Equipped: boolean = false;
 
-  // Per-lure equipped state (for border treatment - only equipped lure shows border)
-  lureNoneEquipped: boolean = true;
-  lureRedSpinnerEquipped: boolean = false;
-  lureGoldTeardropEquipped: boolean = false;
-  lureFeatherFlyEquipped: boolean = false;
+  // Dynamic lure cards collection bound to ItemsControl
+  lureCards: readonly LureCardViewModel[] = [];
 
   // No-lure warning overlay
   noLureWarningVisible: boolean = false;
@@ -422,11 +424,18 @@ export class FloaterViewModel extends UiViewModel {
     this.journalTab3Color = tabIndex === 2 ? active : inactive;
   }
 
-  /** Update equipped lure indicators from display list */
-  updateEquippedIndicators(lures: Array<{ id: string; isEquipped: boolean }>): void {
-    this.lure1Equipped = lures[0]?.isEquipped ?? false;
-    this.lure2Equipped = lures[1]?.isEquipped ?? false;
-    this.lure3Equipped = lures[2]?.isEquipped ?? false;
+  /** Populate the lure card collection from lure list + equipped state. */
+  setLureCards(lures: Array<{ id: string; name: string; texture?: TextureAsset; equipped: boolean }>): void {
+    const vms: LureCardViewModel[] = [];
+    for (const l of lures) {
+      const vm = new LureCardViewModel();
+      vm.id = l.id;
+      vm.name = l.name;
+      vm.texture = l.texture;
+      vm.equipped = l.equipped;
+      vms.push(vm);
+    }
+    this.lureCards = vms;
   }
 
   /** Replace the journal character-card collection (Fish tab grid). */
@@ -483,15 +492,6 @@ export class FloaterViewModel extends UiViewModel {
     this.cgCards = vms;
   }
 
-  /** Update per-lure equipped border state and display name/description */
-  setEquippedLure(lureId: string, name: string, description: string): void {
-    this.lureNoneEquipped = lureId === 'none';
-    this.lureRedSpinnerEquipped = lureId === 'red_spinner';
-    this.lureGoldTeardropEquipped = lureId === 'gold_teardrop';
-    this.lureFeatherFlyEquipped = lureId === 'feather_fly';
-    this.equippedLureName = name;
-    this.equippedLureDesc = description;
-  }
 }
 
 export const floaterVM = new FloaterViewModel();
