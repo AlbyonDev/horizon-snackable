@@ -34,9 +34,7 @@ import {
   subscribe,
   uiViewModel,
 } from 'meta/worlds';
-import {
-  CameraModeProvisionalService,
-} from 'meta/worlds_provisional';
+import { getScreenAspectRatio } from '../../CameraUtils';
 import type { Maybe, OnWorldUpdateEventPayload } from 'meta/worlds';
 
 import { FishDataService } from '../../Services/FishDataService';
@@ -110,7 +108,7 @@ export class FishSpriteRenderer extends Component {
     // Sync canvas width to actual screen aspect so UI projection matches the
     // orthographic 3D view exactly. With Viewbox Stretch="Fill" and matching
     // aspect, sprites are neither stretched nor offset.
-    const screenAspect = CameraModeProvisionalService.get().aspectRatio; // width/height
+    const screenAspect = getScreenAspectRatio(); // width/height
     this._canvasW = CANVAS_H * screenAspect;
     this._visibleWidth = VISIBLE_HEIGHT * screenAspect;
     this._halfVisibleW = this._visibleWidth / 2;

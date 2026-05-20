@@ -32,7 +32,7 @@ import {
   Vec2,
 } from 'meta/worlds';
 import type { OnFocusedInteractionInputEventPayload } from 'meta/worlds';
-import { CameraModeProvisionalService } from 'meta/worlds_provisional';
+import { getScreenAspectRatio } from './CameraUtils';
 
 import {
   ArenaVerminViewModel,
@@ -1026,7 +1026,7 @@ export class ArenaVerminComponent extends Component {
 
   private screenToCanvas(screenPos: Vec2): { x: number; y: number } {
     const gameAspect = CANVAS_W / CANVAS_H;
-    const screenAspect = CameraModeProvisionalService.get().aspectRatio;
+    const screenAspect = getScreenAspectRatio();
     let canvasX: number;
     let canvasY: number;
 

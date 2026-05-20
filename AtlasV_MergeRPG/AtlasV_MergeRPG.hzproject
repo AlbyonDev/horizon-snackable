@@ -1,5 +1,5 @@
 {
-    "id": "b0c138e9-c4d8-4f5b-b290-0af302d8d744",
+    "id": "bd9f26d1-9a62-414e-a28d-94503232c71d",
     "defaultTemplateAssetId": {
         "packageOrRemoteId": "26792108410409509",
         "ingestionId": "16123935224325786335",
@@ -48,7 +48,7 @@
         "screenOrientation": "Portrait"
     },
     "updatePackageAuthorOnOrgChange": true,
-    "editorVersion": "79.0.0.15.107",
+    "editorVersion": "172.0.0.43.107",
     "starterWorldType": "BPBlank2DGame",
     "remotePackageId": "28045451761721501"
 }

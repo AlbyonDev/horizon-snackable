@@ -44,27 +44,29 @@ Bamboo logs fall from the top of the screen with rotation, lateral drift, and wa
 
 ## Scoring System
 
-The freeze score is based on **precision** = fraction of the `PLAY_TOP → FLOOR_Y` distance traveled (0 = above the zone, 1 = at the floor).
+`precision = (BONUS_START_Y – lowestY) / (BONUS_START_Y – FLOOR_Y)` clamped to [0, 1]  
+`d = 1 – precision` (distance from perfect: 0 = touching floor, 1 = at top of scoring zone)  
+`pts = gradeBonus + Math.round(precision × 1400)`
 
-| Grade | Threshold (distance from perfect) | Base Points | Max Bonus |
+| Grade | `d` threshold | Grade bonus | Pts range |
 |---|---|---|---|
-| Perfect | ≤ 3.5 % | 1000 | +250 |
-| Great | ≤ 13 % | 650 | +250 |
-| Good | ≤ 32 % | 350 | +250 |
-| Early | ≤ 60 % | 150 | +250 |
-| Miss | > 60 % | 30 | +250 |
+| Perfect | d ≤ 9.6 % | +100 | ~1365–1500 |
+| Great | d ≤ 25.6 % | +75 | ~1116–1340 |
+| Good | d ≤ 48 % | +50 | ~778–1091 |
+| Early | d ≤ 90.4 % | +25 | ~159–753 |
+| Miss | d > 90.4 % | +0 | 0–134 |
 
-The bonus is `precision × 250` (rounded), added to the base score. Total score accumulates over all 10 rounds.
+Total score accumulates over all 10 rounds.
 
 ---
 
 ## Play Area (Y-up, world units)
 
 ```
- 6.68  ──  START_Y   (spawn / ghost preview)
- 5.49  ──  PLAY_TOP  (start of scoring zone)
+ 6.13  ──  START_Y   (spawn / ghost preview)
+ 3.00  ──  PLAY_TOP  (start of scoring zone)
   ...     [active play zone]
--6.47  ──  FLOOR_Y   (game-over if any corner goes below)
+-6.13  ──  FLOOR_Y   (game-over if any corner goes below)
 ```
 
 Play area: **9 × 16 world units**, centered at the origin.
@@ -91,7 +93,7 @@ Fall speed increases by ~0.34 wu/s per round (base ~3.61 wu/s).
 
 ## Object Physics (Log type)
 
-Each Log is a **bamboo segment** simulated as a flat rectangle. Physics runs entirely in `FallingObjService` (pure TypeScript, no entity). Rendering uses 3 sprite planes (Left cap, Center body, Right cap) driven via `Events.RenderFallingObjs`.
+Each Log is a **bamboo segment** simulated as a flat rectangle. Physics runs entirely in `FallingObjService` (pure TypeScript, no entity). Rendering uses 3 assembled 2D canvas items (Left cap, Center body, Right cap) driven via `Events.RenderFallingObjs` → `FallingObjCanvas`.
 
 | Parameter | Range | Details |
 |---|---|---|
@@ -129,7 +131,7 @@ scripts/
   components/           ← @component() — must be attached to a scene entity
     GameManager.ts        ← Scene entry point; forces service init; phase/score/restart
     ClientSetup.ts        ← Fixed camera + FocusedInteraction → Events.PlayerTap
-    GameHUD/
+    ui/
       FallingObjCanvas.ts        ← 2D sprite renderer consuming Events.RenderFallingObjs
       GameHUDViewModel.ts           ← Score display + countdown announcements
       LeaderboardHUDViewModel.ts    ← End-of-game leaderboard overlay
@@ -189,11 +191,10 @@ FallingObjService.onUpdate (every frame) → Events.RenderFallingObjs → Fallin
 | `services/SpawnManager.ts` | `SpawnManager` | Round layout, entity spawn, InitFallingObj |
 | `components/GameManager.ts` | `GameManager` | Scene entry point, phase/score/restart |
 | `components/ClientSetup.ts` | `ClientSetup` | Camera + touch → Events.PlayerTap |
-| `components/GameHUD/FallingObjCanvas.ts` | `FallingObjCanvas` | 2D bamboo sprite assembly |
-| `components/GameHUD/GameHUDViewModel.ts` | `GameHUDViewModel` | Score + countdown HUD |
-| `components/GameHUD/LeaderboardHUDViewModel.ts` | `LeaderboardHUDViewModel` | Leaderboard overlay |
-| `components/GameHUD/FreezeFeedbackHUDViewModel.ts` | `FreezeFeedbackHUDViewModel` | Screen-space grade/score/line overlay on freeze |
-| `components/ui/ScoringScaleHUDViewModel.ts` | `ScoringScaleHUDViewModel` | Screen-space scoring threshold markers (Perfect/Great/Good/Early) on left side |
+| `components/ui/FallingObjCanvas.ts` | `FallingObjCanvas` | 2D bamboo sprite assembly (3 canvas items per log) |
+| `components/ui/GameHUDViewModel.ts` | `GameHUDViewModel` | Score + countdown HUD |
+| `components/ui/LeaderboardHUDViewModel.ts` | `LeaderboardHUDViewModel` | Leaderboard overlay |
+| `components/ui/FreezeFeedbackHUDViewModel.ts` | `FreezeFeedbackHUDViewModel` | Screen-space grade/score/line overlay on freeze |
 | `components/GameplayObjects/BallObj.ts` | `BallObj` | Entity-based ball (unused until Ball rounds added) |
 | `components/GameplayObjects/FloatingScoreText.ts` | `FloatingScoreText` | (Inactive — replaced by FreezeFeedbackHUDViewModel) |
 | `components/GameplayObjects/FreezeLineVisual.ts` | `FreezeLineVisual` | (Inactive — replaced by FreezeFeedbackHUDViewModel) |
