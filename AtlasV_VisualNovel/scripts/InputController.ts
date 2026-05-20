@@ -15,7 +15,7 @@ import {
   OnFocusedInteractionInputEventPayload,
   Vec2,
 } from 'meta/worlds';
-import { CameraModeProvisionalService } from 'meta/worlds_provisional';
+import { getScreenAspectRatio } from './CameraUtils';
 import { floaterVM } from './FloaterViewModel';
 import { GamePhase } from './Types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, GAME_ASPECT_RATIO } from './Constants';
@@ -73,7 +73,7 @@ export class InputController {
   /** Map screen-normalized [0..1] coords to canvas pixel coords, accounting
    *  for letterboxing/pillarboxing based on aspect mismatch. */
   screenToCanvas(screenPos: Vec2): { x: number; y: number } {
-    const screenAspect = CameraModeProvisionalService.get().aspectRatio;
+    const screenAspect = getScreenAspectRatio();
     let canvasX: number;
     let canvasY: number;
 
