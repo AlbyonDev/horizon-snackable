@@ -689,6 +689,80 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "30b6cd95-c66a-438f-9b38-30b456857a4d",
+            "name": "OrcishFlag",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "9465794879911572115",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "20b0b3ae-6113-4047-ba69-82a146b6eafd",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": 7.502796173095703,
+                                        "y": 0.18867960572242738,
+                                        "z": 0.0
+                                    },
+                                    "localRotation": {
+                                        "x": 0.0,
+                                        "y": 0.0,
+                                        "z": -1.0471975803375245
+                                    },
+                                    "localScale": {
+                                        "x": 1.2000000476837159,
+                                        "y": 1.2000000476837159,
+                                        "z": 1.2000000476837159
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
+                                "version": 9,
+                                "data": null
+                            }
+                        }
+                    ],
+                    "attributes": []
+                },
+                {
+                    "sourceId": "210029cd-9368-4c04-9a37-e51f14c944b4",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localRotation": {
+                                        "x": -0.0,
+                                        "y": 1.5707964897155762,
+                                        "z": 0.0
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "attributes": []
+                },
+                {
+                    "sourceId": "90d61ce4-dd16-423b-9d37-a3f5a86fc344",
+                    "components": null
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -755,6 +829,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "4064225a-805a-433d-a93e-e6b5a69c2bec",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "30b6cd95-c66a-438f-9b38-30b456857a4d",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

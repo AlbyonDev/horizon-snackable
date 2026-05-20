@@ -1,0 +1,141 @@
+{
+    "version": 6,
+    "entities": [
+        {
+            "id": "20b0b3ae-6113-4047-ba69-82a146b6eafd",
+            "name": "OrcishFlag",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localRotation": {
+                                "x": -0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 1.0,
+                                "y": 1.0,
+                                "z": 1.0
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
+                        "version": 9,
+                        "data": {
+                            "type": "StaticCollision",
+                            "useGravity": false
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": [
+                {
+                    "class": "horizon::NetworkableTemplateEntityAttribute",
+                    "data": {
+                        "isNetworkable": true
+                    }
+                }
+            ]
+        },
+        {
+            "id": "210029cd-9368-4c04-9a37-e51f14c944b4",
+            "name": "Visuals",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MeshPlatformComponent",
+                        "version": 11,
+                        "data": {
+                            "mesh": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "14822724069723359469",
+                                "targetId": "481548839"
+                            },
+                            "shadowParams": {
+                                "class": "horizon::platform_api::ShadowParams",
+                                "data": {
+                                    "castsShadows": true
+                                }
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MaterialPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "materials": [
+                                {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "3282891898080624297",
+                                    "targetId": "157013062"
+                                }
+                            ],
+                            "perPartInstancedConstantParameterLists": []
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "90d61ce4-dd16-423b-9d37-a3f5a86fc344",
+            "name": "Collider",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::ColliderBoxPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "210029cd-9368-4c04-9a37-e51f14c944b4",
+            "destination": "20b0b3ae-6113-4047-ba69-82a146b6eafd"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "90d61ce4-dd16-423b-9d37-a3f5a86fc344",
+            "destination": "20b0b3ae-6113-4047-ba69-82a146b6eafd"
+        }
+    ]
+}

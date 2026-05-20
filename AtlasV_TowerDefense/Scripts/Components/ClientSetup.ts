@@ -22,6 +22,7 @@ import {
   component, property, subscribe,
   CameraComponent,
   OnPlayerCreateEvent,
+  OnEntityStartEvent,
 } from 'meta/worlds';
 import { CameraShakeService } from '../Services/CameraShakeService';
 
@@ -55,6 +56,13 @@ export class ClientSetup extends Component {
       if (this.cameraAnchor)
         CameraShakeService.get().init(this.cameraAnchor);
     }, this.initDelay * 1000);
+  }
+
+  @subscribe(OnEntityStartEvent)
+  onStart(): void {
+    if (NetworkingService.get().isPlayerContext()) {
+      this._initCamera();
+    }
   }
 
   @subscribe(OnPlayerCreateEvent)

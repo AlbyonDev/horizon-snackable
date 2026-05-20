@@ -153,7 +153,7 @@ tasks:
   - name: Path Tiles Visual Road
     status: done
     summary: Medieval cobblestone straight + corner tiles spawned along enemy path with correct rotation
-    files: [Models/PathTiles/PathTileStraight.fbx, Models/PathTiles/PathTileCorner.fbx, Templates/GameplayObjects/PathTileStraight.hstf, Templates/GameplayObjects/PathTileCorner.hstf, Services/PathTileService.ts, Assets.ts, GameManager.ts]
+    files: [Models/PathTiles/PathTileStraight.fbx, Models/PathTiles/PathTileCorner.fbx, Templates/GameplayObjects/PathTileStraightTop.hstf, Templates/GameplayObjects/PathTileCornerTL.hstf, Services/PathTileService.ts, Assets.ts, GameManager.ts]
 
   - name: Path Tiles Coherent Redesign
     status: done
@@ -209,6 +209,11 @@ tasks:
     status: done
     summary: Replaced cobblestone texture with new seamless tileable large rocks texture, cartoon style
     files: [Textures/path_tiles_cobblestone.png]
+
+
+
+done_extra:
+  - Orcish Flag at Spawn -- wooden cross with bones totem placed at spawn, -60° Z tilt
 
 chopping_block:
   disabled_systems: []
