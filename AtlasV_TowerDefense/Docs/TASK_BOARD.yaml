@@ -150,6 +150,66 @@ tasks:
     summary: 4 storyboards par carte (Card1/2SlideIn/Out), TranslateTransforms nommés, logique card1Visible/card2Visible
     files: [UI/TowerUpgradeMenu.xaml, TowerUpgradeMenuHud.ts]
 
+  - name: Path Tiles Visual Road
+    status: done
+    summary: Medieval cobblestone straight + corner tiles spawned along enemy path with correct rotation
+    files: [Models/PathTiles/PathTileStraight.fbx, Models/PathTiles/PathTileCorner.fbx, Templates/GameplayObjects/PathTileStraight.hstf, Templates/GameplayObjects/PathTileCorner.hstf, Services/PathTileService.ts, Assets.ts, GameManager.ts]
+
+  - name: Path Tiles Coherent Redesign
+    status: done
+    summary: Single 3x3 cobblestone atlas, custom unlit alpha-blend shader, 8 UV-sliced materials + templates, PathTileService rewritten (no rotation needed)
+    files: [textures/path_tiles_cobblestone.png, Shaders/PathTileAtlas.surface, Services/PathTileService.ts, Assets.ts]
+
+  - name: Path Tiles - Rotate Straight Tiles 90°
+    status: done
+    summary: Rotated Visuals entity on all 4 straight tile templates by 90° on Y axis
+    files: [Templates/GameplayObjects/PathTileStraightTop.hstf, PathTileStraightBottom.hstf, PathTileStraightLeft.hstf, PathTileStraightRight.hstf]
+
+  - name: Path Tiles - Fix All Tile Rotations Based on UV Position
+    status: done
+    summary: All 8 tiles set to 90° Y rotation on Visuals entity to map UV atlas to screen space correctly
+    files: [Templates/GameplayObjects/PathTileCornerTL.hstf, PathTileCornerTR.hstf, PathTileCornerBL.hstf, PathTileCornerBR.hstf]
+
+  - name: Path Tiles - Fix Incorrect Corner Orientation
+    status: done
+    summary: Fixed PathTileCornerBR Visuals rotation from 180° to 0° Y - was flipped causing gap at first turn
+    files: [Templates/GameplayObjects/PathTileCornerBR.hstf]
+
+  - name: Path Tiles - Large Rocks Style Redesign
+    status: done
+    summary: Replaced cobblestone atlas with large stepping stones texture for better mobile visibility, same file path preserves all material references
+    files: [Textures/path_tiles_cobblestone.png]
+
+  - name: Path Tiles - Large Rocks v2
+    status: done
+    summary: Regenerated stepping stones atlas v2 with bolder/chunkier rocks, replaced in-place
+    files: [Textures/path_tiles_cobblestone.png]
+
+  - name: Path Tiles - Use Single Corner + 2 Straights Only
+    status: done
+    summary: PathTileService uses only CornerTL + StraightTop + StraightLeft with Y rotation for all directions, guaranteeing edge continuity
+    files: [Services/PathTileService.ts]
+
+  - name: Path Tiles - Regenerate Texture
+    status: done
+    summary: Fresh stepping stones atlas generated, background removed, replaced in-place at Textures/path_tiles_cobblestone.png
+    files: [Textures/path_tiles_cobblestone.png]
+
+  - name: Path Tiles - 5 Templates 2 Materials Refactor
+    status: done
+    summary: 2 materials (corner + straight), 5 templates (4 corners with baked rotation + 1 straight with runtime rotation), PathTileService refactored, old unused templates/materials deleted
+    files: [PathTileService.ts, Assets.ts, PathTileCorner.material, PathTileStraight.material, Templates/GameplayObjects/PathTileCornerTL.hstf, PathTileCornerTR.hstf, PathTileCornerBR.hstf, PathTileCornerBL.hstf, PathTileStraightTop.hstf]
+
+  - name: Path Tiles - Cartoon Stone Triplanar Texture
+    status: done
+    summary: Generated seamless tileable cartoon stone texture (large rounded cobblestones, dark outlines, grey/beige) and updated both path materials
+    files: [Textures/path_tiles_cobblestone.png, Materials/TileStraight.material, Materials/TileCorner.material]
+
+  - name: Path Tiles - Large Rocks Tiling Texture
+    status: done
+    summary: Replaced cobblestone texture with new seamless tileable large rocks texture, cartoon style
+    files: [Textures/path_tiles_cobblestone.png]
+
 chopping_block:
   disabled_systems: []
   temp_scaffolding: []

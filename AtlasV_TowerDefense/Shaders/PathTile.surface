@@ -1,0 +1,159 @@
+BEGIN_OPTIONS
+  blendState alphaBlend
+  depthStencilState depthTestOnly
+  Template "Unlit"
+END_OPTIONS
+
+BEGIN_PROPERTIES
+
+[BeginGroup("Tile Shape", 0)]
+    [Slider(0.0, 1.0, 1.0)] isCornerTile("Is Corner Tile", float) = 0.0
+    [Slider(0.05, 0.5, 0.01)] pathHalfWidth("Path Half Width", float) = 0.4
+    [Slider(0.0, 1.0, 0.01)] cornerRadius("Corner Radius", float) = 0.5
+    [Slider(-0.5, 0.5, 0.01)] cornerInnerBias("Corner Inner Bias", float) = 0.0
+    [Slider(-0.5, 0.5, 0.01)] cornerOuterBias("Corner Outer Bias", float) = 0.0
+    [Slider(0.0, 1, 0.001)] edgeSoftness("Edge Softness", float) = 0.01
+[EndGroup]
+
+[BeginGroup("Edge Noise", 1)]
+    [Slider(0.0, 1, 0.001)] edgeNoiseAmount("Edge Noise Amount", float) = 0.04
+    [Slider(0.1, 20.0, 0.1)] edgeNoiseScale("Edge Noise Scale", float) = 4.0
+[EndGroup]
+
+[BeginGroup("Path Shadow", 2)]
+    [Slider(0.0, 0.5, 0.01)] shadowExtra("Shadow Extra Width", float) = 0.08
+    [Slider(0.0, 1.0, 0.01)] shadowAlpha("Shadow Alpha", float) = 0.4
+    [Slider(0.0, 0.2, 0.001)] shadowSoftness("Shadow Edge Softness", float) = 0.04
+    shadowColor("Shadow Color", Color) = (0.05, 0.04, 0.02, 1.0)
+[EndGroup]
+
+[BeginGroup("Texture", 3)]
+    pathTex("Path Texture", 2D) = "white"
+    [Slider(0.05, 5.0, 0.01)] textureWorldSize("Texture World Size (m)", float) = 0.5
+    [Slider(0.0, 1.0, 1.0)] textureRotate90("Texture Rotate 90deg", float) = 0.0
+    tint("Tint", Color) = (1.0, 1.0, 1.0, 1.0)
+[EndGroup]
+
+END_PROPERTIES
+
+BEGIN_SURFACE
+
+// 2D hash for cheap pseudo-noise.
+float hash21(vec2 p)
+{
+    vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+// Smooth value noise via bilinear interpolation of hashed corners.
+// Returns a value in [0, 1].
+float valueNoise(vec2 p)
+{
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    float a = hash21(i);
+    float b = hash21(i + vec2(1.0, 0.0));
+    float c = hash21(i + vec2(0.0, 1.0));
+    float d = hash21(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+// Compute the signed distance from a point (uv01 in [0,1]) to the path edge.
+// Positive = inside the path, negative = outside. Returns value in local UV units.
+float computePathSignedDist(vec2 uv01, float isCorner, float halfWidth, float radius, float innerBias, float outerBias)
+{
+    vec2 uv = uv01 - vec2(0.5, 0.5);
+
+    // Straight: vertical band |uv.x| < halfWidth.
+    float dStraight = halfWidth - abs(uv.x);
+
+    // Corner: ring centered on local top-left (-0.5, +0.5).
+    vec2 cornerCenter = vec2(-0.5, 0.5);
+    float distToCorner = length(uv - cornerCenter);
+    float innerHalf = max(0.0, halfWidth - innerBias);
+    float outerHalf = max(0.0, halfWidth - outerBias);
+    float signedDist = distToCorner - radius;
+    float dCorner = (signedDist < 0.0)
+        ? (innerHalf + signedDist)
+        : (outerHalf - signedDist);
+
+    return mix(dStraight, dCorner, isCorner);
+}
+
+void surfaceFunction(inout Surface s, inout SurfaceData d)
+{
+    // --- Texture sampling (always needed; also used for shadow color reference) ---
+    // textureWorldSize = how many world meters one full texture repeat covers.
+    vec2 rawUV = d.worldSpacePosition.xz / matParams.textureWorldSize;
+    vec2 worldUV = mix(rawUV, vec2(-rawUV.y, -rawUV.x), matParams.textureRotate90);
+    vec4 tex = texture(sampler2D(pathTex, linearWrapSampler), worldUV);
+
+    // --- Signed distance to path edge, in local UV units ---
+    float signedDist = computePathSignedDist(
+        d.texcoord0,
+        matParams.isCornerTile,
+        matParams.pathHalfWidth,
+        matParams.cornerRadius,
+        matParams.cornerInnerBias,
+        matParams.cornerOuterBias
+    );
+
+    // --- Edge noise: perturb the signed distance with world-space noise ---
+    // World-space sampling means the noise is continuous across tile boundaries.
+    // We sum two octaves so the contour has both broad sweeps and fine grain.
+    vec2 noiseUV = d.worldSpacePosition.xz * matParams.edgeNoiseScale;
+    float n1 = valueNoise(noiseUV) - 0.5;                          // base octave
+    float n2 = valueNoise(noiseUV * 2.37 + vec2(13.1, 7.7)) - 0.5; // finer octave
+    float n  = n1 * 0.7 + n2 * 0.3;                                // in [-0.5, 0.5]
+    float perturbedDist = signedDist + n * matParams.edgeNoiseAmount;
+
+    // --- Path mask (organic edge) ---
+    float pathMask = smoothstep(-matParams.edgeSoftness, matParams.edgeSoftness, perturbedDist);
+
+    // --- Shadow mask: a wider noisy halo around the path ---
+    // The shadow uses its OWN noise-perturbed distance with a stronger amplitude
+    // so its outer edge breaks up irregularly into the grass — not as a parallel
+    // offset of the path edge. We use the same noise field (continuous across
+    // tiles) but amplify it for the shadow zone.
+    float shadowNoise = n * 2.0;
+    float shadowPerturbedDist = signedDist + shadowNoise * matParams.edgeNoiseAmount;
+    // Soft falloff: full intensity right next to the path, fading to 0 over
+    // shadowExtra units outward. The exponent makes the falloff more organic
+    // (steep near path, slow further out).
+    float shadowFalloff = clamp((shadowPerturbedDist + matParams.shadowExtra) / max(matParams.shadowExtra, 0.0001), 0.0, 1.0);
+    shadowFalloff = shadowFalloff * shadowFalloff; // ease-in
+    // Fade out further with shadowSoftness on the far edge.
+    float shadowOuterFade = smoothstep(-matParams.shadowSoftness - matParams.shadowExtra, -matParams.shadowExtra, shadowPerturbedDist);
+    // Hide shadow inside the path so we don't darken the path itself.
+    float shadowInside = 1.0 - pathMask;
+    float shadowMask = shadowFalloff * shadowOuterFade * shadowInside;
+
+    // --- Compose ---
+    vec3 pathColor = tex.rgb * matParams.tint.rgb;
+    float pathAlpha = pathMask * tex.a * matParams.tint.a;
+    float shadowFinalAlpha = shadowMask * matParams.shadowAlpha;
+
+    // Blend path over shadow:
+    //   - Inside path: opaque path color (pathAlpha = 1, shadow contribution 0).
+    //   - In the shadow halo: shadow color tinted, alpha = shadowFinalAlpha.
+    //   - Beyond the halo: fully transparent.
+    float outAlpha = pathAlpha + shadowFinalAlpha * (1.0 - pathAlpha);
+    vec3 outColor = (pathColor * pathAlpha + matParams.shadowColor.rgb * shadowFinalAlpha * (1.0 - pathAlpha))
+                  / max(outAlpha, 0.0001);
+
+    if (outAlpha <= 0.001) {
+        s.alpha = 0.0;
+        s.baseColor = vec3(0.0);
+        return;
+    }
+
+    s.baseColor = outColor;
+    s.alpha = outAlpha;
+    s.emissive = vec3(0.0);
+    s.metallic = 0.0;
+    s.roughness = 1.0;
+}
+
+END_SURFACE

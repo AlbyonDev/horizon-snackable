@@ -32,6 +32,7 @@ import { SplashSystem } from '../Services/SplashSystem';
 import { VfxService } from '../Services/VfxService';
 import { GROUND_COLOR, hexColor } from '../Constants';
 import { CameraShakeService } from '../Services/CameraShakeService';
+import { PathTileService } from '../Services/PathTileService';
 
 @component()
 export class GameManager extends Component {
@@ -97,6 +98,7 @@ export class GameManager extends Component {
       FloatingTextService.get().prewarm(),
       VfxService.get().prewarm(),
       CoinService.get().prewarm(),
+      PathTileService.get().prewarm(),
     ]);
     ResourceService.get().reset();
     WaveService.get().startGame();

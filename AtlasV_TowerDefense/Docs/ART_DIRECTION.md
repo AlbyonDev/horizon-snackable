@@ -78,18 +78,18 @@ All text uses the default MHS UI font. No custom fonts.
 
 ---
 
-## Layout — Portrait 9:16
+## Layout — Portrait 9:16 (grid is 7×14)
 
 The screen is divided into three distinct zones — no overlay, no occlusion.
 
 ```
 ┌─────────────────────────────────┐
-│ ❤️ 20       WAVE        💰 150  │  ← HUD bar (top)
-│              1/10               │
+│ ❤️ 10       WAVE        💰 120  │  ← HUD bar (top)
+│              1/20               │
 ├─────────────────────────────────┤
 │                                 │
 │                                 │
-│          PLAY AREA              │  ← 9×12 grid (center)
+│          PLAY AREA              │  ← 7×14 grid (center)
 │      (towers, path, enemies)    │
 │                                 │
 │                                 │
@@ -98,8 +98,8 @@ The screen is divided into three distinct zones — no overlay, no occlusion.
 └─────────────────────────────────┘
 ```
 
-The grid is 9×12 (not 9×16) — the 9:16 screen ratio is filled by grid + HUD + shop combined.
-Camera must be positioned and FOV-tuned so the 9×12 world grid fills exactly the center 70% of the screen.
+The grid is **7 cols × 14 rows** (7×14 world units). The portrait 9:16 screen is filled by grid + HUD + shop combined.
+Camera is set via a scene anchor entity (position `(1, 15.5, 0)`, rotation `(-90, 90, 0)`, FOV 60°) so the 7×14 world grid fills the center of the screen — see `Scene Setup & 2.5D Camera Tricks` in `PROJECT_SUMMARY.md`.
 
 ---
 
@@ -109,7 +109,7 @@ Camera must be positioned and FOV-tuned so the 9×12 world grid fills exactly th
 - Full width, `bg-panel` background (80% opacity)
 - 3-column layout:
   - **Left:** Red heart SVG icon (#e74c3c) + lives count (white)
-  - **Center:** "WAVE" label (secondary color) + wave number "X/10" (white, stacked vertically)
+  - **Center:** "WAVE" label (secondary color) + wave number "X/20" (white, stacked vertically)
   - **Right:** gold_icon.png image + gold count (gold color #f5c518)
 - Large text (~90px) for mobile visibility
 - Updates reactively via `GameHudViewModel`
