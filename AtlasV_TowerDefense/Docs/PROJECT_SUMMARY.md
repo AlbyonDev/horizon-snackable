@@ -237,7 +237,7 @@ Restrictions (e.g. "no splash on arrow", "laser range max once") are enforced **
 
 | ID | Name | HP | Speed | Reward | Trait |
 |----|------|----|-------|--------|-------|
-| `basic` | Zombie Brute | 60 | 1.25/s | 5g | — |
+| `basic` | Enemy | 60 | 1.25/s | 5g | — |
 | `fast` | Fast | 35 | 2.50/s | 8g | `dodgeChance: 0.15` |
 | `tank` | Tank | 220 | 0.75/s | 15g | `regenPerSec: 8` |
 | `boss` | Boss | 600 | 0.60/s | 50g | `slowImmune: true` |

@@ -1,4 +1,9 @@
 tasks:
+  - name: Replace Basic Enemy with Zombie
+    status: done
+    summary: Zombie mesh generated and swapped into Enemy.hstf, all stats unchanged
+    files: [Models/Zombie/ZombieBody.fbx, Models/Zombie/ZombieBody.material, Templates/Enemies/Enemy.hstf]
+
   - name: Camera Shake on Life Lost
     status: done
     summary: Decaying random X/Y shake on EnemyReachedEnd, 0.3s duration
@@ -177,7 +182,7 @@ tasks:
 
   - name: Path Tiles - Large Rocks Style Redesign
     status: done
-    summary: Replaced cobblestone atlas with large stepping stones texture for better mobile visibility, same file path preserves all material references
+    summary: Replaced cobblestone texture with new seamless tileable large rocks texture, cartoon style
     files: [Textures/path_tiles_cobblestone.png]
 
   - name: Path Tiles - Large Rocks v2
