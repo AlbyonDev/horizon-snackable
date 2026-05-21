@@ -85,8 +85,6 @@ Why this works: with a straight-down camera, a pure +Y mesh would appear as a do
 
 `lookAt()` is still called on the root transform (line 197) so any non-pivoted child (e.g. legs/arms animation rest poses) faces the travel direction. The `bodyPivot` overlay is what produces the cartoony lean.
 
-**When adding new enemy templates**: the visible mesh MUST be a child of an entity assigned to the `bodyPivot` `@property` of `EnemyController`. Otherwise enemies render as flat top-down silhouettes.
-
 #### 2. Tower barrel yaw (aim trick)
 
 Towers have a `barrel` child rotated each frame to aim at the current target — see [TowerController.ts:161-172](../Scripts/Components/TowerController.ts#L161):
@@ -321,7 +319,7 @@ Reference: [Enemy.hstf](../Templates/Enemies/Enemy.hstf) (Orc Chibi). Same struc
 ```
 Enemy (root)                         ← TransformComponent + EnemyController
 ├── Pivot                            ← @property bodyPivot   (REQUIRED)
-│   └── <CharacterMesh>              ← Skinned/rigged model (e.g. OrcChibi)
+│   └── <CharacterMesh>              ← model (e.g. OrcChibi)
 │       ├── <body>                   ← (any non-leg/non-arm parts)
 │       ├── LeftArm                  ← @property leftArm
 │       ├── RightArm                 ← @property rightArm
@@ -363,13 +361,7 @@ Enemy (root)                         ← TransformComponent + EnemyController
 
 #### Authoring rules for new enemies
 
-- Root must be empty transform (no mesh on it directly) — `lookAt()` will rotate the whole thing.
-- The `Pivot` child should sit at local `(0, 0, 0)` so its rotation pivots around the character's feet.
-- The Orc Chibi template ships with `Pivot.localRotation = (0.785, 0, 0)` (~45° pitch in radians) baked in — this is the resting forward lean. The runtime `_updateBodyPivot` **overwrites** this each frame, so any baked rotation is for editor preview only.
-- Character mesh inside the Pivot needs a fixed `localRotation` so it faces the +Z direction (the `lookAt` forward). The Orc has `y = 1.5708` (90°) baked because its source mesh faces +X.
-- Limb entities (`LeftArm`/`RightArm`/`LeftLeg`/`RightLeg`) must be **direct children of the mesh root** at predictable positions. The runtime captures their rest pose in `onStart`, so set the desired idle pose in the template — the animation **adds on top**.
-- The `shadow` entity must not be a child of `Pivot` — it stays flat on the ground while the pivot tilts.
-- Color: the runtime gathers `ColorComponent` from every descendant of the root **except `shadow`** for tinting. Multi-colored characters work fine — all parts will flash together.
+See `ART_DIRECTION.md → Enemy Mesh Integration` for mesh-side requirements (forward axis, pivot, ColorComponent init).
 
 ### Tower template (`Templates/Towers/*.hstf`)
 
