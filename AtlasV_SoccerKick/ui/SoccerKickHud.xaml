@@ -14,6 +14,11 @@
         
         <!-- BooleanToVisibilityConverter for visibility bindings -->
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+
+        <!-- Horizontal panel for ItemsControl -->
+        <ItemsPanelTemplate x:Key="HorizontalPanel">
+            <StackPanel Orientation="Horizontal"/>
+        </ItemsPanelTemplate>
     </Page.Resources>
 
     <!-- Main Full-Width Grid Layout -->
@@ -41,141 +46,36 @@
                     </TransformGroup>
                 </Grid.RenderTransform>
 
-                <!-- TOP-CENTER: Shot Indicator Dots (scaled x3) - shifted down 50px -->
-                <StackPanel x:Name="ShotIndicators" 
-                            Grid.Column="1"
-                            Orientation="Horizontal" 
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
-                            Margin="0,50,0,0">
-                
-                <!-- Shot 1 -->
-                <Grid x:Name="Shot1Container" Margin="12,0" RenderTransformOrigin="0.5,0.5" Opacity="{Binding Path=Shot1Opacity}">
-                    <Grid.RenderTransform>
-                        <ScaleTransform ScaleX="{Binding Path=Shot1Scale}" ScaleY="{Binding Path=Shot1Scale}"/>
-                    </Grid.RenderTransform>
-                    <Ellipse x:Name="Shot1Dot"
-                             Width="60" Height="60"
-                             Fill="#FF4CAF50"
-                             StrokeThickness="6" Stroke="#FFFFFFFF"/>
-                    <b:Interaction.Triggers>
-                        <b:DataTrigger Binding="{Binding Path=Shot1Active}" Value="False">
-                            <b:ChangePropertyAction TargetName="Shot1Dot" PropertyName="Fill" Value="#33FFFFFF"/>
-                            <b:ChangePropertyAction TargetName="Shot1Dot" PropertyName="Stroke" Value="#66FFFFFF"/>
-                        </b:DataTrigger>
-                        <b:DataTrigger Binding="{Binding Path=Shot1Active}" Value="True">
-                            <b:ChangePropertyAction TargetName="Shot1Dot" PropertyName="Fill" Value="#FF4CAF50"/>
-                            <b:ChangePropertyAction TargetName="Shot1Dot" PropertyName="Stroke" Value="#FFFFFFFF"/>
-                        </b:DataTrigger>
-                    </b:Interaction.Triggers>
-                </Grid>
-
-                <!-- Shot 2 -->
-                <Grid x:Name="Shot2Container" Margin="12,0" RenderTransformOrigin="0.5,0.5" Opacity="{Binding Path=Shot2Opacity}">
-                    <Grid.RenderTransform>
-                        <ScaleTransform ScaleX="{Binding Path=Shot2Scale}" ScaleY="{Binding Path=Shot2Scale}"/>
-                    </Grid.RenderTransform>
-                    <Ellipse x:Name="Shot2Dot"
-                             Width="60" Height="60"
-                             Fill="#FF4CAF50"
-                             StrokeThickness="6" Stroke="#FFFFFFFF"/>
-                    <b:Interaction.Triggers>
-                        <b:DataTrigger Binding="{Binding Path=Shot2Active}" Value="False">
-                            <b:ChangePropertyAction TargetName="Shot2Dot" PropertyName="Fill" Value="#33FFFFFF"/>
-                            <b:ChangePropertyAction TargetName="Shot2Dot" PropertyName="Stroke" Value="#66FFFFFF"/>
-                        </b:DataTrigger>
-                        <b:DataTrigger Binding="{Binding Path=Shot2Active}" Value="True">
-                            <b:ChangePropertyAction TargetName="Shot2Dot" PropertyName="Fill" Value="#FF4CAF50"/>
-                            <b:ChangePropertyAction TargetName="Shot2Dot" PropertyName="Stroke" Value="#FFFFFFFF"/>
-                        </b:DataTrigger>
-                    </b:Interaction.Triggers>
-                </Grid>
-
-                <!-- Shot 3 -->
-                <Grid x:Name="Shot3Container" Margin="12,0" RenderTransformOrigin="0.5,0.5" Opacity="{Binding Path=Shot3Opacity}">
-                    <Grid.RenderTransform>
-                        <ScaleTransform ScaleX="{Binding Path=Shot3Scale}" ScaleY="{Binding Path=Shot3Scale}"/>
-                    </Grid.RenderTransform>
-                    <Ellipse x:Name="Shot3Dot"
-                             Width="60" Height="60"
-                             Fill="#FF4CAF50"
-                             StrokeThickness="6" Stroke="#FFFFFFFF"/>
-                    <b:Interaction.Triggers>
-                        <b:DataTrigger Binding="{Binding Path=Shot3Active}" Value="False">
-                            <b:ChangePropertyAction TargetName="Shot3Dot" PropertyName="Fill" Value="#33FFFFFF"/>
-                            <b:ChangePropertyAction TargetName="Shot3Dot" PropertyName="Stroke" Value="#66FFFFFF"/>
-                        </b:DataTrigger>
-                        <b:DataTrigger Binding="{Binding Path=Shot3Active}" Value="True">
-                            <b:ChangePropertyAction TargetName="Shot3Dot" PropertyName="Fill" Value="#FF4CAF50"/>
-                            <b:ChangePropertyAction TargetName="Shot3Dot" PropertyName="Stroke" Value="#FFFFFFFF"/>
-                        </b:DataTrigger>
-                    </b:Interaction.Triggers>
-                </Grid>
-
-                <!-- Shot 4 -->
-                <Grid x:Name="Shot4Container" Margin="12,0" RenderTransformOrigin="0.5,0.5" Opacity="{Binding Path=Shot4Opacity}">
-                    <Grid.RenderTransform>
-                        <ScaleTransform ScaleX="{Binding Path=Shot4Scale}" ScaleY="{Binding Path=Shot4Scale}"/>
-                    </Grid.RenderTransform>
-                    <Ellipse x:Name="Shot4Dot"
-                             Width="60" Height="60"
-                             Fill="#FF4CAF50"
-                             StrokeThickness="6" Stroke="#FFFFFFFF"/>
-                    <b:Interaction.Triggers>
-                        <b:DataTrigger Binding="{Binding Path=Shot4Active}" Value="False">
-                            <b:ChangePropertyAction TargetName="Shot4Dot" PropertyName="Fill" Value="#33FFFFFF"/>
-                            <b:ChangePropertyAction TargetName="Shot4Dot" PropertyName="Stroke" Value="#66FFFFFF"/>
-                        </b:DataTrigger>
-                        <b:DataTrigger Binding="{Binding Path=Shot4Active}" Value="True">
-                            <b:ChangePropertyAction TargetName="Shot4Dot" PropertyName="Fill" Value="#FF4CAF50"/>
-                            <b:ChangePropertyAction TargetName="Shot4Dot" PropertyName="Stroke" Value="#FFFFFFFF"/>
-                        </b:DataTrigger>
-                    </b:Interaction.Triggers>
-                </Grid>
-
-                <!-- Shot 5 -->
-                <Grid x:Name="Shot5Container" Margin="12,0" RenderTransformOrigin="0.5,0.5" Opacity="{Binding Path=Shot5Opacity}">
-                    <Grid.RenderTransform>
-                        <ScaleTransform ScaleX="{Binding Path=Shot5Scale}" ScaleY="{Binding Path=Shot5Scale}"/>
-                    </Grid.RenderTransform>
-                    <Ellipse x:Name="Shot5Dot"
-                             Width="60" Height="60"
-                             Fill="#FF4CAF50"
-                             StrokeThickness="6" Stroke="#FFFFFFFF"/>
-                    <b:Interaction.Triggers>
-                        <b:DataTrigger Binding="{Binding Path=Shot5Active}" Value="False">
-                            <b:ChangePropertyAction TargetName="Shot5Dot" PropertyName="Fill" Value="#33FFFFFF"/>
-                            <b:ChangePropertyAction TargetName="Shot5Dot" PropertyName="Stroke" Value="#66FFFFFF"/>
-                        </b:DataTrigger>
-                        <b:DataTrigger Binding="{Binding Path=Shot5Active}" Value="True">
-                            <b:ChangePropertyAction TargetName="Shot5Dot" PropertyName="Fill" Value="#FF4CAF50"/>
-                            <b:ChangePropertyAction TargetName="Shot5Dot" PropertyName="Stroke" Value="#FFFFFFFF"/>
-                        </b:DataTrigger>
-                    </b:Interaction.Triggers>
-                </Grid>
-
-                <!-- Shot 6 -->
-                <Grid x:Name="Shot6Container" Margin="12,0" RenderTransformOrigin="0.5,0.5" Opacity="{Binding Path=Shot6Opacity}">
-                    <Grid.RenderTransform>
-                        <ScaleTransform ScaleX="{Binding Path=Shot6Scale}" ScaleY="{Binding Path=Shot6Scale}"/>
-                    </Grid.RenderTransform>
-                    <Ellipse x:Name="Shot6Dot"
-                             Width="60" Height="60"
-                             Fill="#FF4CAF50"
-                             StrokeThickness="6" Stroke="#FFFFFFFF"/>
-                    <b:Interaction.Triggers>
-                        <b:DataTrigger Binding="{Binding Path=Shot6Active}" Value="False">
-                            <b:ChangePropertyAction TargetName="Shot6Dot" PropertyName="Fill" Value="#33FFFFFF"/>
-                            <b:ChangePropertyAction TargetName="Shot6Dot" PropertyName="Stroke" Value="#66FFFFFF"/>
-                        </b:DataTrigger>
-                        <b:DataTrigger Binding="{Binding Path=Shot6Active}" Value="True">
-                            <b:ChangePropertyAction TargetName="Shot6Dot" PropertyName="Fill" Value="#FF4CAF50"/>
-                            <b:ChangePropertyAction TargetName="Shot6Dot" PropertyName="Stroke" Value="#FFFFFFFF"/>
-                        </b:DataTrigger>
-                    </b:Interaction.Triggers>
-                </Grid>
-            </StackPanel>
-
+                <!-- TOP-CENTER: Shot Indicator Dots via ItemsControl -->
+                <ItemsControl Grid.Column="1"
+                              ItemsSource="{Binding shotDots}"
+                              ItemsPanel="{StaticResource HorizontalPanel}"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Top"
+                              Margin="0,50,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="12,0" RenderTransformOrigin="0.5,0.5" Opacity="{Binding Opacity}">
+                                <Grid.RenderTransform>
+                                    <ScaleTransform ScaleX="{Binding Scale}" ScaleY="{Binding Scale}"/>
+                                </Grid.RenderTransform>
+                                <Ellipse Width="60" Height="60"
+                                         Fill="#FF4CAF50"
+                                         StrokeThickness="6" Stroke="#FFFFFFFF"/>
+                                <b:Interaction.Triggers>
+                                    <b:DataTrigger Binding="{Binding Active}" Value="False">
+                                        <b:ChangePropertyAction PropertyName="Fill" Value="#33FFFFFF"/>
+                                        <b:ChangePropertyAction PropertyName="Stroke" Value="#66FFFFFF"/>
+                                    </b:DataTrigger>
+                                    <b:DataTrigger Binding="{Binding Active}" Value="True">
+                                        <b:ChangePropertyAction PropertyName="Fill" Value="#FF4CAF50"/>
+                                        <b:ChangePropertyAction PropertyName="Stroke" Value="#FFFFFFFF"/>
+                                    </b:DataTrigger>
+                                </b:Interaction.Triggers>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
             </Grid>
 
@@ -210,8 +110,6 @@
             <Grid.RenderTransform>
                 <TranslateTransform Y="{Binding Path=InstructionTranslateY}"/>
             </Grid.RenderTransform>
-            
-            <!-- Instruction text shadow layer (offset for drop shadow effect) -->
             
             <!-- Instruction text outline layer -->
             <TextBlock x:Name="InstructionTextOutline"

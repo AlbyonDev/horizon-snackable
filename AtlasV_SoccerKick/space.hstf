@@ -70,7 +70,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SpawnPointPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "stateEnabled": true,
                             "allowStart": true
@@ -151,7 +151,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 8,
+                        "version": 9,
                         "data": {
                             "type": "StaticCollision"
                         }
@@ -161,7 +161,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::ColliderMeshPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "meshAsset": {
                                 "packageOrRemoteId": "24149709574657735",
@@ -175,7 +175,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -242,7 +242,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 8,
+                        "version": 9,
                         "data": {
                             "type": "StaticCollision"
                         }
@@ -252,7 +252,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::ColliderMeshPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "meshAsset": {
                                 "packageOrRemoteId": "24149709574657735",
@@ -266,7 +266,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -359,7 +359,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CameraPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "cameraMode": "Custom",
                             "fieldOfView": 70.0,
@@ -412,7 +412,7 @@
                             "dataType": "horizon::DataDefinitionAsset",
                             "data": {
                                 "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                                "version": 8,
+                                "version": 9,
                                 "data": null
                             }
                         },
@@ -420,7 +420,7 @@
                             "dataType": "horizon::DataDefinitionAsset",
                             "data": {
                                 "class": "horizon::platform_api::ColliderMeshPlatformComponent",
-                                "version": 2,
+                                "version": 3,
                                 "data": null
                             }
                         }
@@ -434,7 +434,7 @@
                             "dataType": "horizon::DataDefinitionAsset",
                             "data": {
                                 "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                                "version": 8,
+                                "version": 9,
                                 "data": null
                             }
                         },
@@ -442,7 +442,7 @@
                             "dataType": "horizon::DataDefinitionAsset",
                             "data": {
                                 "class": "horizon::platform_api::ColliderMeshPlatformComponent",
-                                "version": 2,
+                                "version": 3,
                                 "data": null
                             }
                         }
@@ -514,7 +514,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -560,7 +560,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -602,7 +602,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -644,7 +644,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -686,7 +686,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -728,7 +728,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -771,7 +771,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -813,7 +813,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -855,7 +855,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -897,7 +897,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -941,7 +941,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -985,7 +985,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1029,7 +1029,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1071,7 +1071,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1115,7 +1115,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1159,7 +1159,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1203,7 +1203,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1247,7 +1247,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1291,7 +1291,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 14,
+                        "version": 15,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1362,14 +1362,16 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
                                 "packageOrRemoteId": "26835398609386284",
                                 "ingestionId": "16371059405371400579",
                                 "targetId": "2149638574"
-                            }
+                            },
+                            "width": 0,
+                            "height": 0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -1410,7 +1412,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -1418,6 +1420,8 @@
                                 "ingestionId": "389015377901784745",
                                 "targetId": "2149638574"
                             },
+                            "width": 0,
+                            "height": 0,
                             "renderOrderOffset": 10
                         }
                     },
@@ -1459,7 +1463,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -1467,6 +1471,8 @@
                                 "ingestionId": "15975212070847811848",
                                 "targetId": "2149638574"
                             },
+                            "width": 0,
+                            "height": 0,
                             "isInteractable": true
                         }
                     },
@@ -1508,14 +1514,16 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
                                 "packageOrRemoteId": "26835398609386284",
                                 "ingestionId": "16948138395195192220",
                                 "targetId": "2149638574"
-                            }
+                            },
+                            "width": 0,
+                            "height": 0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -1556,14 +1564,16 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
                                 "packageOrRemoteId": "26835398609386284",
                                 "ingestionId": "13949701553060785607",
                                 "targetId": "2149638574"
-                            }
+                            },
+                            "width": 0,
+                            "height": 0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"

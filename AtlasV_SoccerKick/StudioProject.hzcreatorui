@@ -1,3 +1,3 @@
 <Project>
-  <StartupDocument>ui/ShotFeedbackPanel.xaml</StartupDocument>
+  <StartupDocument>ui/GoalKeeper.xaml</StartupDocument>
 </Project>

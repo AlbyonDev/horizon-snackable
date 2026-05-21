@@ -115,6 +115,10 @@ tasks:
     summary: Added red combo text with black outline below points in feedback panel, removed combo from HUD
     files: [ui/ShotFeedbackPanel.xaml, Scripts/Components/ShotFeedbackDisplayComponent.ts, ui/SoccerKickHud.xaml, Scripts/Components/SoccerKickHudComponent.ts]
 
+  - name: Shot Dots Dynamic ItemsControl
+    status: done
+    summary: Replaced Shot1-6 individual bindings with dynamic shotDots array driven by TOTAL_SHOTS
+
 chopping_block:
   disabled_systems: []
   temp_scaffolding: []

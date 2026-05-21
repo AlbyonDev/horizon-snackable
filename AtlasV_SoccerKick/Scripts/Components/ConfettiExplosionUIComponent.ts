@@ -11,7 +11,7 @@
  *
  * **Option 1 — LocalEvent (recommended for decoupled systems):**
  * ```ts
- * import { ConfettiExplosionTriggerEvent } from './ConfettiExplosionUIComponent';
+ * import { ConfettiExplosionTriggerEvent } from '../Events/GameEvents';
  * EventService.sendLocally(ConfettiExplosionTriggerEvent, { count: 30 });
  * ```
  *
@@ -25,35 +25,22 @@ import {
   Component,
   component,
   subscribe,
-  serializable,
-  property,
   OnEntityStartEvent,
   OnWorldUpdateEvent,
   ExecuteOn,
   NetworkingService,
   UiViewModel,
   uiViewModel,
-  LocalEvent,
   CustomUiComponent,
 } from 'meta/worlds';
 import type {
   OnWorldUpdateEventPayload,
   Maybe,
 } from 'meta/worlds';
-import { PhaseChangedEvent, PhaseChangedPayload } from '../Events/GameEvents';
-
-// ── Trigger Event ────────────────────────────────────────────────────
-@serializable()
-export class ConfettiExplosionTriggerPayload {
-  @property()
-  public readonly count: number = 60;
-}
-
-/** Send this LocalEvent to trigger the confetti explosion from any script. */
-export const ConfettiExplosionTriggerEvent = new LocalEvent<ConfettiExplosionTriggerPayload>(
-  'ConfettiExplosionTriggerEvent',
-  ConfettiExplosionTriggerPayload,
-);
+import {
+  PhaseChangedEvent, PhaseChangedPayload,
+  ConfettiExplosionTriggerEvent, ConfettiExplosionTriggerPayload,
+} from '../Events/GameEvents';
 
 // ── Constants ────────────────────────────────────────────────────────
 const CONFETTI_COLORS: string[] = [

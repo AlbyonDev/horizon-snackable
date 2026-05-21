@@ -1,7 +1,7 @@
 // ── Enums ────────────────────────────────────────────────────────────────────
 
 export enum GamePhase {
-  Start    = 0,
+  Start    = 0,  // internal initial state only — never broadcast via PhaseChangedEvent
   Aim      = 1,
   Flying   = 2,
   Result   = 3,

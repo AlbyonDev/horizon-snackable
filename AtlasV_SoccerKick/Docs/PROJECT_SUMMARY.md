@@ -6,101 +6,123 @@ Penalty shootout game. The player swipes to kick a ball toward a goal defended b
 6 shots per round, score based on goals with combo, corner, and chip multipliers.
 Snackable: simple, satisfying, short.
 
+---
+
 ## Game Flow
 
-`Start → Aim → Flying → Result → (next shot or GameOver) → tap to restart`
+`[Load/Restart] → Aim → Flying → Result → (repeat × 6) → GameOver → [tap to restart]`
 
-- **Aim**: Player swipes upward from the lower screen to shoot. A power gauge shows swipe intensity.
-- **Flying**: Ball travels toward goal with physics (gravity, spin). GK reacts after a per-keeper delay.
-- **Result**: Outcome determined (Goal / Save / Post / Miss), feedback UI + VFX + camera shake + sound play, ball bounces, then next shot.
-- **GameOver**: Stats overlay appears showing accuracy, goals, score, star rating, and best combo. Replay button or tap anywhere to restart.
+> `GamePhase.Start` (value 0) is the internal initial state before the first spawn — it is **never** broadcast via `PhaseChangedEvent`. The player-visible game begins immediately in **Aim**.
+
+- **Aim**: Player swipes upward from the lower screen. A power gauge shows swipe intensity (left side of screen). The ball sits on the penalty spot.
+- **Flying**: Ball travels toward goal with physics (gravity, spin, lateral aim). Goalkeeper reacts after a per-keeper delay then dives.
+- **Result**: Outcome determined (Goal / Save / Post / Miss). Feedback UI + VFX + camera shake + sound plays. Ball bounces. Auto-advances to next shot after a delay.
+- **GameOver**: Stats overlay appears (accuracy, goals/6, score, star rating, best combo). Replay button or tap anywhere to restart.
+
+---
 
 ## Round System
 
-- Each round consists of **6 shots** (`TOTAL_SHOTS` in Constants.ts)
-- After each shot, the outcome is resolved and the next shot starts automatically after a delay
-- A new goalkeeper type is randomly selected each round
-- When all 6 shots are used, the game enters **GameOver** phase after a brief pause
+- Each round consists of **6 shots** (`TOTAL_SHOTS` in `Constants.ts`)
+- A new goalkeeper archetype is randomly selected each round (avoids repeats)
+- When all 6 shots are used, `GameOver` phase triggers after `GAME_OVER_DELAY` ms
 - Tap anywhere during GameOver (or the replay button) to start a fresh round
+
+---
 
 ## Scoring System
 
 ### Base Points
-- **Goal**: 100 points (`PTS_GOAL`)
+- **Goal**: 100 points (`PTS_GOAL` in `Constants.ts`)
 - **Save / Post / Miss**: 0 points
 
-### Corner Bonus
-- A goal is a **corner goal** when `|ballX| > GOAL_HALF_W * 0.65`
-- Corner goals get a **x1.8 multiplier** (`PTS_CORNER_MULTI`)
-
-### Chip Bonus
-- A goal is a **chip goal** when `ballY > GOAL_HEIGHT * 0.72` and `|ballX| <= corner threshold`
-- Chip goals get a **x1.5 multiplier** (`PTS_CHIP_MULTI`)
+### Bonus Zones
+- **Corner goal**: `|ballX| > GOAL_HALF_W * CORNER_THRESHOLD` → **×1.8** (`PTS_CORNER_MULTI`)
+- **Chip goal**: `ballY > GOAL_HEIGHT * HEIGHT_THRESHOLD` AND not in corner → **×1.5** (`PTS_CHIP_MULTI`)
+- Corner and chip are mutually exclusive; combo multiplier stacks on top of either
 
 ### Combo System
 - Consecutive goals increment the combo counter
-- Any non-goal outcome **resets combo to 0**
-- When combo reaches **3** (`COMBO_THRESHOLD`), the combo multiplier activates
-- Combo multiplier = combo count, **capped at x6** (`MAX_COMBO_MULTI`)
-- Corner/chip and combo multipliers stack: `points = 100 * bonusMulti * comboMulti`
+- Any non-goal resets combo to 0
+- At **3** consecutive goals (`COMBO_THRESHOLD`), the combo multiplier activates
+- Combo multiplier = combo count, **capped at ×6** (`MAX_COMBO_MULTI`)
+- Full formula: `points = PTS_GOAL × bonusMulti × comboMulti`
 
-### Score Examples
-| Shots sequence | Points per shot | Running total |
-|---------------|-----------------|---------------|
-| Goal | 100 x 1 = 100 | 100 |
-| Goal | 100 x 1 = 100 | 200 |
-| Goal (combo x3) | 100 x 3 = 300 | 500 |
-| Miss | 0 (combo reset) | 500 |
-| Corner Goal | 100 x 1.8 = 180 | 680 |
-| Goal | 100 x 1 = 100 | 780 |
+### Star Rating (GameOver screen)
+Thresholds live in `Constants.ts`:
+
+| Stars | Condition |
+|-------|-----------|
+| ⭐⭐⭐ | `accuracy >= STARS_3_ACCURACY` (0.80) |
+| ⭐⭐ | `accuracy >= STARS_2_ACCURACY` (0.50) |
+| ⭐ | otherwise |
+
+---
 
 ## Shot Outcomes
 
-| Value | Enum | Description | Visual Feedback | Color |
-|-------|------|-------------|-----------------|-------|
-| 0 | `ShotOutcome.Goal` | Ball enters the net | GOAL! (stadium sweep animation) | #FFD700 (gold) |
-| 1 | `ShotOutcome.Save` | Goalkeeper blocks the ball | SAVED! (impact animation) | #FF4444 (red) |
-| 2 | `ShotOutcome.PostHit` | Ball hits post or crossbar | POST! (vibration animation) | #FFFFFF (white) |
-| 3 | `ShotOutcome.Miss` | Ball goes wide or stops | MISS! (dramatic drop) | #FF6B35 (orange) |
+| Enum | Value | Description | Feedback text | Color |
+|------|-------|-------------|---------------|-------|
+| `ShotOutcome.Goal` | 0 | Ball enters the net | GOAL! (stadium sweep) | #FFD700 gold |
+| `ShotOutcome.Save` | 1 | Goalkeeper blocks | SAVED! (impact) | #FF4444 red |
+| `ShotOutcome.PostHit` | 2 | Post or crossbar | POST! (vibration) | #FFFFFF white |
+| `ShotOutcome.Miss` | 3 | Ball goes wide/stops | MISS! (dramatic drop) | #FF6B35 orange |
 
-### Timing Between Shots
-| Outcome | Delay before next shot |
-|---------|----------------------|
-| Goal | 1500ms |
-| Save | 1300ms |
-| Post | 1300ms |
-| Miss | 1000ms |
+### Delay Before Next Shot (`Constants.ts`)
+
+| Outcome | Constant | Default |
+|---------|----------|---------|
+| Goal | `NEXT_SHOT_GOAL_MS` | 1500 ms |
+| Save | `NEXT_SHOT_SAVE_MS` | 1300 ms |
+| Post | `NEXT_SHOT_POST_MS` | 1300 ms |
+| Miss | `NEXT_SHOT_MISS_MS` | 1000 ms |
+
+---
 
 ## Goalkeeper Types
 
-Three keeper archetypes are defined in `Defs/KeeperDefs.ts`. One is randomly selected per round.
+Three archetypes in `Defs/KeeperDefs.ts`. One is randomly selected per round (no repeat from previous round).
 
-| Keeper | Template | Style | Reaction | Dive Chance | Hitbox |
-|--------|----------|-------|----------|-------------|--------|
-| Keeper 1 | Goalkeeper1 | Aggressive diver | 120ms | 90% | Narrow (0.8m) |
-| Keeper 2 | Goalkeeper2 | Big slow | 200ms | 75% | Wide (1.25m) |
-| Keeper 3 | Goalkeeper3 | Quick stepper | 60ms | 65% | Small (0.75m), high jump |
+| # | Style | Reaction | Dive chance | Hitbox width |
+|---|-------|----------|-------------|--------------|
+| 1 | Aggressive diver | 120 ms | 90% | 0.8 m (narrow) |
+| 2 | Big slow | 200 ms | 75% | 1.25 m (wide) |
+| 3 | Quick stepper | 60 ms | 65% | 0.75 m, high jump |
 
-Each keeper has tuned values for: reaction delay, dive chance, lateral/dive speed, hitbox dimensions, idle sway speed, and shadow scale.
+Each def also tunes: idle sway speed, dive speed/lateral/height, hitbox height, shadow scale.
+All per-keeper values live **in the def** — the `GK_*` constants in `Constants.ts` are collision geometry defaults used by `GoalkeeperService` for values not in the def.
 
-## Data Available for UI
+---
 
-### `GameStateService.snapshot()` — returns `IGameSnapshot`
+## Scene Layout (space.hstf)
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `score` | number | Total score |
-| `shotsLeft` | number | Remaining shots (starts at 6) |
-| `goals` | number | Total goals scored this round |
-| `combo` | number | Current consecutive goals streak |
-| `bestCombo` | number | Best combo achieved this round |
-| `comboMulti` | number | Active multiplier (1 if combo < 3, else combo, max 6) |
-| `accuracy` | number | goals / shotsUsed, range [0..1] |
+### Pre-placed entities (editor only — never spawned via code)
 
-### Derivable from snapshot
-- **Stars rating**: accuracy >= 80% -> 3 stars, >= 50% -> 2 stars, else 1 star
-- **Combo active**: `comboMulti > 1`
-- **Shots used**: `TOTAL_SHOTS - shotsLeft`
+| Entity | Role |
+|--------|------|
+| `CameraAnchor` | Empty entity at ~(0, 3, 13); `ClientSetup` reads its world transform to position the fixed camera |
+| `PenaltySpot` | Invisible anchor at (0, 0.28, 9); `GameManager` uses its world position as ball spawn origin |
+| Goal / Net | Soccer goal mesh (posts + crossbar + net), centered at world origin |
+| Ground | Visual ground plane |
+| Background | Stadium background (`StadiumBG`) |
+| `SoccerKickHud` | Entity with `CustomUiComponent` + `SoccerKickHudComponent` |
+| `PowerGauge` | Entity with `CustomUiComponent` + `PowerGaugeComponent` |
+| `ShotFeedbackDisplay` | Entity with `CustomUiComponent` + `ShotFeedbackDisplayComponent` |
+| `GameOverStats` | Entity with `CustomUiComponent` + `GameOverStatsComponent` |
+| `ConfettiExplosion` | Entity with `CustomUiComponent` + `ConfettiExplosionUIComponent` |
+| Sound entities | Multiple entities each with `SoundComponent` + `AudioSource` (registered by `soundId`) |
+| `GameManager` entity | Carries `GameManager` + `ClientSetup` components |
+
+### Runtime-spawned entities (code only — `LocalOnly` network mode)
+
+| What | Template | Count | Spawner |
+|------|----------|-------|---------|
+| Ball | `@Templates/Ball.hstf` | 1 | `GameManager` |
+| Goalkeeper | `@Templates/Keepers/GoalkeeperN.hstf` | 1 (random) | `GameManager` |
+| VFX particles | `@Templates/Cube.hstf` | `VFX_POOL_SIZE` (60) | `GameManager` |
+| Trail dots | `@Templates/Sphere.hstf` | `TRAIL_POOL_SIZE` (24) | `GameManager` |
+
+---
 
 ## Architecture
 
@@ -108,123 +130,170 @@ Each keeper has tuned values for: reaction delay, dive chance, lateral/dive spee
 
 | Service | Responsibility |
 |---------|----------------|
-| `GameStateService` | Score, shots remaining, combo tracking, phase transitions |
-| `BallService` | Ball position, velocity, gravity, collision detection (goal/post/ground) |
+| `GameStateService` | Score, shots remaining, combo tracking, phase transitions, round snapshot |
+| `BallService` | Ball position, velocity, gravity, collision (goal/post/ground/net) |
 | `GoalkeeperService` | GK position, idle sway, reaction AI, dive logic, save collision (AABB + OBB) |
 | `CameraShakeService` | Decaying random-offset camera shake on shot outcomes |
-| `VfxService` | 60-entity particle pool, burst effects per outcome type |
-| `BallTrailService` | 24-entity trail dot pool, emitted during flight |
-| `AudioManager` | Event-driven sound routing via SoundComponent pool |
+| `VfxService` | 60-entity particle pool, burst effects per outcome |
+| `BallTrailService` | 24-entity trail dot pool, emitted while ball is active |
+| `AudioManager` | Event-driven sound routing via `SoundComponent` pool |
 
 ### Components
 
-| Component | Attached to | Role |
-|-----------|-------------|------|
-| `ClientSetup` | Scene entity | Camera init, swipe input -> kick, tap-to-restart on GameOver |
-| `GameManager` | Scene entity | Orchestrator: spawns entities, runs update loop, resolves shots |
-| `BallController` | Ball template | Syncs transform from BallService, idle bounce animation, visual spin, shadow |
-| `GoalkeeperController` | Keeper template | Syncs transform from GoalkeeperService, shadow management |
-| `ShotFeedbackDisplayComponent` | Game entity | Center-screen animated feedback UI with casino roll-up counter |
-| `SoccerKickHudComponent` | SoccerKickHud entity | Persistent HUD: score cartouche, 6 shot dots, instruction text |
-| `PowerGaugeComponent` | PowerGauge entity | Vertical power bar (green->red gradient), visible during Aim phase |
-| `GameOverStatsComponent` | GameOverStats entity | End-screen overlay: score, goals, accuracy, stars, best combo, replay button |
+| Component | Entity | Role |
+|-----------|--------|------|
+| `ClientSetup` | GameManager entity | Camera init, swipe → kick input, tap-to-restart |
+| `GameManager` | GameManager entity | Orchestrator: spawns entities, update loop, shot resolution |
+| `BallController` | Ball template | Syncs transform from `BallService`, idle bounce animation, spin, shadow |
+| `GoalkeeperController` | Keeper template | Syncs transform from `GoalkeeperService`, shadow, despawn on `KeeperDespawnEvent` |
+| `ShotFeedbackDisplayComponent` | ShotFeedbackDisplay entity | Center-screen animated feedback + casino roll-up counter |
+| `SoccerKickHudComponent` | SoccerKickHud entity | Score badge, 6 shot dots, instruction text with sine-wave bob |
+| `PowerGaugeComponent` | PowerGauge entity | Vertical power bar (green→red), visible in Aim phase only |
+| `GameOverStatsComponent` | GameOverStats entity | End-screen overlay: score, goals, accuracy, stars, replay button |
 | `ConfettiExplosionUIComponent` | ConfettiExplosion entity | Full-screen confetti burst on goals |
-| `AudioSource` | Sound entities | Registers SoundComponent with AudioManager by soundId |
+| `AudioSource` | Sound entities | Registers `SoundComponent` with `AudioManager` by `soundId` |
 
 ### Events
 
-| Event | Payload | Fired by |
-|-------|---------|----------|
-| `ShotFeedbackResultEvent` | outcome, pointsEarned, bonusZone | GameManager |
-| `ScoreChangedEvent` | score, combo, comboMulti | GameStateService |
-| `PhaseChangedEvent` | phase | GameStateService |
-| `ShotFiredEvent` | shotsLeft | GameStateService |
-| `GameResetEvent` | shotsLeft | GameStateService |
-| `PointsReadyEvent` | score, comboMulti | ShotFeedbackDisplay |
-| `AimStartedEvent` | (empty) | ClientSetup |
-| `AimUpdatedEvent` | power | ClientSetup |
-| `KeeperDespawnEvent` | (empty) | GameManager |
-| `ConfettiExplosionTriggerEvent` | count | ShotFeedbackDisplay |
+All events are defined in `Scripts/Events/`. String IDs all use the `Ev` prefix.
 
-### Templates
+| Event | Payload | Who fires it | Who consumes it |
+|-------|---------|-------------|-----------------|
+| `ShotFeedbackResultEvent` | outcome, pointsEarned, bonusZone | `GameManager` | `ShotFeedbackDisplayComponent`, `CameraShakeService`, `AudioManager` |
+| `ScoreChangedEvent` | score, combo, comboMulti | `GameStateService` | `ShotFeedbackDisplayComponent`, `SoccerKickHudComponent` |
+| `PhaseChangedEvent` | phase | `GameStateService` | all UI components, `AudioManager`, `VfxService` |
+| `ShotFiredEvent` | shotsLeft | `GameStateService` | `SoccerKickHudComponent` |
+| `GameResetEvent` | shotsLeft | `GameStateService` | `SoccerKickHudComponent`, `GameManager`, `AudioManager` |
+| `PointsReadyEvent` | score, comboMulti | `ShotFeedbackDisplayComponent` | `SoccerKickHudComponent` |
+| `AimStartedEvent` | — | `ClientSetup` | `PowerGaugeComponent` |
+| `AimUpdatedEvent` | power | `ClientSetup` | `PowerGaugeComponent` |
+| `KeeperDespawnEvent` | — | `GameManager` | `GoalkeeperController` (self-cleanup before despawn) |
+| `ConfettiExplosionTriggerEvent` | count | `ShotFeedbackDisplayComponent` | `ConfettiExplosionUIComponent` |
 
-| Template | Path | Notes |
-|----------|------|-------|
-| Ball | `@Templates/Ball.hstf` | Sphere, scale 0.56 |
-| Keeper 1 | `@Templates/Keepers/Goalkeeper1.hstf` | Aggressive diver |
-| Keeper 2 | `@Templates/Keepers/Goalkeeper2.hstf` | Big slow |
-| Keeper 3 | `@Templates/Keepers/Goalkeeper3.hstf` | Quick stepper |
+### Templates & Assets (`Scripts/Assets.ts`)
+
+| Template | Path | Used for |
+|----------|------|---------|
+| Ball | `@Templates/Ball.hstf` | The soccer ball |
+| Goalkeeper 1 | `@Templates/Keepers/Goalkeeper1.hstf` | Aggressive diver |
+| Goalkeeper 2 | `@Templates/Keepers/Goalkeeper2.hstf` | Big slow |
+| Goalkeeper 3 | `@Templates/Keepers/Goalkeeper3.hstf` | Quick stepper |
 | Particle | `@Templates/Cube.hstf` | VFX burst particles |
-| Trail dot | `@Templates/Sphere.hstf` | Ball trail dots |
+| Trail dot | `@Templates/Sphere.hstf` | Ball trail |
 
-## UI Components
+---
 
-### Shot Feedback Display (`ShotFeedbackPanel.xaml`)
-- Center-screen animated text with outcome-specific animation profiles
-- Casino counter: points roll-up (+0 -> +N) then drain (floats up to HUD)
-- Combo display: red "COMBO xN" text with bonus zone tags (CORNER, CHIP)
-- Profiles: GOAL (stadium sweep, x3.8 overshoot), SAVED (aggressive impact), POST (metal vibration), MISS (dramatic drop)
+## UI Panels (XAML + ViewModel)
 
-### Soccer Kick HUD (`SoccerKickHud.xaml`)
-- Top-left: Score cartouche badge with elastic bounce on score arrival
-- Top-center: 6 shot indicator dots with explosion/pop-in animations
-- Center: "Swipe to shoot" instruction text with sine-wave bob
+| Panel | XAML file | Component | Key bindings |
+|-------|-----------|-----------|-------------|
+| HUD | `SoccerKickHud.xaml` | `SoccerKickHudComponent` | Score, ScoreScale, ScoreColor, Shot1–6 (Active/Scale/Opacity), InstructionText |
+| Power Gauge | `PowerGauge.xaml` | `PowerGaugeComponent` | FillHeight, GaugeVisible |
+| Shot Feedback | `ShotFeedbackPanel.xaml` | `ShotFeedbackDisplayComponent` | FeedbackText, ScaleX/Y, TranslateX/Y, RotationZ, PointsText, ComboText |
+| Game Over | `GameOverStats.xaml` | `GameOverStatsComponent` | ScoreText, GoalsText, PrecisionText, BestComboText, Star1–3 (Visible/Color/Scale), ReplayButtonOpacity |
+| Confetti | `ConfettiExplosion.xaml` | `ConfettiExplosionUIComponent` | ItemsControl bound to confettiItems array |
 
-### Power Gauge (`PowerGauge.xaml`)
-- Bottom-left vertical bar, visible only during Aim phase
-- Tapered conical shape with green->yellow->red gradient
-- API: `setFillLevel(0..1)`, `setVisible(bool)`
-
-### Game Over Stats (`GameOverStats.xaml`)
-- Full-screen dark overlay with animated entrance
-- "END OF MATCH" title, large golden score, 3 stat cartouches (Goals, Precision, Best Combo)
-- Star rating: 3 stars (80%+), 2 stars (50%+), 1 star (<50%)
-- Golden "PLAY AGAIN" button with pulse animation
-
-### Confetti Explosion (`ConfettiExplosion.xaml`)
-- Full-screen dynamic confetti (8-color palette, 50 pieces on Goal)
-- Random rotation, sinusoidal drift, gravity fall, fade-out
+---
 
 ## Juice / Feedback Systems
 
-| System | Trigger | Description |
-|--------|---------|-------------|
-| Camera Shake | ShotFeedbackResultEvent | Decaying random offset, intensity varies by outcome |
-| VFX Particles | ShotFeedbackResultEvent | 60-piece pool, outcome-specific burst (confetti/sparks/dust) |
-| Ball Trail | Ball in flight | 24-piece trail dot pool, soft white, fades over 0.35s |
-| Ball Idle Bounce | Ball idle | Looping 3-bounce sequence with squash/stretch and shadow |
-| UI Confetti | Goal scored | Full-screen XAML confetti explosion overlay |
-| Sound Effects | Multiple events | Kick, outcomes, combos, game state transitions |
+| System | Trigger | Key constants |
+|--------|---------|---------------|
+| Camera shake | `ShotFeedbackResultEvent` | `SHAKE_*_INTENSITY`, `SHAKE_*_DURATION` in `Constants.ts` |
+| 3D VFX particles | `ShotFeedbackResultEvent` | `VFX_*` in `Constants.ts` (`VFX_POOL_SIZE=60`) |
+| Ball trail | Ball active (Flying phase) | `TRAIL_*` in `Constants.ts` (`TRAIL_POOL_SIZE=24`, `TRAIL_DOT_LIFE=0.35s`) |
+| Ball idle bounce | Ball idle (Aim phase) | `IDLE_*` in `Constants.ts` |
+| UI confetti | Goal scored | `CONFETTI_GOAL_COUNT` in `Constants.ts` (default 50 pieces) |
+| Sound effects | Multiple events | `AudioManager.ts` (event → `soundId` map) |
+
+---
 
 ## Audio System
 
-Event-driven sound routing via `AudioManager` service. Scene entities have `SoundComponent` + `AudioSource` component with a `soundId` matching an SFX constant.
+`AudioManager` routes events to sound entities via `soundId`. Sound entities are pre-placed in the scene, each with a `SoundComponent` and an `AudioSource` component that registers the sound on start.
 
-### Sound IDs
-| ID | Trigger |
-|----|---------|
-| `Kick` | Ball kicked (Flying phase) |
+| soundId | Trigger |
+|---------|---------|
+| `Kick` | Flying phase starts |
 | `BallWhoosh` | Ball in flight |
-| `BallHit` | Post/crossbar hit, save block |
-| `sfx_goal` | Goal scored |
-| `sfx_win` | Goal scored (layered) |
-| `sfx_lose` | Save/post/miss |
-| `GoalSave` | Goalkeeper save |
-| `Miss` | Ball misses the frame |
-| `Combo2/3/5` | Combo streak milestones |
+| `BallHit` | Post/crossbar hit |
+| `sfx_goal` | Goal scored (with `sfx_win` layered) |
+| `sfx_lose` | Save / Post / Miss |
+| `GoalSave` | Save outcome |
+| `Miss` | Miss outcome |
+| `Combo2` / `Combo3` / `Combo5` | Combo streak milestones |
 | `sfx_game_start` | New round begins |
-| `sfx_game_over` | GameOver phase reached |
+| `sfx_game_over` | GameOver phase |
 
-## Assets
+---
 
-### 3D Models
-- **SoccerBall**: Realistic modern soccer ball with classic black pentagon / white hexagon pattern
-- **SoccerGoal**: Voxel-style soccer goal with blocky posts, crossbar, and geometric net
-- **Goalkeeper1/2/3**: Three distinct goalkeeper character models with different proportions
+## Modification Axes
 
-## Scene Setup (space.hstf)
+Use this table to know **which files to touch** for each type of change.
 
-- Camera anchor at (0, 3, 13) looking at (0, 1.2, 0), FOV 58
-- Goal structure at origin: width 6.2m, height 2.4m, depth 1.4m
-- Penalty area with green grass, penalty spot at (0, 0, 9)
-- UI entities: Game, SoccerKickHud, PowerGauge, GameOverStats, ConfettiExplosion
+| Change | Files |
+|--------|-------|
+| Shots per round | `Constants.ts` (`TOTAL_SHOTS`) + `SoccerKickHud.xaml` (dot count) + `SoccerKickHudComponent.ts` (dot init loop) |
+| Point values / multipliers | `Constants.ts` (`PTS_GOAL`, `PTS_CORNER_MULTI`, `PTS_CHIP_MULTI`) |
+| Bonus zone thresholds | `Constants.ts` (`CORNER_THRESHOLD`, `HEIGHT_THRESHOLD`) |
+| Combo threshold / cap | `Constants.ts` (`COMBO_THRESHOLD`, `MAX_COMBO_MULTI`) |
+| Star rating thresholds | `Constants.ts` (`STARS_3_ACCURACY`, `STARS_2_ACCURACY`) |
+| Delay between shots | `Constants.ts` (`NEXT_SHOT_*_MS`, `GAME_OVER_DELAY`) |
+| Ball physics | `Constants.ts` (`BALL_SPEED_BASE`, `BALL_ARC_*`, `BALL_GRAVITY`, `BOUNCE_*`, `SAVE_*`, `POST_*`) |
+| Camera shake | `Constants.ts` (`SHAKE_*_INTENSITY`, `SHAKE_*_DURATION`) |
+| VFX particles (count/speed/color) | `Constants.ts` (`VFX_*`) + `VfxService.ts` (color assignments) |
+| Ball trail (length/fade) | `Constants.ts` (`TRAIL_POOL_SIZE`, `TRAIL_DOT_LIFE`, `TRAIL_EMIT_INTERVAL`) |
+| Ball idle animation | `Constants.ts` (`IDLE_*`) |
+| UI confetti count | `Constants.ts` (`CONFETTI_GOAL_COUNT`) |
+| Goalkeeper archetypes | `Defs/KeeperDefs.ts` (tune existing or add new entry) |
+| Add a new goalkeeper | `Defs/KeeperDefs.ts` + `Assets.ts` + **create template in editor** |
+| Scoring logic (add new bonus) | `Services/GameStateService.ts` (`resolveShot`) + `Constants.ts` (new constants) + `ShotFeedbackEvents.ts` (`bonusZone` values) |
+| Outcome feedback animations | `Components/ShotFeedbackDisplayComponent.ts` (animation profiles) |
+| Outcome feedback text/color | `ui/ShotFeedbackPanel.xaml` (bindings) |
+| HUD layout or style | `ui/SoccerKickHud.xaml` |
+| Power gauge style | `ui/PowerGauge.xaml` |
+| Game over screen layout | `ui/GameOverStats.xaml` + `Components/GameOverStatsComponent.ts` |
+| Sound assignments | `Services/AudioManager.ts` (event → soundId map) |
+| Swipe input sensitivity | `Constants.ts` (`SWIPE_DEAD_ZONE`, `SWIPE_POWER_RANGE`, `SWIPE_SIDE_RANGE`) |
+| Camera FOV | `Constants.ts` (`CAMERA_FOV`) |
+
+---
+
+## What Requires Manual Editor Work
+
+The agent **cannot** perform these changes — they require Meta Horizon Studio:
+
+| Task | Why |
+|------|-----|
+| Create a new goalkeeper Template | Must author a 3D entity in the editor |
+| Add / modify 3D animations | Requires rigging and animator setup (no code API) |
+| Change goalkeeper 3D model | Requires replacing the FBX asset |
+| Change the ball 3D model | Requires replacing `soccerBall.fbx` |
+| Modify the goal / environment mesh | Scene asset, not a code concern |
+| Add new sound assets | WAV files must be imported and placed as entities in the scene |
+| Add a new UI panel | XAML file + entity in scene + `CustomUiComponent` — partial code, partial editor |
+
+The agent **can** do these without editor work:
+
+- All `Constants.ts` tuning (physics, timing, scoring, VFX, shake, trail)
+- All `KeeperDefs.ts` changes (tune existing keepers, add a new archetype *referencing an existing template*)
+- All TypeScript logic changes (game rules, scoring, bonus zones, AI behavior)
+- All ViewModel-bound UI animation changes (component `.ts` files)
+- XAML layout and style changes to existing panels
+- `AudioManager.ts` sound routing changes (swap which sounds play on which events)
+
+---
+
+## Data Available for UI
+
+`GameStateService.snapshot()` returns `IGameSnapshot`:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `score` | number | Total score this round |
+| `shotsLeft` | number | Remaining shots |
+| `goals` | number | Goals scored this round |
+| `combo` | number | Current consecutive goal streak |
+| `bestCombo` | number | Best streak this round |
+| `comboMulti` | number | Active multiplier (1 if combo < COMBO_THRESHOLD, else combo, max MAX_COMBO_MULTI) |
+| `accuracy` | number | goals / shotsUsed in [0..1] |

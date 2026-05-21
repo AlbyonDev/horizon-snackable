@@ -34,39 +34,36 @@ enum DotAnimType {
 }
 
 @uiViewModel()
+class ShotDotViewModel extends UiViewModel {
+  Active: boolean = true;
+  Scale: number = 1;
+  Opacity: number = 1;
+}
+
+@uiViewModel()
 class SoccerKickHudViewModel extends UiViewModel {
   ScoreText: string = '0';
   ScoreScale: number = 1;       // elastic bounce on score arrival
   ScoreColor: string = '#FFFFFFFF';  // flash gold on score arrival
-  Shot1Active: boolean = true;
-  Shot2Active: boolean = true;
-  Shot3Active: boolean = true;
-  Shot4Active: boolean = true;
-  Shot5Active: boolean = true;
-  Shot6Active: boolean = true;
-  // Dot scale/opacity for animations
-  Shot1Scale: number = 1;
-  Shot2Scale: number = 1;
-  Shot3Scale: number = 1;
-  Shot4Scale: number = 1;
-  Shot5Scale: number = 1;
-  Shot6Scale: number = 1;
-  Shot1Opacity: number = 1;
-  Shot2Opacity: number = 1;
-  Shot3Opacity: number = 1;
-  Shot4Opacity: number = 1;
-  Shot5Opacity: number = 1;
-  Shot6Opacity: number = 1;
+  shotDots: readonly ShotDotViewModel[] = [];
   InstructionText: string = '';
   InstructionVisible: boolean = false;
   InstructionOpacity: number = 1;
   InstructionTranslateY: number = 0;
 }
 
+/**
+ * Component Attachment: Scene Entity (HUD CustomUi entity)
+ * Component Networking: Local (client-only UI)
+ * Component Ownership: Not Networked
+ */
 @component()
 export class SoccerKickHudComponent extends Component {
   private _viewModel: SoccerKickHudViewModel = new SoccerKickHudViewModel();
   private _customUi: Maybe<CustomUiComponent> = null;
+
+  // Mutable backing array for dot ViewModels (we replace the readonly array on the VM to trigger updates)
+  private _dots: ShotDotViewModel[] = [];
 
   // Score roll-up state
   private _scoreRolling  = false;
@@ -80,20 +77,37 @@ export class SoccerKickHudComponent extends Component {
   private _scoreImpactElapsed = 0;
   private _scoreImpactDur    = 0.70;  // total impact anim duration
 
-  // Per-dot animation state (indices 0..5 → Shot1..Shot6)
-  private _dotAnimType:    number[] = [0, 0, 0, 0, 0, 0];
-  private _dotAnimElapsed: number[] = [0, 0, 0, 0, 0, 0];
-  private _dotAnimDelay:   number[] = [0, 0, 0, 0, 0, 0]; // stagger delay for pop-in
+  // Per-dot animation state (indices 0..TOTAL_SHOTS-1)
+  private _dotAnimType:    number[] = [];
+  private _dotAnimElapsed: number[] = [];
+  private _dotAnimDelay:   number[] = [];
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
     this._customUi = this.entity.getComponent(CustomUiComponent);
+
+    // Initialize dot ViewModels based on TOTAL_SHOTS
+    this._dots = [];
+    for (let i = 0; i < TOTAL_SHOTS; i++) {
+      const dot = new ShotDotViewModel();
+      dot.Active = true;
+      dot.Scale = 1;
+      dot.Opacity = 1;
+      this._dots.push(dot);
+    }
+    this._viewModel.shotDots = [...this._dots];
+
+    // Initialize animation arrays
+    this._dotAnimType = new Array(TOTAL_SHOTS).fill(DotAnimType.None);
+    this._dotAnimElapsed = new Array(TOTAL_SHOTS).fill(0);
+    this._dotAnimDelay = new Array(TOTAL_SHOTS).fill(0);
+
     if (this._customUi) {
       this._customUi.dataContext = this._viewModel;
     }
     this._updateDots(TOTAL_SHOTS);
-    console.log('[SoccerKickHudComponent] Initialized with dot animations');
+    console.log('[SoccerKickHudComponent] Initialized with dynamic dot array, count=' + TOTAL_SHOTS);
   }
 
   // ── Update: instruction bob + score roll-up + dot animations ───────
@@ -139,14 +153,10 @@ export class SoccerKickHudComponent extends Component {
 
   @subscribe(ShotFiredEvent)
   onShotFired(p: ShotFiredPayload): void {
-    // The dot that just went inactive is the rightmost active one.
-    // shotsLeft is already decremented, so the consumed dot is at index shotsLeft.
-    // e.g. 6 shots total, shotsLeft=5 → dot index 5 (rightmost) just consumed.
     const dotIndex = p.shotsLeft;
     if (dotIndex >= 0 && dotIndex < TOTAL_SHOTS) {
       this._startExplosion(dotIndex);
     }
-    // Update active state (colors) — the exploding dot is also now inactive
     this._updateDots(p.shotsLeft);
   }
 
@@ -194,10 +204,7 @@ export class SoccerKickHudComponent extends Component {
     this._viewModel.ScoreScale = 1;
     this._viewModel.ScoreColor = '#FFFFFFFF';
 
-    // Update dots first (sets all active = green colors)
     this._updateDots(p.shotsLeft);
-
-    // Then start pop-in animation for all dots
     this._startPopIn();
   }
 
@@ -207,7 +214,6 @@ export class SoccerKickHudComponent extends Component {
     this._dotAnimType[dotIndex] = DotAnimType.Explosion;
     this._dotAnimElapsed[dotIndex] = 0;
     this._dotAnimDelay[dotIndex] = 0;
-    // Start at current values (scale 1, opacity 1)
     this._setDotScale(dotIndex, 1);
     this._setDotOpacity(dotIndex, 1);
   }
@@ -217,7 +223,6 @@ export class SoccerKickHudComponent extends Component {
       this._dotAnimType[i] = DotAnimType.PopIn;
       this._dotAnimElapsed[i] = 0;
       this._dotAnimDelay[i] = i * POPIN_STAGGER;
-      // Start hidden
       this._setDotScale(i, 0);
       this._setDotOpacity(i, 0);
     }
@@ -228,11 +233,9 @@ export class SoccerKickHudComponent extends Component {
       const animType = this._dotAnimType[i];
       if (animType === DotAnimType.None) continue;
 
-      // Handle stagger delay
       if (this._dotAnimDelay[i] > 0) {
         this._dotAnimDelay[i] -= dt;
         if (this._dotAnimDelay[i] > 0) continue;
-        // Absorb overshoot into elapsed
         this._dotAnimElapsed[i] = -this._dotAnimDelay[i];
         this._dotAnimDelay[i] = 0;
       } else {
@@ -251,16 +254,13 @@ export class SoccerKickHudComponent extends Component {
     const p = Math.min(this._dotAnimElapsed[i] / EXPLOSION_DURATION, 1);
     const eased = this._easeOutQuad(p);
 
-    // Scale 1 → EXPLOSION_SCALE_END
     const scale = 1 + (EXPLOSION_SCALE_END - 1) * eased;
-    // Opacity 1 → 0
     const opacity = 1 - eased;
 
     this._setDotScale(i, scale);
     this._setDotOpacity(i, opacity);
 
     if (p >= 1) {
-      // Explosion done — restore to empty/inactive state (visible but inactive color)
       this._dotAnimType[i] = DotAnimType.None;
       this._setDotScale(i, 1);
       this._setDotOpacity(i, 1);
@@ -270,9 +270,7 @@ export class SoccerKickHudComponent extends Component {
   private _tickPopIn(i: number): void {
     const p = Math.min(this._dotAnimElapsed[i] / POPIN_DURATION, 1);
 
-    // Scale: elastic overshoot curve
     const scale = this._elasticPopIn(p);
-    // Opacity: quick fade-in during first 30% of duration
     const opacityP = Math.min(p / POPIN_OPACITY_PHASE, 1);
     const opacity = this._easeOutQuad(opacityP);
 
@@ -286,95 +284,64 @@ export class SoccerKickHudComponent extends Component {
     }
   }
 
-  // ── Dot Scale/Opacity Setters ──────────────────────────────────────
+  // ── Dot Scale/Opacity Setters (array-based) ────────────────────────
 
   private _setDotScale(index: number, value: number): void {
-    switch (index) {
-      case 0: this._viewModel.Shot1Scale = value; break;
-      case 1: this._viewModel.Shot2Scale = value; break;
-      case 2: this._viewModel.Shot3Scale = value; break;
-      case 3: this._viewModel.Shot4Scale = value; break;
-      case 4: this._viewModel.Shot5Scale = value; break;
-      case 5: this._viewModel.Shot6Scale = value; break;
+    if (index >= 0 && index < this._dots.length) {
+      this._dots[index].Scale = value;
     }
   }
 
   private _setDotOpacity(index: number, value: number): void {
-    switch (index) {
-      case 0: this._viewModel.Shot1Opacity = value; break;
-      case 1: this._viewModel.Shot2Opacity = value; break;
-      case 2: this._viewModel.Shot3Opacity = value; break;
-      case 3: this._viewModel.Shot4Opacity = value; break;
-      case 4: this._viewModel.Shot5Opacity = value; break;
-      case 5: this._viewModel.Shot6Opacity = value; break;
+    if (index >= 0 && index < this._dots.length) {
+      this._dots[index].Opacity = value;
     }
   }
 
   // ── Shared Helpers ─────────────────────────────────────────────────
 
   private _updateDots(shotsLeft: number): void {
-    this._viewModel.Shot1Active = shotsLeft >= 1;
-    this._viewModel.Shot2Active = shotsLeft >= 2;
-    this._viewModel.Shot3Active = shotsLeft >= 3;
-    this._viewModel.Shot4Active = shotsLeft >= 4;
-    this._viewModel.Shot5Active = shotsLeft >= 5;
-    this._viewModel.Shot6Active = shotsLeft >= 6;
-  }
-
-  /**
-   * Elastic impact curve for the score cartouche:
-   *   0.0–0.15 : slam up   1.0 → 1.55  (fast punch)
-   *   0.15–0.40: rebound   1.55 → 0.88 (overshoot low)
-   *   0.40–0.60: bounce    0.88 → 1.12 (spring back)
-   *   0.60–1.00: settle    1.12 → 1.00 (easeOut)
-   */
-  private _elasticImpact(t: number): number {
-    if (t < 0.15) {
-      return 1 + (t / 0.15) * 0.55;                          // 1.0 → 1.55
-    } else if (t < 0.40) {
-      const p = (t - 0.15) / 0.25;
-      return 1.55 - p * 0.67;                                 // 1.55 → 0.88
-    } else if (t < 0.60) {
-      const p = (t - 0.40) / 0.20;
-      return 0.88 + p * 0.24;                                 // 0.88 → 1.12
-    } else {
-      const p = (t - 0.60) / 0.40;
-      return 1.12 - p * 0.12;                                 // 1.12 → 1.00
+    for (let i = 0; i < this._dots.length; i++) {
+      this._dots[i].Active = i < shotsLeft;
     }
   }
 
-  /**
-   * Elastic pop-in curve for dots (similar shape to _elasticImpact but from 0):
-   *   0.0–0.25 : spring up  0 → 1.35  (fast overshoot)
-   *   0.25–0.50: rebound    1.35 → 0.90
-   *   0.50–0.75: bounce     0.90 → 1.08
-   *   0.75–1.00: settle     1.08 → 1.00
-   */
+  private _elasticImpact(t: number): number {
+    if (t < 0.15) {
+      return 1 + (t / 0.15) * 0.55;
+    } else if (t < 0.40) {
+      const p = (t - 0.15) / 0.25;
+      return 1.55 - p * 0.67;
+    } else if (t < 0.60) {
+      const p = (t - 0.40) / 0.20;
+      return 0.88 + p * 0.24;
+    } else {
+      const p = (t - 0.60) / 0.40;
+      return 1.12 - p * 0.12;
+    }
+  }
+
   private _elasticPopIn(t: number): number {
     if (t < 0.25) {
       const p = t / 0.25;
-      return p * 1.35;                                         // 0 → 1.35
+      return p * 1.35;
     } else if (t < 0.50) {
       const p = (t - 0.25) / 0.25;
-      return 1.35 - p * 0.45;                                 // 1.35 → 0.90
+      return 1.35 - p * 0.45;
     } else if (t < 0.75) {
       const p = (t - 0.50) / 0.25;
-      return 0.90 + p * 0.18;                                 // 0.90 → 1.08
+      return 0.90 + p * 0.18;
     } else {
       const p = (t - 0.75) / 0.25;
-      return 1.08 - p * 0.08;                                 // 1.08 → 1.00
+      return 1.08 - p * 0.08;
     }
   }
 
-  /**
-   * Interpolates hex color string from gold (#FFD700) to white (#FFFFFF).
-   * Peaks gold at t=0, fully white by t=0.65.
-   */
   private _goldFlash(t: number): string {
-    const p  = Math.min(t / 0.65, 1);           // gold → white over first 65%
+    const p  = Math.min(t / 0.65, 1);
     const r  = 0xFF;
-    const g  = Math.round(0xD7 + (0xFF - 0xD7) * p);  // 215 → 255
-    const b  = Math.round(0x00 + 0xFF * p);             // 0   → 255
+    const g  = Math.round(0xD7 + (0xFF - 0xD7) * p);
+    const b  = Math.round(0x00 + 0xFF * p);
     const rh = r.toString(16).padStart(2, '0');
     const gh = g.toString(16).padStart(2, '0');
     const bh = b.toString(16).padStart(2, '0');

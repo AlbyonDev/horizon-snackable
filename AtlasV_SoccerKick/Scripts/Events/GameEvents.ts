@@ -86,3 +86,14 @@ export const AimUpdatedEvent = new LocalEvent<AimUpdatedPayload>(
   'EvAimUpdated',
   AimUpdatedPayload,
 );
+
+// ── Confetti Explosion Trigger ────────────────────────────────────────────────
+
+export class ConfettiExplosionTriggerPayload {
+  count: number = 50;
+}
+
+export const ConfettiExplosionTriggerEvent = new LocalEvent<ConfettiExplosionTriggerPayload>(
+  'EvConfettiExplosionTrigger',
+  ConfettiExplosionTriggerPayload,
+);

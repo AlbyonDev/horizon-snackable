@@ -14,8 +14,9 @@ import {
 import {
   ScoreChangedEvent, ScoreChangedPayload,
   PointsReadyEvent,
+  ConfettiExplosionTriggerEvent,
 } from '../Events/GameEvents';
-import { ConfettiExplosionTriggerEvent } from './ConfettiExplosionUIComponent';
+import { CONFETTI_GOAL_COUNT } from '../Constants';
 
 // ── Outcome constants (mirrors ShotOutcome const enum) ──
 const OUTCOME_GOAL    = 0;
@@ -302,7 +303,7 @@ export class ShotFeedbackDisplayComponent extends Component {
       color = '#FFD700';
       this._profile = PROFILE_GOAL;
       this._currentPoints = points;
-      EventService.sendLocally(ConfettiExplosionTriggerEvent, {count:50});
+      EventService.sendLocally(ConfettiExplosionTriggerEvent, { count: CONFETTI_GOAL_COUNT });
       // Corner tag will be merged into ComboText via onScoreChanged
       this._pendingBonusZone = bonusZone;
     } else if (outcome === OUTCOME_SAVE) {

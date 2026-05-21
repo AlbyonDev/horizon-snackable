@@ -17,7 +17,7 @@ import {
   PhaseChangedEvent, PhaseChangedPayload,
   GameResetEvent, GameResetPayload,
 } from '../Events/GameEvents';
-import { TOTAL_SHOTS } from '../Constants';
+import { TOTAL_SHOTS, STARS_3_ACCURACY, STARS_2_ACCURACY } from '../Constants';
 
 // ── UiEvent for Replay button click ──────────────────────────────────
 const onReplayClickEvent = new UiEvent('GameOverStatsViewModel-onReplayClick');
@@ -197,10 +197,9 @@ export class GameOverStatsComponent extends Component {
     this._targetAccuracy = snap.accuracy; // 0..1
     this._targetBestCombo = snap.bestCombo;
 
-    // Star rating: accuracy >= 0.80 → 3★, >= 0.50 → 2★, else 1★
-    if (snap.accuracy >= 0.80) {
+    if (snap.accuracy >= STARS_3_ACCURACY) {
       this._starCount = 3;
-    } else if (snap.accuracy >= 0.50) {
+    } else if (snap.accuracy >= STARS_2_ACCURACY) {
       this._starCount = 2;
     } else {
       this._starCount = 1;

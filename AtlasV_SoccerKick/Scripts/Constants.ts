@@ -167,3 +167,12 @@ export const IDLE_SQUASH_DECAY    = 0.80; // squash intensity multiplier per bou
 export const IDLE_STRETCH_0       = 1.18; // Y scale at peak for first bounce
 export const IDLE_STRETCH_DECAY   = 0.85; // stretch intensity multiplier per bounce
 export const IDLE_SQUASH_FRAMES   = 0.06; // duration (s) of ground-contact squash flat
+
+// ── Star Rating Thresholds ────────────────────────────────────────────────────
+
+export const STARS_3_ACCURACY    = 0.80;  // accuracy ≥ this → 3 stars
+export const STARS_2_ACCURACY    = 0.50;  // accuracy ≥ this → 2 stars
+
+// ── UI Confetti (full-screen overlay, separate from 3D VFX particle pool) ─────
+
+export const CONFETTI_GOAL_COUNT = 50;    // pieces spawned on a goal
