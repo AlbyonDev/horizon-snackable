@@ -76,7 +76,7 @@
                             "dataType": "horizon::DataDefinitionAsset",
                             "data": {
                                 "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                                "version": 8,
+                                "version": 9,
                                 "data": null
                             }
                         },
@@ -84,7 +84,7 @@
                             "dataType": "horizon::DataDefinitionAsset",
                             "data": {
                                 "class": "horizon::platform_api::ColliderMeshPlatformComponent",
-                                "version": 2,
+                                "version": 3,
                                 "data": null
                             }
                         }
@@ -149,93 +149,13 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
                                     "packageOrRemoteId": "26835398609386284",
                                     "ingestionId": "7354422100507416042",
                                     "targetId": "157013062"
-                                }
-                            ]
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                }
-            ],
-            "attributes": []
-        },
-        {
-            "id": "2c5f0463-0111-4e89-8a71-9a45b3a7a2f9",
-            "name": "Sphere",
-            "components": [
-                {
-                    "data": {
-                        "class": "horizon::platform_api::TransformPlatformComponent",
-                        "version": 3,
-                        "data": {}
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::MeshPlatformComponent",
-                        "version": 11,
-                        "data": {
-                            "mesh": {
-                                "packageOrRemoteId": "24407058055595655",
-                                "ingestionId": "4300205889696081881",
-                                "targetId": "4060876394"
-                            }
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::ColliderSpherePlatformComponent",
-                        "version": 3,
-                        "data": {
-                            "radius": 0.5
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 8,
-                        "data": {
-                            "type": "StaticCollision"
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::ColorPlatformComponent",
-                        "version": 2,
-                        "data": {
-                            "color": {
-                                "r": 1.0,
-                                "g": 1.0,
-                                "b": 1.0,
-                                "a": 1.0
-                            }
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
-                        "data": {
-                            "materials": [
-                                {
-                                    "packageOrRemoteId": "24407058055595655",
-                                    "ingestionId": "4300205889696081881",
-                                    "targetId": "2256495737"
                                 }
                             ]
                         }
@@ -255,11 +175,6 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "9f0229b2-5e49-477f-89df-e76712b4dd2a",
-            "destination": "f72bbf02-1066-40ac-8b9f-26146f6df5f7"
-        },
-        {
-            "relationshipType": "RelationChildOf",
-            "source": "2c5f0463-0111-4e89-8a71-9a45b3a7a2f9",
             "destination": "f72bbf02-1066-40ac-8b9f-26146f6df5f7"
         }
     ]
