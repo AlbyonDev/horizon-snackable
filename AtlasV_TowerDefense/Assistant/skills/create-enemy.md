@@ -13,23 +13,42 @@ For the architectural context (template hierarchy, `EnemyController` `@property`
 
 ## Steps
 
-1. **Generate the character mesh** — use the 3D character generation tool with a **walk animation looping** baked in. Mesh comes out with pivot at body center, facing +Z.
+1. **Generate the character mesh** — use the 3D character generation tool.
+   - Bipedal humanoid (required for Word2Animation), facing +Z in local space, pivot at foot level.
+   - Sample prompt: `<description>, bipedal humanoid, adult proportions, cartoon style, low poly mobile game, facing +Z, pivot at foot level, solid white background`.
+   - Output: `Models/<EnemyName>/<EnemyName>.fbx` (+ `.material`).
 
-2. **Place it in a template** — either:
+2. **Generate a looping walk animation.**
+   - **Preferred:** Word2Animation (WTA) with prompt `"walk cycle, looping, bipedal humanoid"`, target = the mesh above, `Loop = true`, duration ~1.0 s.
+   - **Fallback:** marketplace search (`"walk cycle humanoid loop"`), then retarget onto the mesh if rigs differ.
+   - Output: `Animations/<EnemyName>/Walk.anim` with `Loop = true`.
+
+3. **Create the AnimGraph** at `Animations/<EnemyName>/<EnemyName>AnimGraph.animgraph`: a single `Walk State` playing `Walk.anim` with `Loop = true`, `Speed = 1.0`, no outgoing transitions. Assign it to the mesh's `AnimationComponent` in the template.
+
+4. **Place the mesh in a template** — either:
    - **Replace** the existing mesh child inside an existing `Templates/Enemies/<Name>.hstf`, OR
    - **Create a new template** mirroring the structure of an existing one (root + `Pivot` + mesh + `shadow`).
 
-3. **Skip the limbs** — the walk animation is baked into the mesh, so the separate `LeftArm`/`RightArm`/`LeftLeg`/`RightLeg` entities are not needed. Leave the `@property` slots empty on the `EnemyController` (the runtime handles null limbs gracefully) or omit the entities entirely.
+5. **Skip the limbs.** The walk animation is baked into the mesh/AnimGraph, so the separate `LeftArm`/`RightArm`/`LeftLeg`/`RightLeg` entities are not needed. Leave the `@property` slots empty on the `EnemyController` (the runtime handles null limbs gracefully) or omit the entities entirely.
 
-4. **Initialize every `ColorComponent` to white `(1, 1, 1, 1)`.** Default is black, which multiplies the albedo to zero (mesh renders fully black). Walk the mesh hierarchy and set each `ColorComponent` explicitly.
+6. **Initialize every `ColorComponent` to white `(1, 1, 1, 1)`.** Default is black, which multiplies the albedo to zero (mesh renders fully black). Walk the mesh hierarchy and set each `ColorComponent` explicitly.
 
-5. **Rotate the mesh child to face -Z.** Generated mesh faces +Z; MHS forward (used by `lookAt`) is -Z. Set the mesh child's `localRotation` to **180° around Y** inside the template. Do not touch the `Pivot` entity — it is reserved for the runtime 2.5D tilt.
+7. **Rotate the mesh child to face -Z.** Generated mesh faces +Z; MHS forward (used by `lookAt`) is -Z. Set the mesh child's `localRotation` to **180° around Y** inside the template. Do not touch the `Pivot` entity — it is reserved for the runtime 2.5D tilt (`EnemyController._updateBodyPivot()` overwrites its rotation each frame).
+
+8. **Register the enemy:**
+   - `Scripts/Assets.ts` — add `export const ENEMY_<NAME>_TEMPLATE = new TemplateAsset('@Templates/Enemies/<EnemyName>.hstf');`
+   - `Scripts/Defs/EnemyDefs.ts` — add an `ENEMY_DEFS` entry (`id`, `name`, `hp`, `speed`, `reward`, `template`, optional traits like `dodgeChance`, `regenPerSec`, `slowImmune`).
+   - `Scripts/Defs/LevelDefs.ts` — add the new enemy id to the relevant waves.
 
 ## Quick checklist
 
-- [ ] Mesh generated with looping walk animation
+- [ ] Mesh generated (bipedal humanoid, facing +Z, pivot at feet)
+- [ ] Looping walk animation generated (WTA, or marketplace + retargeting)
+- [ ] AnimGraph created with Walk clip looping and assigned to the mesh
 - [ ] Mesh placed under the `Pivot` child of the template (not under root directly)
 - [ ] Limb `@property` slots empty or limb entities omitted
 - [ ] All `ColorComponent`s set to `(1, 1, 1, 1)`
 - [ ] Mesh child rotated 180° around Y so it faces -Z
 - [ ] `Pivot` entity untouched (runtime overwrites its rotation each frame)
+- [ ] `Assets.ts`, `EnemyDefs.ts`, `LevelDefs.ts` updated
+- [ ] Template saved (`template_save`)
