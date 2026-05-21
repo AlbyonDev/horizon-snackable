@@ -60,6 +60,17 @@
 - Game over score: 130px bold golden with black outline
 - Stats labels: Gray, values in white
 
+## Changing Environment Textures
+
+To change the look of the Environment: generate a new texture, then apply it to the corresponding material.
+
+| Plane | Material | Current texture |
+|-------|----------|-----------------|
+| Ground | `Models/Material.material` | `Textures/grass.png` |
+| Background | `Models/Background.material` | `Models/StadiumBG.png` |
+
+---
+
 ## Camera
 
 - Fixed camera at (0, 3, 13), looking at (0, 1.2, 0)
