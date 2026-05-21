@@ -89,6 +89,7 @@ Use this when you want to keep the gameplay stats but change how an enemy looks 
 ### Material and color
 
 - The `color` field in `EnemyDefs.ts` is applied at runtime by `EnemyService` to **all `ColorPlatformComponent` children** of the spawned entity. This is a tint, not a replacement — the underlying material's albedo modulates it.
+- **CRITICAL: Set the `ColorPlatformComponent` on the character mesh entity to WHITE `(1, 1, 1, 1)`, not black.** Horizon's default for a fresh ColorComponent is black `(0, 0, 0, 1)`, which multiplies the material albedo to zero — the character renders pure black at runtime. White is the neutral tint that lets the def-level color (or the material) show through. This must be edited directly in the `.hstf` (look for `"class": "horizon::platform_api::ColorPlatformComponent"` on the mesh entity and any other tinted child).
 - If you want a color-only variant of an existing enemy, **don't duplicate the template** — add a new def entry pointing to the same template with a different `color`.
 - Material swaps in the template only matter when you need a different shader, normal map, or PBR setup. For pure color variation, def-level tint is sufficient and cheaper.
 
