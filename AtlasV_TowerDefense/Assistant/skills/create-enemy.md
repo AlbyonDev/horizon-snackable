@@ -31,7 +31,7 @@ For the architectural context (template hierarchy, `EnemyController` `@property`
 
 5. **Skip the limbs.** The walk animation is baked into the mesh/AnimGraph, so the separate `LeftArm`/`RightArm`/`LeftLeg`/`RightLeg` entities are not needed. Leave the `@property` slots empty on the `EnemyController` (the runtime handles null limbs gracefully) or omit the entities entirely.
 
-6. **Initialize every `ColorComponent` to white `(1, 1, 1, 1)`.** Default is black, which multiplies the albedo to zero (mesh renders fully black). Walk the mesh hierarchy and set each `ColorComponent` explicitly.
+6. **Initialize the mesh `ColorComponent` to white `(1, 1, 1, 1)`.** Default is black, which multiplies the albedo to zero (mesh renders fully black). Walk the mesh hierarchy and set each `ColorComponent` explicitly.
 
 7. **Rotate the mesh child to face -Z.** Generated mesh faces +Z; MHS forward (used by `lookAt`) is -Z. Set the mesh child's `localRotation` to **180° around Y** inside the template. Do not touch the `Pivot` entity — it is reserved for the runtime 2.5D tilt (`EnemyController._updateBodyPivot()` overwrites its rotation each frame).
 
@@ -47,7 +47,7 @@ For the architectural context (template hierarchy, `EnemyController` `@property`
 - [ ] AnimGraph created with Walk clip looping and assigned to the mesh
 - [ ] Mesh placed under the `Pivot` child of the template (not under root directly)
 - [ ] Limb `@property` slots empty or limb entities omitted
-- [ ] All `ColorComponent`s set to `(1, 1, 1, 1)`
+- [ ] Mesh `ColorComponent`s set to `(1, 1, 1, 1)`
 - [ ] Mesh child rotated 180° around Y so it faces -Z
 - [ ] `Pivot` entity untouched (runtime overwrites its rotation each frame)
 - [ ] `Assets.ts`, `EnemyDefs.ts`, `LevelDefs.ts` updated
