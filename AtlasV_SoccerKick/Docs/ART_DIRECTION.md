@@ -24,7 +24,10 @@
 ### Field
 - Green grass surface with white boundary lines
 - Penalty area markings, penalty spot, and arc
-- Built from primitive entities in the scene
+- Single plane primitive (Ground) centered in the scene
+
+### Stadium Background
+- Full-width plane primitive (Background) placed behind the goal as a stadium backdrop
 
 ## Color Palette
 

@@ -102,9 +102,9 @@ All per-keeper values live **in the def** — the `GK_*` constants in `Constants
 |--------|------|
 | `CameraAnchor` | Empty entity at ~(0, 3, 13); `ClientSetup` reads its world transform to position the fixed camera |
 | `PenaltySpot` | Invisible anchor at (0, 0.28, 9); `GameManager` uses its world position as ball spawn origin |
-| Goal / Net | Soccer goal mesh (posts + crossbar + net), centered at world origin |
-| Ground | Visual ground plane |
-| Background | Stadium background (`StadiumBG`) |
+| `Goal` | 3D model (posts + crossbar + net), centered at world origin |
+| `Ground` | Plane primitive — soccer field surface |
+| `Background` | Plane primitive — stadium backdrop behind the goal |
 | `SoccerKickHud` | Entity with `CustomUiComponent` + `SoccerKickHudComponent` |
 | `PowerGauge` | Entity with `CustomUiComponent` + `PowerGaugeComponent` |
 | `ShotFeedbackDisplay` | Entity with `CustomUiComponent` + `ShotFeedbackDisplayComponent` |
