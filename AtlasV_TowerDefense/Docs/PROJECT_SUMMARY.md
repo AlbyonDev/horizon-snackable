@@ -353,16 +353,16 @@ See `ART_DIRECTION.md → Enemy Mesh Integration` for mesh-side requirements (fo
 
 ### Tower template (`Templates/Towers/*.hstf`)
 
-Reference: [ArrowTower.hstf](../Templates/Towers/ArrowTower.hstf). Same structure for `CanonTower`, `FrostTower`, `LaserTower`.
+Reference: [CanonTower.hstf](../Templates/Towers/CanonTower.hstf) — **use this as the canonical template when authoring a new tower** (it has the typical setup: shadow + 3 icons + barrel + spawnPoint, and `barrelForwardOffsetDeg = 180` matching the generated-mesh convention). Same structure also in `ArrowTower`, `FrostTower`, `LaserTower`.
 
 #### Required hierarchy
 
 ```
 Tower (root)                         ← TransformComponent + TowerController
 ├── Pivot                            ← Visual root; carries tier models + barrel
-│   ├── ModelTier1                   ← @property modelTier1 (visible at tier 0)
-│   ├── ModelTier2                   ← @property modelTier2 (visible at tier ≥ 1)
-│   ├── ModelTier3                   ← @property modelTier3 (visible at tier ≥ 2)
+│   ├── Icon1                        ← @property icon1 (visible at tier 0)
+│   ├── Icon2                        ← @property icon2 (visible at tier ≥ 1)
+│   ├── Icon3                        ← @property icon3 (visible at tier ≥ 2)
 │   └── Barrel                       ← @property barrel
 │       └── SpawnPoint               ← @property spawnPoint (projectile origin)
 └── shadow                           ← @property shadow (optional, flat disc)
@@ -377,13 +377,13 @@ Tower (root)                         ← TransformComponent + TowerController
 | `Tower` (root) | Anchor placed at grid cell center, ground Y. Scaled from 0 to 1 during bounce-in. Never rotated. | `TowerController.onUpdate()` (bounce only) |
 | `Barrel` | Aimable part. Rotated each frame around **Y axis only** to face the current target. Also receives recoil position offset (15cm kickback in aim direction over 0.06s, return over 0.14s). Rest local position is captured on first fire. | `_updateAim()`, recoil block |
 | `SpawnPoint` | Empty transform at the muzzle tip. Used as the spawn position for projectiles. If absent, projectiles spawn at the barrel's world position. | Read by `_fire()` |
-| `ModelTier1/2/3` | Three full visual variants for the tower. **Mesh visibility is toggled** (`mesh.isVisibleSelf`) based on `_currentTier`. Only one is visible at a time. | `_applyTierModel()` |
+| `Icon1/2/3` | Three 3D shield-icon variants displayed above the tower (one per tier). **Mesh visibility is toggled** (`mesh.isVisibleSelf`) based on `_currentTier`. Only one is visible at a time. | `_applyTierModel()` |
 | `shadow` | Optional flat shadow disc. Alpha fades in during the second half of the bounce-in animation. Color is captured at start and modulated by alpha. | `_setShadowAlpha()` |
 
 #### Tier system — important authoring detail
 
 - The same template asset is used for all 3 tiers. **Do not create separate hstf files per tier.**
-- Tier 0 = freshly placed, tier 1 = after T1 upgrade, tier 2 = after T2, tier 3 = after T3. Only **3 model slots** exist (`modelTier1/2/3`) — tier 3 reuses `modelTier3`. The visible tier is `_currentTier` (which is 0-indexed in code: tier upgrade 1 sets `_currentTier = 1`, showing `modelTier2`). When designing tier art, think of it as **3 visual stages** (base, mid, max), not 4.
+- Tier 0 = freshly placed, tier 1 = after T1 upgrade, tier 2 = after T2, tier 3 = after T3. Only **3 icon slots** exist (`icon1/2/3`) — tier 3 reuses `icon3`. The visible tier is `_currentTier` (which is 0-indexed in code: tier upgrade 1 sets `_currentTier = 1`, showing `icon2`). When designing tier art, think of it as **3 visual stages** (base, mid, max), not 4.
 - All three tier meshes should be **co-located** in the template (same transform). Only `isVisibleSelf` toggles; transforms aren't touched.
 - The barrel is **shared across tiers** — there's only one `barrel` entity. If a tier needs a different barrel look, it must be a child mesh of the corresponding tier-model entity (and the aim rotation will still come from the shared `barrel` transform). Practical approach: keep the barrel geometry-light and re-skin the body per tier.
 
@@ -391,7 +391,7 @@ Tower (root)                         ← TransformComponent + TowerController
 
 | Property | Default | Effect |
 |----------|---------|--------|
-| `barrelForwardOffsetDeg` | 180 | Degrees added to the computed yaw. Use this to compensate for barrels whose mesh forward isn't `+Z`. Convention: arrow barrel = `0`, most others = `180` (forward is `-Z`). |
+| `barrelForwardOffsetDeg` | 180 | Degrees added to the computed yaw to compensate for the mesh's authored forward axis. **Default for this project is `180`** because generated meshes are authored with forward = `+Z`, but MHS `lookAt` / aim math expects forward = `-Z` — so most towers (Cannon, Frost, Laser) need `180`. Exception: `ArrowTower` uses `0` because its barrel art was authored facing `-Z` directly. |
 
 #### Animation breakdown — what runs each frame
 
@@ -403,8 +403,9 @@ Tower (root)                         ← TransformComponent + TowerController
 
 #### Authoring rules for new towers
 
+- **When creating a new tower, duplicate [CanonTower.hstf](../Templates/Towers/CanonTower.hstf)** and re-skin from there — it carries the standard layout (`shadow`, `icon1/2/3`, `barrel`, `spawnPoint`) and the correct `barrelForwardOffsetDeg = 180` for generated meshes.
 - Root entity must have no mesh — it's a pure anchor that gets uniformly scaled on bounce-in.
-- The barrel mesh's local forward should be `+Z` (matches RUB convention). If using imported art that points elsewhere, set `barrelForwardOffsetDeg` instead of fighting the formula. Don't bake a non-zero `barrel.localRotation` in the template — it will be overwritten each frame.
+- **Forward-axis convention:** generated meshes (and most imported art in this project) have forward = `+Z`, while MHS `lookAt` expects forward = `-Z`. The default `barrelForwardOffsetDeg = 180` resolves this. Only override to `0` if the barrel art was specifically authored facing `-Z` (e.g. `ArrowTower`). Don't bake a non-zero `barrel.localRotation` in the template — it will be overwritten each frame.
 - The `spawnPoint` should be a child of `barrel` so it follows the aim rotation. Place it at the muzzle tip in barrel-local coordinates.
 - Tier models share the same parent and transform. Their `MeshComponent.isVisibleSelf` is the **only** state toggled — don't rely on scale, color, or position differences set in the template (they won't be animated).
 - The towers' upward tilt for camera readability (slight forward lean so the top reads) must be **baked into the mesh art**, not the transform. The pivot is reserved for the bounce-in scale animation.
