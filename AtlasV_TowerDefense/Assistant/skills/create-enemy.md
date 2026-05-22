@@ -44,5 +44,6 @@ For architectural context, see `Docs/PROJECT_SUMMARY.md → Enemy template` and 
 
 - [ ] `.animgraph` JSON has `"looping": true` in **both** the state entry and the `sampleAnim` node
 - [ ] Mesh child's `ColorComponent` is `(1, 1, 1, 1)`
+- [ ] Mesh Rotation is `(0, 180, 0)`
 - [ ] Root entity has a `TransformPlatformComponent`
 - [ ] `EnemyController.data.bodyPivot` and `data.shadow` reference the Pivot and shadow entity UUIDs
