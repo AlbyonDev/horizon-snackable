@@ -2,179 +2,56 @@
 
 ## Style
 
-Clean, readable mobile UI. Dark background panels with high-contrast text.
-Inspired by modern mobile tower defense games (Bloons TD, Kingdom Rush) — functional first, decorative second.
-No excessive gradients or textures. Clarity at small screen sizes is the priority.
+A bold, cartoony fantasy tower defense in the spirit of Kingdom Rush and Bloons TD, with a slightly darker, chunkier edge — think *Goblin Clash*: orcs and goblins versus medieval towers, fought on a sunlit grassy battlefield.
+
+The art mixes two contrasting moods on purpose:
+- **The battlefield itself** is bright, sunny, painterly and welcoming — vibrant yellow-green grass, soft round bushes, big friendly grey boulders.
+- **The branding and UI chrome** (title, buttons, panels, frames) is darker and heavier — heavy stone slabs, iron rivets, cracked rock textures, fiery orange-gold lettering with deep shadows and metallic highlights, evoking a goblin warband banner.
+
+This contrast — playful battlefield, gritty frame around it — is the signature look. Neither side should drift too far: the gameplay area stays readable and friendly, the chrome stays chunky and characterful, and together they give the game its identity.
 
 ---
 
-## Color Palette
+## Environment
 
-### UI Base
+The playfield is a flat ground viewed from a near top-down angle with a slight tilt that gives it a 2.5D feel. The ground is a painted scene of a grassy clearing: vibrant yellow-green grass in the middle, framed on all sides by darker rounded bushes and chunky grey boulders that form a natural border around the play area. The center stays calm and uncluttered so towers, enemies and the path read clearly on top of it.
 
-| Token | Hex | Use |
-|-------|-----|-----|
-| `bg-panel` | `#1a1a2e` | Panel backgrounds |
-| `bg-panel-light` | `#2a2a4a` | Buttons, cards |
-| `bg-overlay` | `#000000` @ 60% alpha | Modal overlays |
-| `border` | `#3a3a5a` | Panel/button borders |
+The enemy path is **not** part of the painted ground. It is rendered on top as a winding cobblestone trail made of clustered grey stones — irregular, hand-drawn, snaking through the clearing from the spawn point at the top to the base at the bottom. The stones have soft painted shadows so the path feels embedded in the grass rather than floating on it.
 
-### Game State
+*Technical note:* the path uses a **custom shader with world-space UVs** and a tileable **rocks texture**, so segments stitch seamlessly regardless of how the path mesh is shaped or oriented. See [Shaders/PathTile.surface](../Shaders/PathTile.surface).
 
-| Token | Hex | Use |
-|-------|-----|-----|
-| `gold` | `#f5c518` | Gold resource, costs, economy |
-| `lives` | `#e74c3c` | Lives / hearts |
-| `wave-build` | `#3498db` | Build phase indicator |
-| `wave-active` | `#e67e22` | Wave in progress indicator |
-| `victory` | `#2ecc71` | Victory screen accent |
-| `defeat` | `#e74c3c` | Defeat screen accent |
-
-### Towers
-
-| Tower | Hex | Notes |
-|-------|-----|-------|
-| Arrow | `#2ecc71` | Green — fast, precise |
-| Cannon | `#e67e22` | Orange — heavy, slow AoE |
-| Frost | `#00bcd4` | Cyan — support, slows |
-| Laser | `#9b59b6` | Purple — long range, high DPS |
-
-### Text
-
-| Token | Hex | Use |
-|-------|-----|-----|
-| `text-primary` | `#ffffff` | Headings, values |
-| `text-secondary` | `#a0a0c0` | Labels, captions |
-| `text-disabled` | `#555577` | Unaffordable towers |
+Lighting is soft and sunny, with gentle painted shadows baked into the decor. No skybox, no horizon, no distant scenery — the camera is almost overhead, so the painted ground and the stone path carry the whole atmosphere of the level.
 
 ---
 
-## Typography
+## Towers, Enemies and Effects
 
-All text uses the default MHS UI font. No custom fonts.
+Towers are chunky 3D cartoon constructions — wooden platforms, stone bases, copper and iron parts — with warm earthy tones (browns, dark wood, weathered metal) so they stand out from the bright green grass without clashing with the painted ground. Each tower family has a clear color and silhouette identity (Arrow, Cannon, Frost, Laser) so the player recognizes roles instantly. Small health/charge bars float above when relevant.
 
-### HUD Typography (scaled for mobile)
+*Technical note:* each tower is built from a **3D base + a separate 3D top** so the top (turret / barrel) can rotate to aim and animate a short recoil punch on each shot, independent of the base.
 
-| Role | Size | Weight | Color |
-|------|------|--------|-------|
-| HUD values (gold, lives, wave) | 90px | Bold | `text-primary` |
-| HUD labels ("WAVE") | 50px | Normal | `text-secondary` |
+Enemies are stylized fantasy creatures in the goblin/orc family — green-skinned, hunched, exaggerated proportions, lots of personality in the silhouette. Each enemy type reads distinctly from above thanks to size, color and posture. Small green health bars sit above their heads.
 
-### Shop Typography (scaled for mobile)
+*Technical note:* enemies are **rigged 3D characters with skeletal animations** (walk, attack, hit, death) — not sprite billboards — so motion stays smooth and readable under the 2.5D camera. New enemies are produced via the [`create-enemy`](../Assistant/skills/create-enemy.md) skill, which handles mesh + rig + animation setup end-to-end.
 
-| Role | Size | Weight | Color |
-|------|------|--------|-------|
-| Tower name | 54px | Bold | `text-primary` |
-| Tower cost | 48px | Normal | `gold` (affordable) / `text-disabled` (not) |
-| Icons | 72px | — | — |
-
-### Other UI
-
-| Role | Size | Weight | Color |
-|------|------|--------|-------|
-| Wave banner | 32px | Bold | `text-primary` |
-| Game over title | 40px | Bold | `defeat` / `victory` |
-| Button text | 16px | Bold | `text-primary` |
+Effects (projectiles, hits, range previews) stay punchy and cartoony — clear shapes, no realistic particles. Placement previews glow green when valid and red when not.
 
 ---
 
-## Layout — Portrait 9:16 (grid is 7×14)
+## UI
 
-The screen is divided into three distinct zones — no overlay, no occlusion.
+The UI sits in framed panels at the top and bottom of the screen so the play area in the middle is never covered. The frames themselves are the chunky "Goblin Clash" style: dark stone or wood textures with metallic gold corner studs, thick rounded borders, baked highlights and shadows — like little engraved plaques.
 
-```
-┌─────────────────────────────────┐
-│ ❤️ 10       WAVE        💰 120  │  ← HUD bar (top)
-│              1/20               │
-├─────────────────────────────────┤
-│                                 │
-│                                 │
-│          PLAY AREA              │  ← 7×14 grid (center)
-│      (towers, path, enemies)    │
-│                                 │
-│                                 │
-├─────────────────────────────────┤
-│ [Arrow] [Cannon] [Frost] [Laser]│  ← Shop bar (bottom)
-└─────────────────────────────────┘
-```
+The top HUD shows lives (red heart in a stone frame) on the left, the wave label in glowing gold lettering in the center, and gold currency (coin icon in a stone frame) on the right. The bottom shop is a row of tower cards, each a small wooden plaque with the tower icon, name on a parchment-style band, and the cost shown next to a gold coin — turning grey when unaffordable rather than hiding, so the player always sees what is coming next.
 
-The grid is **7 cols × 14 rows** (7×14 world units). The portrait 9:16 screen is filled by grid + HUD + shop combined.
-Camera is set via a scene anchor entity (position `(1, 15.5, 0)`, rotation `(-90, 90, 0)`, FOV 60°) so the 7×14 world grid fills the center of the screen — see `Scene Setup & 2.5D Camera Tricks` in `PROJECT_SUMMARY.md`.
+Typography for big diegetic moments (title screen, PLAY button, wave numbers, victory/defeat) uses a heavy fantasy display style: thick blocky letters, fiery orange-to-gold gradient, dark outline, slight bevel. In-game numeric readouts (lives, gold) reuse the same warm gold tone in a simpler weight so they stay legible at small sizes.
+
+Buttons are large, rectangular, framed in the same stone-and-gold style as the panels — generous tap targets, obvious affordance.
+
+*Technical note:* all UI is built as **Custom UI in XAML** (MHS Custom UI panels), not as in-world 3D quads — so layout, text and reactive data binding (gold, lives, wave) all flow through the XAML viewmodels.
 
 ---
 
-## Panels
+## Overall Mood
 
-### HUD Bar (top) — `UI/GameHud.xaml`
-- Full width, `bg-panel` background (80% opacity)
-- 3-column layout:
-  - **Left:** Red heart SVG icon (#e74c3c) + lives count (white)
-  - **Center:** "WAVE" label (secondary color) + wave number "X/20" (white, stacked vertically)
-  - **Right:** gold_icon.png image + gold count (gold color #f5c518)
-- Large text (~90px) for mobile visibility
-- Updates reactively via `GameHudViewModel`
-- Hosted in `space.hstf` (scene-level)
-
-### Shop Bar (bottom) — `UI/TowerShop.xaml`
-- Full width, 600px tall, `bg-panel` background
-- 4 tower buttons (360x360px each) in horizontal scroll
-- Each button:
-  - Tower icon (72px)
-  - Tower name (54px bold)
-  - Cost with gold icon (48px, gold color; grey if unaffordable)
-  - Selected state: `bg-panel-light` background + border in tower color
-- Tapping a button calls `TowerService.get().selectTower(id)`
-- Hosted in `space.hstf` (scene-level)
-
-### Wave Banner (center overlay, transient)
-- Centered, short duration (~1.5s)
-- Large text: "WAVE N"
-- Appears on `WaveStarted` event, fades out
-
-### Game Over / Victory (full overlay)
-- Full screen overlay, `bg-overlay`
-- Title: "DEFEAT" (red) or "VICTORY" (green), 40px bold
-- Subtitle: wave reached or "All waves cleared!"
-- Single button: "PLAY AGAIN" — restarts game
-
----
-
-## Placement Preview
-
-Handled in code (not XAML) — spawned 3D entities:
-- **Valid cell**: preview tower entity tinted `Color(0.5, 1.0, 0.5, 0.75)` (semi-transparent green)
-- **Invalid cell**: preview tinted `Color(1.0, 0.4, 0.4, 0.75)` (semi-transparent red)
-- **Range indicator**: flat disc entity (`RangeIndicator.hstf`), scaled to tower range diameter, no tint
-
----
-
-## Accessibility
-
-- All interactive tap targets ≥ 48px
-- Cost text grey (not hidden) when unaffordable — player can see what is coming
-- No color-only distinction for critical info (lives text always shown alongside icon)
-
----
-
-## 3D Mesh Specifications
-
-Priority: Performance over detail. Towers are viewed from above at distance.
-
-### Export Preferences
-
-- **NO embedded textures** in GLB/FBX — textures must be external files only
-- Use FBX format for MHS import (avoids embedded texture issues)
-- Link textures via MHS material system, not embedded in mesh files
-- Delete any auto-generated embedded textures to avoid double storage
-
----
-
-## Enemy Mesh Integration
-
-Key points when adding or swapping an enemy mesh in a template:
-
-- **MHS forward is -Z.** Enemy templates must be aligned so the visible mesh faces -Z (this is what `lookAt` expects).
-- **Generated meshes** are produced with **pivot at center, facing +Z**.
-- **Existing templates' meshes** are authored with **pivot at center-of-feet, facing +X** — orientation/offset are already handled inside the templates.
-- **All generated `ColorComponent`s must be initialized to white `(1,1,1,1)`.** Default is black, which multiplies the albedo to zero (mesh renders fully black).
-- The template's `Pivot` child is reserved for the runtime 2.5D tilt — do not touch it when integrating a new mesh.
+Sunny battlefield, gritty frame. The play area feels like a cheerful cartoon meadow you defend; the UI around it feels like the rough banner of a goblin warband. A game that looks instantly fun on a phone storefront screenshot, and immediately readable once you start playing.
