@@ -26,17 +26,8 @@ import { ResourceService } from '../Services/ResourceService';
 @component()
 export class EnemyController extends Component {
   @property() bodyPivot: Entity | null = null;
-  @property() leftArm: Entity | null = null;
-  @property() rightArm: Entity | null = null;
-  @property() leftLeg: Entity | null = null;
-  @property() rightLeg: Entity | null = null;
   @property() shadow: Entity | null = null;
   @property() tiltAngle: number = 45;
-  @property() limbSwingDeg: number = 30;
-  @property() limbSwingSpeed: number = 6;
-  @property() walkByTranslation: boolean = false;
-  // Y translation amplitude when walkByTranslation is true
-  @property() walkTranslateY: number = 0.15;
 
   private _transform!: TransformComponent;
   private _enemyId: number = -1;
@@ -68,31 +59,11 @@ export class EnemyController extends Component {
 
   private _wpIndex: number = 0;
   private _subT: number = 0;
-  private _animTime: number = 0;
-
-  private _restLeftLeg:  Quaternion = Quaternion.identity;
-  private _restRightLeg: Quaternion = Quaternion.identity;
-  private _restLeftArm:  Quaternion = Quaternion.identity;
-  private _restRightArm: Quaternion = Quaternion.identity;
-  private _restLeftLegPos:  Vec3 = Vec3.zero;
-  private _restRightLegPos: Vec3 = Vec3.zero;
 
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
     this._transform = this.entity.getComponent(TransformComponent)!;
-
-    const restRot = (e: Entity | null) =>
-      e?.getComponent(TransformComponent)?.localRotation ?? Quaternion.identity;
-    const restPos = (e: Entity | null) =>
-      e?.getComponent(TransformComponent)?.localPosition ?? Vec3.zero;
-
-    this._restLeftLeg  = restRot(this.leftLeg);
-    this._restRightLeg = restRot(this.rightLeg);
-    this._restLeftArm  = restRot(this.leftArm);
-    this._restRightArm = restRot(this.rightArm);
-    this._restLeftLegPos  = restPos(this.leftLeg);
-    this._restRightLegPos = restPos(this.rightLeg);
   }
 
   @subscribe(Events.InitEnemy)
@@ -200,8 +171,6 @@ export class EnemyController extends Component {
     const dx = ahead.x - pos.x;
     const dz = ahead.z - pos.z;
     this._updateBodyPivot(dx, dz);
-    const speedFactor = EnemyService.get().get(this._enemyId)?.speedFactor ?? 1;
-    this._animateLimbs(dt, this._speed * speedFactor);
   }
 
   public applyTint(color: Color): void {
@@ -260,40 +229,6 @@ export class EnemyController extends Component {
     else if (dz > 0)  angle = new Vec3(0, 0, 45);
     else if (dz < 0)  angle = new Vec3(0, 0, -45);
     pivot.localRotation = Quaternion.fromEuler(angle);
-  }
-
-  private _animateLimbs(dt: number, currentSpeed: number): void {
-    this._animTime += currentSpeed * dt * this.limbSwingSpeed;
-    const swing = Math.sin(this._animTime) * this.limbSwingDeg;
-
-    if (this.walkByTranslation) {
-      // Y translation mode: legs bob up/down in opposition, arms still rotate
-      const applyLegTranslate = (entity: Entity | null, restPos: Vec3, phase: number) => {
-        const t = entity?.getComponent(TransformComponent);
-        if (!t) return;
-        const offsetY = Math.sin(this._animTime* 2 + phase) * this.walkTranslateY;
-        t.localPosition = new Vec3(restPos.x, restPos.y + offsetY, restPos.z);
-      };
-      applyLegTranslate(this.leftLeg,  this._restLeftLegPos,  0);
-      applyLegTranslate(this.rightLeg, this._restRightLegPos, Math.PI);
-    } else {
-      const applyRot = (entity: Entity | null, rest: Quaternion, angleDeg: number) => {
-        const t = entity?.getComponent(TransformComponent);
-        if (!t) return;
-        t.localRotation = Quaternion.mul(rest, Quaternion.fromEuler(new Vec3(0, 0, angleDeg)));
-      };
-      applyRot(this.leftLeg,  this._restLeftLeg,   swing);
-      applyRot(this.rightLeg, this._restRightLeg,  -swing);
-    }
-
-    // Arms always rotate
-    const applyArm = (entity: Entity | null, rest: Quaternion, angleDeg: number) => {
-      const t = entity?.getComponent(TransformComponent);
-      if (!t) return;
-      t.localRotation = Quaternion.mul(rest, Quaternion.fromEuler(new Vec3(0, 0, angleDeg)));
-    };
-    applyArm(this.leftArm,  this._restLeftArm,  -swing);
-    applyArm(this.rightArm, this._restRightArm,  swing);
   }
 
   private _reachEnd(): void {

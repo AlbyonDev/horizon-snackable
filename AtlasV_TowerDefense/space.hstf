@@ -763,6 +763,47 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "b341a2f3-289e-41f0-9e77-a789f7897e64",
+            "name": "DirectionalLight",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": -1.2964725494384766,
+                                "y": -0.019999923184514047,
+                                "z": 1.3272875547409058
+                            },
+                            "localRotation": {
+                                "x": -1.5707963705062867,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 1.0,
+                                "y": 1.0,
+                                "z": 1.0
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::DistantLightPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "intensity": 1.0
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -834,6 +875,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "30b6cd95-c66a-438f-9b38-30b456857a4d",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "b341a2f3-289e-41f0-9e77-a789f7897e64",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

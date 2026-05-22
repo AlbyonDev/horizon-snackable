@@ -1,0 +1,105 @@
+{
+    "version": 2,
+    "graphs": [
+        {
+            "name": "main",
+            "type": "stateMachine",
+            "outputs": [
+                {
+                    "name": "pose",
+                    "type": "pose"
+                }
+            ],
+            "startingState": "Walk",
+            "states": [
+                {
+                    "name": "Walk",
+                    "graph": "Walk",
+                    "looping": true
+                }
+            ],
+            "transitions": []
+        },
+        {
+            "name": "Walk",
+            "type": "dataflow",
+            "inputs": [
+                {
+                    "name": "inputStatePhase",
+                    "type": "float"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "pose",
+                    "type": "pose"
+                }
+            ],
+            "nodes": [
+                {
+                    "name": "Walk",
+                    "type": "getAnimationVariable",
+                    "members": {
+                        "variable": "Walk"
+                    },
+                    ".editor": {
+                        "position": [
+                            50,
+                            100
+                        ]
+                    }
+                },
+                {
+                    "name": "sampleAnim",
+                    "type": "sampleAnim",
+                    "members": {
+                        "looping": true
+                    },
+                    ".editor": {
+                        "position": [
+                            400,
+                            250
+                        ]
+                    }
+                }
+            ],
+            "links": [
+                [
+                    "Walk:outputAnim",
+                    "sampleAnim:inputClip"
+                ],
+                [
+                    ":inputStatePhase",
+                    "sampleAnim:inputPhase"
+                ],
+                [
+                    "sampleAnim:outputPose",
+                    ":pose"
+                ]
+            ]
+        }
+    ],
+    "variables": [
+        {
+            "type": "assetId",
+            "name": "Walk",
+            "source": "remap",
+            "default": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "14801054259766037546",
+                "targetId": "3829385675"
+            }
+        },
+        {
+            "type": "float",
+            "name": "Speed",
+            "source": "gameplay",
+            "default": 0
+        }
+    ],
+    "hierarchy": {
+        "packageOrRemoteId": "26631398616455768",
+        "ingestionId": "14801054259766037546",
+        "targetId": "3998529611"
+    }
+}

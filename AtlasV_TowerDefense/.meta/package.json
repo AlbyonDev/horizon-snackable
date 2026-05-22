@@ -5,7 +5,7 @@
     "dependencies": [
         {
             "name": "meta/worlds_sdk",
-            "version": "*"
+            "version": "0.0.0"
         },
         {
             "name": "meta/editor_starter_kit",
@@ -13,15 +13,19 @@
         },
         {
             "name": "meta/assistant",
-            "version": "*"
+            "version": "0.0.0"
         },
         {
             "name": "meta/assistant_provisional",
-            "version": "*"
+            "version": "0.0.0"
         },
         {
             "name": "meta/assistant_experimental",
-            "version": "*"
+            "version": "0.0.0"
+        },
+        {
+            "name": "meta/human_jog_masculine_forward",
+            "version": "0.0.6"
         }
     ]
 }

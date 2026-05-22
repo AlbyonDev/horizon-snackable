@@ -239,7 +239,7 @@ Restrictions (e.g. "no splash on arrow", "laser range max once") are enforced **
 |----|------|----|-------|--------|-------|
 | `basic` | Enemy | 60 | 1.25/s | 5g | — |
 | `fast` | Fast | 35 | 2.50/s | 8g | `dodgeChance: 0.15` |
-| `tank` | Tank | 220 | 0.75/s | 15g | `regenPerSec: 8` |
+| `tank` | Tank (Troll) | 220 | 0.75/s | 15g | `regenPerSec: 8` |
 | `boss` | Boss | 600 | 0.60/s | 50g | `slowImmune: true` |
 
 HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_SCALE_PER_WAVE = 0.15`. Last wave (W20, `waveIndex = 19`): ~3.85× base HP.
@@ -320,11 +320,6 @@ Reference: [Enemy.hstf](../Templates/Enemies/Enemy.hstf) (Orc Chibi). Same struc
 Enemy (root)                         ← TransformComponent + EnemyController
 ├── Pivot                            ← @property bodyPivot   (REQUIRED)
 │   └── <CharacterMesh>              ← model (e.g. OrcChibi)
-│       ├── <body>                   ← (any non-leg/non-arm parts)
-│       ├── LeftArm                  ← @property leftArm
-│       ├── RightArm                 ← @property rightArm
-│       ├── LeftLeg                  ← @property leftLeg
-│       └── RightLeg                 ← @property rightLeg
 └── shadow                           ← @property shadow (flat disc on ground)
 ```
 
@@ -334,9 +329,7 @@ Enemy (root)                         ← TransformComponent + EnemyController
 |--------|---------|-----------|
 | `Enemy` (root) | World position + facing direction. `lookAt(ahead, Vec3.up)` is called every frame on this transform so children rotate to face the travel direction. | `EnemyController.onUpdate()` |
 | `Pivot` | The **2.5D tilt** layer. Rotated each frame based on movement direction (`±30°` pitch / `±45°` roll). The character mesh lives under this so it leans toward the camera. | `_updateBodyPivot(dx, dz)` |
-| `<CharacterMesh>` | Visual body. Can be a multi-mesh prefab. Color components are recursively collected from here for hit-flash and tint effects. | `_collectColorComponents()` |
-| `LeftArm` / `RightArm` | Animated by local Z rotation (`sin` swing, opposite phases). Rest pose is **captured at start** — bake any character-specific arm pose into the template. | `_animateLimbs()` |
-| `LeftLeg` / `RightLeg` | Same swing as arms, OR Y-translation bob if `walkByTranslation = true` (see Boss). Rest pose captured at start. | `_animateLimbs()` |
+| `<CharacterMesh>` | Visual body. Walk animation is baked into the mesh/AnimGraph. Color components are recursively collected from here for hit-flash and tint effects. | `_collectColorComponents()` |
 | `shadow` | Flat scaled disc with darkened material (alpha ~0.3). Sits on ground plane. NOT in the color-collection sweep — its color is preserved. | static |
 
 #### Animation parameters (`@property` on controller)
@@ -344,20 +337,15 @@ Enemy (root)                         ← TransformComponent + EnemyController
 | Property | Default | Effect |
 |----------|---------|--------|
 | `tiltAngle` | 45 | Currently unused at runtime (legacy — pivot angles are hardcoded in `_updateBodyPivot`). |
-| `limbSwingDeg` | 30 | Peak swing amplitude in degrees (`sin` amplitude). |
-| `limbSwingSpeed` | 6 | Animation speed multiplier. `_animTime += currentSpeed * dt * limbSwingSpeed` — so faster enemies animate faster. |
-| `walkByTranslation` | `false` | If `true`, legs bob on Y (sine on local position) instead of rotating. Use for chunky/short-legged characters where rotation looks weird (e.g. Boss). |
-| `walkTranslateY` | 0.15 | Y amplitude when `walkByTranslation` is on. |
 
 #### Animation breakdown — what runs each frame
 
 1. **Path advance** — `_subT += speed * speedFactor * dt`. Position from `PathService.getWorldPositionInSubPath()`.
 2. **Facing** — `_transform.lookAt(ahead, Vec3.up)`. Root rotates so local +Z points along movement.
 3. **Body pivot tilt** — `bodyPivot.localRotation = Quaternion.fromEuler(angle)` where `angle` depends on the sign of `dx`/`dz` (which screen direction the enemy is moving). See [2.5D section](#scene-setup--25d-camera-tricks).
-4. **Limb swing** — `_animateLimbs(dt, currentSpeed)`. Arms always rotate. Legs rotate OR translate based on `walkByTranslation`. Rotations are **multiplied onto rest poses** so the rigged angles in the template are preserved.
-5. **Squash on hit** — XZ stretches to `1.12`, Y compresses to `0.88` for 0.12s using smoothstep. Applied to the root scale.
-6. **Hit flash** — All collected `ColorComponent`s flash red (`HIT_COLOR = (1, 0.1, 0.1)`) for 0.12s, then restore base color or `_persistentTint` (e.g. blue for slow debuff).
-7. **Death** — Uniform scale lerp from `_baseScale` to `0` over 0.35s, then `entity.destroy()`. No corpse, no fade.
+4. **Squash on hit** — XZ stretches to `1.12`, Y compresses to `0.88` for 0.12s using smoothstep. Applied to the root scale.
+5. **Hit flash** — All collected `ColorComponent`s flash red (`HIT_COLOR = (1, 0.1, 0.1)`) for 0.12s, then restore base color or `_persistentTint` (e.g. blue for slow debuff).
+6. **Death** — Uniform scale lerp from `_baseScale` to `0` over 0.35s, then `entity.destroy()`. No corpse, no fade.
 
 #### Authoring rules for new enemies
 

@@ -1,224 +1,30 @@
 tasks:
-  - name: Replace Basic Enemy with Zombie
-    status: done
-    summary: Zombie mesh generated and swapped into Enemy.hstf, all stats unchanged
-    files: [Models/Zombie/ZombieBody.fbx, Models/Zombie/ZombieBody.material, Templates/Enemies/Enemy.hstf]
 
-  - name: Camera Shake on Life Lost
-    status: done
-    summary: Decaying random X/Y shake on EnemyReachedEnd, 0.3s duration
-    files: [CameraShakeService.ts, ClientSetup.ts]
-  - name: Grass Ground Plane
-    status: done
-    summary: Bloons TD style grass texture with cartoon vibrant greens, UV tiling (6,4)
-    files: [Textures/GrassTexture.png, TDGroundTextureController.ts, GameManager.ts]
-  - name: Spawn Tunnel Mesh
-    status: done
-    summary: Low poly stone tunnel for enemy spawn point (1,250 tris, 1m height)
-    files: [Models/Environment/SpawnTunnel/SpawnTunnel_remeshed.glb]
-  - name: Splash Screen 3D - Panique Totale
-    status: parked
-    summary: 3D diorama splash screen with blob, towers, projectiles and title UI
-  - name: Title Screen - GoblinClash Logo
-    status: done
-    summary: Title screen with goblinclash_logo, 3D effect Play button with thick gold border, StartGame event flow
-    files: [UI/TitleScreen.xaml, TitleScreenHud.ts, Types.ts, GameManager.ts]
-  - name: Title Screen - Double Size Logo and Button
-    status: done
-    summary: Logo 900x450→1800x900, button 480x140→960x280, font 72→144
-    files: [UI/TitleScreen.xaml]
-  - name: Title Screen - Button Press Animation
-    status: done
-    summary: 3D press effect via IsPressed trigger - button face translates 16px down/right to meet shadow
-    files: [UI/TitleScreen.xaml]
-  - name: Wave Announcement UI with Animation
-    status: done
-    summary: Animated wave banner with scale-in/fade-out animation
-    files: [WaveBannerHud.ts, WaveBanner.xaml]
-
-  - name: Tower Upgrade Menu Redesign
-    status: done
-    summary: Added tower info panel with upgrade history, hide upgrades when maxed, sell button moved right
-    files: [TowerUpgradeMenuHud.ts, TowerUpgradeMenu.xaml]
-
-  - name: Tower Info Panel Style Update
-    status: done
-    summary: Tower color border, transparent background, vertically centered text
-    files: [TowerUpgradeMenuHud.ts, TowerUpgradeMenu.xaml]
-
-  - name: Key Art Sprite Generation
-    status: parked
-    summary: Image generation tools not available in current toolset - user can create externally
-
-  - name: Tower Shop UI Redesign - Mobile Card Style
-    status: done
-    summary: Modern 3D cartoon mobile style with 4 tower cards, rounded borders, radial gradients, selection animation
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards Medieval Fantasy Style
-    status: done
-    summary: Mix parchemin + cadre orné doré + ruban bannière pour look medieval fantasy cartoon
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards Layout Adjustments
-    status: done
-    summary: Cartes x2 plus grandes, image en background, prix/nom en haut, cartes rangées en bas (coupées quand non sélectionnées)
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards Layout Fixes
-    status: done
-    summary: Réduire taille pour 4 cartes en largeur, moitié visible quand non sélectionné, bords plus arrondis, ruban qui dépasse
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards Debug - Missing Cards and Ribbon
-    status: done
-    summary: Fix 4 cartes visibles, taille augmentée 400x620, ruban qui dépasse avec ClipToBounds=False
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards Debug - Fall Animation Off Screen
-    status: done
-    summary: Fix clipping avec double Grid - outer pour ruban, inner pour clip vertical, 220px visible quand non sélectionné
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards - Simplify and Fix Animations
-    status: done
-    summary: Simplifié - retiré animations rise/fall cassées, 4 cartes toujours visibles, sélection par scale 1.05x + glow
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards - Selection Animation and Ribbon Style
-    status: done
-    summary: Animation montée 150px sur sélection, ruban plus large/épais (-60px margins, 75px height, 52pt font), border radius 35
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards - Fix Animation and Ribbon Overflow
-    status: done
-    summary: Animation via Margin (-150px), ruban sorti de la chaîne de Border (sibling de CardGrid), 520px de large
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards - Smooth Animation, Clipping Fix, Ribbon Style
-    status: done
-    summary: Animation Storyboard 0.2s avec TranslateY, ClipToBounds=False + Margin overflow, ruban 460px avec CornerRadius 18
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards - Fix Selected Card Clipping
-    status: done
-    summary: Séparé background bar et ItemsControl en siblings - CornerRadius sur Border clippait implicitement les cartes
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards - Fix Top Clipping
-    status: done
-    summary: Grid externe changé de VerticalAlignment=Bottom à Stretch - permet overflow vers le haut
-    files: [UI/TowerShop.xaml]
-
-  - name: Tower Cards - Visual Polish
-    status: done
-    summary: Gradient radial toujours visible, scale 1.05x sélection, pas d'opacité trop cher, couleurs secondaires, outline noir texte
-    files: [UI/TowerShop.xaml, TowerShopHud.ts]
-
-  - name: GameOverScreen Medieval Fantasy Redesign
-    status: done
-    summary: Panel parchemin + cadre doré, titre bannière VICTOIRE/DÉFAITE, stats médiéval, bouton 3D REJOUER, animation scale-in
-    files: [UI/GameOverScreen.xaml]
-
-  - name: GameOverScreen Size x2
-    status: done
-    summary: Toutes les dimensions doublées (panel, titre, stats, bouton, fonts, margins, paddings)
-    files: [UI/GameOverScreen.xaml]
-
-  - name: GameHud Medieval Fantasy Polish
-    status: done
-    summary: Taille x2, fond bois sombre + bordure dorée, panels ornés pour vies/or, texte contouré, icônes 120px
-    files: [UI/GameHud.xaml]
-
-  - name: GameOverScreen English + Dark Background
-    status: done
-    summary: Textes FR→EN (VICTORY/DEFEAT/PLAY AGAIN), fond parchemin→sombre #1a1a2e, cadre doré conservé
-    files: [UI/GameOverScreen.xaml]
-
-  - name: Tower Upgrade Menu Card Style Redesign
-    status: done
-    summary: 2 cartes style TowerShop avec couleur par type d'upgrade, bouton SELL séparé rouge/danger, fond bois médiéval
-    files: [UI/TowerUpgradeMenu.xaml, TowerUpgradeMenuHud.ts]
-
-  - name: Hook Tower Textures in Shop and Upgrade UI
-    status: done
-    summary: Textures balista/canon/frost/laser connectées dans TowerShop (fond de carte) et TowerUpgradeMenu (panel info)
-    files: [Assets.ts, TowerShopHud.ts, TowerShop.xaml, TowerUpgradeMenuHud.ts, TowerUpgradeMenu.xaml]
-
-  - name: Tower Upgrade Menu - Move Icon Behind Upgrade Cards
-    status: done
-    summary: Design identique au TowerShop - ImageBrush avec Viewbox et Stretch dans les 2 cartes d'upgrade
-    files: [UI/TowerUpgradeMenu.xaml]
-
-  - name: Tower Upgrade Menu - Card Animations
-    status: done
-    summary: 4 storyboards par carte (Card1/2SlideIn/Out), TranslateTransforms nommés, logique card1Visible/card2Visible
-    files: [UI/TowerUpgradeMenu.xaml, TowerUpgradeMenuHud.ts]
-
-  - name: Path Tiles Visual Road
-    status: done
-    summary: Medieval cobblestone straight + corner tiles spawned along enemy path with correct rotation
-    files: [Models/PathTiles/PathTileStraight.fbx, Models/PathTiles/PathTileCorner.fbx, Templates/GameplayObjects/PathTileStraightTop.hstf, Templates/GameplayObjects/PathTileCornerTL.hstf, Services/PathTileService.ts, Assets.ts, GameManager.ts]
-
-  - name: Path Tiles Coherent Redesign
-    status: done
-    summary: Single 3x3 cobblestone atlas, custom unlit alpha-blend shader, 8 UV-sliced materials + templates, PathTileService rewritten (no rotation needed)
-    files: [textures/path_tiles_cobblestone.png, Shaders/PathTileAtlas.surface, Services/PathTileService.ts, Assets.ts]
-
-  - name: Path Tiles - Rotate Straight Tiles 90°
-    status: done
-    summary: Rotated Visuals entity on all 4 straight tile templates by 90° on Y axis
-    files: [Templates/GameplayObjects/PathTileStraightTop.hstf, PathTileStraightBottom.hstf, PathTileStraightLeft.hstf, PathTileStraightRight.hstf]
-
-  - name: Path Tiles - Fix All Tile Rotations Based on UV Position
-    status: done
-    summary: All 8 tiles set to 90° Y rotation on Visuals entity to map UV atlas to screen space correctly
-    files: [Templates/GameplayObjects/PathTileCornerTL.hstf, PathTileCornerTR.hstf, PathTileCornerBL.hstf, PathTileCornerBR.hstf]
-
-  - name: Path Tiles - Fix Incorrect Corner Orientation
-    status: done
-    summary: Fixed PathTileCornerBR Visuals rotation from 180° to 0° Y - was flipped causing gap at first turn
-    files: [Templates/GameplayObjects/PathTileCornerBR.hstf]
-
-  - name: Path Tiles - Large Rocks Style Redesign
-    status: done
-    summary: Replaced cobblestone texture with new seamless tileable large rocks texture, cartoon style
-    files: [Textures/path_tiles_cobblestone.png]
-
-  - name: Path Tiles - Large Rocks v2
-    status: done
-    summary: Regenerated stepping stones atlas v2 with bolder/chunkier rocks, replaced in-place
-    files: [Textures/path_tiles_cobblestone.png]
-
-  - name: Path Tiles - Use Single Corner + 2 Straights Only
-    status: done
-    summary: PathTileService uses only CornerTL + StraightTop + StraightLeft with Y rotation for all directions, guaranteeing edge continuity
-    files: [Services/PathTileService.ts]
-
-  - name: Path Tiles - Regenerate Texture
-    status: done
-    summary: Fresh stepping stones atlas generated, background removed, replaced in-place at Textures/path_tiles_cobblestone.png
-    files: [Textures/path_tiles_cobblestone.png]
-
-  - name: Path Tiles - 5 Templates 2 Materials Refactor
-    status: done
-    summary: 2 materials (corner + straight), 5 templates (4 corners with baked rotation + 1 straight with runtime rotation), PathTileService refactored, old unused templates/materials deleted
-    files: [PathTileService.ts, Assets.ts, PathTileCorner.material, PathTileStraight.material, Templates/GameplayObjects/PathTileCornerTL.hstf, PathTileCornerTR.hstf, PathTileCornerBR.hstf, PathTileCornerBL.hstf, PathTileStraightTop.hstf]
-
-  - name: Path Tiles - Cartoon Stone Triplanar Texture
-    status: done
-    summary: Generated seamless tileable cartoon stone texture (large rounded cobblestones, dark outlines, grey/beige) and updated both path materials
-    files: [Textures/path_tiles_cobblestone.png, Materials/TileStraight.material, Materials/TileCorner.material]
-
-  - name: Path Tiles - Large Rocks Tiling Texture
-    status: done
-    summary: Replaced cobblestone texture with new seamless tileable large rocks texture, cartoon style
-    files: [Textures/path_tiles_cobblestone.png]
-
-
-
-done_extra:
-  - Orcish Flag at Spawn -- wooden cross with bones totem placed at spawn, -60° Z tilt
+done:
+  - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
+  - Grass Ground Plane -- Bloons TD style cartoon grass, UV tiling (6,4)
+  - Spawn Tunnel Mesh -- low poly stone tunnel at enemy spawn point
+  - Title Screen GoblinClash Logo -- logo, 3D Play button, StartGame event flow
+  - Title Screen Double Size Logo and Button -- logo 1800x900, button 960x280
+  - Title Screen Button Press Animation -- 3D press effect via IsPressed trigger
+  - Wave Announcement UI -- animated wave banner scale-in/fade-out
+  - Tower Upgrade Menu Redesign -- info panel, upgrade history, sell button
+  - Tower Info Panel Style Update -- tower color border, transparent bg
+  - Tower Shop UI Redesign -- modern 3D cartoon mobile card style
+  - Tower Cards Medieval Fantasy Style -- parchemin + cadre doré + ruban
+  - Tower Cards Layout and Animation Fixes -- 4 cards, selection animation 150px rise
+  - Tower Cards Visual Polish -- radial gradient, scale 1.05x, color outlines
+  - GameOverScreen Medieval Fantasy Redesign -- parchemin panel, gold frame, stats
+  - GameOverScreen English + Dark Background -- VICTORY/DEFEAT/PLAY AGAIN, dark bg
+  - GameHud Medieval Fantasy Polish -- taille x2, fond bois, panels ornés
+  - Tower Upgrade Menu Card Style Redesign -- 2 cards style TowerShop, SELL button
+  - Hook Tower Textures in Shop and Upgrade UI -- balista/canon/frost/laser textures
+  - Tower Upgrade Menu Card Animations -- 4 storyboards, slide in/out
+  - Path Tiles 5 Templates 2 Materials Refactor -- corner+straight, PathTileService refactored
+  - Path Tiles Cartoon Stone Triplanar Texture -- seamless tileable cartoon stone
+  - Basic Enemy -- goblin warrior chibi mesh, walk anim, AnimGraph in Enemy.hstf
+  - Fast/Tank/Boss Enemies -- Kobold Scout, Troll (Tank), Ogre Warchief (Boss) meshes + anims + templates
+  - Troll Tank Enemy Mesh Swap -- chibi medieval troll, big head, walk anim, EnemyTank.hstf updated
 
 chopping_block:
   disabled_systems: []
@@ -227,3 +33,4 @@ chopping_block:
 
 notes:
   - Wave banner already planned in ART_DIRECTION.md
+  - Basic enemy is a goblin warrior chibi -- new enemies must match this style
