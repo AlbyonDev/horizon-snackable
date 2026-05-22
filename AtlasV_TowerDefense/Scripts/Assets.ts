@@ -28,6 +28,11 @@ export namespace Assets {
   export const RangeIndicator  = new TemplateAsset('@Templates/RangeIndicator.hstf');
   export const HealthBar       = new TemplateAsset('@Templates/HealthBar.hstf');
   export const PathCell        = new TemplateAsset('@Templates/PathCell.hstf');
+  export const PathTileCornerTL = new TemplateAsset('@Templates/GameplayObjects/PathTileCornerTL.hstf');
+  export const PathTileCornerTR = new TemplateAsset('@Templates/GameplayObjects/PathTileCornerTR.hstf');
+  export const PathTileCornerBR = new TemplateAsset('@Templates/GameplayObjects/PathTileCornerBR.hstf');
+  export const PathTileCornerBL = new TemplateAsset('@Templates/GameplayObjects/PathTileCornerBL.hstf');
+  export const PathTileStraight = new TemplateAsset('@Templates/GameplayObjects/PathTileStraightTop.hstf');
   export const FloatingText    = new TemplateAsset('@Templates/UI/FloatingText.hstf');
   export const Coin            = new TemplateAsset('@Templates/Coin.hstf');
 }

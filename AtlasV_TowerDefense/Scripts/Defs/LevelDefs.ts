@@ -37,7 +37,7 @@ const WAVES_LEVEL_0: IWaveDef[] = [
   // ── Act 1 ──────────────────────────────────────────────────────────────────
 
   // W1 — Tuto : 1 Basic. Voir sa tour tirer, comprendre que ça marche.
-  { groups: [{ enemyId: 'basic', count: 1 }] },
+  { groups: [{ enemyId: 'basic', count: 1 }, { enemyId: 'fast', count: 1 }, { enemyId: 'tank', count: 1 }, { enemyId: 'boss', count: 1 }] },
 
   // W2 — Volume léger : assez pour stresser 1 tour, pas assez pour perdre des vies.
   { groups: [{ enemyId: 'basic', count: 6 }] },

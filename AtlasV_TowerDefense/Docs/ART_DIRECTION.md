@@ -78,18 +78,18 @@ All text uses the default MHS UI font. No custom fonts.
 
 ---
 
-## Layout — Portrait 9:16
+## Layout — Portrait 9:16 (grid is 7×14)
 
 The screen is divided into three distinct zones — no overlay, no occlusion.
 
 ```
 ┌─────────────────────────────────┐
-│ ❤️ 20       WAVE        💰 150  │  ← HUD bar (top)
-│              1/10               │
+│ ❤️ 10       WAVE        💰 120  │  ← HUD bar (top)
+│              1/20               │
 ├─────────────────────────────────┤
 │                                 │
 │                                 │
-│          PLAY AREA              │  ← 9×12 grid (center)
+│          PLAY AREA              │  ← 7×14 grid (center)
 │      (towers, path, enemies)    │
 │                                 │
 │                                 │
@@ -98,8 +98,8 @@ The screen is divided into three distinct zones — no overlay, no occlusion.
 └─────────────────────────────────┘
 ```
 
-The grid is 9×12 (not 9×16) — the 9:16 screen ratio is filled by grid + HUD + shop combined.
-Camera must be positioned and FOV-tuned so the 9×12 world grid fills exactly the center 70% of the screen.
+The grid is **7 cols × 14 rows** (7×14 world units). The portrait 9:16 screen is filled by grid + HUD + shop combined.
+Camera is set via a scene anchor entity (position `(1, 15.5, 0)`, rotation `(-90, 90, 0)`, FOV 60°) so the 7×14 world grid fills the center of the screen — see `Scene Setup & 2.5D Camera Tricks` in `PROJECT_SUMMARY.md`.
 
 ---
 
@@ -109,7 +109,7 @@ Camera must be positioned and FOV-tuned so the 9×12 world grid fills exactly th
 - Full width, `bg-panel` background (80% opacity)
 - 3-column layout:
   - **Left:** Red heart SVG icon (#e74c3c) + lives count (white)
-  - **Center:** "WAVE" label (secondary color) + wave number "X/10" (white, stacked vertically)
+  - **Center:** "WAVE" label (secondary color) + wave number "X/20" (white, stacked vertically)
   - **Right:** gold_icon.png image + gold count (gold color #f5c518)
 - Large text (~90px) for mobile visibility
 - Updates reactively via `GameHudViewModel`
@@ -158,15 +158,6 @@ Handled in code (not XAML) — spawned 3D entities:
 
 ## 3D Mesh Specifications
 
-Optimized for mobile performance.
-
-| Parameter | Value | Notes |
-|-----------|-------|-------|
-| **Polycount** | 1,000-1,500 triangles | Per tower/object |
-| **Texture Resolution** | 512x512 | Max for small objects |
-| **Height** | 1 meter | Normalized for grid |
-| **Format** | GLB + FBX | Both exported |
-
 Priority: Performance over detail. Towers are viewed from above at distance.
 
 ### Export Preferences
@@ -175,3 +166,15 @@ Priority: Performance over detail. Towers are viewed from above at distance.
 - Use FBX format for MHS import (avoids embedded texture issues)
 - Link textures via MHS material system, not embedded in mesh files
 - Delete any auto-generated embedded textures to avoid double storage
+
+---
+
+## Enemy Mesh Integration
+
+Key points when adding or swapping an enemy mesh in a template:
+
+- **MHS forward is -Z.** Enemy templates must be aligned so the visible mesh faces -Z (this is what `lookAt` expects).
+- **Generated meshes** are produced with **pivot at center, facing +Z**.
+- **Existing templates' meshes** are authored with **pivot at center-of-feet, facing +X** — orientation/offset are already handled inside the templates.
+- **All generated `ColorComponent`s must be initialized to white `(1,1,1,1)`.** Default is black, which multiplies the albedo to zero (mesh renders fully black).
+- The template's `Pivot` child is reserved for the runtime 2.5D tilt — do not touch it when integrating a new mesh.

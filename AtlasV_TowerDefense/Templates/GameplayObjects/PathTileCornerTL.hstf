@@ -1,0 +1,115 @@
+{
+    "version": 6,
+    "entities": [
+        {
+            "id": "5caccf03-841e-4c54-8247-72fa7626fbc3",
+            "name": "PathTileCornerTL",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localRotation": {
+                                "x": -0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 1.0,
+                                "y": 1.0,
+                                "z": 1.0
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": [
+                {
+                    "class": "horizon::NetworkableTemplateEntityAttribute",
+                    "data": {
+                        "isNetworkable": true
+                    }
+                }
+            ]
+        },
+        {
+            "id": "b01afb46-fe31-49ae-9672-c0e88a248002",
+            "name": "Visuals",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localRotation": {
+                                "x": 0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MeshPlatformComponent",
+                        "version": 11,
+                        "data": {
+                            "mesh": {
+                                "packageOrRemoteId": "24407058055595655",
+                                "ingestionId": "7277538467424364748",
+                                "targetId": "2768521373"
+                            },
+                            "shadowParams": {
+                                "class": "horizon::platform_api::ShadowParams",
+                                "data": {
+                                    "castsShadows": false
+                                }
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MaterialPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "materials": [
+                                {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "5503434618074862424",
+                                    "targetId": "157013062"
+                                }
+                            ],
+                            "perPartInstancedConstantParameterLists": [
+                                {
+                                    "class": "horizon::renderer::InstancedConstantMaterialParameterList",
+                                    "data": {
+                                        "parameters": []
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "b01afb46-fe31-49ae-9672-c0e88a248002",
+            "destination": "5caccf03-841e-4c54-8247-72fa7626fbc3"
+        }
+    ]
+}

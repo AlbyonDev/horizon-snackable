@@ -1,0 +1,38 @@
+{
+    "__attr__": {
+        "__version__": {
+            "version": 1
+        }
+    },
+    "name": "TileCorner",
+    "attributes": [
+        {
+            "name": "isCornerTile",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    1.0
+                ]
+            }
+        },
+        {
+            "name": "cornerQuadrant",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    1.0
+                ]
+            }
+        }
+    ],
+    "shaderAssetId": {
+        "packageOrRemoteId": "26631398616455768",
+        "ingestionId": "6451495502591923146",
+        "targetId": "2708897769"
+    },
+    "baseMaterialAssetId": {
+        "packageOrRemoteId": "26631398616455768",
+        "ingestionId": "5884611307468500411",
+        "targetId": "157013062"
+    }
+}

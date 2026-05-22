@@ -1,0 +1,25 @@
+BEGIN_OPTIONS
+  blendState alphaBlend
+  depthStencilState depthTestOnly
+  Template "Unlit"
+END_OPTIONS
+
+BEGIN_PROPERTIES
+  [Group("Texcoord0", -9)]
+  scaleOffsetUV0("Scale/Offset", Vector4) = (1, 1, 0, 0)
+  baseColorTex("Color", 2D) = "white"
+END_PROPERTIES
+
+BEGIN_VERTEX
+void vertexFunction(inout Vertex v, VertexData d) {
+  v.texcoord0 = v.texcoord0 * matParams.scaleOffsetUV0.xy + matParams.scaleOffsetUV0.zw;
+}
+END_VERTEX
+
+BEGIN_SURFACE
+void surfaceFunction(inout Surface s, inout SurfaceData d) {
+  vec4 baseColorAlpha = texture(sampler2D(baseColorTex, linearWrapSampler), d.texcoord0).rgba;
+  s.baseColor = baseColorAlpha.rgb;
+  s.alpha = baseColorAlpha.a;
+}
+END_SURFACE

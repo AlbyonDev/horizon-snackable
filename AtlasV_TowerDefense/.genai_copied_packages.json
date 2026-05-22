@@ -1,0 +1,28 @@
+{
+  "packages": {
+    "meta/human_jog_masculine_forward/0.0.6": {
+      "author": "meta",
+      "folderName": "human_jog_masculine_forward",
+      "name": "human_jog_masculine_forward",
+      "version": "0.0.6"
+    },
+    "meta/human_locomotion_firstperson_forward/0.0.6": {
+      "author": "meta",
+      "folderName": "human_locomotion_firstperson_forward",
+      "name": "human_locomotion_firstperson_forward",
+      "version": "0.0.6"
+    },
+    "meta/human_walk_short_left/0.0.6": {
+      "author": "meta",
+      "folderName": "human_walk_short_left1",
+      "name": "human_walk_short_left",
+      "version": "0.0.6"
+    },
+    "meta/human_walk_short_neutral_forward/0.0.6": {
+      "author": "meta",
+      "folderName": "human_walk_short_neutral_forward",
+      "name": "human_walk_short_neutral_forward",
+      "version": "0.0.6"
+    }
+  }
+}

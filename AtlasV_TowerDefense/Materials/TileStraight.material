@@ -1,0 +1,183 @@
+{
+    "__attr__": {
+        "__version__": {
+            "version": 1
+        }
+    },
+    "name": "TileStraight",
+    "attributes": [
+        {
+            "name": "tint",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "name": "pathHalfWidth",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.44999998807907107
+                ]
+            }
+        },
+        {
+            "name": "cornerRadius",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.5
+                ]
+            }
+        },
+        {
+            "name": "tileWorldSize",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    5.0
+                ]
+            }
+        },
+        {
+            "name": "cornerOuterBias",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.0
+                ]
+            }
+        },
+        {
+            "name": "pathTex",
+            "value": {
+                "type": "assetId",
+                "assetIdValue": {
+                    "packageOrRemoteId": "26631398616455768",
+                    "ingestionId": "3879109969266172913",
+                    "targetId": "1850524962"
+                }
+            }
+        },
+        {
+            "name": "textureScale",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    1.0
+                ]
+            }
+        },
+        {
+            "name": "cornerInnerBias",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.0
+                ]
+            }
+        },
+        {
+            "name": "edgeSoftness",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.009999999776482582
+                ]
+            }
+        },
+        {
+            "name": "textureRotate90",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    1.0
+                ]
+            }
+        },
+        {
+            "name": "edgeNoiseAmount",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.20000000298023225
+                ]
+            }
+        },
+        {
+            "name": "shadowExtra",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.10000000149011612
+                ]
+            }
+        },
+        {
+            "name": "shadowAlpha",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.20000000298023225
+                ]
+            }
+        },
+        {
+            "name": "edgeNoiseScale",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    9.5
+                ]
+            }
+        },
+        {
+            "name": "shadowSoftness",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.009999999776482582
+                ]
+            }
+        },
+        {
+            "name": "shadowColor",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.019607843831181527,
+                    0.05098039284348488,
+                    0.03921568766236305,
+                    1.0
+                ]
+            }
+        },
+        {
+            "name": "textureWorldSize",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    5.0
+                ]
+            }
+        },
+        {
+            "name": "RenderGroup",
+            "value": {
+                "type": "String",
+                "stringValue": "masked"
+            }
+        }
+    ],
+    "shaderAssetId": {
+        "packageOrRemoteId": "26631398616455768",
+        "ingestionId": "6451495502591923146",
+        "targetId": "2708897769"
+    }
+}
