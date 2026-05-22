@@ -10,9 +10,10 @@ Snackable: simple, satisfying, short.
 
 ## Game Flow
 
-`[Load/Restart] → Aim → Flying → Result → (repeat × 6) → GameOver → [tap to restart]`
+`[Load/Restart] → Aim → Flying → Result → (repeat × 6) → GameOver → [tap to restart]  → ...`
 
-> `GamePhase.Start` (value 0) is the internal initial state before the first spawn — it is **never** broadcast via `PhaseChangedEvent`. The player-visible game begins immediately in **Aim**.
+> `GamePhase.Start` (value 0) is the internal initial state before the first spawn — it is **never** broadcast via `PhaseChangedEvent`. The player-visible game begins in **Select** (goalkeeper selection).
+
 
 - **Aim**: Player swipes upward from the lower screen. A power gauge shows swipe intensity (left side of screen). The ball sits on the penalty spot.
 - **Flying**: Ball travels toward goal with physics (gravity, spin, lateral aim). Goalkeeper reacts after a per-keeper delay then dives.
@@ -24,7 +25,6 @@ Snackable: simple, satisfying, short.
 ## Round System
 
 - Each round consists of **6 shots** (`TOTAL_SHOTS` in `Constants.ts`)
-- A new goalkeeper archetype is randomly selected each round (avoids repeats)
 - When all 6 shots are used, `GameOver` phase triggers after `GAME_OVER_DELAY` ms
 - Tap anywhere during GameOver (or the replay button) to start a fresh round
 
@@ -118,7 +118,7 @@ All per-keeper values live **in the def** — the `GK_*` constants in `Constants
 | What | Template | Count | Spawner |
 |------|----------|-------|---------|
 | Ball | `@Templates/Ball.hstf` | 1 | `GameManager` |
-| Goalkeeper | `@Templates/Keepers/GoalkeeperN.hstf` | 1 (random) | `GameManager` |
+| Goalkeeper | `@Templates/Keepers/GoalkeeperN.hstf` | (random) | `GameManager` |
 | VFX particles | `@Templates/Cube.hstf` | `VFX_POOL_SIZE` (60) | `GameManager` |
 | Trail dots | `@Templates/Sphere.hstf` | `TRAIL_POOL_SIZE` (24) | `GameManager` |
 
@@ -190,6 +190,7 @@ All events are defined in `Scripts/Events/`. String IDs all use the `Ev` prefix.
 | HUD | `SoccerKickHud.xaml` | `SoccerKickHudComponent` | Score, ScoreScale, ScoreColor, Shot1–6 (Active/Scale/Opacity), InstructionText |
 | Power Gauge | `PowerGauge.xaml` | `PowerGaugeComponent` | FillHeight, GaugeVisible |
 | Shot Feedback | `ShotFeedbackPanel.xaml` | `ShotFeedbackDisplayComponent` | FeedbackText, ScaleX/Y, TranslateX/Y, RotationZ, PointsText, ComboText |
+| Goalkeeper Select | `GoalkeeperSelect.xaml` | `GoalkeeperSelectComponent` | OverlayVisible, Keeper1–3 Name/Difficulty/Desc, onSelectKeeperEvent |
 | Game Over | `GameOverStats.xaml` | `GameOverStatsComponent` | ScoreText, GoalsText, PrecisionText, BestComboText, Star1–3 (Visible/Color/Scale), ReplayButtonOpacity |
 | Confetti | `ConfettiExplosion.xaml` | `ConfettiExplosionUIComponent` | ItemsControl bound to confettiItems array |
 
@@ -256,6 +257,24 @@ Use this table to know **which files to touch** for each type of change.
 | Sound assignments | `Services/AudioManager.ts` (event → soundId map) |
 | Swipe input sensitivity | `Constants.ts` (`SWIPE_DEAD_ZONE`, `SWIPE_POWER_RANGE`, `SWIPE_SIDE_RANGE`) |
 | Camera FOV | `Constants.ts` (`CAMERA_FOV`) |
+
+---
+
+## Startup Race Condition — Known Pattern
+
+`GameManager.onStart()` calls `GameStateService.reset()` synchronously, which fires `PhaseChangedEvent` (with the first phase) before other components have finished their own `onStart()`. This means **any UI component that relies solely on `PhaseChangedEvent` to show/hide itself on the first frame may miss the event entirely**.
+
+### Rule for all UI components that react to `PhaseChangedEvent`
+
+After initializing (setting up event listeners, binding `_customUi`, etc.), every component **must** check the current phase directly from `GameStateService` and apply the correct visibility immediately:
+
+```ts
+// At the end of onStart(), after all setup:
+const currentPhase = GameStateService.get().phase;
+this.applyPhase(currentPhase); // or inline: show/hide based on currentPhase
+```
+
+Do **not** rely on receiving `PhaseChangedEvent` during `onStart()` to set initial visibility. The event may have already fired before this component initialized.
 
 ---
 
