@@ -2,6 +2,69 @@
 
 **Visual Style:** Bright, cartoon, unlit. Rounded shapes, saturated colors, no realistic lighting. Reads instantly on a small portrait phone screen — bubbly, pop, tropical.
 
+## Scene Map — Where Things Live
+
+The whole world is authored in [space.hstf](space.hstf). Use this section to figure out which file to open when remixing visuals.
+
+### Screen-space UI (XAML + ViewModel pairs)
+
+All HUDs are `CustomUiPlatformComponent` set to `ScreenSpace` — no world position, they overlay the whole screen.
+
+| XAML | Role | ViewModel (data bindings) |
+|---|---|---|
+| [UI/TitleScreen.xaml](UI/TitleScreen.xaml) | Fullscreen title with logo + Play button | [TitleScreenUIComponent](Scripts/Components/UI/TitleScreenUIComponent.ts) |
+| [UI/GameHUD.xaml](UI/GameHUD.xaml) | Gold counter (top centre); non-interactive | [GameHUDViewModel](Scripts/Components/UI/GameHUDViewModel.ts) |
+| [UI/InteractiveHUD.xaml](UI/InteractiveHUD.xaml) | Cast button, Line/Hook upgrades, Collection button — visible only in `Idle` | [InteractiveHUDViewModel](Scripts/Components/UI/InteractiveHUDViewModel.ts) |
+| [UI/FishingHUD.xaml](UI/FishingHUD.xaml) | Depth counter, max-depth marker, fish counter, species progress bar (Diving/Surfacing) | [FishingHUDViewModel](Scripts/Components/UI/FishingHUDViewModel.ts) |
+| [UI/FishCollection.xaml](UI/FishCollection.xaml) | Fullscreen species grid + detail view | [FishCollectionUIComponent](Scripts/Components/UI/FishCollectionUIComponent.ts) |
+| [UI/FishSprites.xaml](UI/FishSprites.xaml) | `DrawingSurface` overlay where every active fish is drawn per-frame | [FishSpriteRenderer](Scripts/Components/UI/FishSpriteRenderer.ts) |
+| [UI/GoldCoinsAnimator.xaml](UI/GoldCoinsAnimator.xaml) | Canvas with dynamic coin + text lists for the FishCollected reward burst | [GoldCoinsAnimatorViewModel](Scripts/Components/UI/GoldCoinsAnimatorViewModel.ts) |
+
+### Spawned runtime entities (pools)
+
+These are *not* in the scene file — code calls `WorldService.spawnTemplate` with `NetworkMode.LocalOnly` and stores the instances in a pool. Inactive instances are parked off-screen.
+
+| Pool | Size | Template | Parked at | Owner |
+|---|---|---|---|---|
+| Bubble pool | `BUBBLE_POOL_SIZE` = 40 | [Templates/Bubble.hstf](Templates/Bubble.hstf) | `(0, POOL_PARK_Y=1000, 0)` | [BubblePool](Scripts/Services/BubblePool.ts) |
+| Gold coins animator | 1 (singleton canvas) | [Templates/GameplayObjects/GoldCoinsAnimator.hstf](Templates/GameplayObjects/GoldCoinsAnimator.hstf) | Spawned at `(0, CANVAS_CENTER_WORLD_Y=7, −0.1)` scaled to `CANVAS_ENTITY_SCALE=12` | [GoldCoinsService](Scripts/Services/GoldCoinsService.ts) |
+
+Fish themselves are **not** spawned entities — they are plain `FishInstance` data drawn by `FishSpriteRenderer`.
+
+### Scene-placed entities (authored in space.hstf)
+
+| Name | Components | Role |
+|---|---|---|
+| `Game` | `ClientSetup`, `GameManager` | Top-level orchestrator; `ClientSetup.camera` references the `Camera` entity below, `ClientSetup.flashPlane` references `Flash` |
+| `Camera` | `TransformPlatformComponent`, `CameraPlatformComponent` | The active gameplay camera — see numbers below |
+| `Flash` | `TransformPlatformComponent`, `MeshPlatformComponent`, `ColorPlatformComponent` | Full-screen tinted plane in front of the camera; `VFXService` fades its alpha in/out for the flash effect |
+| `Background` | Mesh + `DepthGradient` material | Large rotated plane (~10.7 × 30.9 wu, X-aligned) behind play area — applies the depth gradient water shader |
+| `Sky` | Mesh + `bgstart` material | Plane above water (Y ≈ 7) showing the sky background |
+| `Plane` | Mesh | Ground / scene framing plane |
+| `FishingRod` | Template ref ([Templates/FishingRod.hstf](Templates/FishingRod.hstf)) carrying the `HookController` script + hook + line entities | Rod, hook, and line visuals; `HookController` owns the hook physics |
+| `FishingHUD`, `GameHUD`, `InteractiveHUD`, `TitleScreen`, `FishCollectionUI`, `FishSpriteRenderer`, `GoldAnimationUI` | `CustomUiPlatformComponent` + their ViewModel | The screen-space UI surfaces listed above; `GoldAnimationUI` is the world-space variant for the in-canvas coin/text bursts |
+| `SpawnPoint`, `StartingWorld` | SDK player-spawn boilerplate | Single-player entry point — do not modify unless rebuilding the world frame |
+
+## Game Camera
+
+**Source:** scene entity named `Camera` in [space.hstf](space.hstf). Activated by [ClientSetup.ts](Scripts/Components/ClientSetup.ts) calling `GameCameraService.registerCamera(camera)`, which then calls `CameraService.setActiveCamera({ camera })`. After that, [GameCameraService](Scripts/Services/GameCameraService.ts) is the sole writer of the camera's transform.
+
+| Property | Value |
+|---|---|
+| Position (world) | `(0, 6.5, 25)` |
+| Rotation | Identity — looking −Z |
+| Projection | `Orthographic` |
+| Orthographic size (half-height) | `9.5` world units → visible Y range = 19 wu |
+| Field of view (unused, stored from authoring) | `60°` |
+| Camera Y at runtime | `6.5 + scrollOffsetY`, where `scrollOffsetY ≤ 0` and tracks the hook during `Diving`/`Surfacing` |
+
+**Consequences for art:**
+
+- The scene is laid out on the **XY plane**. World +X is right on screen, world +Y is up on screen, world −Z points *into* the screen toward the viewer's far depth.
+- Because the camera is orthographic, **Z has no perspective effect** — depth-ordering only. Place 2D-style art on planes at any Z you like as long as you respect render order:
+  - `FishSprites` overlay (DrawingSurface) draws in front of the 3D scene at the UI layer.
+  - `Flash` plane sits just in front of the camera (look for its small −Z offset).
+
 ## Character & Sprite Style
 
 - **Fish sprites:** 2D, facing right, clean silhouette, bold outline, cel-shaded with soft rim light.
@@ -97,11 +160,3 @@ Exaggerated by design — this is a cartoon, not a simulation.
 | Journal icon, close X icon | 130 × 130 (XAML) | PNG | Used in the FishCollection grid |
 | Background image | 1080 × 1920 | PNG | `BGStart.png` |
 | Logo | Fits within title centre area | PNG with alpha | `FishingLegend_logo.png` |
-
-## Technical Constraints
-
-- Project target: small mobile bundle (< 35 MB total).
-- Low-poly meshes only; prefer flat materials and vertex colors.
-- No heavy post-process.
-- Sprites compressed; `premultiplyAlpha` must be `true` for every transparent sprite.
-- All fish rendering goes through a single DrawingSurface ViewModel — never per-entity sprite quads.
