@@ -18,9 +18,15 @@ import {
   ExecuteOn,
   NetworkingService,
   CustomUiComponent,
+  FocusedInteractionService,
+  OnFocusedInteractionInputStartedEvent,
+  OnFocusedInteractionInputEventPayload,
+  Vec2,
+  Color,
 } from 'meta/worlds';
 import type { Maybe } from 'meta/worlds';
 import type { OnWorldUpdateEventPayload } from 'meta/worlds';
+import { getScreenAspectRatio } from '../CameraUtils';
 import {
   UpgradePanelViewModel,
   upgradeItemClickEvent,
@@ -115,6 +121,49 @@ export class UpgradePanelComponent extends Component {
 
     this.uiComponent.dataContext = this.viewModel;
     this.refreshUpgradeList();
+
+    // Enable touch input (client-side only)
+    this.enableTouchInput();
+  }
+
+  private enableTouchInput(): void {
+    if (!NetworkingService.get().isPlayerContext()) return;
+
+    const service = FocusedInteractionService.get();
+    try {
+      service.enableFocusedInteraction({
+        disableFocusExitButton: true,
+        disableEmotesButton: true,
+      });
+
+      service.setTapOptions(false, {
+        startColor: new Color(0, 0, 0, 0),
+        endColor: new Color(0, 0, 0, 0),
+        duration: 0,
+        startScale: 0,
+        endScale: 0,
+      });
+
+      service.setTrailOptions(false, {
+        startColor: new Color(0, 0, 0, 0),
+        endColor: new Color(0, 0, 0, 0),
+        startWidth: 0,
+        endWidth: 0,
+        length: 0,
+      });
+
+      console.log('[UpgradePanelComponent] Touch input enabled successfully');
+    } catch (e) {
+      console.error('[UpgradePanelComponent] Failed to enable touch input:', e);
+    }
+  }
+
+  @subscribe(OnFocusedInteractionInputStartedEvent)
+  onTouchStart(payload: OnFocusedInteractionInputEventPayload): void {
+    const o = payload.worldRayOrigin;
+    const d = payload.worldRayDirection;
+    const t = -o.y / d.y;
+    const _posWorld = o.add(d.mul(t));
   }
 
   /**

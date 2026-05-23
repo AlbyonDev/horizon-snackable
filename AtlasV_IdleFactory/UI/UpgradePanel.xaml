@@ -216,23 +216,7 @@
 
     <Viewbox Stretch="Uniform">
         <Grid Width="900" Height="1600">
-            <!-- Upgrade Panel - positioned at bottom, dynamic height -->
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Panel.ZIndex="-1">
-                <ItemsControl x:Name="UpgradeItemsControl" ItemsSource="{Binding Items}" ItemsPanel="{StaticResource VerticalPanel}" ItemTemplate="{StaticResource UpgradeItemTemplate}"/>
-            </ScrollViewer>
-
-            <!-- Invisible belt tap region - tap-to-send product to warehouse (MUST be after ScrollViewer for Z-order) -->
-            <Canvas IsHitTestVisible="True">
-                <Button Canvas.Left="0" Canvas.Top="650" Width="650" Height="400"
-                        Command="{Binding events.BeltTapClick}"
-                        Background="Transparent" BorderThickness="0">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="#01000000"/>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </Canvas>
+        <ItemsControl x:Name="UpgradeItemsControl" ItemsSource="{Binding Items}" ItemsPanel="{StaticResource VerticalPanel}" ItemTemplate="{StaticResource UpgradeItemTemplate}"/>
         </Grid>
     </Viewbox>
 </Page>
