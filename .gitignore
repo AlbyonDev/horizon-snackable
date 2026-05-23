@@ -1,1 +1,7 @@
-/AtlasV_TowerDefense/Temp
+node_modules
+tsconfig.json
+.vscode/
+.claude/
+/generatedImages
+/Temp
+CLAUDE.md
