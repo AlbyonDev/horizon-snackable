@@ -134,6 +134,37 @@ Pool size at boot is `CONVEYOR_SLOT_COUNT + MAX_STORAGE`, spawned once by `GameM
 
 ---
 
+## Strategies for Fitting More Modules on Screen
+
+The current layout uses 3 production modules spaced along the Z axis within the safe camera bounds (Z ≈ −4.5 to Z ≈ 3.5). Adding more modules requires one or more of the following approaches:
+
+### 1. Push Camera Back (raise Y height)
+- **File:** `IdleFactoryCameraComponent.ts` — change the camera Y position (currently ~8)
+- **Effect:** Wider visible XZ footprint; all existing content shrinks proportionally
+- **Trade-off:** Objects appear smaller; may need to scale up UI or adjust FOV to compensate
+
+### 2. Reduce FOV
+- **File:** `CameraComponent` on the scene entity (editor property) — currently 60°
+- **Effect:** Narrower lens sees more world at the same camera height when combined with a higher Y
+- **Trade-off:** Perspective distortion decreases (more orthographic feel); combine with camera push for best result
+
+### 3. Scale Modules Down
+- **File:** `Templates/ProductionModule.hstf` — reduce the root entity scale uniformly (e.g. 0.75×)
+- **Effect:** Each module occupies less Z space; more modules fit in the existing safe bounds
+- **Trade-off:** Crane and cargo animations are scale-relative; verify animation offsets still look correct after rescaling
+
+### 4. Moving Camera Interface (pan / scroll)
+- **File:** `IdleFactoryCameraComponent.ts` — add touch-drag or button-driven Z pan logic
+- **Effect:** The visible window scrolls over a longer factory; unlimited modules can exist off-screen
+- **Trade-off:** Most complex to implement; requires UI affordance (scroll indicator, snap points) so the player always knows where they are; upgrade panel buttons must stay anchored to screen space, not world space
+
+### 5. Compact Layout — Shift Modules to X Axis
+- **File:** `Defs/ProductionDefs.ts` + `Templates/Layout.hstf` — arrange modules side-by-side on X instead of stacked on Z
+- **Effect:** Frees up the full Z depth for a longer conveyor; modules fan out horizontally
+- **Trade-off:** Requires redesigning the conveyor topology (one shared belt vs. per-module belts merging); significant layout refactor
+
+---
+
 ## Key Design Principles
 
 - **Code is the source of truth.** All gameplay values live in `Constants.ts` and `Defs/`. When docs and code disagree, the code wins.
