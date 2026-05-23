@@ -1,7 +1,10 @@
 <Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
-      Background="Transparent">
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      d:DesignWidth="1920" d:DesignHeight="3640">
 
     <Page.Resources>
         <!-- Bool-to-Visibility converter -->
@@ -214,9 +217,22 @@
     <Viewbox Stretch="Uniform">
         <Grid Width="900" Height="1600">
             <!-- Upgrade Panel - positioned at bottom, dynamic height -->
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Panel.ZIndex="-1">
                 <ItemsControl x:Name="UpgradeItemsControl" ItemsSource="{Binding Items}" ItemsPanel="{StaticResource VerticalPanel}" ItemTemplate="{StaticResource UpgradeItemTemplate}"/>
             </ScrollViewer>
+
+            <!-- Invisible belt tap region - tap-to-send product to warehouse (MUST be after ScrollViewer for Z-order) -->
+            <Canvas IsHitTestVisible="True">
+                <Button Canvas.Left="0" Canvas.Top="650" Width="650" Height="400"
+                        Command="{Binding events.BeltTapClick}"
+                        Background="Transparent" BorderThickness="0">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="#01000000"/>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Canvas>
         </Grid>
     </Viewbox>
 </Page>
