@@ -1,6 +1,6 @@
 import { Color, ColorComponent, component, Component, EventService, ExecuteOn, NetworkingService, OnEntityStartEvent, OnFocusedInteractionInputEventPayload, OnFocusedInteractionInputStartedEvent, OnWorldUpdateEvent, OnWorldUpdateEventPayload, property, subscribe, TransformComponent, Vec3, type Maybe } from 'meta/worlds';
 import { Events, type ICollider, type Rect } from '../Types';
-import { BALL_SIZE, BALL_SPEED_BASE, BOUNDS, REVEAL_DROP_DURATION, REVEAL_DURATION, VFX_TRAIL_INTERVAL } from '../Constants';
+import { BALL_SIZE, BALL_SPEED_BASE, BOUNDS, REVEAL_DURATION, VFX_TRAIL_INTERVAL } from '../Constants';
 import { CollisionManager } from '../CollisionManager';
 import { StickyBallState } from './StickyBallState';
 import { LEVELS, LEVEL_DEFAULTS, DEFAULT_PALETTE, type ColorPalette, type GameplaySettings, type PhysicsSettings } from '../LevelConfig';

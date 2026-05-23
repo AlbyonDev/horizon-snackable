@@ -38,9 +38,6 @@ export class Paddle extends Component implements ICollider {
   private _paddleCtx!: PaddleContext;
   private _baseColor: Color = new Color(1, 1, 1, 1);
 
-  private _colorSlot = 0;
-  private _colorSlotTimer = 0;
-  private static readonly COLOR_SLOT_DURATION = 0.5;
   private _flashUntil = 0;
   private _lerpFactor: number = LEVEL_DEFAULTS.paddleLerpFactor;
   private _isClient = false;

@@ -96,7 +96,6 @@ export class AudioManager extends Service {
       this._soundIndex.set(soundId, 0);
     }
     this._sounds.get(soundId)!.push(sound);
-    console.log(`[AudioManager] Registered: "${soundId}" (${this._sounds.get(soundId)!.length} instances)`);
     if (soundId == SFX.MUSIC)
       this.playMusic(SFX.MUSIC, 1);
   }

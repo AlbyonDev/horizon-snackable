@@ -374,7 +374,7 @@ export const LEVELS: LevelConfig[] = [
       'RMPPMPPMR',
       'RMPPPPPPR',
       '0RPPPPPR0',
-      '00RPPPRO0',
+      '00RPPPRR0',
       '000RPR000',
       '0000R0000',
     ].join('\n'),
