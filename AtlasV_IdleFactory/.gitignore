@@ -3,5 +3,9 @@ tsconfig.json
 .vscode/
 .claude/
 /generatedImages
-/Temp
+Temp/
 CLAUDE.md
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
