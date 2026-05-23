@@ -321,7 +321,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -329,6 +329,8 @@
                                 "ingestionId": "10813960592941634168",
                                 "targetId": "2149638574"
                             },
+                            "width": 1920,
+                            "height": 1080,
                             "isInteractable": true,
                             "focusableInScreenMode": true
                         }

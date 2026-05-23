@@ -162,7 +162,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -212,7 +212,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -259,7 +259,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -305,7 +305,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {

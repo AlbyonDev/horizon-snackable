@@ -39,7 +39,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SpawnPointPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "stateEnabled": true,
                             "allowStart": true
@@ -135,7 +135,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 8,
+                        "version": 9,
                         "data": {
                             "type": "StaticCollision"
                         }
@@ -145,7 +145,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::ColliderMeshPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "meshAsset": {
                                 "packageOrRemoteId": "24149709574657735",
@@ -159,7 +159,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -226,7 +226,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 8,
+                        "version": 9,
                         "data": {
                             "type": "StaticCollision"
                         }
@@ -236,7 +236,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::ColliderMeshPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "meshAsset": {
                                 "packageOrRemoteId": "24149709574657735",
@@ -250,7 +250,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -313,7 +313,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -321,6 +321,8 @@
                                 "ingestionId": "13242404881060381236",
                                 "targetId": "2149638574"
                             },
+                            "width": 0,
+                            "height": 0,
                             "isInteractable": true,
                             "renderOrderOffset": 2
                         }
@@ -357,7 +359,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -365,6 +367,8 @@
                                 "ingestionId": "13013360559074576755",
                                 "targetId": "2149638574"
                             },
+                            "width": 0,
+                            "height": 0,
                             "isInteractable": false,
                             "renderOrderOffset": 1
                         }
@@ -413,7 +417,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -421,6 +425,8 @@
                                 "ingestionId": "17220633743778607531",
                                 "targetId": "2149638574"
                             },
+                            "width": 0,
+                            "height": 0,
                             "isInteractable": true
                         }
                     },
@@ -444,7 +450,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 14,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -452,6 +458,8 @@
                                 "ingestionId": "7179485402325287948",
                                 "targetId": "2149638574"
                             },
+                            "width": 0,
+                            "height": 0,
                             "isInteractable": false,
                             "renderOrderOffset": 4
                         }
