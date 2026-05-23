@@ -4,6 +4,7 @@
 **Platform:** Meta Horizon Worlds — Mobile Portrait (9×16 world-unit play area)
 **Art Style:** 80s neon arcade — saturated rainbow palettes on near-black backgrounds, juicy 2D-on-3D
 **Engine:** Meta Horizon Studio (TypeScript components + services, NoesisGUI XAML HUD)
+**Companion docs:** `GAMEPLAY.md` — full mechanical reference (physics, systems, state machine, levels); `TASK_BOARD.yaml` — current work items, known gaps, and design decisions.
 
 ---
 

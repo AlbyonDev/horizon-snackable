@@ -75,6 +75,37 @@ State variables that gate the loop (all on `GameManager`):
 
 ---
 
+## Game Flow (State Machine)
+
+Five states, all managed by `GameManager`. Transitions are driven by tap events and internal signals.
+
+```
+[TITLE SCREEN]
+   │  tap
+   ▼
+[PLAYING] ──── all bricks destroyed ────► [LEVEL CLEARED]
+   │                                        │  coins drained + 1 s
+   │  ball lost                             ▼
+   │                               _loadLevel(next) → [PLAYING]
+   ├── lives > 0 ──► [RESET ROUND]
+   │                    │  tap → [PLAYING] (same level, lives intact)
+   │
+   └── lives = 0 ──► [GAME OVER]
+                        │  tap → reset score + lives → [PLAYING] (same level)
+```
+
+| State | Flag / condition | Entry | Exit |
+|---|---|---|---|
+| **Title Screen** | `_showingTitleScreen = true` | boot | first tap |
+| **Playing** | all flags false | `_loadLevel()` | ball lost or all bricks destroyed |
+| **Reset Round** | none (transient) | `Events.ResetRound` | next tap |
+| **Level Cleared** | `_waitingForCoins = true` | `_advanceLevel()` | `activeCoinCount === 0` + 1 s |
+| **Game Over** | `_showingHighScores = true` | `Events.BallLost` with lives = 0 | next tap |
+
+On **Game Over**, the leaderboard is submitted via `LeaderboardEvents.LeaderboardSubmitScore` and displayed via `LeaderboardEvents.LeaderboardDisplayRequest`. The player restarts on the level they died on (no regression), with score reset to 0.
+
+---
+
 ## Ball Physics
 
 **Owner:** `Scripts/Components/Ball.ts`
