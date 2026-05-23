@@ -105,7 +105,6 @@ export class WarehouseController extends Component {
     for (let i = 0; i < this._platforms.length; i++) {
       const platform = this._platforms[i];
       const isActive = i < this._activePlatforms;
-      console.log(`${LOG_TAG} Setting platform ${i} active: ${isActive}`);
       const tc = platform.entity.getComponent(TransformComponent);
       if (tc)
       {

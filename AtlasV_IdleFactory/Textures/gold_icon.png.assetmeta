@@ -18,7 +18,7 @@
                         "data": {
                             "equirectangularToCube": false,
                             "enableRoughnessConvolution": false,
-                            "premultiplyAlpha": false,
+                            "premultiplyAlpha": true,
                             "pcSettings": {
                                 "class": "horizon::renderer::tool::TextureAssetBuilderPlatformSettings",
                                 "data": {

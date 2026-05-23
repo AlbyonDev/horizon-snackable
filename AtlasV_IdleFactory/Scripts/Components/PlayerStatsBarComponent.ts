@@ -38,29 +38,17 @@ export class PlayerStatsBarComponent extends Component {
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Everywhere })
   onStart(): void {
-    console.log('[PlayerStatsBarComponent] Initializing...');
-
-    // Get UI component reference
     this.customUiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.customUiComponent) {
-      console.log('[PlayerStatsBarComponent] ERROR: CustomUiComponent not found on entity');
+      console.error('[PlayerStatsBarComponent] CustomUiComponent not found on entity');
       return;
     }
 
-    // Create and bind ViewModel
     this.viewModel = new PlayerStatsBarViewModel();
     this.customUiComponent.dataContext = this.viewModel;
-
-    // Get EconomyService reference
     this.economyService = EconomyService.get();
-
-    // Record start time for elapsed time tracking
     this.startTime = WorldService.get().getWorldTime();
-
-    // Initialize UI with starting values
     this.updateUI();
-
-    console.log('[PlayerStatsBarComponent] Initialized successfully');
   }
 
   @subscribe(OnWorldUpdateEvent, { execution: ExecuteOn.Everywhere })

@@ -34,8 +34,6 @@ export class TitleScreenComponent extends Component {
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
 
-    console.log('[TitleScreenComponent] Initializing...');
-
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) {
       console.error('[TitleScreenComponent] CustomUiComponent not found on entity');
@@ -52,7 +50,6 @@ export class TitleScreenComponent extends Component {
       const statsBarEntities = parent.findChildrenWithName('PlayerStatsBarUI', false);
       if (statsBarEntities.length > 0) {
         this.playerStatsBarUi = statsBarEntities[0].getComponent(CustomUiComponent);
-        console.log('[TitleScreenComponent] Found PlayerStatsBarUI');
       } else {
         console.warn('[TitleScreenComponent] PlayerStatsBarUI not found');
       }
@@ -60,7 +57,6 @@ export class TitleScreenComponent extends Component {
       const upgradePanelEntities = parent.findChildrenWithName('UpgradePanel', false);
       if (upgradePanelEntities.length > 0) {
         this.upgradePanelUi = upgradePanelEntities[0].getComponent(CustomUiComponent);
-        console.log('[TitleScreenComponent] Found UpgradePanel');
       } else {
         console.warn('[TitleScreenComponent] UpgradePanel not found');
       }
@@ -73,14 +69,10 @@ export class TitleScreenComponent extends Component {
     if (this.upgradePanelUi) {
       this.upgradePanelUi.isVisible = false;
     }
-
-    console.log('[TitleScreenComponent] Initialized — title screen visible, game UI hidden');
   }
 
   @subscribe(titleScreenPlayClickEvent)
   onPlayClick(): void {
-    console.log('[TitleScreenComponent] Play button clicked');
-
     // Hide title screen
     if (this.uiComponent) {
       this.uiComponent.isVisible = false;
@@ -93,7 +85,5 @@ export class TitleScreenComponent extends Component {
     if (this.upgradePanelUi) {
       this.upgradePanelUi.isVisible = true;
     }
-
-    console.log('[TitleScreenComponent] Title screen hidden, game UI shown');
   }
 }

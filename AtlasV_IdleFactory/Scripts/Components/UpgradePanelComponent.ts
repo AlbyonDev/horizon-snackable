@@ -113,13 +113,8 @@ export class UpgradePanelComponent extends Component {
       return;
     }
 
-    // Connect ViewModel to UI
     this.uiComponent.dataContext = this.viewModel;
-
-    // Initial population from registry
     this.refreshUpgradeList();
-
-    console.log('[UpgradePanelComponent] Initialized');
   }
 
   /**
@@ -161,14 +156,7 @@ export class UpgradePanelComponent extends Component {
       return;
     }
 
-    console.log(`[UpgradePanelComponent] Upgrade clicked: ${upgradeId}`);
-
-    const success = UpgradeRegistryService.get().tryPurchase(upgradeId);
-    if (success) {
-      console.log(`[UpgradePanelComponent] Purchase successful: ${upgradeId}`);
-    } else {
-      console.log(`[UpgradePanelComponent] Purchase failed: ${upgradeId}`);
-    }
+    UpgradeRegistryService.get().tryPurchase(upgradeId);
 
     // Refresh list to reflect updated costs / removed entries
     this.refreshUpgradeList();
