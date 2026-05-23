@@ -67,6 +67,29 @@ Each button has: outline → highlight border → shadow border → background f
 
 **Text:** White `#FFFFFFFF` on all buttons.
 
+### Upgrade Panel Canvas & Button Positioning
+
+The upgrade panel renders inside a **`Viewbox` (Stretch="Uniform") wrapping a `900 × 1600 px` canvas** — this maps to the full portrait screen. Buttons have **no explicit Width or Height** (auto-sized by content); at current font sizes (title 18, price 38) with 15 px padding and border layers, each button is approximately **170 px wide × 100 px tall**.
+
+Button positions (top-left corner, in canvas pixels) are defined in `BUTTON_POSITION` in [Scripts/Components/UpgradePanelComponent.ts](../Scripts/Components/UpgradePanelComponent.ts):
+
+| Button ID | X | Y | Right edge (~) | Bottom edge (~) |
+|-----------|---|---|----------------|-----------------|
+| `trucks` | 700 | 40 | 870 | 140 |
+| `warehouse` | 700 | 300 | 870 | 400 |
+| `production0` | 700 | 700 | 870 | 800 |
+| `production1` | 700 | 1000 | 870 | 1100 |
+| `production2` | 700 | 1300 | 870 | 1400 |
+| `conveyor` | 25 | 1400 | 195 | 1500 |
+
+**Safe placement bounds for any new button:**
+- X: **0 – 730** (leaves ~170 px for button width before the 900 px right edge)
+- Y: **0 – 1500** (leaves ~100 px for button height before the 1600 px bottom edge)
+
+**Never place a new button outside these bounds.** If the panel needs more space, resize the canvas height and adjust the `Viewbox` container — do not push buttons past X 730 or Y 1500.
+
+**All interactive UI elements during gameplay must be added inside `UpgradePanel.xaml`.** Placing interactive controls in a separate XAML panel causes the `CustomUiComponent` of that panel to sit on top of `UpgradePanel`, blocking hit-testing on the buttons underneath. `UpgradePanel.xaml` is the single interactive surface during gameplay — new buttons, toggles, or tappable elements belong there, not in a new file.
+
 ### Player Stats Bar (Screen-Space, top)
 3 equal-width 3D relief frames (dark blue, black outline, 4-layer technique), 10 px margins, semi-transparent background bar. Displays: time played, packages sent, gold balance.
 
