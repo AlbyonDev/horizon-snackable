@@ -10,8 +10,7 @@ import {
 import type { OnWorldUpdateEventPayload } from 'meta/worlds';
 import type { Maybe } from 'meta/worlds';
 import { TitleScreenViewModel, onTitlePlayClicked } from './TitleScreenViewModel';
-
-const VERBOSE_LOG = false;
+import { TITLE_FADE_DURATION_MS } from './Constants';
 
 /**
  * TitleScreenController
@@ -35,12 +34,8 @@ export class TitleScreenController extends Component {
   // Attached to a non-networked scene entity; runs locally on all clients
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Everywhere })
   onStart() {
-    console.log('[TitleScreenController] Initialized');
     if (this.customUi) {
       this.customUi.dataContext = this.viewModel;
-      if (VERBOSE_LOG) {
-        console.log('[TitleScreenController] ViewModel connected to CustomUiComponent');
-      }
     }
   }
 
@@ -48,14 +43,13 @@ export class TitleScreenController extends Component {
   @subscribe(onTitlePlayClicked)
   onPlayClicked() {
     if (this.isFading) return; // Guard against double-tap
-    console.log('[TitleScreenController] Play button clicked, starting fade');
     this.isFading = true;
     this.fadeStartTime = Date.now();
     this.viewModel.fadeVisible = true;
     this.viewModel.fadeOpacity = 0;
   }
 
-  private readonly FADE_DURATION_MS = 800;
+  private readonly FADE_DURATION_MS = TITLE_FADE_DURATION_MS;
   private animStartTime: number = Date.now();
 
   // Animate logo and fade every frame
@@ -90,7 +84,6 @@ export class TitleScreenController extends Component {
   private hideTitleScreen(): void {
     if (this.customUi) {
       this.customUi.isVisible = false;
-      console.log('[TitleScreenController] Title screen hidden');
     }
   }
 

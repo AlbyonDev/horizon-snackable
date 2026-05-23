@@ -2,14 +2,12 @@
  * TapService — Player tap input, tap upgrades, and cursor auto-clicker.
  */
 import { OnServiceReadyEvent, EventService, Service, service, subscribe } from 'meta/worlds';
-import { BASE_CLICK_VALUE } from '../Constants';
+import { BASE_CLICK_VALUE, CURSOR_CYCLE_TIME } from '../Constants';
 import { Events, GainSource } from '../Types';
 import { ResourceService } from './ResourceService';
 import { ActionService } from './ActionService';
 import { StatsService } from './StatsService';
 import { getActionDef, getScaledCost } from '../Defs/ActionDefs';
-
-const CURSOR_CYCLE_TIME = 2;
 
 @service()
 export class TapService extends Service {

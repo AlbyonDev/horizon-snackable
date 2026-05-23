@@ -23,13 +23,9 @@ import {
   Color,
 } from 'meta/worlds';
 import { Events } from './Types';
+import { CANVAS_W, CANVAS_H, SCREEN_ASPECT } from './Constants';
 
-// Canvas dimensions matching the Viewbox Grid in tap_zone.xaml
-const CANVAS_W   = 480;
-const CANVAS_H   = 850;
 const GAME_ASPECT = CANVAS_W / CANVAS_H;   // ≈ 0.565 (portrait)
-// Estimated screen aspect for mobile (9:16). Touch offsets toward center → decrease; away → increase.
-const SCREEN_ASPECT = 9 / 16;
 
 @component()
 export class FocusedInteractionSetup extends Component {
@@ -38,8 +34,6 @@ export class FocusedInteractionSetup extends Component {
   onStart() {
     // MUST only run on client — FocusedInteractionService is client-side only
     if (!NetworkingService.get().isPlayerContext()) return;
-
-    console.log('[FocusedInteractionSetup] Enabling focused interaction on client');
 
     const service = FocusedInteractionService.get();
 
@@ -68,10 +62,8 @@ export class FocusedInteractionSetup extends Component {
         endWidth: 0,
         length: 0,
       });
-
-      console.log('[FocusedInteractionSetup] Focused interaction enabled successfully');
-    } catch (e) {
-      console.error('[FocusedInteractionSetup] Failed to enable focused interaction:', e);
+    } catch {
+      // FocusedInteractionService may be unavailable in some contexts; ignore.
     }
   }
 

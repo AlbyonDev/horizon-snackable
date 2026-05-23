@@ -7,7 +7,7 @@
  * Drives the tap zone visuals:
  *   - Resource counter from ResourceChanged
  *   - Cursor sprites count from TapService (one per owned cursor, capped)
- *   - Gem deposit pop/wiggle on PlayerTap (TODO: anim)
+ *   - Gem deposit pop/wiggle on PlayerTap
  */
 import {
   Component,
@@ -27,6 +27,7 @@ import { Events, ResourceType } from './Types';
 import { createTapZoneViewModel, TapZoneCursorViewModel } from './TapZoneViewModel';
 import type { TapZoneViewModel } from './TapZoneViewModel';
 import { TapService } from './Services/TapService';
+import { BonusGemService } from './Services/BonusGemService';
 import { cursorIcon } from './Assets';
 
 const MAX_VISIBLE_CURSORS = 10;
@@ -152,13 +153,36 @@ export class TapZoneController extends Component {
   @subscribe(OnWorldUpdateEvent, { execution: ExecuteOn.Everywhere })
   onUpdate(payload: OnWorldUpdateEventPayload): void {
     if (NetworkingService.get().isServerContext()) return;
-    if (!this._tapToEarnHidden) return;
 
-    const now = WorldService.get().getWorldTime();
-    if (now - this._lastTapTime >= TapZoneController.TAP_INACTIVITY_THRESHOLD) {
-      this._tapToEarnHidden = false;
-      this.viewModel.tapToEarnVisible = true;
+    if (this._tapToEarnHidden) {
+      const now = WorldService.get().getWorldTime();
+      if (now - this._lastTapTime >= TapZoneController.TAP_INACTIVITY_THRESHOLD) {
+        this._tapToEarnHidden = false;
+        this.viewModel.tapToEarnVisible = true;
+      }
     }
+
+    this._syncBonusGem();
+  }
+
+  /** Mirrors BonusGemService state onto the view model. */
+  private _bonusGemWasActive: boolean = false;
+  private _syncBonusGem(): void {
+    const svc    = BonusGemService.get();
+    const active = svc.isActive();
+    if (active) {
+      // Update position only on rising edge so the gem doesn't teleport every frame.
+      if (!this._bonusGemWasActive) {
+        this.viewModel.bonusGemX       = svc.getX();
+        this.viewModel.bonusGemY       = svc.getY();
+        this.viewModel.bonusGemVisible = true;
+        this.viewModel.bonusGemPulseTrigger++;
+      }
+    } else if (this._bonusGemWasActive) {
+      this.viewModel.bonusGemVisible = false;
+      this.viewModel.bonusGemCollectTrigger++;
+    }
+    this._bonusGemWasActive = active;
   }
 
   private _refreshCursors(): void {

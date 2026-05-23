@@ -22,8 +22,6 @@ import {
 import { Events, GainSource } from './Types';
 import { FloatingTextItemViewModel } from './FloatingTextItemViewModel';
 
-const VERBOSE_LOG = false;
-
 // --- Animation constants (same as original) ---
 const ANIMATION_DURATION = 0.7;
 const BASE_OFFSET_X = 350;
@@ -118,7 +116,6 @@ export class FloatingTextUIComponent extends Component {
     if (NetworkingService.get().isServerContext()) return;
     const ui = this.entity.getComponent(CustomUiComponent);
     if (ui) ui.dataContext = this._viewModel;
-    console.log('[FloatingTextUIComponent] onStart — dynamic ItemsControl mode');
   }
 
   private _colorForGain(source: GainSource, isCrit: boolean, isFrenzy: boolean): string {
@@ -153,10 +150,6 @@ export class FloatingTextUIComponent extends Component {
       color,
       startTime: this._currentTime,
     });
-
-    if (VERBOSE_LOG) {
-      console.log(`[FloatingTextUIComponent] Spawned particle: +${formatAmount(payload.amount)}`);
-    }
   }
 
   @subscribe(Events.Tick, { execution: ExecuteOn.Everywhere })

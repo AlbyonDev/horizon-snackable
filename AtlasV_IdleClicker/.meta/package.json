@@ -14,14 +14,6 @@
         {
             "name": "meta/assistant",
             "version": "*"
-        },
-        {
-            "name": "meta/worlds_sdk_experimental",
-            "version": "development"
-        },
-        {
-            "name": "meta/worlds_sdk_provisional",
-            "version": "development"
         }
     ]
 }

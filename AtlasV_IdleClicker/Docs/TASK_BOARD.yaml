@@ -1,48 +1,15 @@
-tasks:
-  - name: Hide Player and Skybox
-    status: done
-    summary: Disabled skybox entity and set player avatar scale to 0
-    files: [space.hstf, player.hstf]
+tasks: []
 
-  - name: Fix Player Avatar Still Visible
-    status: done
-    summary: Added Background="Black" to tap_zone.xaml outer Grid to fully cover the 3D world
-    files: [xaml/tap_zone.xaml]
-
-  - name: Add TAP TO EARN text
-    status: done
-    summary: Added golden "TAP TO EARN" text below resource counter in tap_zone.xaml
-    files: [xaml/tap_zone.xaml]
-
-  - name: Title Screen - Idle Temple
-    status: done
-    summary: Fullscreen title screen with temple background, golden logo, Play button, and 800ms fade-to-black transition to game
-    files: [xaml/title_screen.xaml, scripts/TitleScreenViewModel.ts, scripts/TitleScreenController.ts, sprites/title_background.png, sprites/title_logo.png]
-
-  - name: Red gradient on unaffordable buy buttons
-    status: done
-    summary: Buy button shows red gradient (#FFD32F2F to #FF6B1010) when canAfford is false
-    files: [xaml/GlobalResources.xaml]
-
-  - name: Player pickaxe z-index above auto cursors
-    status: done
-    summary: Added Panel.ZIndex="1" to player pickaxe Border in tap_zone.xaml
-    files: [xaml/tap_zone.xaml]
-
-  - name: Crystal shard VFX on gem mining
-    status: done
-    summary: 2D particle system with physics. Fixed race condition. Shards reduced in size (0.4-0.85 scale) and spawn with random position offset (±20px H, ±10px V).
-    files: [scripts/CrystalShardViewModel.ts, scripts/CrystalShardController.ts, scripts/TapZoneViewModel.ts, xaml/tap_zone.xaml]
-
-  - name: Dynamic floating text list system
-    status: done
-    summary: Replaced 20 hardcoded XAML slots with dynamic ItemsControl + ViewModel array pattern. ~50 lines XAML instead of 600+.
-    files: [scripts/FloatingTextItemViewModel.ts, scripts/FloatingTextUIComponent.ts, xaml/floating_text.xaml]
-
-  - name: New icons for mining upgrades
-    status: done
-    summary: Generated 4 sprite icons (shrine, mine, miner, critical) with transparent backgrounds and premultiply alpha
-    files: [sprites/icon_shrine.png, sprites/icon_mine.png, sprites/icon_miner.png, sprites/icon_critical.png]
+done:
+  - "Hide Player and Skybox -- skybox off, avatar scale 0"
+  - "Tap zone full-cover background -- player avatar no longer bleeds through"
+  - "Title screen 'Idle Temple' -- fullscreen intro with fade-to-black"
+  - "TAP TO EARN label -- hides on tap, reappears after 5s inactivity"
+  - "Red gradient on unaffordable buy buttons"
+  - "Player pickaxe rendered above auto cursors"
+  - "Crystal shard tap VFX -- 2D particle pool with physics"
+  - "Dynamic floating-text pool -- ItemsControl + ViewModel array"
+  - "New mining/upgrade icon sprites generated"
 
 chopping_block:
   disabled_systems: []
@@ -50,5 +17,9 @@ chopping_block:
   failed_attempts: []
 
 notes:
-  - Idle clicker game with mine/temple theme
-  - Fullscreen 2D UI game (no 3D visible)
+  - "Theme: mine + temple. Two backgrounds (jungle temple for tap zone, crystal cave for title)."
+  - "All gameplay client-side only -- services guard isServerContext() at entry."
+  - "No persistence -- every reload resets all state."
+  - "Cost curves: tap.buy / generator.buy.* use costPow=1.15; all upgrade actions default to costPow=2."
+  - "Crit modifier priority=10 (runs before Frenzy); Frenzy priority=0."
+  - "ShopZoneUI must keep isInteractable=true so shop touches don't fall through to TapZoneUI."

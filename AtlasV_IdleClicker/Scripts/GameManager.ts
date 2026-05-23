@@ -22,6 +22,7 @@ import { CritService } from './Services/CritService';
 import { InterestService } from './Services/InterestService';
 import { TapService } from './Services/TapService';
 import { VaultService } from './Services/VaultService';
+import { BonusGemService } from './Services/BonusGemService';
 
 @component()
 export class GameManager extends Component {
@@ -36,6 +37,7 @@ export class GameManager extends Component {
     InterestService.get(),
     TapService.get(),
     VaultService.get(),
+    BonusGemService.get(),
   ];
   private _network  : NetworkingService = NetworkingService.get();
   private _tickAccum: number = 0;
