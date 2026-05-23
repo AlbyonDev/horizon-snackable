@@ -133,7 +133,7 @@ export class TruckController extends Component {
   private _setRotation(truck: ITruckData): void {
     const facingLeft = truck.phase === TruckPhase.Away && truck.timer >= truck.travelOutEnd;
     this._transform!.localRotation = Quaternion.fromEuler(
-      new Vec3(0, facingLeft ? 180 : 0, 0),
+      new Vec3(0, facingLeft ? -90 : 90, 0),
     );
   }
 
