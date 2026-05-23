@@ -2,7 +2,7 @@
  * VaultService — Locks gold for a duration, returns it with a bonus (auto-collect).
  */
 import { OnServiceReadyEvent, Service, service, subscribe } from 'meta/worlds';
-import { BASE_VAULT_DURATION, BASE_VAULT_BONUS } from '../Constants';
+import { BASE_VAULT_DURATION, BASE_VAULT_BONUS, VAULT_LOCK_FRACTION } from '../Constants';
 import { Events, GainSource } from '../Types';
 import { ResourceService } from './ResourceService';
 import { ActionService } from './ActionService';
@@ -44,8 +44,8 @@ export class VaultService extends Service {
       }
       return {
         label    : lockDef.label,
-        detail   : `Lock 50% of gems for ${this._duration}s, returns with +${Math.round((this._bonusMultiplier - 1) * 100)}% bonus.`,
-        cost     : Math.floor(ResourceService.get().getGold() * 0.5),
+        detail   : `Lock ${Math.round(VAULT_LOCK_FRACTION * 100)}% of gems for ${this._duration}s, returns with +${Math.round((this._bonusMultiplier - 1) * 100)}% bonus.`,
+        cost     : Math.floor(ResourceService.get().getGold() * VAULT_LOCK_FRACTION),
         isEnabled: ResourceService.get().getGold() > 0,
       };
     });
@@ -120,7 +120,7 @@ export class VaultService extends Service {
   private _handleLock(): void {
     if (this._locked) return;
     const gold   = ResourceService.get().getGold();
-    const amount = Math.max(1, Math.floor(gold * 0.5));
+    const amount = Math.max(1, Math.floor(gold * VAULT_LOCK_FRACTION));
     if (!this._resources?.spend(amount)) return;
     this._locked       = true;
     this._lockedAmount = amount;

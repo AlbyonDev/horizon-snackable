@@ -347,6 +347,75 @@
                 </ItemsControl.ItemContainerStyle>
             </ItemsControl>
         </Grid>
+
+            <!-- Bonus mini-gem (spans full 480×850 canvas so positions match PlayerTap coords). -->
+            <Border Width="70" Height="70"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                    IsHitTestVisible="False"
+                    Panel.ZIndex="3"
+                    Visibility="{Binding Path=bonusGemVisible, Converter={StaticResource BoolToVis}}"
+                    RenderTransformOrigin="0.5,0.5">
+                <Border.RenderTransform>
+                    <TransformGroup>
+                        <!-- Scale first (around the Border's own 0.5,0.5 origin) -->
+                        <ScaleTransform x:Name="BonusGemPulse" ScaleX="1" ScaleY="1"/>
+                        <!-- Then translate so the (X,Y) binding represents the center on the 480×850 canvas. -->
+                        <TranslateTransform X="-35" Y="-35"/>
+                        <TranslateTransform X="{Binding Path=bonusGemX}" Y="{Binding Path=bonusGemY}"/>
+                    </TransformGroup>
+                </Border.RenderTransform>
+                <b:Interaction.Triggers>
+                    <b:PropertyChangedTrigger Binding="{Binding Path=bonusGemPulseTrigger}">
+                        <b:ControlStoryboardAction>
+                            <b:ControlStoryboardAction.Storyboard>
+                                <Storyboard RepeatBehavior="Forever">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BonusGemPulse" Storyboard.TargetProperty="ScaleX">
+                                        <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1"/>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="1.15">
+                                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                        </EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.8" Value="1">
+                                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                        </EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BonusGemPulse" Storyboard.TargetProperty="ScaleY">
+                                        <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1"/>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="1.15">
+                                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                        </EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.8" Value="1">
+                                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                        </EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </b:ControlStoryboardAction.Storyboard>
+                        </b:ControlStoryboardAction>
+                    </b:PropertyChangedTrigger>
+                    <b:PropertyChangedTrigger Binding="{Binding Path=bonusGemCollectTrigger}">
+                        <b:ControlStoryboardAction>
+                            <b:ControlStoryboardAction.Storyboard>
+                                <Storyboard>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BonusGemPulse" Storyboard.TargetProperty="ScaleX">
+                                        <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1.15"/>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="0">
+                                            <EasingDoubleKeyFrame.EasingFunction><QuadraticEase EasingMode="EaseIn"/></EasingDoubleKeyFrame.EasingFunction>
+                                        </EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BonusGemPulse" Storyboard.TargetProperty="ScaleY">
+                                        <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1.15"/>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="0">
+                                            <EasingDoubleKeyFrame.EasingFunction><QuadraticEase EasingMode="EaseIn"/></EasingDoubleKeyFrame.EasingFunction>
+                                        </EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </b:ControlStoryboardAction.Storyboard>
+                        </b:ControlStoryboardAction>
+                    </b:PropertyChangedTrigger>
+                </b:Interaction.Triggers>
+                <Border.Background>
+                    <ImageBrush ImageSource="{Binding Path=bonusGemImage}" Stretch="Uniform"/>
+                </Border.Background>
+            </Border>
         </Grid>
     </Viewbox>
 </Grid>

@@ -1,145 +1,104 @@
 # Project Summary — AtlasV Idle Clicker
 
-## Overview
-An idle clicker game built for Meta Horizon Studio (v79), targeting VR/mobile (Meta Quest). Fullscreen 2D UI — no 3D world visible. All logic runs client-side in TypeScript via the Worlds SDK.
+**Genre:** Idle Clicker
+**Platform:** Meta Horizon Studio — Mobile Portrait 1080×1920 (Meta Quest / mobile)
+**Art Style:** Stylised painterly fantasy temple / crystal-mine scene, golden HUD accents
+**Engine:** Meta Worlds SDK (TypeScript) + XAML UI (Noesis), client-side only
 
 ---
 
-## Architecture
+## Game Overview
 
-Service-oriented + MVVM pattern.
-
-- **Services** (`scripts/Services/`) — autonomous singletons owning all game logic
-- **Defs** (`scripts/Defs/`) — static data catalogs (actions, generators)
-- **ViewModels** — plain data objects bound to XAML
-- **Controllers** — bridge between services (events) and ViewModels (writes)
-- **Types.ts** — single source of truth for enums, interfaces, events (zero sibling imports)
-- **Constants.ts** — all tuning values (no magic numbers in logic files)
+A fullscreen 2D idle/clicker. The player taps a gem deposit to earn gold, then spends gold in the shop to buy auto-cursor miners, passive generators (Jungle Shrine, Crystal Mine), and four upgrade perks (Critical, Frenzy, Interest, Vault). There is no win/loss condition — the loop is open-ended progression. No persistence: every reload resets all state.
 
 ---
 
-## Gameplay Systems
+## Technical Architecture
 
-### ResourceService
-Gold storage + gain modifier pipeline. All gains flow through `addGain(amount, source)`, which runs registered modifiers in priority order before emitting `GainApplied`.
+Service-oriented + MVVM. The single tick from `GameManager` drives all autonomous services.
 
-### TapService
-Direct player tap → gold. Tap multiplier upgrades (up to 50 levels). Auto-cursor cycle: up to 10 cursors, each fires proportionally to CURSOR_CYCLE_TIME.
+```
+GameManager.ts                — instantiates services, fires Events.Tick every 0.1s
+scripts/Services/
+├── ResourceService           — gold store + gain modifier pipeline
+├── ActionService             — registry of all purchasable actions (drives shop UI)
+├── StatsService              — global named counters (taps, purchases, gold earned)
+├── TapService                — player tap → gold; auto-cursor (1..10) cycle
+├── GeneratorService          — passive income per generator def + upgrade ranks
+├── CritService               — chance-based gain multiplier (modifier on ResourceService)
+├── FrenzyService             — tap-streak-triggered timed all-gain multiplier
+├── InterestService           — % of current gold paid on a timer
+└── VaultService              — lock 50% of gold for a duration, return with bonus
+scripts/Defs/
+├── ActionDefs.ts             — catalog of every buyable action (id, label, cost, unlock chain)
+└── GeneratorDefs.ts          — catalog of generators (baseOutput, cycleTime, upgrade multipliers)
+scripts/Utils/checkUnlock.ts  — shared dependency-check helper
+scripts/Utils/hitTest.ts      — bbox helpers for matching PlayerTap coords to XAML elements
+scripts/                       (ViewModels + Controllers, MVVM pairs per UI screen)
+├── TitleScreenViewModel + TitleScreenController     (xaml/title_screen.xaml)
+├── UpgradeBarViewModel + UpgradeBarController       (xaml/upgrade_bar.xaml)
+├── TapZoneViewModel + TapZoneController             (xaml/tap_zone.xaml)
+├── ShopZoneViewModel + ShopZoneController           (xaml/shop_zone.xaml)
+├── FloatingTextItemViewModel + FloatingTextUIComponent (xaml/floating_text.xaml)
+├── CrystalShardViewModel + CrystalShardController   (shard VFX on tap, lives in tap_zone.xaml)
+└── FocusedInteractionSetup                          — touch → Events.PlayerTap with canvas coords
+scripts/Types.ts              — single source of truth: enums, IAction, all Events.* payloads
+scripts/Constants.ts          — tuning values; zero sibling imports
+scripts/Assets.ts             — TextureAsset registry (shared instances)
+```
 
-### GeneratorService
-Passive income. Two generators: Jungle Shrine (2.5/s, 5s cycle) and Crystal Mine (40/s, 10s cycle). Each has 10 upgrade ranks (chained unlock, geometric multipliers ~×1.5 per rank).
+---
 
-### CritService
-Rolls on every gain. Base 5% chance, ×2.5 multiplier. Upgrades: `crit.chance` (+5% each, max 8) and `crit.power` (+0.5× each, max 50). Modifier registered on unlock purchase.
+## Current Content
 
-### FrenzyService
-Tap-count threshold → timed all-gain multiplier. Default: 30 taps → 10s → ×2. Upgrades: lower threshold, extend duration, increase power.
-
-### InterestService
-% of current gold paid on a timer. Base 1% / 30s. Upgrades: increase rate, decrease interval.
-
-### VaultService
-Lock 50% of gold for a duration; auto-returns with bonus. Base: 30s → +50%. Upgrades: shorter duration, higher bonus.
-
-### ActionService
-Central registry of all purchasable actions. Systems declare actions via `declare(id, factory)`; the factory is called on every `refreshDeclared()` to recompute cost/enabled state. Drives the shop UI.
-
-### StatsService
-Global named counters. Tracks taps, gold earned, crit procs, purchase counts, generator ownership, etc.
+- **Generators:** 2 (`Jungle Shrine` 2.5/s base / 5s cycle, `Crystal Mine` 40/s base / 10s cycle), each with 10 upgrade ranks unlocked in a chain (`upgrade.N.0`..`upgrade.N.9`).
+- **Tap actions:** `tap.buy` (auto-cursor miner, max 10) and `tap.upgrade` (multiplier, max 50).
+- **Perks:** 4 unlockable systems — `crit.*` (3 actions), `frenzy.*` (4 actions), `interest.*` (3 actions), `vault.*` (4 actions including `vault.lock`).
+- **Total ActionDefs:** 33 entries (see `scripts/Defs/ActionDefs.ts`).
+- **Resources:** 1 (`ResourceType.Gold`).
+- **UI screens:** 5 — title, upgrade bar (top HUD), tap zone, shop zone (bottom), floating text overlay.
+- **Sprites on disk:** 15 PNGs in `sprites/`.
 
 ---
 
 ## Scene Structure
 
-- **space.hstf** — Main scene. Skybox disabled. All gameplay via UI overlays.
-- **player.hstf** — Player template with avatar scale set to 0 (hidden).
+- **`space.hstf`** — main scene. Skybox disabled. All gameplay via fullscreen `CustomUiComponent` ScreenSpace UIs.
+- **`player.hstf`** — player template, avatar scale = 0 (player is invisible).
 
-### Entities & render order
+| Entity | renderOrderOffset | XAML | isInteractable |
+|---|---|---|---|
+| TitleScreenUI | 20 | `xaml/title_screen.xaml` | true |
+| FloatingTextUI | 15 | `xaml/floating_text.xaml` | false |
+| UpgradeBarUI | 10 | `xaml/upgrade_bar.xaml` | false |
+| TapZoneUI | 5 | `xaml/tap_zone.xaml` | false |
+| ShopZoneUI | −10 | `xaml/shop_zone.xaml` | true |
+| GameManagerEntity | — | (no UI) | — |
 
-| Entity | renderOrderOffset | Role |
+All UI canvases are 1080×1920 ScreenSpace. See `Docs/SETUP.md` for the component wiring contract per entity.
+
+---
+
+## Events (single source of truth: `scripts/Types.ts`)
+
+| Event | Emitter | Listeners |
 |---|---|---|
-| TitleScreenUI | 20 | Fullscreen intro, fades out on Play |
-| FloatingTextUI | 15 | "+N" particle pool (20 slots) |
-| UpgradeBarUI | 10 | Top HUD: 4 feature slots |
-| TapZoneUI | 5 | Tap area, gem, cursors, resource counter |
-| ShopZoneUI | −10 | Bottom shop panel |
+| `PlayerTap` | `FocusedInteractionSetup` (real touch), `TapService` (auto-cursor) | `TapService`, `FrenzyService`, `CrystalShardController`, `TapZoneController` |
+| `ActionTriggered` | `ActionService.trigger()` (from shop button) | `TapService`, `GeneratorService`, `CritService`, `FrenzyService`, `InterestService`, `VaultService` |
+| `ActionRegistryChanged` | `ActionService` | `ShopZoneController` |
+| `StatsChanged` | `StatsService.increment()` | `ActionService`, `TapZoneController`, `UpgradeBarController` |
+| `ResourceChanged` | `ResourceService` | `TapZoneController`, `ShopZoneController`, `UpgradeBarController` |
+| `GainApplied` | `ResourceService.addGain()` | `FloatingTextUIComponent`, `UpgradeBarController` |
+| `Tick` | `GameManager` (every `TICK_INTERVAL` = 0.1s) | every service with a heartbeat + several controllers |
 
 ---
 
-## UI System
+## Key Design Principles
 
-### Title Screen
-- **XAML:** `xaml/title_screen.xaml`
-- **Scripts:** `TitleScreenController`, `TitleScreenViewModel`
-- Temple background (`title_background.png`), golden logo (`title_logo.png`), Play button. 800ms fade-to-black on press then panel hidden.
-
-### Upgrade Bar (Top HUD)
-- **XAML:** `xaml/upgrade_bar.xaml`
-- **Scripts:** `UpgradeBarController`, `UpgradeBarViewModel`
-- 4 fixed slots (Critical, Interest, Vault, Frenzy). Each hidden until the corresponding feature is unlocked. Live data: value, progress bar, animated border flash on events.
-
-### Tap Zone
-- **XAML:** `xaml/tap_zone.xaml`
-- **Scripts:** `TapZoneController`, `TapZoneViewModel`, `CrystalShardController`, `CrystalShardViewModel`, `FocusedInteractionSetup`
-- Cave background, gem deposit (wiggle on tap), resource counter, auto-cursor sprites (up to 10), player pickaxe (follows tap position, left/right swing animation). Crystal shard VFX on every tap.
-- "TAP TO EARN" label: hides 5s after last tap, reappears on inactivity.
-- **Sprites:** `tap_zone_background.png`, `gem_deposit.png`, `pickaxe_cursor.png`
-
-### Shop Zone
-- **XAML:** `xaml/shop_zone.xaml`
-- **Scripts:** `ShopZoneController`, `ShopZoneViewModel`
-- Three tabs: MINING, UPGRADES, PERKS. Items driven live from ActionService. Generator buy items show a cycle progress bar. Vault lock item shows lock countdown. Buy button turns red when unaffordable.
-- **Tab mapping:**
-  - MINING: `tap.buy`, `generator.buy.*`
-  - UPGRADES: `tap.upgrade`, `generator.upgrade.*`, `crit.*`, `frenzy.*`, `vault.*`, `interest.*` (excl. `*.unlock`)
-  - PERKS: `*.unlock` actions + `vault.lock`
-- **Sprites:** `icon_tab_mining.png`, `icon_tab_upgrade.png`, `icon_tab_coins.png`, `icon_critical.png`, `icon_frenzy.png`, `icon_vault.png`, `icon_income.png`
-
-### Floating Text
-- **XAML:** `xaml/floating_text.xaml`
-- **Script:** `FloatingTextUIComponent`, `FloatingTextItemViewModel`
-- Dynamic ItemsControl (20 slots). Spawns on every `GainApplied`. Floats upward, fades, pops on entry. Color-coded by source: gold (tap), green (passive), cyan (interest), orchid (vault), orange (frenzy/crit blend).
-
-### Input
-- `FocusedInteractionSetup` on TapZoneUI enables FocusedInteractionService, hides default VR controls (exit, emotes). Converts touch → `Events.PlayerTap` with canvas coordinates.
-
----
-
-## Events
-
-| Event | Who emits | Who listens |
-|---|---|---|
-| `PlayerTap` | FocusedInteractionSetup (manual), TapService (auto-cursor) | TapService, FrenzyService, CrystalShardController, TapZoneController |
-| `ActionTriggered` | ActionService.trigger() | GeneratorService, TapService, CritService, FrenzyService, InterestService, VaultService |
-| `ActionRegistryChanged` | ActionService | ShopZoneController |
-| `StatsChanged` | StatsService.increment() | ActionService, TapZoneController, UpgradeBarController |
-| `ResourceChanged` | ResourceService | TapZoneController, ShopZoneController, UpgradeBarController |
-| `GainApplied` | ResourceService.addGain() | FloatingTextUIComponent, UpgradeBarController |
-| `Tick` | GameManager (every 0.1s) | GeneratorService, TapService, FrenzyService, InterestService, VaultService, UpgradeBarController, ShopZoneController, CrystalShardController, FloatingTextUIComponent |
-
----
-
-## Sprites
-
-| File | Used by |
-|---|---|
-| `gem_deposit.png` | Tap zone gem |
-| `pickaxe_cursor.png` | Auto-cursor + player pickaxe |
-| `tap_zone_background.png` | Tap zone background |
-| `title_background.png` | Title screen background |
-| `title_logo.png` | Title screen logo |
-| `icon_critical.png` | Upgrade bar slot, shop item |
-| `icon_frenzy.png` | Upgrade bar slot, shop item |
-| `icon_vault.png` | Upgrade bar slot, shop item |
-| `icon_income.png` | Upgrade bar slot, shop item |
-| `icon_tab_mining.png` | Shop tab + mining items |
-| `icon_tab_upgrade.png` | Shop tab + upgrade items |
-| `icon_tab_coins.png` | Shop tab (Economy/Perks) |
-
----
-
-## Notes
-
-- No persistence — every reload resets all state.
-- All gameplay runs client-side only (`isServerContext()` guards at service entry points).
-- Cost curves: tap/generator buys use `costPow: 1.15`; all upgrades default to `costPow: 2`.
+- **Single tick.** `GameManager` is the only driver. Services subscribe to `Events.Tick`; no `setTimeout` / `setInterval` for gameplay logic.
+- **Client-side only.** Every service guards `NetworkingService.isServerContext()` at entry; nothing runs on the server.
+- **Modifier pipeline for gains.** Crit and Frenzy do not double-write to `ResourceService` — they register a modifier function with priority. All gold flows through `ResourceService.addGain()`.
+- **Type isolation.** `Types.ts` and `Constants.ts` import nothing from siblings — they're the dependency floor.
+- **Action declarations are live.** Services call `ActionService.declare(id, factory)` once in `onReady`; the factory is re-run on every `refreshDeclared()` so cost/enabled state stay current without bookkeeping.
+- **Cost curves in defs, not logic.** `ActionDefs.costPow` controls scaling (1.15 for buys, 2.0 for upgrades by default).
+- **No persistence.** Reload = reset. There is no save system.

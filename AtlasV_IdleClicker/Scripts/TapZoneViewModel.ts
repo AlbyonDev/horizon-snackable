@@ -64,6 +64,19 @@ export class TapZoneViewModel extends UiViewModel {
 
   public tapToEarnVisible: boolean = true;
 
+  // ── Bonus mini-gem ────────────────────────────────────────────────────────
+  /** Sprite for the bonus mini-gem (reuses gem_deposit.png scaled down). */
+  public bonusGemImage: Maybe<TextureAsset> = null;
+  /** Whether the bonus gem is currently on screen. */
+  public bonusGemVisible: boolean = false;
+  /** Bonus gem center position in the 480×850 canvas. */
+  public bonusGemX: number = 240;
+  public bonusGemY: number = 320;
+  /** Increment to play the pulse / shimmer animation. */
+  public bonusGemPulseTrigger: number = 0;
+  /** Increment to play the pop-out animation when collected. */
+  public bonusGemCollectTrigger: number = 0;
+
   override readonly events = {};
 }
 
@@ -81,6 +94,8 @@ export function createTapZoneViewModel(): TapZoneViewModel {
   vm.gemScale = 1;
   vm.playerPickaxeIcon = new TextureAsset('@sprites/pickaxe_cursor.png');
   vm.cursors = [];
+
+  vm.bonusGemImage = new TextureAsset('@sprites/gem_deposit.png');
 
   return vm;
 }

@@ -46,8 +46,6 @@ const FADE_DURATION = 0.3;    // seconds to fade out after bounce
 const SHARD_SPAWN_OFFSET_X = 20; // pixels max horizontal spawn offset
 const SHARD_SPAWN_OFFSET_Y = 10; // pixels max vertical spawn offset
 
-const VERBOSE_LOG = false;
-
 const SHARD_TEXTURE: TextureAsset = currencyIcon;
 
 /** Internal particle state (not exposed to XAML directly). */
@@ -75,7 +73,6 @@ export class CrystalShardController extends Component {
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Everywhere })
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[CrystalShardController] onStart');
   }
 
   /**
@@ -89,7 +86,6 @@ export class CrystalShardController extends Component {
     const uiComponent = this.entity.getComponent(CustomUiComponent);
     if (uiComponent && uiComponent.dataContext) {
       this.viewModel = uiComponent.dataContext as TapZoneViewModel;
-      console.log('[CrystalShardController] ViewModel acquired lazily');
     }
     return this.viewModel;
   }
@@ -103,10 +99,6 @@ export class CrystalShardController extends Component {
     const count = payload.isAuto
       ? 1
       : SHARDS_PER_TAP_MIN + Math.floor(Math.random() * (SHARDS_PER_TAP_MAX - SHARDS_PER_TAP_MIN + 1));
-
-    if (VERBOSE_LOG) {
-      console.log(`[CrystalShardController] Spawning ${count} shards`);
-    }
 
     for (let i = 0; i < count; i++) {
       // Upward burst: strong negative vy (up in screen coords) with horizontal spread
