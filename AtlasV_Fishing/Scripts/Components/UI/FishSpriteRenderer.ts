@@ -99,7 +99,6 @@ export class FishSpriteRenderer extends Component {
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[FishSpriteRenderer] onStart — binding DrawingSurface');
     const ui = this.entity.getComponent(CustomUiComponent);
     if (ui) {
       ui.dataContext = this._vm;

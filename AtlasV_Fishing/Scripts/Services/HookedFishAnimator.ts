@@ -91,7 +91,6 @@ export class HookedFishAnimator extends Component {
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
     HookedFishAnimator._instance = this;
-    console.log('[HookedFishAnimator] Service ready (pendulum model)');
   }
 
   @subscribe(Events.FishHooked)

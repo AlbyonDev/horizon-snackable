@@ -42,7 +42,6 @@ export class GameHUDViewModel extends Component {
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[GameHUDViewModel] onStart');
     this._ui = this.entity.getComponent(CustomUiComponent);
     if (this._ui) {
       this._ui.dataContext = this._vm;
@@ -53,7 +52,6 @@ export class GameHUDViewModel extends Component {
   @subscribe(TitleScreenPlayRequested)
   private _onPlayPressed(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[GameHUDViewModel] Play pressed, showing HUD');
     this._playPressed = true;
     if (this._ui) this._ui.isVisible = true;
     // Set initial counter visibility for the Idle phase (gold visible)

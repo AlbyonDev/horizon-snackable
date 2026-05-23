@@ -84,7 +84,6 @@ export class FishCollectionUIComponent extends Component {
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[FishCollectionUIComponent] onStart');
 
     this._ui = this.entity.getComponent(CustomUiComponent);
     if (this._ui) {
@@ -139,7 +138,6 @@ export class FishCollectionUIComponent extends Component {
   @subscribe(Events.ProgressLoaded)
   private _onProgressLoaded(p: Events.ProgressLoadedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[FishCollectionUIComponent] ProgressLoaded');
     this._refreshAllCells();
     this._updateProgress();
   }
@@ -161,7 +159,6 @@ export class FishCollectionUIComponent extends Component {
   @subscribe(OpenFishCollectionRequested)
   private _onOpen(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[FishCollectionUIComponent] Open collection');
     this._refreshAllCells();
     this._vm.isCollectionVisible = true;
 
@@ -175,7 +172,6 @@ export class FishCollectionUIComponent extends Component {
   @subscribe(onCloseCollectionEvent)
   private _onClose(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[FishCollectionUIComponent] Close collection');
     this._vm.isCollectionVisible = false;
     this._vm.isDetailVisible = false;
 
@@ -198,7 +194,6 @@ export class FishCollectionUIComponent extends Component {
     const svc = FishCollectionService.get();
     if (!svc.hasCaught(def.id)) return; // Only show detail for caught fish
 
-    console.log('[FishCollectionUIComponent] Show detail for:', def.name);
     const spriteInfo = SPRITE_FISH_MAP.get(def.id);
     this._vm.detailFishIcon = spriteInfo ? spriteInfo.texture : null;
     this._vm.detailFishName = def.name;

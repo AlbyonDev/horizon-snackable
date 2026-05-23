@@ -14,6 +14,19 @@ All visual assets for this game use a consistent anime JRPG aesthetic optimized 
 - **Expression:** Always visible and readable at small sizes (120×120px minimum)
 - **Background:** All character sprites have transparent backgrounds with no drop shadows
 
+## Character Facing & Stance
+
+- **Heroes face RIGHT** in a dynamic, heroic attack stance (forward lean, weapon/magic prominent).
+- **Enemies face LEFT** in an aggressive, menacing attack stance (claws/weapons/natural attacks prominent).
+
+## Color → Theme Associations
+
+- **RED (Crimson):** Fire, passion, warriors, physical damage
+- **BLUE (Azure):** Water, ice, magic, intelligence
+- **GREEN (Emerald):** Nature, poison, healing, growth
+- **YELLOW (Aureate):** Light, holy, lightning, speed
+- **PURPLE (Void):** Dark, shadow, chaos, debuffs
+
 ## Gem Sprites (Match-3)
 
 Each gem is a standalone 96×96px PNG sprite with:

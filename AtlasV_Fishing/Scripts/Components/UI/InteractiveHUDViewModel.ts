@@ -59,10 +59,10 @@ export class InteractiveHUDData extends UiViewModel {
   castButtonText: string = 'CAST';
 
   /** HUD visibility — string for XAML DataTrigger ('True'/'False') */
-  isHudVisible: string = 'True';
+  isHudVisible: string = 'False';
 
   /** Whether root is hit-test-visible. True only during IDLE. */
-  isInteractive: boolean = true;
+  isInteractive: boolean = false;
 
   /** Upgrade levels */
   lineLevel: number = 0;
@@ -127,7 +127,6 @@ export class InteractiveHUDViewModel extends Component {
   @subscribe(TitleScreenPlayRequested)
   private _onPlayPressed(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[InteractiveHUDViewModel] Play pressed, showing HUD');
     this._playPressed = true;
     this._showHUD();
   }
@@ -162,7 +161,6 @@ export class InteractiveHUDViewModel extends Component {
   @subscribe(onOpenFishCollectionEvent)
   private _onOpenFishCollection(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[InteractiveHUDViewModel] Relaying OpenFishCollectionRequested');
     EventService.sendLocally(OpenFishCollectionRequested, {});
   }
 

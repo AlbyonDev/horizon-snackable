@@ -2,7 +2,7 @@
 
 **Genre:** Arcade Breakout / Brick Breaker
 **Platform:** Meta Horizon Worlds — Mobile Portrait (9×16 world-unit play area)
-**Art Style:** 80s neon arcade — saturated rainbow palettes on near-black backgrounds, juicy 2D-on-3D
+**Art Style:** 80s neon arcade — saturated rainbow palettes on neon grid horizon background (deep space perspective grid with hot pink horizon glow and electric blue starfield), juicy 2D-on-3D
 **Engine:** Meta Horizon Studio (TypeScript components + services, NoesisGUI XAML HUD)
 **Companion docs:** `GAMEPLAY.md` — full mechanical reference (physics, systems, state machine, levels); `TASK_BOARD.yaml` — current work items, known gaps, and design decisions.
 
@@ -34,7 +34,7 @@ Scripts/
 │   ├── AudioSource.ts          — registers a scene SoundComponent with AudioManager under a string ID
 │   ├── GameHUDViewModel.ts     — score (casino roll-up), lives hearts, center text (DVD bounce)
 │   ├── ComboHUDViewModel.ts    — combo counter, neon tier colors, scale punch
-│   ├── BackgroundAnimViewModel.ts — dynamic hue overlay, pulses on brick destroy
+│   ├── BackgroundAnimViewModel.ts — (legacy, no longer attached) dynamic hue overlay
 │   └── HighScoreHUDViewModel.ts — leaderboard table with staggered slide-in
 ├── Services/
 │   ├── CoinService.ts          — coin spawn (1–3 per brick), shmup-vacuum, super-vacuum on clear, score events
@@ -53,7 +53,9 @@ Scripts/
 
 Scene files: `space.hstf` (main scene), `Templates/Breakout.hstf`, `Templates/GameplayObjects/{Brick,ExplosiveBrick,BigPaddle,StickyPaddle}.hstf`, `Templates/Particle.hstf`, `Templates/Audio/collect_7.hstf`.
 
-UI files: `UI/{GameHUD,ComboHUD,Background,HighScoreHUD}.xaml`.
+UI files: `UI/{GameHUD,ComboHUD,HighScoreHUD}.xaml`.
+
+Background: textured unlit plane mesh (neon grid horizon image) positioned behind gameplay at Z=-1.
 
 ---
 

@@ -33,7 +33,6 @@ export class BubblePool extends Service {
   private _index : number = 0;
 
   async prewarm(): Promise<void> {
-    console.log("start");
     for (let i = 0; i < BUBBLE_POOL_SIZE; i++) {
       const entity = await WorldService.get().spawnTemplate({
         templateAsset: Assets.BubbleTemplate,
@@ -42,7 +41,6 @@ export class BubblePool extends Service {
       });
       this._free.push(entity);
     }
-    console.log("ready");
     this._ready = true;
   }
 

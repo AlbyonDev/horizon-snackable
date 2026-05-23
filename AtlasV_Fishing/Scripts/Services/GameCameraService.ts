@@ -12,10 +12,6 @@ import {
   type Maybe,
 } from 'meta/worlds';
 
-import {
-  CameraProvisionalComponent,
-  CameraModeProvisionalService,
-} from 'meta/worlds_provisional';
 import { Events, GamePhase } from '../Types';
 import { FishDataService } from './FishDataService';
 import { CAMERA_SCROLL_LERP_SPEED } from '../Constants';
@@ -73,13 +69,9 @@ export class GameCameraService extends Service {
     this._basePosY = tc.worldPosition.y;
     this._basePosZ = tc.worldPosition.z;
     this._camera = entity;
-    const _camera = entity.getComponent(CameraComponent);
-    const _cameraP = entity.getComponent(CameraProvisionalComponent);
-    if (_camera) {
-      CameraService.get().setActiveCamera({ camera: _camera });
-    }
-    if (_cameraP){
-      CameraModeProvisionalService.get().setActiveCamera({ camera: _cameraP });
+    const camera = entity.getComponent(CameraComponent);
+    if (camera) {
+      CameraService.get().setActiveCamera({ camera });
     }
 
     this._ready = true;
@@ -128,7 +120,6 @@ export class GameCameraService extends Service {
     this._animTargetOffY = targetWorldY - this._basePosY;
     this._animDuration   = durationMs / 1000; // convert to seconds
     this._animElapsed    = 0;
-    console.log(`[GameCameraService] animateTo worldY=${targetWorldY} over ${durationMs}ms`);
   }
 
   // ── Events ───────────────────────────────────────────────────────────────────
@@ -169,7 +160,6 @@ export class GameCameraService extends Service {
         this._scrollOffsetY = this._animTargetOffY;
         this._scrollTargetY = this._animTargetOffY;
         this._animating = false;
-        console.log('[GameCameraService] animateTo complete');
       }
     } else {
       // --- Normal scroll lerp (hook-following) ---
