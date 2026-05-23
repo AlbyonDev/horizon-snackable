@@ -1,5 +1,5 @@
 {
-    "version": 5,
+    "version": 6,
     "entities": [
         {
             "id": "f19469c4-1e19-438d-902f-76db131a2587",
@@ -8,7 +8,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::TransformPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "localPosition": {
                                 "x": 0.0,
@@ -45,13 +45,13 @@
             "attributes": []
         },
         {
-            "id": "e5ad2bae-ca3d-46c1-b2be-f2083d5b8e86",
-            "name": "ExplosiveBrick_remeshed",
+            "id": "9568be05-0c83-42df-ac43-f793ea8ff333",
+            "name": "Brick",
             "components": [
                 {
                     "data": {
                         "class": "horizon::platform_api::TransformPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "localPosition": {
                                 "x": 0.0,
@@ -64,9 +64,9 @@
                                 "z": 0.0
                             },
                             "localScale": {
-                                "x": 0.6673352122306824,
-                                "y": 1.053457498550415,
-                                "z": 1.5739142894744874
+                                "x": 1.0,
+                                "y": 1.0,
+                                "z": 1.0
                             }
                         }
                     },
@@ -78,19 +78,18 @@
                         "version": 11,
                         "data": {
                             "mesh": {
-                                "packageOrRemoteId": "26904326832536512",
-                                "ingestionId": "17138942523137658178",
-                                "targetId": "3500183637"
+                                "packageOrRemoteId": "24407058055595655",
+                                "ingestionId": "4707432788469128401",
+                                "targetId": "931111888"
+                            },
+                            "lightingParams": {
+                                "class": "horizon::platform_api::LightingParams",
+                                "data": {
+                                    "diffuseGISource": "Unlit",
+                                    "contributeToGI": false
+                                }
                             }
                         }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
-                        "data": {}
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 },
@@ -101,11 +100,39 @@
                         "data": {
                             "color": {
                                 "r": 1.0,
-                                "g": 1.0,
-                                "b": 1.0,
+                                "g": 0.062745101749897,
+                                "b": 0.0,
                                 "a": 1.0
                             }
                         }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MaterialPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "materials": [
+                                {
+                                    "packageOrRemoteId": "26904326832536512",
+                                    "ingestionId": "6044079188968600105",
+                                    "targetId": "157013062"
+                                }
+                            ]
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "Brick",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26904326832536512",
+                            "ingestionId": "10374899672274944721",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 }
@@ -116,7 +143,7 @@
     "relationships": [
         {
             "relationshipType": "RelationChildOf",
-            "source": "e5ad2bae-ca3d-46c1-b2be-f2083d5b8e86",
+            "source": "9568be05-0c83-42df-ac43-f793ea8ff333",
             "destination": "f19469c4-1e19-438d-902f-76db131a2587"
         }
     ]

@@ -1,5 +1,5 @@
 {
-    "version": 5,
+    "version": 6,
     "entities": [
         {
             "id": "3eeefa43-25e7-4c2f-bce0-0387b8b9ac8b",
@@ -8,7 +8,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::TransformPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
                             "localPosition": {
                                 "x": 0.0,
@@ -56,28 +56,18 @@
             ]
         },
         {
-            "id": "8552bd55-95f9-4522-8844-6aaed4f336d1",
-            "name": "Visuals",
+            "id": "a464904e-7929-416f-8269-01d8e000c6ec",
+            "name": "Visual",
             "components": [
                 {
                     "data": {
                         "class": "horizon::platform_api::TransformPlatformComponent",
-                        "version": 2,
+                        "version": 3,
                         "data": {
-                            "localPosition": {
-                                "x": 0.0,
-                                "y": 0.0,
-                                "z": 0.0
-                            },
-                            "localRotation": {
-                                "x": -0.0,
-                                "y": 0.0,
-                                "z": 0.0
-                            },
                             "localScale": {
-                                "x": 5.0,
-                                "y": 5.0,
-                                "z": 5.0
+                                "x": 1.0,
+                                "y": 1.0,
+                                "z": 0.25
                             }
                         }
                     },
@@ -89,26 +79,10 @@
                         "version": 11,
                         "data": {
                             "mesh": {
-                                "packageOrRemoteId": "26904326832536512",
-                                "ingestionId": "14585637230513872343",
-                                "targetId": "3500183637"
+                                "packageOrRemoteId": "24407058055595655",
+                                "ingestionId": "11205833394550419844",
+                                "targetId": "3128559896"
                             }
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
-                        "data": {
-                            "materials": [
-                                {
-                                    "packageOrRemoteId": "26904326832536512",
-                                    "ingestionId": "3836166551720960691",
-                                    "targetId": "157013062"
-                                }
-                            ]
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -120,10 +94,26 @@
                         "data": {
                             "color": {
                                 "r": 1.0,
-                                "g": 1.0,
-                                "b": 1.0,
+                                "g": 0.7176470756530762,
+                                "b": 0.0,
                                 "a": 1.0
                             }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MaterialPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "materials": [
+                                {
+                                    "packageOrRemoteId": "24407058055595655",
+                                    "ingestionId": "4300205889696081881",
+                                    "targetId": "2256495737"
+                                }
+                            ]
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -135,7 +125,7 @@
     "relationships": [
         {
             "relationshipType": "RelationChildOf",
-            "source": "8552bd55-95f9-4522-8844-6aaed4f336d1",
+            "source": "a464904e-7929-416f-8269-01d8e000c6ec",
             "destination": "3eeefa43-25e7-4c2f-bce0-0387b8b9ac8b"
         }
     ]
