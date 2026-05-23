@@ -717,7 +717,7 @@ This pattern ensures:
 2. **`Viewbox` with `Stretch="Uniform"`** - Scales content proportionally to fit the screen while maintaining aspect ratio
 3. **Inner `Grid` with fixed dimensions** - Defines your game's logical resolution that gets scaled
 
-> **Note:** Because `Stretch="Uniform"` letterboxes the content when the screen aspect ratio differs from your game's aspect ratio, touch coordinates from `FocusedInteractionService` won't map 1:1 to your canvas. Use `CameraModeProvisionalService.aspectRatio` (from `meta/worlds_provisional`) to get the actual viewport aspect ratio and compute the correct mapping. See the **Touch Input** skill for the full `screenToCanvas()` implementation.
+> **Note:** Because `Stretch="Uniform"` letterboxes the content when the screen aspect ratio differs from your game's aspect ratio, touch coordinates from `FocusedInteractionService` won't map 1:1 to your canvas. Use `getScreenAspectRatio()` from `CameraUtils` to get the actual viewport aspect ratio and compute the correct mapping. See the **Touch Input** skill for the full `screenToCanvas()` implementation.
 
 ## DrawingSurface Element
 

@@ -19,7 +19,7 @@ When the window aspect ratio differs from your game canvas (which is almost alwa
 
 **Symptom:** User has to click far to the side of the window to register touches on the edge of the playable area.
 
-**Solution:** Use `CameraModeProvisionalService.aspectRatio` from `meta/worlds_provisional` to get the actual viewport aspect ratio at runtime, then compute the letterbox offset mathematically. See the [Coordinate Mapping](#coordinate-mapping) section below.
+**Solution:** Use `getScreenAspectRatio()` from `CameraUtils` to get the actual viewport aspect ratio at runtime, then compute the letterbox offset mathematically. See the [Coordinate Mapping](#coordinate-mapping) section below.
 
 **This is NOT optional.** Every 2D game using FocusedInteractionService MUST implement coordinate mapping with aspect ratio correction.
 
@@ -46,17 +46,13 @@ import {
   Vec2,
   NetworkingService,
 } from 'meta/worlds';
-import {
-  CameraModeProvisionalService,
-} from 'meta/worlds_provisional';
+import { getScreenAspectRatio } from '../CameraUtils';
 import {
   OnEntityCreateEvent,
   OnEntityStartEvent,
   Color,
 } from 'meta/platform_api';
 ```
-
-> **⚠️ Dependency Required:** To use `CameraModeProvisionalService`, you must add `meta/worlds_provisional` to your project's package dependencies. In Meta Horizon Studio, add the `worlds_sdk_provisional` package to your project's `package.json`. The tsconfig.json will be automatically updated with the path mapping.
 
 ## Setup
 
@@ -165,21 +161,21 @@ When using a `Viewbox` with `Stretch="Uniform"` (required for fullscreen 2D game
 2. The mapping may differ per axis depending on aspect ratios
 3. Without correction, touches appear offset from where the user actually touched
 
-### The Solution: CameraModeProvisionalService.aspectRatio (Recommended)
+### The Solution: getScreenAspectRatio() from CameraUtils (Recommended)
 
-**Use `CameraModeProvisionalService` from `meta/worlds_provisional` to get the actual viewport aspect ratio at runtime.** This eliminates the need for hardcoded aspect ratios, manual calibration, or guessing device dimensions.
+**Use `getScreenAspectRatio()` from `CameraUtils` to get the actual viewport aspect ratio at runtime.** This eliminates the need for hardcoded aspect ratios, manual calibration, or guessing device dimensions.
 
-`CameraModeProvisionalService.aspectRatio` returns the camera viewport's width/height ratio. Combined with your known game canvas aspect ratio, you can compute the exact letterbox offset and correctly map normalized screen coordinates to canvas coordinates.
+`getScreenAspectRatio()` returns the camera viewport's width/height ratio using `CameraService.screenToWorldPoint` — a durable, non-provisional API. Combined with your known game canvas aspect ratio, you can compute the exact letterbox offset and correctly map normalized screen coordinates to canvas coordinates.
 
 ```typescript
-import { CameraModeProvisionalService } from 'meta/worlds_provisional';
+import { getScreenAspectRatio } from '../CameraUtils';
 
 private readonly kCanvasWidth = 480;
 private readonly kCanvasHeight = 800;
 private readonly kGameAspectRatio = this.kCanvasWidth / this.kCanvasHeight; // 0.6 for 480x800
 
 private screenToCanvas(screenPos: Vec2): { x: number; y: number } {
-  const screenAspect = CameraModeProvisionalService.get().aspectRatio; // actual width/height
+  const screenAspect = getScreenAspectRatio(); // actual width/height
   let canvasX: number;
   let canvasY: number;
 
@@ -222,24 +218,6 @@ On a 16:9 screen (aspectRatio ≈ 1.78) with a 480×800 game (gameAspect = 0.6):
 - A touch at `screenPos.x = 0.5` (screen center) maps to canvas center: `(0.5 - 0.331) / 0.337 * 480 ≈ 240`
 - A touch at `screenPos.x = 0.331` (left edge of game) maps to canvas x ≈ 0
 - A touch at `screenPos.x = 0.669` (right edge of game) maps to canvas x ≈ 480
-
-### Fallback: Estimated Aspect Ratio
-
-If `meta/worlds_provisional` is unavailable in your project, you can hardcode an estimated aspect ratio as a fallback. This is less accurate but works as a reasonable approximation:
-
-```typescript
-// Fallback: hardcoded estimate (16:9 is common for most devices)
-private readonly kEstimatedScreenAspect = 16 / 9; // 1.78
-
-private screenToCanvas(screenPos: Vec2): { x: number; y: number } {
-  const screenAspect = this.kEstimatedScreenAspect;
-  // ... same math as above ...
-}
-```
-
-**If using the fallback and touches are offset:**
-- **Touches offset toward center:** The estimated aspect ratio is too wide — decrease it
-- **Touches offset away from center:** The estimated aspect ratio is too narrow — increase it
 
 ## Touch Input Patterns
 
@@ -619,7 +597,7 @@ onTouchEnd(payload: OnFocusedInteractionInputEventPayload) {
 | No touch events firing | FocusedInteraction not enabled | Call `enableFocusedInteraction()` in onStart (NOT onCreate) |
 | No touch events firing | Initialized too early | Move from `OnEntityCreateEvent` to `OnEntityStartEvent` |
 | No touch events firing | Running on server | Add `if (!NetworkingService.get().isPlayerContext()) return;` check |
-| Touches offset toward center | Aspect ratio correction missing or wrong | Use `CameraModeProvisionalService.aspectRatio` in `screenToCanvas()` |
+| Touches offset toward center | Aspect ratio correction missing or wrong | Use `getScreenAspectRatio()` from `CameraUtils` in `screenToCanvas()` |
 | Touches offset away from center | Aspect ratio correction over-compensating | Verify `screenToCanvas()` math against the recommended implementation |
 | X offset but Y correct | Only horizontal letterboxing needs correction | Check that the wider-than-game branch handles X correctly |
 | Y offset but X correct | Only vertical letterboxing needs correction | Check that the taller-than-game branch handles Y correctly |
@@ -667,7 +645,7 @@ Always wrap in `if (!NetworkingService.get().isPlayerContext()) return;` to prev
 
 ### Touch Coordinates Are Offset
 
-The #1 most common bug. FocusedInteractionService provides normalized screen coordinates (0-1) for the ENTIRE window, but your canvas has a different aspect ratio. You MUST use `CameraModeProvisionalService.aspectRatio` (from `meta/worlds_provisional`) to get the actual viewport aspect ratio and compute the letterbox offset in `screenToCanvas()`. See the Coordinate Mapping section above.
+The #1 most common bug. FocusedInteractionService provides normalized screen coordinates (0-1) for the ENTIRE window, but your canvas has a different aspect ratio. You MUST use `getScreenAspectRatio()` from `CameraUtils` to get the actual viewport aspect ratio and compute the letterbox offset in `screenToCanvas()`. See the Coordinate Mapping section above.
 
 ### Not Filtering by interactionIndex
 
