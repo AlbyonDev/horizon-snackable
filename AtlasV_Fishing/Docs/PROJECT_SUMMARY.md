@@ -17,7 +17,7 @@ There is no reel mechanic, no timing challenge, no failure state. Engagement com
 Scripts/
   Types.ts                       — GamePhase enum, FishInstance class, all LocalEvent and NetworkEvent declarations
   Constants.ts                   — All tunable values + upgrade formulas (lineDepthAtLevel, hookMaxFishAtLevel, upgradeCost)
-  Assets.ts                      — TemplateAsset paths (Cube, Bubble, GoldCoinsAnimator)
+  Assets.ts                      — TemplateAsset paths (Bubble, GoldCoinsAnimator)
   FishDefs.ts                    — Static array of 31 IFishDef entries (id, rarity, gold, spawnChance, depthMin, wave params, size, speed)
   FishSpriteAssets.ts            — TextureAsset declarations + defId → sprite pixel-size map (SPRITE_FISH_MAP)
   CameraUtils.ts                 — getScreenAspectRatio() helper (uses stable CameraService.screenToWorldPoint)
@@ -39,7 +39,6 @@ Scripts/
   Services/
     GameCameraService            — Owns camera entity; scrolls vertically with the hook during Diving/Surfacing; one-shot + continuous shake; intro animateTo(targetY, durationMs)
     FishDataService              — Pure data fish manager: owns FishInstance pool, slot-based spawn ramp, wave-modulated species rolls, swim AI, flying physics
-    FishRegistry                 — Thin compatibility wrapper around FishDataService (kept so HookController/FishSpriteRenderer can keep their imports)
     HookedFishAnimator           — Driven-pendulum animation for hooked fish (reacts to hook acceleration + SwipeKick); exposes per-fishId getAnimState() consumed by FishSpriteRenderer
     BubblePool                   — Pre-spawns BUBBLE_POOL_SIZE bubble entities; acquire(x, y) targets one via Events.InitBubble; release() parks it back
     VFXService                   — Shake/flash/freeze/haptic/stretch/squash; built-in triggers on FishHooked + RequestSurface + FishCollected
@@ -47,7 +46,7 @@ Scripts/
     FishCollectionService        — In-memory catch counts seeded from ProgressLoaded, updated on FishCaught
     PlayerProgressService        — Server-side persistence (PlayerVariablesService) of catch counts + gold + line/hook levels; debounced setVariable; routes upgrade purchases
 
-Templates/                       — Cube, Bubble, FishingRod, Sphere, Bait; plus GameplayObjects/GoldCoinsAnimator.hstf
+Templates/                       — Cube, Cube2, Bubble, FishingRod, Bait; plus GameplayObjects/GoldCoinsAnimator.hstf
 UI/                              — TitleScreen, GameHUD, InteractiveHUD, FishingHUD, FishCollection, GoldCoinsAnimator, FishSprites XAML panels
 Sprites/Fish/                    — 31 fish sprite PNGs (transparent, premultiplyAlpha)
 Textures/                        — BGStart, FishingLegend_logo, gold_icon, journal_icon, bait, hook

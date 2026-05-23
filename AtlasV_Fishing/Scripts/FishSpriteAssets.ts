@@ -1,5 +1,5 @@
 /**
- * FishSpriteAssets — TextureAsset declarations for all 30 sprite-based fish species,
+ * FishSpriteAssets — TextureAsset declarations for all 31 sprite-based fish species,
  * plus a defId→texture lookup map and per-species pixel size info.
  *
  * Used by FishSpriteRenderer to draw fish on a DrawingSurface overlay.
@@ -49,8 +49,7 @@ export interface FishSpriteInfo {
 }
 
 /**
- * Map of defId → sprite info for all 30 sprite-based fish species.
- * All fish are now rendered as sprites (no mesh-based fish remain).
+ * Map of defId → sprite info for all 31 sprite-based fish species.
  */
 export const SPRITE_FISH_MAP: Map<number, FishSpriteInfo> = new Map([
   [1,  { texture: ClownfishTex,         basePixelW: 60,  basePixelH: 48 }],   // Clownfish

@@ -136,7 +136,4 @@ Recolour the depth gradient in [Materials/DepthGradient.material](Materials/Dept
 
 ## Known Issues
 
-| Severity | File | Description |
-|---|---|---|
-| low | [Scripts/Services/FishRegistry.ts](Scripts/Services/FishRegistry.ts) | Compatibility shim around `FishDataService`. Both names work; new code should call `FishDataService.get()` directly. |
-| low | [Scripts/Types.ts](Scripts/Types.ts) | `IFishInstance` is an alias for `FishInstance`, kept during migration off the old pool. New code should use `FishInstance`. |
+None currently.

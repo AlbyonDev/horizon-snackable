@@ -124,8 +124,6 @@ export class FishInstance {
 }
 
 // ─── Events ───────────────────────────────────────────────────────────────────
-/** @deprecated Use FishInstance directly. Kept as alias during migration. */
-export type IFishInstance = FishInstance;
 
 export namespace Events {
 

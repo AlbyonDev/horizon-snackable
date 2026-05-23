@@ -32,8 +32,7 @@ import {
   DEPTH_SCALE_MIN, DEPTH_SCALE_FULL_AT,
   HOOK_BUBBLE_INTERVAL_DIVE, HOOK_BUBBLE_INTERVAL_SURFACE, HOOK_BUBBLE_X_JITTER,
 } from '../Constants';
-import { Events, GamePhase, type IFishInstance } from '../Types';
-import { FishRegistry } from '../Services/FishRegistry';
+import { Events, GamePhase, type FishInstance } from '../Types';
 import { FishDataService } from '../Services/FishDataService';
 import { BubblePool } from '../Services/BubblePool';
 import { VFXService } from '../Services/VFXService';
@@ -89,14 +88,14 @@ export class HookController extends Component {
   private _diveStart     = WATER_SURFACE_Y;
   private _surfaceTimer  = 0;
   private _depthScale    = 1;  // 0..1 factor based on dive depth, applied to surface/launch intensity
-  private _hookedFish  : IFishInstance[] = [];
+  private _hookedFish  : FishInstance[] = [];
   private _swipeStartX  = 0;
 
   // ── Hook bubble trail ─────────────────────────────────────────────────────────
   private _bubbleTimer   = 0;
 
   // ── Launch state ─────────────────────────────────────────────────────────────
-  private _launchQueue    : IFishInstance[] = [];
+  private _launchQueue    : FishInstance[] = [];
   private _launchTimer    = 0;
   private _launchPending  = 0;
   private _launchInFlight = 0;
@@ -268,7 +267,7 @@ export class HookController extends Component {
 
     // Collision — collect all fish in range this frame
     if (this._hookedFish.length < this._maxFish) {
-      const hits = FishRegistry.get().findHits(this._hookX, this._hookY);
+      const hits = FishDataService.get().findHits(this._hookX, this._hookY);
       for (const fish of hits) {
         if (this._hookedFish.length >= this._maxFish) break;
         fish.isHooked = true;
