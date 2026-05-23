@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(grep -n \"startsWith\\('\\\\*'\\)\\\\|substring\\(1\\)\\\\|substr\\(1\\)\\\\|\\\\\\\\.slice\\(1\\)\\\\|displayedText\" \"c:/Projects/Horizon/horizon-snackable/Hooked_On_A_Feeling/scripts/FloaterGame.ts\")"
-    ]
-  }
-}
