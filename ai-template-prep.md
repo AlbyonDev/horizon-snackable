@@ -134,6 +134,7 @@ If `package.json` does not exist, ask the user:
 **Platform:** [e.g. Meta Horizon Studio — Mobile Portrait 1080×1920]
 **Art Style:** [one-line summary]
 **Engine:** [e.g. DrawingSurface API + XAML UI (Noesis)]
+**Companion docs:** `GAMEPLAY.md` — full mechanical reference; `ART_DIRECTION.md` — visual style, palette, layers.
 ```
 
 #### 2. Game Overview
@@ -246,7 +247,10 @@ If the visual style cannot be determined from existing files, ask:
 #### 1. Core Loop
 A diagram or numbered flow showing the full game loop from launch to game over. Include state names and the file/enum that tracks them.
 
-#### 2. Scene & UI Overview
+#### 2. Game Flow (State Machine)
+A transition diagram showing every named state (e.g. Title Screen, Playing, Level Cleared, Reset Round, Game Over) with the event or condition that causes each transition. Follow with a table: `| State | Flag/condition | Entry | Exit |`. Keep it concise.
+
+#### 3. Scene & UI Overview
 A short section orienting the agent to **what lives where** so it knows which file to open when remixing visuals. The agent can read scene `.hstf` and XAML files itself for specifics — this section is the map, not the territory.
 
 Required content:
@@ -262,17 +266,17 @@ Required content:
 
 Keep it short. If a project has dozens of scene entities, list only the gameplay-relevant ones — group decorative entities under one line.
 
-#### 3. One section per major system
+#### 4. One section per major system
 For each system (board, combat, powers, progression, save, etc.), include:
 - What it does (2–4 sentences)
 - The file(s) that own it
 - Key data structures or formulas
 - Any non-obvious rules or edge cases
 
-#### 4. Extension Axes
+#### 5. Extension Axes
 For each type of content a remixer might add (new hero, new enemy, new level, new power type, etc.), provide a numbered step-by-step guide. Each step must name the exact file to edit.
 
-#### 5. Known Issues
+#### 6. Known Issues
 Table format: `| Severity | File | Description |`
 Only confirmed bugs. No speculation.
 
