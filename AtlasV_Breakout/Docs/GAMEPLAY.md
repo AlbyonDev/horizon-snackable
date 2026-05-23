@@ -4,6 +4,57 @@ The complete mechanical reference. Every system below is traceable to a specific
 
 ---
 
+## Scene & UI Overview
+
+The game is built in three layers. Knowing which layer owns what is essential before editing anything visual.
+
+### 1. Screen-space UI (XAML, no depth)
+
+Rendered on top of everything, in pixel space (`900×1600` design size). No world position, no camera transform.
+
+- `UI/GameHUD.xaml`         — score, lives hearts, center text ("Tap to start", "Cleared", …)
+- `UI/ComboHUD.xaml`        — combo counter overlay
+- `UI/HighScoreHUD.xaml`    — game-over leaderboard
+
+Each XAML is hosted on a scene entity carrying a `CustomUiComponent` (type `ScreenSpace`) + the matching `*ViewModel` component. Editing an XAML never affects gameplay; the ViewModel is the only contract — read its `@uiViewModel()` class to see what bindings are exposed.
+
+### 2. Spawned 3D entities (runtime pools, world-space)
+
+Spawned once at startup, parked off-screen at `(0, -100, 0)`, reused via pools. They live on the XY play plane (Z ≈ 0) and obey the AABB collider rules.
+
+- **Bricks** — 106 entities pre-warmed by `LevelLayout` from `BrickAssets.Normal` (`Templates/GameplayObjects/Brick.hstf`). One pool, recycled across all levels.
+- **Particles** — 170 general + 30 trail entities pre-warmed by `VfxService.prewarm()` from `Templates/Particle.hstf`. Used for impact bursts, coin rendering, ball trail.
+- **Power-ups** — spawned on demand from `PowerUpAssets` (currently empty registry, see "Re-enabling Power-Ups"). Destroyed when collected or out of bounds.
+
+### 3. Scene-placed 3D entities (`Templates/Breakout.hstf`, persistent)
+
+Fixed entities authored in the editor. They carry the gameplay components and the SoundComponent pool. Move/rotate/scale them in the editor — do not recreate from code.
+
+- **Manager** — host for `GameManager`, `LevelLayout`, `PowerUpManager`, `LeaderboardManager`. `LevelLayout.background` property is wired to the `Background` entity.
+- **Ball** — entity carrying the `Ball` component; visuals are on a `Sphere` child with `ColorComponent`. Reset position = its starting transform.
+- **Paddle** — entity carrying the `Paddle` component; visuals are on a `Torus` child with `ColorComponent`. Reset position = its starting transform.
+- **Background** — textured unlit plane (10×18 world units, rotated 90° on X, at Z = −1). The "neon grid horizon" art. Replaceable by swapping the mesh/material; no code touches it.
+- **ClientSetup** — also holds the active `CameraComponent` (see below).
+- **GameHUD / ComboHUD / HighScoreHUD** — three screen-space UI hosts (one `CustomUiComponent` + one `*ViewModel` each). The `ComboHUD` entity additionally hosts the `ComboManager` gameplay component (combo counter logic, unrelated to its UI).
+- **Audio pool** — ~13 child entities under the `Audio` parent, each with a `SoundComponent` + `AudioSource { soundId }`. Adding/removing a sound = adding/removing an entity here, not editing code.
+
+### Game Camera
+
+Defined on the `ClientSetup` entity in `Templates/Breakout.hstf`. Activated by `ClientSetup.setupCamera()`.
+
+- **Position:** `(0, 0, 120)` — 120 units in front of the play plane (which sits at Z ≈ 0)
+- **Orientation:** looks toward `−Z` with no roll (default rotation)
+- **Field of view:** `10°` (narrow long-lens — chosen so the play area fills the screen with negligible perspective distortion, mimicking orthographic at the depth where gameplay happens)
+- **Mode:** `CameraMode.Custom` set via `CameraService.setActiveCamera`; `CameraShakeService` then drives a per-frame `localPosition` offset for shake events
+
+Practical consequences for art:
+- All gameplay entities sit at Z ≈ 0; bumping Z by ±0.1 (coins use `COIN_Z = −0.1`) is safe and not visible at FOV 10°.
+- Anything further than ~5 units in Z from the play plane will start showing perspective skew, even at FOV 10°.
+- The view is portrait — width corresponds to X ∈ [−4.5, +4.5], height to Y ∈ [−8, +8] (see `BOUNDS`).
+- Up/down/left/right in the camera = +Y/−Y/−X/+X in world. Front-face of any mesh must point at +Z.
+
+---
+
 ## Core Loop
 
 ```

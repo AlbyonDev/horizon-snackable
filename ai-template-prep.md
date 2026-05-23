@@ -291,6 +291,10 @@ For any task marked `in_progress`:
 
 ---
 
+### Extra Docs file
+For each other docs in the Docs folder you can remove it unless it cover a very specific topic not covered by any other docs file.
+
+
 ## Phase 7 — Skills
 
 Skills are `.md` files that give AI agents domain-specific knowledge about the project. They live in `Assistant/Skills/` at the project root. Check whether each required skill exists. Create any that are missing by synthesizing from the project docs and source files.
