@@ -143,6 +143,7 @@ export class Ball extends Component implements ICollider {
   }
 
   private _launch(): void {
+    if (!this._isClient) return;
     this._isIdle = false;
     EventService.sendLocally(Events.ReleaseBall, {});
     const pos = this._transform.worldPosition;
