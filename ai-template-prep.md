@@ -246,17 +246,33 @@ If the visual style cannot be determined from existing files, ask:
 #### 1. Core Loop
 A diagram or numbered flow showing the full game loop from launch to game over. Include state names and the file/enum that tracks them.
 
-#### 2. One section per major system
+#### 2. Scene & UI Overview
+A short section orienting the agent to **what lives where** so it knows which file to open when remixing visuals. The agent can read scene `.hstf` and XAML files itself for specifics — this section is the map, not the territory.
+
+Required content:
+- **The layer split.** List every visual/audio surface in the project and assign it to one of these layers:
+  - **Screen-space UI** (XAML + ViewModel pairs, no world position) — list each `.xaml` file with a one-line role, and name the ViewModel class that owns its bindings
+  - **Spawned runtime entities** (pools, templates spawned by code) — list each pool with its size, source template, and parking position
+  - **Scene-placed entities** (authored in the editor in the main scene/template files) — list each named entity with the components it carries and its role
+- **Game camera.** Document the active camera as concrete numbers a remixer can copy:
+  - Source: which entity/component holds the camera, and which script activates it
+  - Position (world coords) and orientation (look direction, any roll)
+  - Field of view (degrees) and mode (`Perspective`/`Orthographic`/`Custom`/`Fixed`)
+  - Practical consequences for art: safe Z-offset range, axis mapping (which world axis is "up" / "right" on screen), front-face direction for meshes
+
+Keep it short. If a project has dozens of scene entities, list only the gameplay-relevant ones — group decorative entities under one line.
+
+#### 3. One section per major system
 For each system (board, combat, powers, progression, save, etc.), include:
 - What it does (2–4 sentences)
 - The file(s) that own it
 - Key data structures or formulas
 - Any non-obvious rules or edge cases
 
-#### 3. Extension Axes
+#### 4. Extension Axes
 For each type of content a remixer might add (new hero, new enemy, new level, new power type, etc.), provide a numbered step-by-step guide. Each step must name the exact file to edit.
 
-#### 4. Known Issues
+#### 5. Known Issues
 Table format: `| Severity | File | Description |`
 Only confirmed bugs. No speculation.
 
