@@ -116,6 +116,14 @@ The camera looks straight down (−Y direction). This means the visible plane is
 
 The current production zone runs from Z −0.256 to Z 3.5, which fills the safe bottom boundary.
 
+### Adding UI or 3D Elements to the Scene
+
+Before adding any new UI panel or 3D object to the scene, verify its placement fits the current camera view:
+
+- For **screen-space UI**: confirm the element is within the safe boundaries above and does not overlap existing panels.
+- For **3D world elements**: confirm the object falls within the safe XZ boundaries at the fixed camera height/FOV.
+- If the element does not fit without overlap or is outside the visible area, the correct fix is to **adjust the camera** (height, FOV) — not to silently place the object out of view.
+
 ---
 
 ## Play Area
