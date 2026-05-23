@@ -1,3 +1,7 @@
 node_modules
 tsconfig.json
-.vscode
+.vscode/
+.claude/
+/generatedImages
+/Temp
+CLAUDE.md
