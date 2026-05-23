@@ -1,6 +1,6 @@
 # Art Direction — AtlasV Fishing
 
-**Visual Style:** Bright, cartoon, unlit. Rounded shapes, saturated colors, no realistic lighting. Reads instantly on a small portrait phone screen — bubbly, pop, tropical.
+**Visual Style:** Painterly digital illustration — soft watercolor washes, brushwork-led shading, gentle rim light. Storybook / cozy-premium feel rather than flat cartoon or pop art. Saturated but blended (no hard color blocks). Each fish is one carefully painted character; the UI sits on top of a deep, atmospheric ocean.
 
 ## Scene Map — Where Things Live
 
@@ -67,17 +67,51 @@ Fish themselves are **not** spawned entities — they are plain `FishInstance` d
 
 ## Character & Sprite Style
 
-- **Fish sprites:** 2D, facing right, clean silhouette, bold outline, cel-shaded with soft rim light.
-- **Background:** transparent PNG, cropped to content (no padding), `premultiplyAlpha: true` set in each `.assetmeta`.
-- **Lineart:** consistent stroke weight across the species set.
-- **Shading:** flat color base + one cel-shading step + a single rim highlight. No gradients on the body.
-- **Eyes:** large round eye, single highlight dot, biased toward the head.
-- **Proportions per rarity:**
-  - Common — natural-ish body proportions, smaller sizes.
-  - Rare — slightly exaggerated colors, mid-size.
-  - Legendary — largest, most saturated, strongest outline.
-- **Minimum readable size:** ~40 px tall on canvas (smallest defs land near `basePixelH: 24` × in-world `size: 0.9`).
-- **Generation prompt constraints (used when regenerating sprites):** white background → removed to transparent, no shadows, no bubbles, no environment, no UI text, single creature centered, facing right.
+The reference style is best described as **stylized painted illustration** — somewhere between a Studio Ghibli children's-book page and a cozy mobile-RPG creature card. Verified by inspecting the actual 31 fish sprites in [Sprites/Fish/](Sprites/Fish/).
+
+### Common traits across every species
+
+- **2D, facing right.** The renderer mirrors via scaleX when `fish.facingLeft`.
+- **Painterly brushwork.** Smooth gradients, soft watercolor washes, visible (but subtle) painterly texture. Never flat color blocks, never hard cel-shading bands.
+- **Volumetric shading.** Each fish has a clear light direction — warm rim light on top/front edges, cool shadow underneath. Belly is consistently lighter than back.
+- **Outline is optional and inconsistent on purpose.** Some species (Clownfish, AbyssalAnglerfish, NeonTetra) have a thin, slightly sketchy dark outline that breaks up where it should. Others (MantaRay, Jellyfish, GoldenSeahorse) have no outline at all and rely on value contrast against the transparent background. New sprites should follow whichever fits the silhouette — don't force a uniform stroke.
+- **Eye.** Single large round eye with a clear pupil, one bright highlight dot, and a warm iris (amber / orange / red). Eye sits near the head front. This is the most consistent recognisability cue — copy it on new species.
+- **Detail density.** Mid level — enough painted detail to read at full size (scales suggested, fin rays painted in, subtle spot patterns), but not photo-real. Detail should survive being shrunk to ~40 px tall on the canvas.
+- **Bioluminescence / glow** is a recurring motif on rarer / deeper species (anglerfish lure, jellyfish bell, eel highlights, hammerhead glyphs). Use a soft additive bloom, never a sharp neon line.
+- **Mood is friendly even for predators.** Sharks and barracudas read as characters, not threats — slightly oversized head, expressive eye, no exaggerated teeth/gore.
+
+### Rarity reads through palette, not silhouette
+
+| Rarity | What changes vs. common |
+|---|---|
+| Common | Naturalistic palette, single dominant hue, modest size. Examples: Clownfish, NeonTetra, Sunfish. |
+| Rare | More chromatic range, often a complementary accent (gold belly, cyan rim, magenta dorsal). Examples: MantaRay, Lionfish, Dolphin. |
+| Legendary | Multi-hue gradient or unusual material (iridescent scales, glow, gold-on-gold). Examples: RainbowFish, GoldenSeahorse, AbyssalAnglerfish. Silhouettes stay grounded — legendaries are *prettier*, not bigger or weirder. |
+
+Rarity is *not* communicated through outline thickness or saturation level alone.
+
+### Background & cropping
+
+- Transparent PNG, cropped to content (no padding so the visible art touches all four edges).
+- `premultiplyAlpha: true` in each `.assetmeta`. Required — without it the soft outlines and painterly edges fringe black.
+- No drop shadow baked into the sprite (the renderer adds depth via scale/tilt, not bake).
+- No bubbles, no water caustics, no environment props inside the sprite.
+
+### Minimum readable size
+
+~40 px tall on the canvas. The smallest defs in [Scripts/FishSpriteAssets.ts](Scripts/FishSpriteAssets.ts) (e.g. NeonTetra at `basePixelH: 24`) land in this range at in-world `size: 0.9–1.35`. Verify any new sprite still reads at this size by squinting at the thumbnail.
+
+### Generation prompt — recipe used for the existing set
+
+When regenerating or adding a sprite, use a prompt in this shape:
+
+> "a [species name], stylized digital painting, cozy storybook illustration, soft painterly shading with watercolor washes, warm rim light, large expressive eye with single highlight, [palette hints], facing right, full body in profile view, centered, on a plain white background, no shadow, no bubbles, no environment, no text"
+
+Then run the pipeline documented in [Assistant/Skills/sprites.md](Assistant/Skills/sprites.md): `generate_image_bulk` → `remove_image_background` → `crop_image_to_content` → copy + rename → set `premultiplyAlpha: true` on the `.assetmeta`.
+
+Avoid these prompt words — they pull the model toward the *wrong* style:
+- "cartoon", "anime", "pixel art", "chibi", "vector", "flat design", "cel shaded", "low poly", "3D render" — all break the painterly look.
+- "realistic", "photorealistic" — pulls toward stock-photo fish.
 
 ## Color Palette
 
@@ -113,10 +147,33 @@ UI tinting (read from XAML panels):
 
 ## Title Screen
 
-- Fullscreen background image [Textures/BGStart.png](Textures/BGStart.png).
-- Centered logo [Textures/FishingLegend_logo.png](Textures/FishingLegend_logo.png).
-- Orange buzzer-style Play button (copy of `CastButtonTemplate` style).
-- Exit animation on Play: logo slides up off-screen (TranslateY −1500 over 0.45 s), button scales and fades (0.4 s), then the title hides and `TitleScreenPlayRequested` fires. Camera animates from idle pose to the gameplay Y over 550 ms to sync.
+The title screen sets the brand tone before any gameplay — bright, summery, premium-mobile-casual.
+
+- **Background** [Textures/BGStart.png](Textures/BGStart.png): full-bleed tropical seascape. Top half is a sunny sky with painted cumulus clouds. Bottom half is a calm horizon-line ocean transitioning into an underwater view with painted god-rays. The image already contains a small bobber-on-a-line silhouette at the horizon — do not add an in-engine prop for it.
+- **Logo** [Textures/FishingLegend_logo.png](Textures/FishingLegend_logo.png): two-tone stacked wordmark.
+  - "FISHING" in **cyan** with thick white outer stroke and dark inner stroke.
+  - "LEGEND" in **gold / orange gradient** with the same outline treatment.
+  - Sits inside a hand-painted white splash with hook and red-and-white bobber props.
+  - Anchored upper third of the screen.
+- **Play button:** large **circular orange disk** (deep orange center, brighter highlight on top) with a **thick white ring** outline and a soft dark drop shadow. White uppercase "PLAY" centered in a chunky condensed display font with a subtle dark outline. Anchored slightly below screen center.
+- **Top corner buttons:** two **circular dark-navy chips** with light icons — three dots (top-left) and hamburger (top-right). These are decorative on the title screen; their behaviour is not wired up.
+- **Exit animation on Play:** logo slides up off-screen (TranslateY −1500 over 0.45 s), Play button scales and fades (0.4 s), then the title hides and `TitleScreenPlayRequested` fires. Camera animates from idle pose to the gameplay Y over 550 ms to stay in sync.
+
+## Fish Collection Overlay
+
+Opened from the journal button in `InteractiveHUD`. Driven by [UI/FishCollection.xaml](UI/FishCollection.xaml) + [FishCollectionUIComponent](Scripts/Components/UI/FishCollectionUIComponent.ts).
+
+- **Backdrop:** semi-opaque dark-navy panel over the gameplay scene; the underlying world is dimmed but still visible at the edges.
+- **Header:** bold cyan "FISH COLLECTION" wordmark — same cyan + thick dark outline as the "FISHING" half of the logo, so the panel reads as the same brand family.
+- **Close button:** white "X" inside a dark-navy circle, top-right of the panel.
+- **Grid:** 3 columns of cards. Each card is a **rounded-rect dark-navy tile** with a **bright cyan border** and slight drop shadow. Tiles are roughly square with the fish portrait filling most of the area.
+- **Caught fish card:**
+  - Species name top-left in white, bold, with a thin dark outline; long names truncate with `...` (e.g. "Flame Angel...", "Violet Barra...").
+  - Painted fish sprite centred in the tile.
+  - Bottom-left: **count chip** — small dark capsule with `x{count}` in white.
+  - Bottom-right: **gold chip** — small dark capsule with the gold value and the same yellow coin icon used by `GoldCoinsAnimator`.
+- **Uncaught fish card:** plain dark-grey silhouette of the species (no painted detail, no name shown), with a centered `?` overlaid in grey. The silhouette uses the sprite's alpha as an opacity mask — see the "Fish Collection Silhouette Opacity Mask" task in done history.
+- **Typography hierarchy:** cyan title (largest) → white species names (medium) → white capsule numbers (smallest). All bold, all outlined.
 
 ## Catch Display / Reward Moments
 
