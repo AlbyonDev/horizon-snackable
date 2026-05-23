@@ -16,14 +16,6 @@
             "version": "*"
         },
         {
-            "name": "meta/assistant_provisional",
-            "version": "0.0.0"
-        },
-        {
-            "name": "meta/assistant_experimental",
-            "version": "0.0.0"
-        },
-        {
             "name": "meta/human_jog_masculine_forward",
             "version": "0.0.6"
         }
