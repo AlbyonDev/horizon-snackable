@@ -11,10 +11,10 @@ Before running any phase, understand where files must live for the Template Hub 
 | What | Required Location | Notes |
 |---|---|---|
 | Template docs | `/Docs/` folder — all `.md` files | `PROJECT_SUMMARY.md`, `ART_DIRECTION.md`, `GAMEPLAY.md`, `TASK_BOARD.yaml` |
-| Skills | `/Assistant/Skills/` folder — all `.md` skill files | NOT `Docs/skills/` — must be at project root level |
+| Skills | `/Assistant/skills/` folder — all `.md` skill files | NOT `Docs/skills/` — must be at project root level |
 | Assistant package | `package.json` — `dependencies` array | Must include `{ "name": "meta/assistant", "version": "*" }` |
 
-**Skills folder path:** `Assistant/Skills/` (at project root, not inside `Docs/`). All skill `.md` files the agent creates go here.
+**Skills folder path:** `Assistant/skills/` (at project root, not inside `Docs/`). All skill `.md` files the agent creates go here.
 
 ---
 
@@ -80,7 +80,7 @@ Read the following files (they may not all exist yet):
 - `Docs/TASK_BOARD.yaml`
 - Any other `.md` files in `Docs/`
 - `package.json` (project root)
-- Any existing skill files in `Assistant/Skills/`
+- Any existing skill files in `Assistant/skills/`
 
 Also read the main script files to understand the current state of the codebase:
 - `scripts/Constants.ts` (or equivalent)
@@ -313,7 +313,7 @@ For each other docs in the Docs folder you can remove it unless it cover a very 
 
 ## Phase 7 — Skills
 
-Skills are `.md` files that give AI agents domain-specific knowledge about the project. They live in `Assistant/Skills/` at the project root. Check whether each required skill exists. Create any that are missing by synthesizing from the project docs and source files.
+Skills are `.md` files that give AI agents domain-specific knowledge about the project. They live in `Assistant/skills/` at the project root. Check whether each required skill exists. Create any that are missing by synthesizing from the project docs and source files.
 
 Skills should only be created for prompt that repeatedly fails, most of the time the docs and code is a sufficient resource to make sure the prompting succeed.
 If you find any skill that is no longer relevant confirm with the user you can delete them.
