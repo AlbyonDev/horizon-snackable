@@ -1,105 +1,78 @@
-# AtlasV Fishing — Project Summary
+# Project Summary — AtlasV Fishing
 
-## Concept
+**Genre:** Single-player snackable fishing game (cast → dive → surface → catch)
+**Platform:** Meta Horizon Studio — Mobile portrait (9 × 16 world units)
+**Art Style:** Bright cartoon, unlit, tropical/aquatic
+**Engine:** Meta Horizon Worlds SDK (TypeScript ES2022) + XAML CustomUI + DrawingSurface sprite renderer
 
-Mobile portrait fishing game (9×16 world units) built with Meta Horizon Worlds SDK.
-Single player, local-only. Designed to be **snackable** — a satisfying session in under 3 minutes with no explanation needed.
+## Game Overview
 
-The game is built around 3 S:
-- **Simple** — one tap to cast, swipe to steer, automatic everything else
-- **Satisfying** — juice at every beat: freeze frames, shake, flash, stretch/squash
-- **Short** — one run = cast → dive → surface → catch reveal → reset
+Tap to cast a hook into the water, then swipe horizontally to steer it during its automatic descent. Fish that come within hook radius latch on. Once the hook reaches its max depth or is full, it surfaces automatically and the catch launches in a reward arc. Each fish collected awards gold; gold buys two upgrades (longer line, bigger hook). The collection grid shows all 31 species — discovered ones reveal their sprite and per-catch value, undiscovered ones stay as silhouettes.
 
-## Gameplay Loop
+There is no reel mechanic, no timing challenge, no failure state. Engagement comes from steering during the dive, the suspense of what crosses the hook radius, and filling the species journal.
 
-1. **Idle** — Hook hangs from rod at water surface, fish swim at depth.
-2. **Throwing** — Tap anywhere → hook launches in a physics arc toward the center of the play area (slight random spread). No player input during flight.
-3. **Diving** — Hook enters water and descends automatically. Player swipes horizontally to steer. Fish within range attach to the hook automatically.
-4. **Surfacing** — Hook automatically rises at speed, dragging hooked fish up.
-5. **Launching** — Fish fly upward in a staggered arc reward animation and exit the screen.
-6. **Reset** — Brief pause, then back to Idle.
-
-There is no reel mechanic, no power gauge, no timing challenge. The engagement comes from steering during the dive and the anticipation of what you'll catch.
-
-## Fish Database
-
-31 species across 4 zones. Rarity: common / rare / legendary.
-
-| Zone | Depth (world Y) | Species |
-|------|-----------------|---------|
-| 1 — Surface   | 4.5 → -8.5  | Clownfish, Koi, Blue Discus, Butterflyfish, Angelfish, Rainbow Fish, Emperor Snapper, Neon Tetra |
-| 2 — Mid-depth | -8.5 → -24.5 | Silver Carp, Green Discus, Dolphin, Flame Angelfish, Sand Flounder, Sea Turtle, Manta Ray, Lionfish, Sunfish |
-| 3 — Abyss     | -24.5 → -38.5 | Violet Barracuda, Blue Flounder, Reef Shark, Pink Dolphin, Barracuda, Pink Shark, Hammerhead Shark, Electric Eel, Jellyfish |
-| 4 — Deep Abyss | -38.5+ | Lanternfish, Abyssal Anglerfish, Goblin Shark, Golden Seahorse, Phantom Pufferfish |
-
-Fish from all zones swim at depth regardless of unlock state.
-
-All 31 species are rendered as 2D sprites on a fullscreen DrawingSurface canvas overlay (FishSpriteRenderer), with their 3D meshes hidden. No 3D fish models remain in active gameplay.
-
-## Zone Progression
-
-Zones unlock by catching unique species — no XP, no currency.
-
-| Unlock | Threshold |
-|--------|-----------|
-| Zone 2 | 3 unique species |
-| Zone 3 | 7 unique species |
-
-The hook's max dive depth increases as zones unlock, giving access to deeper fish.
-
-## Architecture
+## Technical Architecture
 
 ```
-ClientSetup           → camera lock, focused interaction, registers camera entity to GameCameraService
-GameManager           → phase state machine (Idle → Throwing → Diving → Surfacing → Launching → Reset)
-HookController        → hook physics, line rendering, fish collection, launch reward anim
-SimpleFishController  → per-fish swim AI, hooked follow, launch arc (implements IFishInstance)
-FishRegistry          → live IFishInstance spatial lookup (findHits)
-FishPoolService       → entity pool — pre-spawns fish, activates/benches without spawning/destroying; rolls species by depth wave formula
-FishDefs              → static data: all 30 species definitions
-FishCollectionService → catch journal (unique counts, persisted via PlayerProgressService)
-PlayerProgressService → server-side save/load; syncs gold, upgrades, catch journal to client
-GameCameraService     → vertical scroll following hook during dive + one-shot and continuous camera shake
-VFXService            → centralised juice: shake, flash, freeze frame, haptic stub, stretch/squash
-GoldCoinsService      → coin burst + gold value text animation on FishCollected (canvas-based, pooled)
-BubblePool            → pre-spawns bubble entities; fish request bubbles via acquire(); auto-release on surface hit
-InteractiveHUDViewModel → buttons-only HUD layer (cast button + upgrade buttons); isInteractable=true during Idle, isVisible=false otherwise to stop blocking swipe input
-GameHUDViewModel      → counters HUD layer (gold + depth + max depth + collection open button); isInteractable=true (button needs touch); counter panels use IsHitTestVisible=False so they don't block InteractiveHUD
-FishingHUDViewModel   → species discovery progress bar + fish counter (hooked/max) during dive
-FishCollectionUIComponent → fullscreen collection overlay; grid of all 31 fish species showing caught/uncaught state; detail view on tap; starts invisible (isVisible=false) to avoid blocking touch; becomes visible only when opened via GameHUD button; integrates with FishCollectionService for catch data
-FishSpriteRenderer    → fullscreen DrawingSurface overlay rendering all 30 sprite-based fish species each frame; converts world positions to canvas pixels using GameCameraService scroll offset; applies physics-based animation transforms (trail lag, tilt, squash/stretch, wiggle) to hooked fish via HookedFishAnimator
-HookedFishAnimator    → per-fish spring-damper animation for hooked fish: trailing offset, rotation tilt from horizontal hook velocity, squash/stretch from speed, wiggle oscillation; reacts to hook movement for juicy feel
-TitleScreenUIComponent → fullscreen title screen overlay with background image (BGStart.png), game logo (FishingLegend_logo.png), and orange buzzer-style Play button; fires TitleScreenPlayRequested LocalEvent when pressed; renderOrderOffset=10 to display above all other UI
+Scripts/
+  Types.ts                       — GamePhase enum, FishInstance class, all LocalEvent and NetworkEvent declarations
+  Constants.ts                   — All tunable values + upgrade formulas (lineDepthAtLevel, hookMaxFishAtLevel, upgradeCost)
+  Assets.ts                      — TemplateAsset paths (Cube, Bubble, GoldCoinsAnimator)
+  FishDefs.ts                    — Static array of 31 IFishDef entries (id, rarity, gold, spawnChance, depthMin, wave params, size, speed)
+  FishSpriteAssets.ts            — TextureAsset declarations + defId → sprite pixel-size map (SPRITE_FISH_MAP)
+  CameraUtils.ts                 — getScreenAspectRatio() helper (uses stable CameraService.screenToWorldPoint)
+
+  Components/
+    ClientSetup.ts               — Locks camera (registers with GameCameraService), enables FocusedInteraction, registers flash plane with VFXService
+    GameManager.ts               — Phase state machine (Idle → Throwing → Diving → Surfacing → Launching → Reset → Idle); owns Idle→Throwing and Launching→Reset→Idle transitions
+    HookController.ts            — Hook position/velocity, swipe input, fish collection, line stretch, launch arc; emits RequestDiving/RequestSurface/RequestLaunch
+    BubbleController.ts          — Per-bubble: rise + drift + breath + alpha oscillation; auto-releases to BubblePool at surface or off-screen
+    UI/
+      FishSpriteRenderer.ts      — DrawingSurface-based sprite overlay; per-frame draws every active fish via DrawingCommandsBuilder
+      GameHUDViewModel.ts        — Gold counter visibility/value
+      InteractiveHUDViewModel.ts — Cast button, Line/Hook upgrade buttons, Collection open button (only interactive during Idle)
+      FishingHUDViewModel.ts     — Depth counter, max-depth marker, fish counter, species progress bar (during Diving/Surfacing)
+      FishCollectionUIComponent  — Fullscreen collection grid + detail view; opened via LocalEvent OpenFishCollectionRequested
+      TitleScreenUIComponent.ts  — Fullscreen title overlay with Play button; emits TitleScreenPlayRequested LocalEvent
+      GoldCoinsAnimatorViewModel — XAML viewmodel API for the in-code coin/text burst animator
+
+  Services/
+    GameCameraService            — Owns camera entity; scrolls vertically with the hook during Diving/Surfacing; one-shot + continuous shake; intro animateTo(targetY, durationMs)
+    FishDataService              — Pure data fish manager: owns FishInstance pool, slot-based spawn ramp, wave-modulated species rolls, swim AI, flying physics
+    FishRegistry                 — Thin compatibility wrapper around FishDataService (kept so HookController/FishSpriteRenderer can keep their imports)
+    HookedFishAnimator           — Driven-pendulum animation for hooked fish (reacts to hook acceleration + SwipeKick); exposes per-fishId getAnimState() consumed by FishSpriteRenderer
+    BubblePool                   — Pre-spawns BUBBLE_POOL_SIZE bubble entities; acquire(x, y) targets one via Events.InitBubble; release() parks it back
+    VFXService                   — Shake/flash/freeze/haptic/stretch/squash; built-in triggers on FishHooked + RequestSurface + FishCollected
+    GoldCoinsService             — On FishCollected: bursts coins + floating "+N" text on the GoldCoinsAnimator canvas; gold-tier-driven count and color
+    FishCollectionService        — In-memory catch counts seeded from ProgressLoaded, updated on FishCaught
+    PlayerProgressService        — Server-side persistence (PlayerVariablesService) of catch counts + gold + line/hook levels; debounced setVariable; routes upgrade purchases
+
+Templates/                       — Cube, Bubble, FishingRod, Sphere, Bait; plus GameplayObjects/GoldCoinsAnimator.hstf
+UI/                              — TitleScreen, GameHUD, InteractiveHUD, FishingHUD, FishCollection, GoldCoinsAnimator, FishSprites XAML panels
+Sprites/Fish/                    — 31 fish sprite PNGs (transparent, premultiplyAlpha)
+Textures/                        — BGStart, FishingLegend_logo, gold_icon, journal_icon, bait, hook
+Shaders/DepthGradient.surface    — Unlit depth-gradient shader (turquoise surface → night blue abyss)
+Materials/DepthGradient.material — Material applying the depth gradient
+Assistant/Skills/                — AI assistant skill files (sprites, drawing surface, sound design, etc.)
+Docs/                            — This file, ART_DIRECTION.md, GAMEPLAY.md, TASK_BOARD.yaml
 ```
 
-## VFX System
+## Current Content
 
-All juice flows through `VFXService`:
+- **Fish species:** 31 (`FISH_DEFS` in [Scripts/FishDefs.ts](Scripts/FishDefs.ts)). IDs 1–31. Rarity distribution: 15 common, 11 rare, 5 legendary.
+- **Fish sprites:** 31 PNGs under [Sprites/Fish/](Sprites/Fish/), one per def. All mapped via `SPRITE_FISH_MAP` in [Scripts/FishSpriteAssets.ts](Scripts/FishSpriteAssets.ts).
+- **Upgrades:** 2 axes — Line (max depth, level 0 → 100; depth(0)=15 m, +16 m per level), Hook (max fish per run, level 0 → 90; fish(0)=1, fish(n)=n+1). Cost formula `upgradeCost(n) = floor(8 * n^1.9)`.
+- **Bubble pool:** 40 pre-spawned bubble entities (`BUBBLE_POOL_SIZE`). Re-used for both ambient fish bubbles and the hook trail.
+- **Gold-coin animator:** 60 coin + 10 text slots (`COIN_POOL_SIZE`, `TEXT_POOL_SIZE`) drawn on a single 600×600 canvas placed in world.
+- **Phases:** 6 — Idle, Throwing, Diving, Surfacing, Launching, Reset (`GamePhase` in [Scripts/Types.ts](Scripts/Types.ts)).
+- **Persistence:** one `fishCollection` PlayerVariable (`SaveData` in [Scripts/Services/PlayerProgressService.ts](Scripts/Services/PlayerProgressService.ts)) holds catch counts + gold + line/hook levels.
 
-| Method | Effect |
-|--------|--------|
-| `shake(dur, amp)` | Camera shake via GameCameraService |
-| `flash(dur, r, g, b)` | Full-screen color overlay fade-out |
-| `freeze(durationMs)` | Global time-stop (camera exempt) |
-| `haptic(intensity)` | Stub — ready for SDK haptic API |
-| `stretch(entity, factor, dur)` | Scale Y up / X down then recover |
-| `squash(entity, factor, dur)` | Scale Y down / X up then recover |
+## Key Design Principles
 
-Built-in trigger: `FishHooked` → freeze 60ms + shake 0.30s + flash 0.18s.
-
-The `isFrozen` flag is checked at the top of `HookController.onUpdate` and `SimpleFishController.onUpdate`. `GameCameraService` is exempt so shake continues during freeze.
-
-## Depth Gradient Shader
-
-An unlit surface shader (`Shaders/DepthGradient.surface`) colors geometry based on world Y position, creating the underwater atmosphere. The gradient transitions from turquoise at the surface (Y 5.0) to deep night blue at the abyss (Y -40.0). A matching material (`Materials/DepthGradient.material`) is ready to apply to water background meshes. The four tunable properties (top color, bottom color, top Y, bottom Y) can be adjusted per-material instance to fine-tune the look.
-
-## Key Extension Points
-
-| Goal | Where |
-|------|-------|
-| Add a fish species | One entry in `FishDefs.ts` + sprite in `Sprites/Fish/` + entry in `FishSpriteAssets.ts` |
-| Add a juice trigger | Subscribe to an event in `VFXService`, call shake/flash/freeze |
-| Add a trail or particle FX | New method in `VFXService` |
-| New gameplay phase | Add value to `GamePhase` enum, handle in `GameManager` + `HookController` |
-| Tweak cast arc | `CAST_CENTER_VX`, `CAST_VX_RANDOM`, `CAST_VY`, `CAST_GRAVITY` in `Constants.ts` |
-| Tweak dive feel | `DIVE_SPEED`, `DIVE_SWIPE_FORCE`, `DIVE_CENTER_PULL`, `DIVE_BOUNCE` in `Constants.ts` |
+- **Client-only gameplay.** Every `Component.onStart()` early-returns on `NetworkingService.get().isServerContext()`. Only `PlayerProgressService` runs server logic (for persistence).
+- **Data-driven fish, sprite-rendered.** Fish are plain `FishInstance` data objects — no entities, no per-fish components. A single `FishSpriteRenderer` draws every active fish each frame through `DrawingCommandsBuilder`. Adding species = one row in `FishDefs.ts` + sprite + row in `SPRITE_FISH_MAP`.
+- **Events, never direct references.** Components and services communicate exclusively via `EventService.sendLocally(...)`. The phase state machine in `GameManager` advances only through `Events.RequestDiving / RequestSurface / RequestLaunch` requests from `HookController`.
+- **Single source of truth for assets.** All `TemplateAsset` constructions live in `Scripts/Assets.ts`; all `TextureAsset` constructions for fish live in `Scripts/FishSpriteAssets.ts`.
+- **All tunables in `Constants.ts`.** Cast physics, dive physics, depth scaling, pool sizes, bubble parameters, upgrade formulas — every magic number is named and lives in one file.
+- **Camera scroll = vertical only.** `GameCameraService` translates the camera Y to follow the hook during Diving/Surfacing and is the single owner of `setActiveCamera`. It also publishes `cameraCenterY` to `FishDataService` so far-from-view fish recycle.
+- **VFX freeze gate.** Long-running per-frame handlers check `VFXService.get().isFrozen` and skip ticks during a freeze, except `GameCameraService` (so shake keeps playing).

@@ -58,7 +58,6 @@ export class GoldCoinsAnimatorViewModel extends Component {
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[GoldCoinsAnimatorViewModel] onStart - binding dataContext');
     this._ui = this.entity.getComponent(CustomUiComponent);
     if (this._ui) {
       this._ui.dataContext = this._vm;

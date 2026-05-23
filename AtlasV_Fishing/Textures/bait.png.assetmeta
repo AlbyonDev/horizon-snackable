@@ -19,7 +19,7 @@
                         "data": {
                             "equirectangularToCube": false,
                             "enableRoughnessConvolution": false,
-                            "premultiplyAlpha": false,
+                            "premultiplyAlpha": true,
                             "preserveAlphaCoverage": false,
                             "alphaCutoff": 0.5,
                             "renormalizeNormals": false,

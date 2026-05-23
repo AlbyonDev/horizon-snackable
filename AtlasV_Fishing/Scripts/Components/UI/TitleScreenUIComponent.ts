@@ -62,7 +62,6 @@ export class TitleScreenUIComponent extends Component {
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[TitleScreenUIComponent] Initializing title screen UI');
     this._ui = this.entity.getComponent(CustomUiComponent);
     if (this._ui) {
       this._ui.dataContext = this.viewModel;
@@ -75,17 +74,12 @@ export class TitleScreenUIComponent extends Component {
     // Prevent double-press during exit animation
     if (this.viewModel.isExiting === 'True') return;
 
-    console.log('[TitleScreenUIComponent] Play button pressed, starting exit animation');
-    // Trigger the XAML exit storyboard via DataTrigger
-    //this.viewModel.isExiting = 'True';
-
     // Start camera intro animation in sync with the UI exit animation
     GameCameraService.get().animateTo(4.5, 550);
 
     // After animation completes (~550ms), hide UI and fire event
     this._exitTimerId = setTimeout(() => {
       this._exitTimerId = 0;
-      console.log('[TitleScreenUIComponent] Exit animation complete, hiding UI and firing TitleScreenPlayRequested');
       if (this._ui) {
         this._ui.isVisible = false;
       }

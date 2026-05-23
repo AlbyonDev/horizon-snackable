@@ -1,84 +1,96 @@
 ---
 name: coding-standards
-summary: H3_Fishing TypeScript conventions and patterns to follow strictly
+summary: AtlasV_Fishing TypeScript conventions and patterns to follow strictly
 include: always
 ---
 
-# Coding Standards — H3_Fishing
+# Coding Standards — AtlasV_Fishing
 
 ## Naming
 
 | Element | Convention | Example |
 |---------|------------|---------|
-| Class | PascalCase | `GameManager`, `SimpleFishController` |
-| Interface | `I` prefix | `IFishInstance`, `IFishDef` |
+| Class | PascalCase | `GameManager`, `HookController` |
+| Interface | `I` prefix | `IFishDef` |
 | Enum | PascalCase, explicit values | `GamePhase { Idle = 0 }` |
-| Private field | `_` prefix | `_velocity`, `_phase` |
-| `@property()` | camelCase, no prefix | `fishAnchor`, `initDelay` |
-| Event string ID | `Ev` prefix, globally unique | `'EvFishHooked'`, `'EvHUDShowCatch'` |
-| Module constant | UPPER_SNAKE_CASE | `ZONE_FLOOR_Y`, `REEL_BURST_MAX` |
+| Private field | `_` prefix | `_hookX`, `_phase` |
+| `@property()` field | camelCase, no prefix | `camera`, `flashPlane` |
+| Event string ID | `Ev` prefix | `'EvFishHooked'`, `'EvCastRequested'` |
+| Module constant | `UPPER_SNAKE_CASE` | `DIVE_SPEED`, `WATER_SURFACE_Y` |
 | Unused param | `_` prefix | `onReset(_p: Events.ResetPayload)` |
+
+- `const` by default; `let` only when reassignment is necessary.
+- Never use `any` — use `unknown` with narrowing, or a typed interface.
+- Use `import type` for compile-time-only imports.
 
 ## File rules
 
-- One class per file; file name matches class name exactly
-- `Types.ts` and `Constants.ts` have **zero** local imports
-- All `TemplateAsset` refs declared in `Assets.ts` — never via `@property()`
-- Assets grouped by category (`Fish/`, `UI/`, scene elements)
+- One class per file; file name matches the class name.
+- `Types.ts` and `Constants.ts` must not import from any sibling source file.
+- All `TemplateAsset` constructors live in `Scripts/Assets.ts`.
+- All fish `TextureAsset` constructors live in `Scripts/FishSpriteAssets.ts`.
+- Never declare an asset path inside a component or via `@property()`.
 
 ## Component skeleton
 
 ```typescript
 @component()
 export class MyComponent extends Component {
-  @property() myValue: number = 1;           // inspector-tunable, always has default
-  @property() requiredAsset!: TemplateAsset; // must be set in editor
+  @property() myValue: number = 1;
 
-  private _transform!: TransformComponent;   // set in onStart, `!` = definite assignment
+  private _transform: Maybe<TransformComponent> = null;
 
   @subscribe(OnEntityStartEvent)
   onStart(): void {
-    if (NetworkingService.get().isServerContext()) return; // ALWAYS first line
+    if (NetworkingService.get().isServerContext()) return;
     this._transform = this.entity.getComponent(TransformComponent)!;
   }
 }
 ```
+
+- Every component `onStart()` must early-return on `NetworkingService.get().isServerContext()` — gameplay is client-only.
+- Prefer `OnEntityStartEvent` (scene-ready) over `OnEntityCreateEvent` (attach-time) for game logic.
+- `@subscribe`-decorated handlers must NOT be `private` (TS6133).
+- Long `@subscribe(OnWorldUpdateEvent)` handlers should check `VFXService.get().isFrozen` and skip the tick during a freeze. Only `GameCameraService` is exempt.
 
 ## Service skeleton
 
 ```typescript
 @service()
 export class MyService extends Service {
-  private readonly _other = Service.inject(OtherService); // strong dep
+  private readonly _other = Service.inject(OtherService);
   private _state = new Map<number, string>();
 
   @subscribe(OnServiceReadyEvent)
-  onReady(): void { /* send events, access injected services */ }
-
-  @subscribe(Events.Restart)
-  onRestart(): void { this._state.clear(); } // reset, never dispose()
+  onReady(): void {
+    /* safe to call injected services and send events here */
+  }
 }
 ```
 
+- Access via `MyService.get()` — do not override the inherited `get()`.
+- Services never `dispose()`. To reset, subscribe to a reset event and reassign fields.
+
 ## Events
 
-- All payloads: every field needs a **default value**
-- `LocalEvent` for client-only; `NetworkEvent` + `@serializable()` for server↔client
-- Never hold game-piece component references — communicate via events or entity refs only
+- All payload fields must have default values.
+- `LocalEvent` for client-only; `NetworkEvent` + `@serializable()` for server↔client.
+- No direct component references — communicate via events or entity refs.
 
 ## Spawning
 
-All runtime spawns must use `NetworkMode.LocalOnly`:
-
 ```typescript
 const entity = await WorldService.get().spawnTemplate({
-  templateAsset: myTemplate,
+  templateAsset: Assets.Bubble,
   position: new Vec3(x, y, z),
   rotation: Quaternion.identity,
   scale: Vec3.one,
   networkMode: NetworkMode.LocalOnly,
-});
+}).catch(() => null);
 ```
+
+- All spawns must use `NetworkMode.LocalOnly`.
+- Wrap `spawnTemplate` calls in `.catch(() => null)` and check the result.
 
 ## Transform mutations
 
@@ -89,7 +101,6 @@ t.worldPosition = new Vec3(x, y, z);
 
 // ❌ wrong — SDK ignores in-place mutation
 t.localPosition.x = 5;
-t.position.set(x, y, z);
 ```
 
 ## Per-frame update
@@ -97,15 +108,13 @@ t.position.set(x, y, z);
 ```typescript
 @subscribe(OnWorldUpdateEvent, { execution: ExecuteOn.Owner })
 onUpdate(p: OnWorldUpdateEventPayload): void {
-  const dt = p.deltaTime; // seconds
+  const dt = p.deltaTime;
 }
-// ExecuteOn.Owner skips the isServerContext() guard
 ```
 
-## Do not
+`ExecuteOn.Owner` skips the server context check automatically.
 
-- Use `any` — use `unknown` with narrowing or a typed interface
-- Call `dispose()` on a `@service()` — reset state in `@subscribe(Events.Restart)`
-- Import `Types.ts` or `Constants.ts` siblings from each other
-- Run active code at module load — wait for `OnServiceReadyEvent` or `OnEntityStartEvent`
-- Add comments for obvious code — only comment non-obvious logic
+## Comments
+
+- Comments only when the *why* is non-obvious — a hidden constraint, an invariant, a workaround.
+- Do not narrate what the code does. Do not write history or "previously this was X" notes.

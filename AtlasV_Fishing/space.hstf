@@ -223,10 +223,10 @@
                 },
                 {
                     "data": {
-                        "class": "horizon::platform_api::CameraModePlatformComponent",
-                        "version": 6,
+                        "class": "horizon::platform_api::CameraPlatformComponent",
+                        "version": 3,
                         "data": {
-                            "attachedToPlayer": false,
+                            "fieldOfView": 60.0,
                             "projection": "Orthographic",
                             "orthographicSize": 9.5
                         }
@@ -808,7 +808,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -853,7 +853,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -916,8 +916,13 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
+                            "xaml": {
+                                "packageOrRemoteId": "26220234944285836",
+                                "ingestionId": "2161832769907381710",
+                                "targetId": "2149638574"
+                            },
                             "width": 0,
                             "height": 0,
                             "panelVisibility": true
@@ -955,7 +960,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -1001,7 +1006,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -1009,6 +1014,8 @@
                                 "ingestionId": "12193907569075097388",
                                 "targetId": "2149638574"
                             },
+                            "width": 1920,
+                            "height": 1080,
                             "panelVisibility": true,
                             "renderOrderOffset": -5
                         }
@@ -1057,7 +1064,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -1065,6 +1072,8 @@
                                 "ingestionId": "3860700079257485843",
                                 "targetId": "2149638574"
                             },
+                            "width": 1920,
+                            "height": 1080,
                             "panelVisibility": true,
                             "isInteractable": true,
                             "renderOrderOffset": 10
@@ -1102,7 +1111,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "customUiType": "ScreenSpace",
                             "xaml": {
@@ -1110,6 +1119,8 @@
                                 "ingestionId": "17560799132928207539",
                                 "targetId": "2149638574"
                             },
+                            "width": 1920,
+                            "height": 1080,
                             "isInteractable": true,
                             "renderOrderOffset": 10
                         }

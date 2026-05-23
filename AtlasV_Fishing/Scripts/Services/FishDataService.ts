@@ -75,7 +75,6 @@ export class FishDataService extends Service {
   @subscribe(Events.GameStarted)
   onReady(): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[FishDataService] Creating fish pool data objects');
     this._createPool();
     // Defer the initial pre-fill to the first onUpdate that has a valid
     // _camCenterY (set by GameCameraService.onUpdate). Filling 3 shallow
@@ -225,7 +224,6 @@ export class FishDataService extends Service {
         this._benchedIds.add(fish.fishId);
       }
     }
-    console.log(`[FishDataService] Pool created: ${this._allFish.length} fish`);
   }
 
   // ── Private: Swim AI ───────────────────────────────────────────────────────

@@ -1,27 +1,31 @@
 ---
 name: sound-design
-summary: Where and how to add audio triggers in H3_Fishing
+summary: Where and how to add audio triggers in AtlasV_Fishing
 include: on-demand
 ---
 
-# Sound Design — H3_Fishing
+# Sound Design — AtlasV_Fishing
 
-## Audio hook points
+## Approach
 
-All game audio should be event-driven. Create a dedicated `AudioController` component that subscribes to game events — never add audio calls inside existing gameplay files.
+Game audio should be event-driven. Create a dedicated `AudioController` component (or `@service()` service) that subscribes to gameplay events — never add audio calls inside existing gameplay files. Adding a new sound should be a single-file change.
+
+## Suggested hook points
+
+All events live in `Scripts/Types.ts` under the `Events` namespace. Subscribe with `@subscribe(Events.X)` from your audio controller.
 
 | Event | Suggested sound |
 |-------|----------------|
-| `Events.CastReleased` | Fishing line whip / swoosh |
-| `Events.BaitHitBottom` | Thud / splash on floor |
-| `Events.FishHooked` | Hook sfx + tension sting |
-| `Events.FishCaught` | Victory jingle (short) |
-| `Events.ZoneUnlocked` | Zone reveal fanfare |
-| `Events.PhaseChanged → Reeling` | Reel tension loop start |
-| `Events.PhaseChanged → CatchDisplay` | Reel tension loop stop |
-| `HUDEvents.ShowCatch` | Catch reveal whoosh |
-| `HUDEvents.NavigateCatch` | Page turn click |
-| tap during Reeling (`OnFocusedInteractionInputStartedEvent` in `Reeling` phase) | Reel click |
+| `Events.CastRequested` | UI tap / button confirm |
+| `Events.PhaseChanged` → `Throwing` | Fishing line whip / swoosh |
+| `Events.PhaseChanged` → `Diving` | Underwater splash on water entry |
+| `Events.FishHooked` | Sharp "snag" SFX (matches the 60 ms freeze + shake) |
+| `Events.RequestSurface` | Reel-up / pull SFX (matches the cyan flash + 180 ms freeze) |
+| `Events.FishCollected` | Coin / sparkle, pitch-shifted by `def.gold` for the heat scale |
+| `Events.AllFishCollected` | Run-end positive jingle |
+| `Events.GoldChanged` | Coin pickup tick when gold delta > 0 |
+| `Events.UpgradesChanged` | Upgrade confirm |
+| `TitleScreenPlayRequested` | Game-start swell |
 
 ## Pattern
 
@@ -29,20 +33,21 @@ All game audio should be event-driven. Create a dedicated `AudioController` comp
 @component()
 export class AudioController extends Component {
 
-  @subscribe(Events.FishHooked)
-  private _onHooked(_p: Events.FishHookedPayload): void {
-    // AudioService.get().play(Assets.SfxHook, this.entity);
+  @subscribe(OnEntityStartEvent)
+  onStart(): void {
+    if (NetworkingService.get().isServerContext()) return;
   }
 
-  @subscribe(Events.FishCaught)
-  private _onCaught(_p: Events.FishCaughtPayload): void {
-    // AudioService.get().play(Assets.SfxCatch, this.entity);
+  @subscribe(Events.FishHooked)
+  onHooked(_p: Events.FishHookedPayload): void {
+    // AudioService.get().play(Assets.SfxHook, this.entity);
   }
 }
 ```
 
-Add audio asset refs in `Assets.ts` alongside the template refs.
+Add audio asset refs in `Scripts/Assets.ts` alongside the template refs.
 
-## Ambient
+## Implementation tips
 
-Underwater ambience (bubbles, water hum) and depth-based music layers can be driven by `Events.ZoneUnlocked` and the camera Y scroll position. No architecture changes needed — a new `AmbientAudioController` subscribing to these events is sufficient.
+- Pool one-shot audio sources the same way `BubblePool` pools entities — the Launching phase can fire up to `hookMaxFishAtLevel(level)` `FishCollected` events within a few hundred ms.
+- Match underwater ambience (bubbles, deep hum) to camera Y via `GameCameraService.get().getCameraCenterY()` so the soundscape darkens as the player dives deeper.
