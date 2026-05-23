@@ -357,10 +357,11 @@
                     RenderTransformOrigin="0.5,0.5">
                 <Border.RenderTransform>
                     <TransformGroup>
-                        <!-- Static centering offset (-35,-35) baked into the translate via bonusGemX/Y minus half-size. -->
-                        <TranslateTransform X="{Binding Path=bonusGemX}" Y="{Binding Path=bonusGemY}"/>
-                        <TranslateTransform X="-35" Y="-35"/>
+                        <!-- Scale first (around the Border's own 0.5,0.5 origin) -->
                         <ScaleTransform x:Name="BonusGemPulse" ScaleX="1" ScaleY="1"/>
+                        <!-- Then translate so the (X,Y) binding represents the center on the 480×850 canvas. -->
+                        <TranslateTransform X="-35" Y="-35"/>
+                        <TranslateTransform X="{Binding Path=bonusGemX}" Y="{Binding Path=bonusGemY}"/>
                     </TransformGroup>
                 </Border.RenderTransform>
                 <b:Interaction.Triggers>

@@ -205,7 +205,7 @@ Coordinates in `PlayerTap` use the full 0..850 range. If you nest your clickable
 
 #### Worked example: the bonus mini-gem (`BonusGemService`)
 
-The bonus-gem implementation is the canonical example. To add a similar clickable, copy this pattern:
+`scripts/Services/BonusGemService.ts` is kept in the project as a **reference implementation only** — its `ENABLED` const is set to `false`, so it does not spawn at runtime. Read it (and `scripts/Utils/hitTest.ts`) alongside this section. To add a similar clickable, copy the pattern:
 
 1. **Constants in `scripts/Constants.ts`.** Pick your spawn-rect, size, lifetime, and reward. Always express the rect and size in the 480 × 850 canvas space. Example pattern: `MY_THING_SIZE = 70`, `MY_THING_SPAWN_X_MIN = 60`, etc.
 2. **Service in `scripts/Services/MyThingService.ts`.** Owns the spawn timer and current position. Listens to `Events.Tick` to drive the FSM and to `Events.PlayerTap` for hit detection. Filter out `p.isAuto` if auto-cursors shouldn't trigger it. Call `isHitCentered(p.tapX, p.tapY, this._x, this._y, SIZE, SIZE)`.

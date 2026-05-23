@@ -28,8 +28,7 @@ scripts/Services/
 ├── CritService               — chance-based gain multiplier (modifier on ResourceService)
 ├── FrenzyService             — tap-streak-triggered timed all-gain multiplier
 ├── InterestService           — % of current gold paid on a timer
-├── VaultService              — lock 50% of gold for a duration, return with bonus
-└── BonusGemService           — spawns a tappable bonus mini-gem (5–15s idle / 8–12s lifetime, 10× tap reward)
+└── VaultService              — lock 50% of gold for a duration, return with bonus
 scripts/Defs/
 ├── ActionDefs.ts             — catalog of every buyable action (id, label, cost, unlock chain)
 └── GeneratorDefs.ts          — catalog of generators (baseOutput, cycleTime, upgrade multipliers)

@@ -1,7 +1,12 @@
 /**
  * BonusGemService — Spawns a tappable mini-gem in the tap zone.
  *
- * Lifecycle:
+ * DISABLED: the feature is currently off (ENABLED = false). The full
+ * implementation is kept intact as the canonical example for adding a
+ * clickable thing — see Docs/GAMEPLAY.md "Add a clickable thing" and
+ * scripts/Utils/hitTest.ts. Flip ENABLED to true to re-enable.
+ *
+ * Lifecycle (when enabled):
  *   IDLE  (timer 5–15s, uniform random) → ACTIVE (timer 8–12s, uniform random) → IDLE …
  *
  * On player tap:
@@ -35,6 +40,9 @@ function uniform(min: number, max: number): number {
   return min + Math.random() * (max - min);
 }
 
+/** Master switch — set to true to re-enable the bonus mini-gem feature. */
+const ENABLED = false;
+
 @service()
 export class BonusGemService extends Service {
 
@@ -45,11 +53,13 @@ export class BonusGemService extends Service {
 
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
+    if (!ENABLED) return;
     this._timeLeft = uniform(BONUS_GEM_SPAWN_DELAY_MIN, BONUS_GEM_SPAWN_DELAY_MAX);
   }
 
   @subscribe(Events.Tick)
   onTick(p: Events.TickPayload): void {
+    if (!ENABLED) return;
     this._timeLeft -= p.dt;
     if (this._timeLeft > 0) return;
 
@@ -68,6 +78,7 @@ export class BonusGemService extends Service {
 
   @subscribe(Events.PlayerTap)
   onPlayerTap(p: Events.PlayerTapPayload): void {
+    if (!ENABLED) return;
     if (!this._active) return;
     if (p.isAuto) return; // Auto-cursors don't collect the bonus.
     if (p.tapX == null || p.tapY == null) return;
