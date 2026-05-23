@@ -18,7 +18,6 @@ export class GameManager extends Component {
   private _coinService : CoinService = CoinService.get();
   private _ballPower : BallPowerService = BallPowerService.get();
   private _audioManager : AudioManager = AudioManager.get();
-  private _ballPowerBallPowerService = BallPowerService.get();
 
   private _lives: number = 1;
   private _score: number = 0;
