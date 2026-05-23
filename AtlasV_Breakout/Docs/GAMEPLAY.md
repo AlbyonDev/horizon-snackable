@@ -128,32 +128,33 @@ State variables that gate the loop (all on `GameManager`):
 
 ## Game Flow (State Machine)
 
-Five states, all managed by `GameManager`. Transitions are driven by tap events and internal signals.
+`GameManager` owns a single `_state: GameState` (defined in `Types.ts`). It transitions via `_enterState(next)`, which fires `GameStateEvents.GameStateChanged` so any subscriber can react.
 
 ```
-[TITLE SCREEN]
-   │  tap
-   ▼
-[PLAYING] ──── all bricks destroyed ────► [LEVEL CLEARED]
-   │                                        │  coins drained + 1 s
-   │  ball lost                             ▼
-   │                               _loadLevel(next) → [PLAYING]
-   ├── lives > 0 ──► [RESET ROUND]
-   │                    │  tap → [PLAYING] (same level, lives intact)
-   │
-   └── lives = 0 ──► [GAME OVER]
-                        │  tap → reset score + lives → [PLAYING] (same level)
+TitleScreen  ──tap──►  Playing  ──lives=0──►  GameOver  ──tap──►  Playing
+                          ▲                                           │
+                          └──────────── restart ──────────────────────┘
 ```
 
-| State | Flag / condition | Entry | Exit |
-|---|---|---|---|
-| **Title Screen** | `_showingTitleScreen = true` | boot | first tap |
-| **Playing** | all flags false | `_loadLevel()` | ball lost or all bricks destroyed |
-| **Reset Round** | none (transient) | `Events.ResetRound` | next tap |
-| **Level Cleared** | `_waitingForCoins = true` | `_advanceLevel()` | `activeCoinCount === 0` + 1 s |
-| **Game Over** | `_showingHighScores = true` | `Events.BallLost` with lives = 0 | next tap |
+`_waitingForCoins` and `ResetRound` are internal sub-states of `Playing` and do not appear as top-level `GameState` values.
 
-On **Game Over**, the leaderboard is submitted via `LeaderboardEvents.LeaderboardSubmitScore` and displayed via `LeaderboardEvents.LeaderboardDisplayRequest`. The player restarts on the level they died on (no regression), with score reset to 0.
+| State | Entry | Exit |
+|---|---|---|
+| `TitleScreen` | boot | tap → `_enterState(Playing)` + `_loadLevel(0)` |
+| `Playing` | `_enterState(Playing)` | ball lost (lives=0) or level cleared |
+| `GameOver` | `_enterState(GameOver)` on lives=0 | tap → restart |
+
+`onTap()` in `GameManager` is a `switch` on `_state`; it does nothing during `Playing` (ball and paddle handle their own tap).
+
+On **Game Over**, the leaderboard is submitted via `LeaderboardEvents.LeaderboardSubmitScore` and displayed via `LeaderboardEvents.LeaderboardDisplayRequest`. The player restarts on the level they died on, with score reset to 0.
+
+**Adding a new screen (e.g. LevelSelect):**
+1. Add `LevelSelect = 'LevelSelect'` to the `GameState` enum in `Types.ts`.
+2. Add `case GameState.LevelSelect:` in `GameManager.onTap()` — call `_enterState(Playing)` + `_loadLevel(index)` when a level is chosen.
+3. Change `case GameState.TitleScreen` to call `_enterState(GameState.LevelSelect)` instead of loading level 0 directly.
+4. In the new ViewModel, subscribe to `GameStateEvents.GameStateChanged`:
+   - Show the panel when `payload.next === GameState.LevelSelect`.
+   - **CRITICAL:** use `Visibility.Collapsed` for every other state — not `Hidden`, not `Opacity=0`. `Hidden` and opacity-0 panels still receive tap events and will soft-lock the game.
 
 ---
 

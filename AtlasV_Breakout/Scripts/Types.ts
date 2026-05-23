@@ -42,6 +42,35 @@ export enum RevealStyle {
   Stretch = 3,   // stretch horizontally then vertically
 }
 
+/**
+ * Top-level game flow states. GameManager holds exactly one of these at a time
+ * and fires GameStateEvents.GameStateChanged on every transition.
+ *
+ * Extension pattern — adding a new screen (e.g. LevelSelect):
+ *   1. Add a new value here (e.g. `LevelSelect = 'LevelSelect'`).
+ *   2. Add a `case GameState.LevelSelect:` in GameManager.onTap().
+ *   3. In your new ViewModel, subscribe to GameStateEvents.GameStateChanged
+ *      and set Visibility="Collapsed" for every state that isn't yours.
+ *      NEVER use Visibility="Hidden" or Opacity="0" for interactive panels —
+ *      those still receive tap events and will soft-lock the game.
+ */
+export enum GameState {
+  TitleScreen = 'TitleScreen',
+  Playing     = 'Playing',
+  GameOver    = 'GameOver',
+}
+
+export namespace GameStateEvents {
+  export class GameStateChangedPayload {
+    readonly prev: GameState = GameState.TitleScreen;
+    readonly next: GameState = GameState.TitleScreen;
+  }
+  export const GameStateChanged = new LocalEvent<GameStateChangedPayload>(
+    'EvGameStateChanged',
+    GameStateChangedPayload,
+  );
+}
+
 export namespace Events
 {
   export class RestartPayload {}

@@ -1,5 +1,5 @@
 import { component, Component, EventService, ExecuteOn, NetworkingService, OnEntityStartEvent, OnFocusedInteractionInputStartedEvent, OnWorldUpdateEvent, OnWorldUpdateEventPayload, property, subscribe } from 'meta/worlds';
-import { Events, HUDEvents, HighScoreHUDEvents, LeaderboardEvents } from '../Types';
+import { Events, HUDEvents, HighScoreHUDEvents, LeaderboardEvents, GameState, GameStateEvents } from '../Types';
 import { LEVELS, Title, type LevelConfig } from '../LevelConfig';
 import { CameraShakeService } from '../Services/CameraShakeService';
 import { VfxService } from '../Services/VfxService';
@@ -26,17 +26,15 @@ export class GameManager extends Component {
   private _destructibleBrickCount: number = 0;
   private _survivalTimer: number = 0;
   private _isClient = false;
-  private _showingHighScores: boolean = false;
+  private _state: GameState = GameState.TitleScreen;
   private _waitingForCoins = false;
   private _transitionDelay = 0;
-  private _showingTitleScreen: boolean = true;
 
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     this._isClient = !NetworkingService.get().isServerContext();
     if (!this._isClient) return;
     this._lives = this.maxLives;
-    this._showingTitleScreen = true;
     this._vfxService.prewarm();
     // Initial spawn is handled by LevelLayout.onStart (level 0 by default).
     // LoadLevel is only emitted on subsequent level changes.
@@ -44,6 +42,13 @@ export class GameManager extends Component {
     EventService.sendLocally(HUDEvents.UpdateScore, { score: this._score });
     EventService.sendLocally(HUDEvents.UpdateLives, { lives: this._lives });
     EventService.sendLocally(HUDEvents.ShowMessage, { message: 'Tap to start' });
+    this._enterState(GameState.TitleScreen);
+  }
+
+  private _enterState(next: GameState): void {
+    const prev = this._state;
+    this._state = next;
+    EventService.sendLocally(GameStateEvents.GameStateChanged, { prev, next });
   }
 
   private _initLevelState(config: LevelConfig): void {
@@ -72,17 +77,14 @@ export class GameManager extends Component {
 
   @subscribe(Events.BallLost)
   onBallLost(): void {
-    // Ignore if already in game-over or level-clear state
-    if (this._showingHighScores || this._waitingForCoins) return;
+    if (this._state !== GameState.Playing || this._waitingForCoins) return;
 
     this._lives--;
 
     if (this._lives <= 0) {
-      // Game over — freeze ball, show high scores (tap to dismiss)
-      this._showingHighScores = true;
+      this._enterState(GameState.GameOver);
       EventService.sendLocally(Events.LevelCleared, {}); // freeze ball in place
       EventService.sendLocally(LeaderboardEvents.LeaderboardDisplayRequest, {});
-      // Submit score to the leaderboard — server will process and trigger async update
       EventService.sendGlobally(LeaderboardEvents.LeaderboardSubmitScore, { score: this._score });
       return;
     }
@@ -93,14 +95,13 @@ export class GameManager extends Component {
   }
 
   private _dismissHighScoresAndRestart(): void {
-    this._showingHighScores = false;
-
     EventService.sendLocally(HighScoreHUDEvents.HideHighScores, {});
 
     this._lives = this.maxLives;
     this._score = 0;
     EventService.sendLocally(HUDEvents.UpdateScore, { score: this._score });
     EventService.sendLocally(Events.Restart, {});
+    this._enterState(GameState.Playing);
     this._loadLevel(this._currentLevel);
     EventService.sendLocally(HUDEvents.UpdateLives, { lives: this._lives });
     EventService.sendLocally(Events.ResetRound, {});
@@ -185,19 +186,24 @@ export class GameManager extends Component {
     EventService.sendLocally(HUDEvents.HideMessage, {});
   }
 
+  // Single tap entry-point. Add a new `case` here when adding a new GameState screen.
+  // During Playing the ball/paddle handle their own tap; this handler does nothing.
   @subscribe(OnFocusedInteractionInputStartedEvent)
   onTap(): void {
-    if (this._showingTitleScreen) {
-      EventService.sendLocally(HUDEvents.HideMessage, {});
-      this._loadLevel(0);
-    } else if (this._showingHighScores) {
-      this._dismissHighScoresAndRestart();
+    switch (this._state) {
+      case GameState.TitleScreen:
+        EventService.sendLocally(HUDEvents.HideMessage, {});
+        this._enterState(GameState.Playing);
+        this._loadLevel(0);
+        break;
+      case GameState.GameOver:
+        this._dismissHighScoresAndRestart();
+        break;
     }
   }
 
   private _loadLevel(index: number): void {
     this._currentLevel = index;
-    this._showingTitleScreen = false;
     this._initLevelState(LEVELS[index]);
     EventService.sendLocally(Events.LoadLevel, { levelIndex: index });
     EventService.sendLocally(HUDEvents.UpdateLives, { lives: this._lives });
