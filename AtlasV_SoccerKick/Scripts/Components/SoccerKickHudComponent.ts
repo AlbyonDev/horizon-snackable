@@ -38,6 +38,8 @@ class ShotDotViewModel extends UiViewModel {
   Active: boolean = true;
   Scale: number = 1;
   Opacity: number = 1;
+  DotFill: string = '#FF4CAF50';
+  DotStroke: string = '#FFFFFFFF';
 }
 
 @uiViewModel()
@@ -219,12 +221,19 @@ export class SoccerKickHudComponent extends Component {
   }
 
   private _startPopIn(): void {
-    for (let i = 0; i < TOTAL_SHOTS; i++) {
+    // Iterate over the actual dot array, not TOTAL_SHOTS. The first GameResetEvent
+    // is fired by GameManager._spawnEntities() at startup, which can arrive before
+    // this component's onStart() has populated _dots — guarding here avoids a
+    // "Cannot set properties of undefined (setting 'DotFill')" crash.
+    for (let i = 0; i < this._dots.length; i++) {
       this._dotAnimType[i] = DotAnimType.PopIn;
       this._dotAnimElapsed[i] = 0;
       this._dotAnimDelay[i] = i * POPIN_STAGGER;
       this._setDotScale(i, 0);
       this._setDotOpacity(i, 0);
+      // Reset colors to active (green filled) for pop-in
+      this._dots[i].DotFill = '#FF4CAF50';
+      this._dots[i].DotStroke = '#FFFFFFFF';
     }
   }
 
@@ -263,7 +272,7 @@ export class SoccerKickHudComponent extends Component {
     if (p >= 1) {
       this._dotAnimType[i] = DotAnimType.None;
       this._setDotScale(i, 1);
-      this._setDotOpacity(i, 1);
+      this._setDotOpacity(i, 1); // Keep dot visible - Active=false gives hollow outline look
     }
   }
 
@@ -302,7 +311,10 @@ export class SoccerKickHudComponent extends Component {
 
   private _updateDots(shotsLeft: number): void {
     for (let i = 0; i < this._dots.length; i++) {
-      this._dots[i].Active = i < shotsLeft;
+      const active = i < shotsLeft;
+      this._dots[i].Active = active;
+      this._dots[i].DotFill = active ? '#FF4CAF50' : 'Transparent';
+      this._dots[i].DotStroke = active ? '#FFFFFFFF' : '#CCFFFFFF';
     }
   }
 

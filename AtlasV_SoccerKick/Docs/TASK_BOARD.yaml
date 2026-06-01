@@ -124,4 +124,7 @@ chopping_block:
   temp_scaffolding: []
   failed_attempts: []
 
+done:
+  - Shot Dot Animation Fix -- used dots show as hollow outlines not invisible
+
 notes: []

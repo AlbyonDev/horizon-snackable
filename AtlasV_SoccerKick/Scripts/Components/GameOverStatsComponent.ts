@@ -11,11 +11,10 @@ import { CustomUiComponent } from 'meta/worlds';
 import { GamePhase } from '../Types';
 import type { IGameSnapshot } from '../Types';
 import { GameStateService } from '../Services/GameStateService';
-import { BallService } from '../Services/BallService';
-import { GoalkeeperService } from '../Services/GoalkeeperService';
 import {
   PhaseChangedEvent, PhaseChangedPayload,
   GameResetEvent, GameResetPayload,
+  RestartRequestedEvent,
 } from '../Events/GameEvents';
 import { TOTAL_SHOTS, STARS_3_ACCURACY, STARS_2_ACCURACY } from '../Constants';
 
@@ -151,9 +150,10 @@ export class GameOverStatsComponent extends Component {
   onReplayClick(): void {
     console.log('[GameOverStatsComponent] Replay button clicked');
     this._hideOverlay();
-    GameStateService.get().reset();
-    BallService.get().reset();
-    GoalkeeperService.get().reset();
+    // GameManager owns the full restart sequence (cancel timers → reset services
+    // → reset state → respawn keeper) in the correct order. Doing the resets here
+    // raced with pending shot/game-over timers and double-spawned the keeper.
+    EventService.sendLocally(RestartRequestedEvent, {});
   }
 
   // ── Frame-by-frame animation ────────────────────────────────────────

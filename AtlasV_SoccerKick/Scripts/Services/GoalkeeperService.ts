@@ -26,7 +26,10 @@ export class GoalkeeperService extends Service {
   // ── Def ──────────────────────────────────────────────────────────────────────
 
   setDef(index: number): void {
-    this._def = KEEPER_DEFS[index];
+    // Guard against out-of-range indices — an undefined _def would crash every
+    // tick (e.g. _tickIdle reading _def.idleSpeed) and freeze the game loop.
+    const def = KEEPER_DEFS[index];
+    if (def) this._def = def;
   }
 
   get shadowBaseX(): number { return this._def.shadowBaseX; }

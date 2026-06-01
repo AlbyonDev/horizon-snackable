@@ -55,6 +55,15 @@ export const GameResetEvent = new LocalEvent<GameResetPayload>(
   GameResetPayload,
 );
 
+// ── Restart Requested (Replay button — GameManager owns the restart sequence) ─
+
+export class RestartRequestedPayload {}
+
+export const RestartRequestedEvent = new LocalEvent<RestartRequestedPayload>(
+  'EvRestartRequested',
+  RestartRequestedPayload,
+);
+
 // ── Points Ready (casino roll-up complete — HUD may now animate score) ───────
 
 export class PointsReadyPayload {

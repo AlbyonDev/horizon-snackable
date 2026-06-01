@@ -47,7 +47,6 @@ export const KEEPER_DEFS: IKeeperDef[] = [
     animDiveOffsetY: 0.5,
     shadowBaseX:    1.2,
   },
-/*
   // ── Keeper 2 — Big slow ──────────────────────────────────────────────────
   {
     template:       Assets.Keeper2,
@@ -64,7 +63,6 @@ export const KEEPER_DEFS: IKeeperDef[] = [
     animDiveOffsetY: 0.5,
     shadowBaseX:    1.5,
   },
-
   // ── Keeper 3 — Quick stepper ─────────────────────────────────────────────────
   // Réaction quasi-instantanée, se repositionne vite — mais plonge peu et petit
   {
@@ -81,5 +79,5 @@ export const KEEPER_DEFS: IKeeperDef[] = [
     footY:          0.10,
     animDiveOffsetY: 0.5,
     shadowBaseX:    1,
-  },*/
+  },
 ];

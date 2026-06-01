@@ -1,6 +1,5 @@
 <Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
       Background="Transparent">
 
     <Page.Resources>
@@ -60,18 +59,8 @@
                                     <ScaleTransform ScaleX="{Binding Scale}" ScaleY="{Binding Scale}"/>
                                 </Grid.RenderTransform>
                                 <Ellipse Width="60" Height="60"
-                                         Fill="#FF4CAF50"
-                                         StrokeThickness="6" Stroke="#FFFFFFFF"/>
-                                <b:Interaction.Triggers>
-                                    <b:DataTrigger Binding="{Binding Active}" Value="False">
-                                        <b:ChangePropertyAction PropertyName="Fill" Value="#33FFFFFF"/>
-                                        <b:ChangePropertyAction PropertyName="Stroke" Value="#66FFFFFF"/>
-                                    </b:DataTrigger>
-                                    <b:DataTrigger Binding="{Binding Active}" Value="True">
-                                        <b:ChangePropertyAction PropertyName="Fill" Value="#FF4CAF50"/>
-                                        <b:ChangePropertyAction PropertyName="Stroke" Value="#FFFFFFFF"/>
-                                    </b:DataTrigger>
-                                </b:Interaction.Triggers>
+                                         Fill="{Binding DotFill}"
+                                         StrokeThickness="6" Stroke="{Binding DotStroke}"/>
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

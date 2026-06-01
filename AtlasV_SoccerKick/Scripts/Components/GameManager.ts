@@ -7,7 +7,7 @@ import {
 } from 'meta/worlds';
 import type { OnWorldUpdateEventPayload, Maybe, Entity } from 'meta/worlds';
 import { ShotFeedbackResultEvent } from '../Events/ShotFeedbackEvents';
-import { GameResetEvent, GameResetPayload, KeeperDespawnEvent } from '../Events/GameEvents';
+import { GameResetEvent, GameResetPayload, KeeperDespawnEvent, RestartRequestedEvent, RestartRequestedPayload } from '../Events/GameEvents';
 import { GamePhase, ShotOutcome } from '../Types';
 import {
   NEXT_SHOT_GOAL_MS, NEXT_SHOT_SAVE_MS, NEXT_SHOT_POST_MS, NEXT_SHOT_MISS_MS,
@@ -26,8 +26,10 @@ export class GameManager extends Component {
 
   private _ballEntity: Maybe<Entity> = null;
   private _gkEntity:   Maybe<Entity> = null;
-  private _nextShotTimer: ReturnType<typeof setTimeout> | null = null;
+  private _nextShotTimer:  ReturnType<typeof setTimeout> | null = null;
+  private _gameOverTimer:  ReturnType<typeof setTimeout> | null = null;
   private _keeperSpawned = false;
+  private _spawningKeeper = false;
   private _lastKeeperIndex = -1;
 
 
@@ -70,9 +72,15 @@ export class GameManager extends Component {
     const phase = state.phase;
 
     // Clear pending timers if game was reset (tap-to-restart)
-    if (phase === GamePhase.Aim && this._nextShotTimer !== null) {
-      clearTimeout(this._nextShotTimer);
-      this._nextShotTimer = null;
+    if (phase === GamePhase.Aim) {
+      if (this._nextShotTimer !== null) {
+        clearTimeout(this._nextShotTimer);
+        this._nextShotTimer = null;
+      }
+      if (this._gameOverTimer !== null) {
+        clearTimeout(this._gameOverTimer);
+        this._gameOverTimer = null;
+      }
     }
 
     // Always tick the GK (idle sway, reaction, dive)
@@ -138,7 +146,11 @@ export class GameManager extends Component {
 
     // shotsLeft was already decremented in notifyShotFired() at kick time
     if (state.shotsLeft <= 0) {
-      setTimeout(() => {
+      // Store the handle so restart() can cancel it — otherwise a Replay during
+      // this delay lets a stale GameOver transition fire after the reset, which
+      // blocks input (phase != Aim) and the ball appears stuck in place.
+      this._gameOverTimer = setTimeout(() => {
+        this._gameOverTimer = null;
         state.setPhase(GamePhase.GameOver);
       }, GAME_OVER_DELAY);
       return;
@@ -152,13 +164,32 @@ export class GameManager extends Component {
   // ── Keeper spawn ─────────────────────────────────────────────────────────────
 
   private async _spawnRandomKeeper(): Promise<void> {
+    // Guard against re-entrancy: a second call while the first is still awaiting
+    // spawnTemplate() would fire KeeperDespawnEvent and destroy the keeper the
+    // first call just created — leaving no keeper visible at all.
+    if (this._spawningKeeper) return;
+    this._spawningKeeper = true;
+    try {
+      await this._doSpawnRandomKeeper();
+    } finally {
+      this._spawningKeeper = false;
+    }
+  }
+
+  private async _doSpawnRandomKeeper(): Promise<void> {
     if (this._gkEntity) {
       EventService.sendLocally(KeeperDespawnEvent, {});
       this._gkEntity = null;
     }
     const count = KEEPER_DEFS.length;
     let index: number;
-    if (this._lastKeeperIndex === -1) {
+    if (count <= 1) {
+      // Only one keeper defined — the "pick a different one" branch below would
+      // compute an out-of-range index (Math.random() * 0 = 0, then +1 → 1) and
+      // set an undefined def, crashing GoalkeeperService.tick() and aborting the
+      // spawn. Always reuse index 0 in that case.
+      index = 0;
+    } else if (this._lastKeeperIndex === -1) {
       index = Math.floor(Math.random() * count);
     } else {
       index = Math.floor(Math.random() * (count - 1));
@@ -185,15 +216,29 @@ export class GameManager extends Component {
     this._spawnRandomKeeper().catch(() => {});
   }
 
-  // ── Restart (called externally, e.g. from UI) ─────────────────────────────
+  // ── Restart (requested by the Replay button via event) ────────────────────
+
+  @subscribe(RestartRequestedEvent)
+  onRestartRequested(_p: RestartRequestedPayload): void {
+    if (this._networkingService.isServerContext()) return;
+    this.restart();
+  }
 
   restart(): void {
+    // Cancel any pending shot/game-over transitions before resetting, so a stale
+    // timer can't re-enter the state machine after the reset.
     if (this._nextShotTimer !== null) {
       clearTimeout(this._nextShotTimer);
       this._nextShotTimer = null;
     }
+    if (this._gameOverTimer !== null) {
+      clearTimeout(this._gameOverTimer);
+      this._gameOverTimer = null;
+    }
     BallService.get().reset();
     GoalkeeperService.get().reset();
+    // reset() fires GameResetEvent → onGameReset() → _spawnRandomKeeper().
+    // Must come last so services are clean before the keeper respawns.
     GameStateService.get().reset();
   }
 }
