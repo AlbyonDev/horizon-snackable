@@ -21,7 +21,7 @@ import {
 } from 'meta/worlds';
 import type { Maybe, OnWorldUpdateEventPayload } from 'meta/worlds';
 
-import { Events, UiEvents } from '../Types';
+import { Events, GamePhase, UiEvents } from '../Types';
 import { ResourceService } from '../Services/ResourceService';
 import { START_GOLD, START_LIVES } from '../Constants';
 import { LEVEL_DEFS } from '../Defs/LevelDefs';
@@ -36,6 +36,12 @@ export class GameHudViewModel extends UiViewModel {
   waveText: string = '';
   countdown: number = 0;
   showCountdown: boolean = false;
+  showAbandon: boolean = false;
+
+  override readonly events = {
+    skipWaveTap: UiEvents.skipWaveTap,
+    abandonLevelTap: UiEvents.abandonLevelTap,
+  };
 }
 
 const CASINO_SPEED = 120; // gold units per second during roll
@@ -139,6 +145,25 @@ export class GameHudController extends Component {
   onSkipWaveTap(_p: UiEvents.SkipWaveTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     EventService.sendLocally(Events.SkipBuild, new Events.SkipBuildPayload());
+  }
+
+  @subscribe(UiEvents.abandonLevelTap, { execution: ExecuteOn.Owner })
+  onAbandonLevelTap(_p: UiEvents.SkipWaveTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    console.log('[GameHudController] Abandon level tapped — firing RestartGame');
+    EventService.sendLocally(Events.RestartGame, new Events.RestartGamePayload());
+  }
+
+  @subscribe(Events.GamePhaseChanged, { execution: ExecuteOn.Owner })
+  onPhaseChanged(p: Events.GamePhaseChangedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    const phase = p.phase;
+    // Show abandon button only during active gameplay phases
+    this.viewModel.showAbandon =
+      phase === GamePhase.Build ||
+      phase === GamePhase.Wave ||
+      phase === GamePhase.WaveClear;
   }
 
   private _updateWaveText(): void {

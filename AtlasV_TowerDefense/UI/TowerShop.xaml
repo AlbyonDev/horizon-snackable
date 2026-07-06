@@ -3,7 +3,8 @@
       xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      mc:Ignorable="d">
+      mc:Ignorable="d"
+      d:DesignWidth="1080" d:DesignHeight="1920">
 
     <Page.Resources>
         <!-- Colors -->

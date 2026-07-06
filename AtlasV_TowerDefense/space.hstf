@@ -287,7 +287,8 @@
                             },
                             "width": 0,
                             "height": 0,
-                            "panelVisibility": true
+                            "panelVisibility": true,
+                            "isInteractable": true
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -343,6 +344,7 @@
                             },
                             "width": 0,
                             "height": 0,
+                            "panelVisibility": false,
                             "isInteractable": true,
                             "renderOrderOffset": 100
                         }

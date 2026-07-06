@@ -74,6 +74,10 @@ export class GameOverScreenHud extends Component {
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
 
+    // Hide the native panel immediately to prevent XAML binding race
+    // (unresolved bindings default to Visible, covering the screen)
+    this.uiComponent.isVisible = false;
+
     this.viewModel = new GameOverScreenViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
@@ -115,7 +119,10 @@ export class GameOverScreenHud extends Component {
     this.viewModel.goldEarned = this._goldEarned;
     this.viewModel.wavesCompleted = this._currentWave;
 
-    // Show the overlay
+    // Show the overlay - enable native panel first, then set ViewModel
+    if (this.uiComponent) {
+      this.uiComponent.isVisible = true;
+    }
     this.viewModel.visible = true;
   }
 
@@ -128,6 +135,9 @@ export class GameOverScreenHud extends Component {
     if (!this.viewModel) return;
 
     this.viewModel.visible = false;
+    if (this.uiComponent) {
+      this.uiComponent.isVisible = false;
+    }
     this._enemiesKilled = 0;
     this._goldEarned = 0;
     this._currentWave = 0;

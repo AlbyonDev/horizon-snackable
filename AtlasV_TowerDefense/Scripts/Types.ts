@@ -229,5 +229,6 @@ export namespace UiEvents {
   export const sellTowerTap    = new UiEvent('TowerUpgradeMenuViewModel-onSellTowerTap',    SellTowerTapPayload);
   export const upgradeTowerTap = new UiEvent('TowerUpgradeMenuViewModel-onUpgradeTowerTap', UpgradeTowerTapPayload);
   export const skipWaveTap     = new UiEvent('GameHudViewModel-onSkipWaveTap',               SkipWaveTapPayload);
+  export const abandonLevelTap = new UiEvent('GameHudViewModel-onAbandonLevelTap',           SkipWaveTapPayload);
   export const overworldLevelTap = new UiEvent('OverworldViewModel-onLevelTap',              OverworldLevelTapPayload);
 }
