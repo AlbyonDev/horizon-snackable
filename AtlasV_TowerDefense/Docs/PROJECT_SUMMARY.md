@@ -182,6 +182,7 @@ Scripts/
     TowerUpgradeMenuHud  — ViewModel for upgrade/sell panel
     GameOverScreenHud    — ViewModel for end screen + stats
     TitleScreenHud       — ViewModel for pre-game title screen + Play button
+    OverworldHud         — ViewModel for level select screen (Overworld phase)
     CoinController       — physics-simulated coin loot with bounce, gravity, and collect animation
     WaveBannerHud        — ViewModel for wave announcement banner (WAVE X, animated)
 ```
@@ -260,9 +261,11 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 ## Game Phases
 
 ```
-Title Screen → Build (5s) → Wave → WaveClear (0.5s) → Build → … → Victory
-                                                                      ↓
-                                                                   GameOver (lives = 0)
+Title Screen → Overworld (Level Select) → Build (5s) → Wave → WaveClear (0.5s) → Build → … → Victory
+                                                                                                  ↓
+                                                                                               GameOver (lives = 0)
+                                                                                                  ↓
+                                                                                            Title → Overworld
 ```
 
 ---
@@ -272,6 +275,7 @@ Title Screen → Build (5s) → Wave → WaveClear (0.5s) → Build → … → 
 | Panel | File | Phase | Status |
 |-------|------|-------|--------|
 | **Title Screen** | `UI/TitleScreen.xaml` | Pre-game | ✅ — Full-screen dark overlay with logo and "JOUER" button. Fires StartGame on tap. |
+| **Overworld (Level Select)** | `UI/Overworld.xaml` | Overworld | ✅ — Full-screen level select grid with N level buttons. Fires LevelSelected on tap. |
 | **HUD** | `UI/GameHud.xaml` | Always | ✅ |
 | **Tower Shop** | `UI/TowerShop.xaml` | Build + Wave | ✅ |
 | **Tower Upgrade Menu** | `UI/TowerUpgradeMenu.xaml` | Tower selected | ✅ — 4-column layout: [Info Panel] [Upgrade1] [Upgrade2] [Sell]. Info panel shows tower name + upgrade history (up to 3 lines). Upgrade buttons hidden when tower is at max tier (3). |
@@ -300,8 +304,9 @@ Title Screen → Build (5s) → Wave → WaveClear (0.5s) → Build → … → 
 | `TowerSold` | `col, row, refund` | TowerService |
 | `TowerUpgraded` | `col, row, tier, choice` | TowerService |
 | `GameOver` | `won: boolean` | GameOverScreenHud |
-| `StartGame` | — | GameManager (starts the game from title screen) |
-| `RestartGame` | — | GameManager, all services with state |
+| `StartGame` | — | GameManager (transitions to Overworld) |
+| `LevelSelected` | `levelIndex` | GameManager (starts the game), WaveService, TowerShopHud, GameHudController |
+| `RestartGame` | — | GameManager (transitions to Overworld), all services with state |
 | `ActivateFloatingText` | `text, worldX, worldZ, colorR, colorG, colorB` | FloatingTextController |
 
 ---

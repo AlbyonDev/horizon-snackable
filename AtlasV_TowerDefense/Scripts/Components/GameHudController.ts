@@ -66,8 +66,8 @@ export class GameHudController extends Component {
     this.viewModel.totalWaves = LEVEL_DEFS[0].waves.length;
   }
 
-  @subscribe(Events.StartGame, { execution: ExecuteOn.Owner })
-  onStartGame(_p: Events.StartGamePayload): void {
+  @subscribe(Events.LevelSelected, { execution: ExecuteOn.Owner })
+  onLevelSelected(_p: Events.LevelSelectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     this.viewModel.visible = true;
@@ -125,6 +125,7 @@ export class GameHudController extends Component {
   @subscribe(Events.RestartGame, { execution: ExecuteOn.Owner })
   onRestart(_p: Events.RestartGamePayload): void {
     if (!this.viewModel) return;
+    // Hide HUD — will show again when LevelSelected fires
     this.viewModel.visible = false;
     this.viewModel.waveNumber = 1;
     this.viewModel.totalWaves = LEVEL_DEFS[0].waves.length;

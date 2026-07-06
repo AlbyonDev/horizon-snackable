@@ -17,6 +17,7 @@ export enum GamePhase {
   WaveClear = 3,
   GameOver  = 4,
   Victory   = 5,
+  Overworld = 6,
 }
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -188,6 +189,10 @@ export namespace Events {
   export class ShowTitleScreenPayload {}
   export const ShowTitleScreen = new LocalEvent<ShowTitleScreenPayload>('EvShowTitleScreen', ShowTitleScreenPayload);
 
+  // Level selected (fired by overworld screen)
+  export class LevelSelectedPayload { levelIndex: number = 0; }
+  export const LevelSelected = new LocalEvent<LevelSelectedPayload>('EvLevelSelected', LevelSelectedPayload);
+
   // Start game (fired by title screen)
   export class StartGamePayload {}
   export const StartGame = new LocalEvent<StartGamePayload>('EvStartGame', StartGamePayload);
@@ -218,9 +223,11 @@ export namespace UiEvents {
   @serializable() export class UpgradeTowerTapPayload   { readonly parameter: string = ''; }
 
   @serializable() export class SkipWaveTapPayload         { readonly parameter: string = ''; }
+  @serializable() export class OverworldLevelTapPayload   { readonly parameter: string = ''; }
 
   export const towerShopTap    = new UiEvent('TowerShopTapEvent',                             TowerShopTapPayload);
   export const sellTowerTap    = new UiEvent('TowerUpgradeMenuViewModel-onSellTowerTap',    SellTowerTapPayload);
   export const upgradeTowerTap = new UiEvent('TowerUpgradeMenuViewModel-onUpgradeTowerTap', UpgradeTowerTapPayload);
   export const skipWaveTap     = new UiEvent('GameHudViewModel-onSkipWaveTap',               SkipWaveTapPayload);
+  export const overworldLevelTap = new UiEvent('OverworldViewModel-onLevelTap',              OverworldLevelTapPayload);
 }

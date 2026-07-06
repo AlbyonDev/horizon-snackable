@@ -85,12 +85,7 @@ export class TitleScreenHud extends Component {
     if (!this.viewModel.visible) return;
 
     this.viewModel.visible = false;
-
-    if (this._hasPlayed) {
-      EventService.sendLocally(Events.RestartGame, new Events.RestartGamePayload());
-    } else {
-      this._hasPlayed = true;
-      EventService.sendLocally(Events.StartGame, new Events.StartGamePayload());
-    }
+    // Always fire StartGame which transitions to Overworld
+    EventService.sendLocally(Events.StartGame, new Events.StartGamePayload());
   }
 }

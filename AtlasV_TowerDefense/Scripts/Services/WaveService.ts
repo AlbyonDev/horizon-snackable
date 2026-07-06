@@ -27,6 +27,7 @@ export class WaveService extends Service {
   private _phase: GamePhase = GamePhase.Idle;
   private _timer: number = 0;
   private _ftueWaiting: boolean = false;
+  private _currentLevel: number = 0;
 
   // ── Spawn queue ───────────────────────────────────────────────────────────────
   private _spawnQueue: string[] = [];
@@ -42,6 +43,12 @@ export class WaveService extends Service {
   get waveIndex(): number { return this._waveIndex; }
   get totalWaves(): number { return this._totalWaves; }
   get phase(): GamePhase { return this._phase; }
+
+  @subscribe(Events.LevelSelected)
+  onLevelSelected(p: Events.LevelSelectedPayload): void {
+    this._currentLevel = Math.min(p.levelIndex, LEVEL_DEFS.length - 1);
+    this._totalWaves = LEVEL_DEFS[this._currentLevel].waves.length;
+  }
 
   @subscribe(Events.RestartGame)
   onRestart(_p: Events.RestartGamePayload): void {
@@ -159,7 +166,7 @@ export class WaveService extends Service {
     this._spawnedCount = 0;
     this._spawnTimer = 0;
 
-    const waveDef = LEVEL_DEFS[0].waves[this._waveIndex];
+    const waveDef = LEVEL_DEFS[this._currentLevel].waves[this._waveIndex];
     this._spawnQueue = [];
     for (const group of waveDef.groups) {
       for (let i = 0; i < group.count; i++) {

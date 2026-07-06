@@ -155,7 +155,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 9,
+                        "version": 11,
                         "data": {
                             "type": "StaticCollision"
                         }
@@ -730,7 +730,7 @@
                             "dataType": "horizon::DataDefinitionAsset",
                             "data": {
                                 "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                                "version": 9,
+                                "version": 11,
                                 "data": null
                             }
                         }
@@ -798,6 +798,51 @@
                         "version": 3,
                         "data": {
                             "intensity": 1.0
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "d317536e-2951-4218-aa42-e4a4031f91db",
+            "name": "OverworldUI",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "16527185178079959054",
+                                "targetId": "2149638574"
+                            },
+                            "isInteractable": true
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "OverworldHud",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "16352665623786911454",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "levelCount": 5.0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -880,6 +925,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "b341a2f3-289e-41f0-9e77-a789f7897e64",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "d317536e-2951-4218-aa42-e4a4031f91db",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

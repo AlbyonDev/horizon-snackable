@@ -88,8 +88,8 @@ export class TowerShopHud extends Component {
     this._updateAffordability(ResourceService.get().gold);
   }
 
-  @subscribe(Events.StartGame, { execution: ExecuteOn.Owner })
-  onStartGame(_payload: Events.StartGamePayload): void {
+  @subscribe(Events.LevelSelected, { execution: ExecuteOn.Owner })
+  onLevelSelected(_payload: Events.LevelSelectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     this.viewModel.visible = true;
@@ -125,7 +125,8 @@ export class TowerShopHud extends Component {
   @subscribe(Events.RestartGame, { execution: ExecuteOn.Owner })
   onRestart(_payload: Events.RestartGamePayload): void {
     if (!this.viewModel) return;
-    this.viewModel.visible = true;
+    // Don't show yet — will show again on LevelSelected
+    this.viewModel.visible = false;
     this.viewModel.selectedTowerId = this.itemVMs.length > 0 ? this.itemVMs[0].towerId : '';
     for (const item of this.itemVMs) item.selected = item.towerId === this.viewModel.selectedTowerId;
   }

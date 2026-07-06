@@ -53,6 +53,17 @@ export class GameManager extends Component {
   onStartGame(_p: Events.StartGamePayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (this._running) return;
+    // Transition to Overworld (level select) instead of starting gameplay directly
+    const phase = new Events.GamePhaseChangedPayload();
+    phase.phase = GamePhase.Overworld;
+    EventService.sendLocally(Events.GamePhaseChanged, phase);
+  }
+
+  @subscribe(Events.LevelSelected)
+  onLevelSelected(_p: Events.LevelSelectedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (this._running) return;
+    console.log(`[GameManager] Level ${_p.levelIndex} selected, starting game`);
     this._startGame();
   }
 
@@ -80,9 +91,12 @@ export class GameManager extends Component {
   @subscribe(Events.RestartGame)
   onRestart(_p: Events.RestartGamePayload): void {
     // Services have already cleaned up their state before this fires.
-    this._running = true;
+    this._running = false;
     ResourceService.get().reset();
-    WaveService.get().startGame();
+    // Go back to Overworld (level select) instead of restarting directly
+    const phase = new Events.GamePhaseChangedPayload();
+    phase.phase = GamePhase.Overworld;
+    EventService.sendLocally(Events.GamePhaseChanged, phase);
   }
 
   private _startGame(): void {
