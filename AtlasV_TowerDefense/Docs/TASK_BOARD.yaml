@@ -26,7 +26,7 @@ done:
   - Fast/Tank/Boss Enemies -- Kobold Scout, Troll (Tank), Ogre Warchief (Boss) meshes + anims + templates
   - Troll Tank Enemy Mesh Swap -- chibi medieval troll, big head, walk anim, EnemyTank.hstf updated
   - Level Select Overworld UI -- N-button level select between title and gameplay
-  - Abandon Level Button -- HUD button returns to Overworld, resets state
+  - Abandon Confirmation Popup -- "Are you sure?" Yes/No popup on abandon tap
 
 chopping_block:
   disabled_systems: []

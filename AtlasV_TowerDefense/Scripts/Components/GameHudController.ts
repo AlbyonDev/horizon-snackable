@@ -37,10 +37,13 @@ export class GameHudViewModel extends UiViewModel {
   countdown: number = 0;
   showCountdown: boolean = false;
   showAbandon: boolean = false;
+  showConfirmPopup: boolean = false;
 
   override readonly events = {
     skipWaveTap: UiEvents.skipWaveTap,
     abandonLevelTap: UiEvents.abandonLevelTap,
+    confirmYesTap: UiEvents.confirmAbandonYesTap,
+    confirmNoTap: UiEvents.confirmAbandonNoTap,
   };
 }
 
@@ -138,6 +141,7 @@ export class GameHudController extends Component {
     this.viewModel.waveText = "";
     this.viewModel.countdown = 0;
     this.viewModel.showCountdown = false;
+    this.viewModel.showConfirmPopup = false;
   }
 
 
@@ -150,8 +154,26 @@ export class GameHudController extends Component {
   @subscribe(UiEvents.abandonLevelTap, { execution: ExecuteOn.Owner })
   onAbandonLevelTap(_p: UiEvents.SkipWaveTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
-    console.log('[GameHudController] Abandon level tapped — firing RestartGame');
+    if (!this.viewModel) return;
+    console.log('[GameHudController] Abandon level tapped — showing confirm popup');
+    this.viewModel.showConfirmPopup = true;
+  }
+
+  @subscribe(UiEvents.confirmAbandonYesTap, { execution: ExecuteOn.Owner })
+  onConfirmYes(_p: UiEvents.SkipWaveTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    console.log('[GameHudController] Confirm Yes — firing RestartGame');
+    this.viewModel.showConfirmPopup = false;
     EventService.sendLocally(Events.RestartGame, new Events.RestartGamePayload());
+  }
+
+  @subscribe(UiEvents.confirmAbandonNoTap, { execution: ExecuteOn.Owner })
+  onConfirmNo(_p: UiEvents.SkipWaveTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    console.log('[GameHudController] Confirm No — closing popup');
+    this.viewModel.showConfirmPopup = false;
   }
 
   @subscribe(Events.GamePhaseChanged, { execution: ExecuteOn.Owner })

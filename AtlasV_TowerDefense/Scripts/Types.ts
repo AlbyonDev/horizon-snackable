@@ -230,5 +230,7 @@ export namespace UiEvents {
   export const upgradeTowerTap = new UiEvent('TowerUpgradeMenuViewModel-onUpgradeTowerTap', UpgradeTowerTapPayload);
   export const skipWaveTap     = new UiEvent('GameHudViewModel-onSkipWaveTap',               SkipWaveTapPayload);
   export const abandonLevelTap = new UiEvent('GameHudViewModel-onAbandonLevelTap',           SkipWaveTapPayload);
+  export const confirmAbandonYesTap = new UiEvent('GameHudViewModel-onConfirmAbandonYes',   SkipWaveTapPayload);
+  export const confirmAbandonNoTap  = new UiEvent('GameHudViewModel-onConfirmAbandonNo',    SkipWaveTapPayload);
   export const overworldLevelTap = new UiEvent('OverworldViewModel-onLevelTap',              OverworldLevelTapPayload);
 }
