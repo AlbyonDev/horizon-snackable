@@ -288,7 +288,8 @@
                             "width": 0,
                             "height": 0,
                             "panelVisibility": true,
-                            "isInteractable": true
+                            "isInteractable": true,
+                            "renderOrderOffset": 300
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -844,7 +845,14 @@
                             "targetId": "4237980480"
                         },
                         "data": {
-                            "levelCount": 5.0
+                            "levelCount": 8.0,
+                            "topPadding": 160.0,
+                            "maxNodeSize": 300.0,
+                            "minNodeSize": 80.0,
+                            "maxVerticalSpacing": 400.0,
+                            "minVerticalSpacing": 150.0,
+                            "bossSizeMultiplier": 1.5,
+                            "connectorHeight": 80.0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"

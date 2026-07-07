@@ -25,7 +25,7 @@ done:
   - Basic Enemy -- goblin warrior chibi mesh, walk anim, AnimGraph in Enemy.hstf
   - Fast/Tank/Boss Enemies -- Kobold Scout, Troll (Tank), Ogre Warchief (Boss) meshes + anims + templates
   - Troll Tank Enemy Mesh Swap -- chibi medieval troll, big head, walk anim, EnemyTank.hstf updated
-  - Level Select Overworld UI -- N-button level select between title and gameplay
+  - Overworld Level Path Layout -- fantasy map with stone nodes and dirt trail
   - Abandon Confirmation Popup -- "Are you sure?" Yes/No popup on abandon tap
 
 chopping_block:

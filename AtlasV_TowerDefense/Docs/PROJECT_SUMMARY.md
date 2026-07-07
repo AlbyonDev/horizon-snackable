@@ -275,7 +275,7 @@ Title Screen → Overworld (Level Select) → Build (5s) → Wave → WaveClear 
 | Panel | File | Phase | Status |
 |-------|------|-------|--------|
 | **Title Screen** | `UI/TitleScreen.xaml` | Pre-game | ✅ — Full-screen dark overlay with logo and "JOUER" button. Fires StartGame on tap. |
-| **Overworld (Level Select)** | `UI/Overworld.xaml` | Overworld | ✅ — Full-screen level select grid with N level buttons. Fires LevelSelected on tap. |
+| **Overworld (Level Select)** | `UI/Overworld.xaml` | Overworld | ✅ — Fantasy adventure map with painted landscape background, S-curve winding dirt trail connectors, stone medallion level nodes (green/combat for regular, red/gold/skull for boss). Fires LevelSelected on tap. |
 | **HUD** | `UI/GameHud.xaml` | Build/Wave/WaveClear | ✅ — Gold, lives, wave counter, countdown, and Abandon button (returns to Overworld). |
 | **Tower Shop** | `UI/TowerShop.xaml` | Build + Wave | ✅ |
 | **Tower Upgrade Menu** | `UI/TowerUpgradeMenu.xaml` | Tower selected | ✅ — 4-column layout: [Info Panel] [Upgrade1] [Upgrade2] [Sell]. Info panel shows tower name + upgrade history (up to 3 lines). Upgrade buttons hidden when tower is at max tier (3). |

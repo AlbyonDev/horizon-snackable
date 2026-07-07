@@ -6,71 +6,194 @@
       mc:Ignorable="d">
 
     <Page.Resources>
-        <!-- Colors matching medieval fantasy style -->
+        <!-- Fantasy adventure map colors -->
         <SolidColorBrush x:Key="GoldBrush" Color="#FFf5c518"/>
         <SolidColorBrush x:Key="GoldDarkBrush" Color="#FFc9a000"/>
         <SolidColorBrush x:Key="TextLightBrush" Color="#FFF5E6C8"/>
-        <SolidColorBrush x:Key="TransparentBrush" Color="Transparent"/>
+        <SolidColorBrush x:Key="StoneBorderBrush" Color="#FF6B5B4A"/>
+        <SolidColorBrush x:Key="StoneInnerBrush" Color="#FF4A3D30"/>
+        <SolidColorBrush x:Key="GreenInnerBrush" Color="#FF3A7D44"/>
+        <SolidColorBrush x:Key="DirtBrush" Color="#FF8B7355"/>
+        <SolidColorBrush x:Key="DirtDarkBrush" Color="#FF6B5540"/>
+        <SolidColorBrush x:Key="DirtLightBrush" Color="#FFA08060"/>
 
-        <!-- Horizontal wrap panel for level buttons -->
-        <ItemsPanelTemplate x:Key="LevelGridPanel">
-            <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+        <!-- Canvas panel for absolute positioning -->
+        <ItemsPanelTemplate x:Key="CanvasPanel">
+            <Canvas/>
         </ItemsPanelTemplate>
 
-        <!-- Level Button Item Template -->
-        <DataTemplate x:Key="LevelButtonTemplate">
-            <Grid Width="280" Height="280" Margin="24,24,24,24">
+        <!-- Node container style: positions each node on the canvas -->
+        <Style x:Key="NodeContainerStyle" TargetType="ContentPresenter">
+            <Setter Property="Canvas.Left" Value="{Binding posX}"/>
+            <Setter Property="Canvas.Top" Value="{Binding posY}"/>
+        </Style>
+
+        <!-- Connector container style: positions each connector on the canvas -->
+        <Style x:Key="ConnectorContainerStyle" TargetType="ContentPresenter">
+            <Setter Property="Canvas.Left" Value="{Binding posX}"/>
+            <Setter Property="Canvas.Top" Value="{Binding posY}"/>
+        </Style>
+
+        <!-- Dirt trail connector template -->
+        <DataTemplate x:Key="ConnectorTemplate">
+            <Grid Width="{Binding connectorWidth}" Height="40" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <RotateTransform Angle="{Binding angle}"/>
+                </Grid.RenderTransform>
+
+                <!-- Outer dirt shadow (wider, darker) -->
+                <Border Height="32" VerticalAlignment="Center" CornerRadius="16">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FF5A4530" Offset="0"/>
+                            <GradientStop Color="#FF3D2E1A" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <!-- Main dirt trail body -->
+                <Border Height="26" VerticalAlignment="Center" CornerRadius="13">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FFA08060" Offset="0"/>
+                            <GradientStop Color="#FF8B7355" Offset="0.4"/>
+                            <GradientStop Color="#FF7A6245" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <!-- Top edge highlight (worn path texture simulation) -->
+                <Border Height="4" VerticalAlignment="Center" Margin="8,-8,8,0" CornerRadius="2">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#33C8A870" Offset="0"/>
+                            <GradientStop Color="#55C8A870" Offset="0.5"/>
+                            <GradientStop Color="#33C8A870" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <!-- Bottom shadow edge -->
+                <Border Height="3" VerticalAlignment="Center" Margin="8,12,8,0" CornerRadius="1"
+                        Background="#44000000"/>
+            </Grid>
+        </DataTemplate>
+
+        <!-- Regular Level Node template (stone medallion with green inner) -->
+        <DataTemplate x:Key="LevelNodeTemplate">
+            <Grid Width="{Binding nodeSize}" Height="{Binding nodeSize}">
                 <b:Interaction.Triggers>
                     <b:EventTrigger EventName="MouseLeftButtonUp">
-                        <b:InvokeCommandAction Command="{Binding DataContext.events.levelTap, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                        <b:InvokeCommandAction Command="{Binding DataContext.events.levelTap, RelativeSource={RelativeSource AncestorType=Page}}"
                                                CommandParameter="{Binding levelIndex}"/>
                     </b:EventTrigger>
                 </b:Interaction.Triggers>
 
-                <!-- Shadow -->
-                <Border Margin="8,8,0,0" CornerRadius="28" Background="#FF000000"/>
+                <!-- Outer shadow glow -->
+                <Ellipse Fill="#55000000" Margin="-4"/>
 
-                <!-- Main button border -->
-                <Border CornerRadius="28" BorderThickness="8" BorderBrush="{StaticResource GoldBrush}">
-                    <Border.Background>
+                <!-- Thick stone border ring -->
+                <Ellipse Margin="4">
+                    <Ellipse.Fill>
                         <RadialGradientBrush>
-                            <GradientStop Color="#FF1a0a00" Offset="0"/>
-                            <GradientStop Color="#FF3D2407" Offset="1"/>
+                            <GradientStop Color="#FF8A7A68" Offset="0.5"/>
+                            <GradientStop Color="#FF5C4D3C" Offset="0.8"/>
+                            <GradientStop Color="#FF3D3028" Offset="1"/>
                         </RadialGradientBrush>
-                    </Border.Background>
+                    </Ellipse.Fill>
+                </Ellipse>
 
-                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <!-- Level number with text shadow -->
-                        <TextBlock Text="{Binding levelNumber}" FontSize="120" FontWeight="Bold"
-                                   FontFamily="Anton" Foreground="Black" Margin="-4,0,0,0"/>
-                        <TextBlock Text="{Binding levelNumber}" FontSize="120" FontWeight="Bold"
-                                   FontFamily="Anton" Foreground="Black" Margin="4,0,0,0"/>
-                        <TextBlock Text="{Binding levelNumber}" FontSize="120" FontWeight="Bold"
-                                   FontFamily="Anton" Foreground="Black" Margin="0,-4,0,0"/>
-                        <TextBlock Text="{Binding levelNumber}" FontSize="120" FontWeight="Bold"
-                                   FontFamily="Anton" Foreground="Black" Margin="0,4,0,0"/>
-                        <TextBlock Text="{Binding levelNumber}" FontSize="120" FontWeight="Bold"
-                                   FontFamily="Anton" Foreground="{StaticResource TextLightBrush}"/>
-                    </Grid>
-                </Border>
+                <!-- Stone beveled edge highlight -->
+                <Ellipse Margin="6" StrokeThickness="3" Fill="Transparent">
+                    <Ellipse.Stroke>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#55FFFFFF" Offset="0"/>
+                            <GradientStop Color="#00FFFFFF" Offset="0.5"/>
+                            <GradientStop Color="#33000000" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Ellipse.Stroke>
+                </Ellipse>
 
-                <!-- Corner ornaments -->
-                <Ellipse Width="20" Height="20" Fill="{StaticResource GoldBrush}"
-                         HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,12,0,0"/>
-                <Ellipse Width="12" Height="12" Fill="{StaticResource GoldDarkBrush}"
-                         HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16,16,0,0"/>
-                <Ellipse Width="20" Height="20" Fill="{StaticResource GoldBrush}"
-                         HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,12,12,0"/>
-                <Ellipse Width="12" Height="12" Fill="{StaticResource GoldDarkBrush}"
-                         HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,16,16,0"/>
-                <Ellipse Width="20" Height="20" Fill="{StaticResource GoldBrush}"
-                         HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12,0,0,12"/>
-                <Ellipse Width="12" Height="12" Fill="{StaticResource GoldDarkBrush}"
-                         HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="16,0,0,16"/>
-                <Ellipse Width="20" Height="20" Fill="{StaticResource GoldBrush}"
-                         HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12"/>
-                <Ellipse Width="12" Height="12" Fill="{StaticResource GoldDarkBrush}"
-                         HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16"/>
+                <!-- Inner colored background (green for regular, red for boss) -->
+                <Ellipse Margin="18">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#FF4CAF50" Offset="0"/>
+                            <GradientStop Color="#FF2E7D32" Offset="0.7"/>
+                            <GradientStop Color="#FF1B5E20" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <!-- Inner ring accent -->
+                <Ellipse Margin="20" StrokeThickness="2" Fill="Transparent"
+                         Stroke="#44FFFFFF"/>
+
+                <!-- Crossed swords icon (Unicode ⚔) for regular levels -->
+                <TextBlock Text="⚔" FontSize="38" Foreground="#DDFFFFFF"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Margin="0,-22,0,0" Opacity="0.7"/>
+
+                <!-- Level number with text outline effect -->
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,14,0,0">
+                    <TextBlock Text="{Binding levelNumber}" FontSize="48" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A1A"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-2,0,0,0"/>
+                    <TextBlock Text="{Binding levelNumber}" FontSize="48" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A1A"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                    <TextBlock Text="{Binding levelNumber}" FontSize="48" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A1A"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                    <TextBlock Text="{Binding levelNumber}" FontSize="48" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A1A"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,2,0,0"/>
+                    <TextBlock Text="{Binding levelNumber}" FontSize="48" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="{StaticResource TextLightBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
+
+                <!-- Boss overlay: gold spiky border + skull (only visible when isBoss=true) -->
+                <Grid>
+                    <Grid.Visibility>
+                        <Binding Path="isBoss">
+                            <Binding.Converter>
+                                <BooleanToVisibilityConverter/>
+                            </Binding.Converter>
+                        </Binding>
+                    </Grid.Visibility>
+
+                    <!-- Override inner color with dark red for boss -->
+                    <Ellipse Margin="18">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#FFD32F2F" Offset="0"/>
+                                <GradientStop Color="#FF8B0000" Offset="0.7"/>
+                                <GradientStop Color="#FF4A0000" Offset="1"/>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
+
+                    <!-- Gold spiky outer ring for boss -->
+                    <Ellipse Margin="2" StrokeThickness="5" Fill="Transparent">
+                        <Ellipse.Stroke>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#FFFFD700" Offset="0"/>
+                                <GradientStop Color="#FFFF8C00" Offset="0.5"/>
+                                <GradientStop Color="#FFFFD700" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Ellipse.Stroke>
+                    </Ellipse>
+
+                    <!-- Second gold accent ring -->
+                    <Ellipse Margin="8" StrokeThickness="2" Fill="Transparent"
+                             Stroke="#BBFFD700"/>
+
+                    <!-- Skull icon for boss -->
+                    <TextBlock Text="☠" FontSize="48" Foreground="#FFFFD700"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Margin="0,-20,0,0" Opacity="0.9"/>
+                </Grid>
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -84,44 +207,73 @@
                 </Binding.Converter>
             </Binding>
         </Grid.Visibility>
-        <Grid.Background>
-            <RadialGradientBrush>
-                <GradientStop Color="#FF000000" Offset="0"/>
-                <GradientStop Color="#FF1A1A2E" Offset="1"/>
-            </RadialGradientBrush>
-        </Grid.Background>
+
+        <!-- Full-screen fantasy landscape background -->
+        <Image Source="sprites/overworld_background.png" Stretch="UniformToFill"/>
+
+        <!-- Semi-transparent dark overlay for readability -->
+        <Border Background="#33000000"/>
 
         <!-- Layout -->
         <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Grid.RowDefinitions>
-                <RowDefinition Height="0.12*"/>
+                <RowDefinition Height="0.10*"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="0.06*"/>
+                <RowDefinition Height="0.03*"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="0.12*"/>
+                <RowDefinition Height="0.06*"/>
             </Grid.RowDefinitions>
 
-            <!-- Title: SELECT LEVEL -->
+            <!-- Title: SELECT LEVEL with ornate text -->
             <Grid Grid.Row="1" HorizontalAlignment="Center">
-                <TextBlock Text="SELECT LEVEL" FontSize="100" FontWeight="Bold"
-                           FontFamily="Anton" Foreground="Black" Margin="-4,0,0,0"/>
-                <TextBlock Text="SELECT LEVEL" FontSize="100" FontWeight="Bold"
-                           FontFamily="Anton" Foreground="Black" Margin="4,0,0,0"/>
-                <TextBlock Text="SELECT LEVEL" FontSize="100" FontWeight="Bold"
-                           FontFamily="Anton" Foreground="Black" Margin="0,-4,0,0"/>
-                <TextBlock Text="SELECT LEVEL" FontSize="100" FontWeight="Bold"
-                           FontFamily="Anton" Foreground="Black" Margin="0,4,0,0"/>
-                <TextBlock Text="SELECT LEVEL" FontSize="100" FontWeight="Bold"
-                           FontFamily="Anton" Foreground="{StaticResource GoldBrush}"/>
+                <!-- Title outline shadow -->
+                <TextBlock Text="SELECT LEVEL" FontSize="96" FontWeight="Bold"
+                           FontFamily="Almendra" Foreground="#FF2A1A0A" Margin="-3,0,0,0"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="SELECT LEVEL" FontSize="96" FontWeight="Bold"
+                           FontFamily="Almendra" Foreground="#FF2A1A0A" Margin="3,0,0,0"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="SELECT LEVEL" FontSize="96" FontWeight="Bold"
+                           FontFamily="Almendra" Foreground="#FF2A1A0A" Margin="0,-3,0,0"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="SELECT LEVEL" FontSize="96" FontWeight="Bold"
+                           FontFamily="Almendra" Foreground="#FF2A1A0A" Margin="0,3,0,0"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="SELECT LEVEL" FontSize="96" FontWeight="Bold"
+                           FontFamily="Almendra" HorizontalAlignment="Center">
+                    <TextBlock.Foreground>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FFFFD700" Offset="0"/>
+                            <GradientStop Color="#FFE8A800" Offset="0.5"/>
+                            <GradientStop Color="#FFCC8800" Offset="1"/>
+                        </LinearGradientBrush>
+                    </TextBlock.Foreground>
+                </TextBlock>
             </Grid>
 
-            <!-- Level Buttons Grid -->
-            <ItemsControl Grid.Row="3"
-                          ItemsSource="{Binding items}"
-                          ItemsPanel="{StaticResource LevelGridPanel}"
-                          ItemTemplate="{StaticResource LevelButtonTemplate}"
+            <!-- Winding path scroll area -->
+            <ScrollViewer Grid.Row="3"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          PanningMode="VerticalOnly"
                           HorizontalAlignment="Center"
-                          VerticalAlignment="Center"/>
+                          VerticalAlignment="Top">
+
+                <Canvas Width="900" Height="{Binding canvasHeight}">
+                    <!-- Connectors layer (behind nodes) -->
+                    <ItemsControl ItemsSource="{Binding connectors}"
+                                  ItemsPanel="{StaticResource CanvasPanel}"
+                                  ItemContainerStyle="{StaticResource ConnectorContainerStyle}"
+                                  ItemTemplate="{StaticResource ConnectorTemplate}"/>
+
+                    <!-- Nodes layer (on top) -->
+                    <ItemsControl ItemsSource="{Binding nodes}"
+                                  ItemsPanel="{StaticResource CanvasPanel}"
+                                  ItemContainerStyle="{StaticResource NodeContainerStyle}"
+                                  ItemTemplate="{StaticResource LevelNodeTemplate}"
+                                  Canvas.ZIndex="1"/>
+                </Canvas>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Page>
