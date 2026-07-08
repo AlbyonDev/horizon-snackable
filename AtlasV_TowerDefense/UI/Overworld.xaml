@@ -257,7 +257,7 @@
                           VerticalScrollBarVisibility="Auto"
                           PanningMode="VerticalOnly"
                           HorizontalAlignment="Center"
-                          VerticalAlignment="Top">
+                          VerticalAlignment="Center">
 
                 <Canvas Width="900" Height="{Binding canvasHeight}">
                     <!-- Connectors layer (behind nodes) -->

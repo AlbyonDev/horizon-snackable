@@ -211,7 +211,8 @@ export class OverworldHud extends Component {
       const centerX = isRight
         ? this.canvasWidth * this.rightFraction
         : this.canvasWidth * this.leftFraction;
-      const centerY = this.topPadding + i * verticalSpacing;
+      // Reversed: level 1 (i=0) at bottom, boss (last) at top
+      const centerY = this.topPadding + (totalLevels - 1 - i) * verticalSpacing;
       nodeCenters.push({ x: centerX, y: centerY });
     }
 

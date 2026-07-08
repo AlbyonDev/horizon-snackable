@@ -845,13 +845,14 @@
                             "targetId": "4237980480"
                         },
                         "data": {
-                            "levelCount": 8.0,
-                            "topPadding": 160.0,
-                            "maxNodeSize": 300.0,
-                            "minNodeSize": 80.0,
+                            "levelCount": 5.0,
+                            "topPadding": 100.0,
+                            "maxNodeSize": 250.0,
+                            "minNodeSize": 100.0,
                             "maxVerticalSpacing": 400.0,
                             "minVerticalSpacing": 150.0,
                             "bossSizeMultiplier": 1.5,
+                            "maxLevelCountForScaling": 20.0,
                             "connectorHeight": 80.0
                         }
                     },

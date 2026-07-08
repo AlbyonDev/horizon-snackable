@@ -27,6 +27,7 @@ done:
   - Troll Tank Enemy Mesh Swap -- chibi medieval troll, big head, walk anim, EnemyTank.hstf updated
   - Overworld Level Path Layout -- fantasy map with stone nodes and dirt trail
   - Abandon Confirmation Popup -- "Are you sure?" Yes/No popup on abandon tap
+  - Overworld Map Centering -- bottom-to-top order, middle level centered on screen
 
 chopping_block:
   disabled_systems: []
