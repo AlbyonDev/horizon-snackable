@@ -1,5 +1,6 @@
 tasks:
 
+
 done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
   - Grass Ground Plane -- Bloons TD style cartoon grass, UV tiling (6,4)
@@ -28,6 +29,10 @@ done:
   - Overworld Level Path Layout -- fantasy map with stone nodes and dirt trail
   - Abandon Confirmation Popup -- "Are you sure?" Yes/No popup on abandon tap
   - Overworld Map Centering -- bottom-to-top order, middle level centered on screen
+  - Overworld HD Visual Upgrade -- sprite-based painted nodes, path, and background
+  - Overworld Path Segment Tiling -- repeat pattern instead of stretch, configurable segmentLength
+  - Fix UI Overlap on Launch -- panels start hidden, show only on correct phase
+  - Overworld Node Numbers -- size 72px, centered, exposed fontSize + offsetY props
 
 chopping_block:
   disabled_systems: []

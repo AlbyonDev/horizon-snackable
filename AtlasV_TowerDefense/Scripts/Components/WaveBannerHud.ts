@@ -64,6 +64,10 @@ export class WaveBannerHud extends Component {
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
 
+    // Hide the native panel immediately to prevent XAML binding race
+    // (unresolved bindings default to Visible, covering the screen)
+    this.uiComponent.isVisible = false;
+
     this.viewModel = new WaveBannerViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
@@ -82,6 +86,7 @@ export class WaveBannerHud extends Component {
     if (!this.viewModel) return;
     this.viewModel.waveText = 'Place a tower to begin!';
     this.viewModel.opacity = 1;
+    if (this.uiComponent) this.uiComponent.isVisible = true;
     this.viewModel.visible = true;
     this._animating = false;
     this._holding = true;
@@ -104,6 +109,7 @@ export class WaveBannerHud extends Component {
     const waveNumber = payload.waveIndex + 1; // 1-based display
     this.viewModel.waveText = `WAVE ${waveNumber}`;
     this.viewModel.opacity = 0;
+    if (this.uiComponent) this.uiComponent.isVisible = true;
     this.viewModel.visible = true;
     this._elapsed = 0;
     this._animating = true;
@@ -123,6 +129,7 @@ export class WaveBannerHud extends Component {
     this.viewModel.visible = false;
     this.viewModel.opacity = 0;
     this.viewModel.waveText = '';
+    if (this.uiComponent) this.uiComponent.isVisible = false;
   }
 
   // ── Animation tick ────────────────────────────────────────────────
@@ -156,6 +163,7 @@ export class WaveBannerHud extends Component {
       // Animation complete — hide
       this.viewModel.opacity = 0;
       this.viewModel.visible = false;
+      if (this.uiComponent) this.uiComponent.isVisible = false;
       this._animating = false;
     }
   }

@@ -847,13 +847,17 @@
                         "data": {
                             "levelCount": 5.0,
                             "topPadding": 100.0,
-                            "maxNodeSize": 250.0,
-                            "minNodeSize": 100.0,
-                            "maxVerticalSpacing": 400.0,
-                            "minVerticalSpacing": 150.0,
+                            "maxNodeSize": 400.0,
+                            "minNodeSize": 200.0,
+                            "maxVerticalSpacing": 550.0,
+                            "minVerticalSpacing": 550.0,
                             "bossSizeMultiplier": 1.5,
                             "maxLevelCountForScaling": 20.0,
-                            "connectorHeight": 80.0
+                            "levelNumberFontSize": 90.0,
+                            "levelNumberOffsetZ": 10.0,
+                            "connectorHeight": 40.0,
+                            "segmentLength": 500.0,
+                            "segmentWidth": 300.0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"

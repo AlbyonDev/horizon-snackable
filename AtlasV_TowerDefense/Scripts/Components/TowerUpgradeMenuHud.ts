@@ -133,6 +133,10 @@ export class TowerUpgradeMenuHud extends Component {
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
 
+    // Hide the native panel immediately to prevent XAML binding race
+    // (unresolved bindings default to Visible, covering the screen)
+    this.uiComponent.isVisible = false;
+
     this.viewModel = new TowerUpgradeMenuViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
@@ -160,6 +164,7 @@ export class TowerUpgradeMenuHud extends Component {
       }, TowerUpgradeMenuHud.SLIDE_IN_MS);
     } else {
       this._applyTowerData(payload);
+      if (this.uiComponent) this.uiComponent.isVisible = true;
       this.viewModel.visible = true;
       this.viewModel.card1Visible = true;
       setTimeout(() => { this.viewModel!.card2Visible = true; }, TowerUpgradeMenuHud.CARD_STAGGER_MS);
@@ -188,6 +193,7 @@ export class TowerUpgradeMenuHud extends Component {
     this.viewModel.card1Visible = false;
     this.viewModel.card2Visible = false;
     this.viewModel.visible = false;
+    if (this.uiComponent) this.uiComponent.isVisible = false;
     this.viewModel.towerBorderColor = DEFAULT_BORDER_COLOR;
     this.viewModel.upgrade1Selected = false;
     this.viewModel.upgrade2Selected = false;
@@ -203,6 +209,7 @@ export class TowerUpgradeMenuHud extends Component {
     this.viewModel.card1Visible = false;
     this.viewModel.card2Visible = false;
     this.viewModel.visible = false;
+    if (this.uiComponent) this.uiComponent.isVisible = false;
     this.viewModel.towerBorderColor = DEFAULT_BORDER_COLOR;
     this.viewModel.upgrade1Selected = false;
     this.viewModel.upgrade2Selected = false;

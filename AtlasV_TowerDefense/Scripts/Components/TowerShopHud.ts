@@ -80,6 +80,10 @@ export class TowerShopHud extends Component {
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
 
+    // Hide the native panel immediately to prevent XAML binding race
+    // (unresolved bindings default to Visible, covering the screen)
+    this.uiComponent.isVisible = false;
+
     this.viewModel = new TowerShopViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
@@ -92,6 +96,7 @@ export class TowerShopHud extends Component {
   onLevelSelected(_payload: Events.LevelSelectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    if (this.uiComponent) this.uiComponent.isVisible = true;
     this.viewModel.visible = true;
   }
 
@@ -100,6 +105,7 @@ export class TowerShopHud extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     this.viewModel.visible = false;
+    if (this.uiComponent) this.uiComponent.isVisible = false;
   }
 
   @subscribe(Events.ResourceChanged, { execution: ExecuteOn.Owner })
@@ -113,12 +119,14 @@ export class TowerShopHud extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     this.viewModel.visible = false;
+    if (this.uiComponent) this.uiComponent.isVisible = false;
   }
 
   @subscribe(Events.TowerDeselected, { execution: ExecuteOn.Owner })
   onTowerDeselected(_payload: Events.TowerDeselectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    if (this.uiComponent) this.uiComponent.isVisible = true;
     this.viewModel.visible = true;
   }
 
@@ -127,6 +135,7 @@ export class TowerShopHud extends Component {
     if (!this.viewModel) return;
     // Don't show yet — will show again on LevelSelected
     this.viewModel.visible = false;
+    if (this.uiComponent) this.uiComponent.isVisible = false;
     this.viewModel.selectedTowerId = this.itemVMs.length > 0 ? this.itemVMs[0].towerId : '';
     for (const item of this.itemVMs) item.selected = item.towerId === this.viewModel.selectedTowerId;
   }

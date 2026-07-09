@@ -14,6 +14,9 @@
  * Node size, spacing, and horizontal offset all scale dynamically based on totalLevels:
  *   1-5 levels  -> large nodes (~180-200px), generous spacing
  *   10-20 levels -> smaller nodes (~120-140px), tighter spacing
+ *
+ * Path connectors use a tiling/repeat strategy: the path segment pattern repeats
+ * based on a configurable segmentLength rather than being stretched to fit.
  */
 import {
   Component,
@@ -33,7 +36,7 @@ import type { Maybe } from 'meta/worlds';
 import { Events, GamePhase, UiEvents } from '../Types';
 import { LEVEL_DEFS } from '../Defs/LevelDefs';
 
-// ── Level Node sub-ViewModel ─────────────────────────────────────────────────
+// ── Level Node sub-ViewModel ─────────────────────────────────────────────────────
 
 @uiViewModel()
 export class OverworldPathNodeViewModel extends UiViewModel {
@@ -49,9 +52,23 @@ export class OverworldPathNodeViewModel extends UiViewModel {
   isBoss: boolean = false;
   /** Node size (boss nodes are larger) */
   nodeSize: number = 180;
+  /** Font size for the level number text */
+  fontSize: number = 72;
+  /** Vertical offset margin for the level number (top,right,bottom,left format) */
+  numberMargin: string = '0,0,0,0';
 }
 
-// ── Connector sub-ViewModel ──────────────────────────────────────────────────
+// ── Segment sub-ViewModel (one tile of the repeated path pattern) ────────────────
+
+@uiViewModel()
+export class OverworldPathSegmentViewModel extends UiViewModel {
+  /** Width of this individual segment tile (px) */
+  segmentWidth: number = 80;
+  /** Height (thickness) of this segment tile (px) */
+  segmentHeight: number = 36;
+}
+
+// ── Connector sub-ViewModel ──────────────────────────────────────────────────────
 
 @uiViewModel()
 export class OverworldPathConnectorViewModel extends UiViewModel {
@@ -63,9 +80,13 @@ export class OverworldPathConnectorViewModel extends UiViewModel {
   angle: number = 0;
   /** Width of the connector bar */
   connectorWidth: number = 100;
+  /** Height (thickness) of the connector bar (px) */
+  connectorThickness: number = 40;
+  /** Repeated segment tiles to fill the connector length */
+  segments: readonly OverworldPathSegmentViewModel[] = [];
 }
 
-// ── Main ViewModel ───────────────────────────────────────────────────────────
+// ── Main ViewModel ───────────────────────────────────────────────────────────────
 
 @uiViewModel()
 export class OverworldViewModel extends UiViewModel {
@@ -79,16 +100,16 @@ export class OverworldViewModel extends UiViewModel {
   canvasHeight: number = 800;
 }
 
-// ── Component ────────────────────────────────────────────────────────────────
+// ── Component ────────────────────────────────────────────────────────────────────
 
 @component()
 export class OverworldHud extends Component {
   /** Number of level buttons to display */
   @property() levelCount: number = 5;
 
-  // ══════════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════════════
   // LAYOUT PROPERTIES — editable from the MHS properties panel
-  // ══════════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════════════
 
   /** Width of the Canvas used for positioning nodes (px) */
   @property() canvasWidth: number = 900;
@@ -120,15 +141,30 @@ export class OverworldHud extends Component {
   /** Level count at or above which nodes/spacing are at their minimum (smallest) */
   @property() maxLevelCountForScaling: number = 20;
 
+  /** Font size for level numbers inside nodes (px) */
+  @property() levelNumberFontSize: number = 72;
+
+  /** Vertical offset of level number from node center (px, positive = down) */
+  @property() levelNumberOffsetX: number = 0;
+
+  /** Horizontal offset of level number from node center (px, positive = left) */
+  @property() levelNumberOffsetZ: number = 0;
+
   /** Height of the connector bar between nodes (px) */
   @property() connectorHeight: number = 40;
 
-  // ══════════════════════════════════════════════════════════════════════════════
+  /** Length of one path segment tile (px). The pattern repeats to fill the connector. */
+  @property() segmentLength: number = 80;
+
+  /** Width (thickness) of the path segment connectors between nodes (px). */
+  @property() segmentWidth: number = 36;
+
+  // ══════════════════════════════════════════════════════════════════════════════════
 
   private viewModel: Maybe<OverworldViewModel> = null;
   private uiComponent: Maybe<CustomUiComponent> = null;
 
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
+  // ── Lifecycle ──────────────────────────────────────────────────────────────────
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
   onStart(): void {
@@ -137,6 +173,10 @@ export class OverworldHud extends Component {
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
 
+    // Hide the native panel immediately to prevent XAML binding race
+    // (unresolved bindings default to Visible, covering the screen)
+    this.uiComponent.isVisible = false;
+
     this.viewModel = new OverworldViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
@@ -144,13 +184,15 @@ export class OverworldHud extends Component {
     this._populateLevels();
   }
 
-  // ── Events ─────────────────────────────────────────────────────────────────
+  // ── Events ─────────────────────────────────────────────────────────────────────
 
   @subscribe(Events.GamePhaseChanged, { execution: ExecuteOn.Owner })
   onPhaseChanged(payload: Events.GamePhaseChangedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
-    this.viewModel.visible = payload.phase === GamePhase.Overworld;
+    const shouldShow = payload.phase === GamePhase.Overworld;
+    this.viewModel.visible = shouldShow;
+    if (this.uiComponent) this.uiComponent.isVisible = shouldShow;
   }
 
   @subscribe(UiEvents.overworldLevelTap, { execution: ExecuteOn.Owner })
@@ -169,6 +211,7 @@ export class OverworldHud extends Component {
 
     // Hide ourselves
     this.viewModel.visible = false;
+    if (this.uiComponent) this.uiComponent.isVisible = false;
 
     // Fire the LevelSelected event
     const p = new Events.LevelSelectedPayload();
@@ -176,7 +219,7 @@ export class OverworldHud extends Component {
     EventService.sendLocally(Events.LevelSelected, p);
   }
 
-  // ── Private ────────────────────────────────────────────────────────────────
+  // ── Private ────────────────────────────────────────────────────────────────────
 
   /**
    * Computes node size and vertical spacing based on total level count.
@@ -194,6 +237,28 @@ export class OverworldHud extends Component {
     const verticalSpacing = Math.round(this.maxVerticalSpacing - t * (this.maxVerticalSpacing - this.minVerticalSpacing));
 
     return { nodeSize, verticalSpacing };
+  }
+
+  /**
+   * Builds the segment tiles array for a connector of a given length.
+   * The pattern tile repeats at segmentLength intervals. The last tile may be
+   * slightly smaller or larger to avoid gaps (distributes evenly).
+   */
+  private _buildSegments(connectorLength: number): OverworldPathSegmentViewModel[] {
+    const segLen = Math.max(1, this.segmentLength);
+    // Calculate how many tiles to fit — at least 1
+    const count = Math.max(1, Math.round(connectorLength / segLen));
+    // Distribute width evenly so there are no gaps or overflow
+    const tileWidth = connectorLength / count;
+
+    const segments: OverworldPathSegmentViewModel[] = [];
+    for (let s = 0; s < count; s++) {
+      const seg = new OverworldPathSegmentViewModel();
+      seg.segmentWidth = tileWidth;
+      seg.segmentHeight = this.segmentWidth;
+      segments.push(seg);
+    }
+    return segments;
   }
 
   private _populateLevels(): void {
@@ -229,6 +294,8 @@ export class OverworldHud extends Component {
       node.levelIndex = `${i}`;
       node.isBoss = isBoss;
       node.nodeSize = size;
+      node.fontSize = this.levelNumberFontSize;
+      node.numberMargin = `0,${this.levelNumberOffsetX},${this.levelNumberOffsetZ},0`;
       nodes.push(node);
     }
 
@@ -254,6 +321,9 @@ export class OverworldHud extends Component {
       connector.posY = midY - this.connectorHeight / 2;
       connector.angle = angleDeg;
       connector.connectorWidth = length;
+      connector.connectorThickness = this.connectorHeight;
+      // Build repeating segment tiles for this connector
+      connector.segments = this._buildSegments(length);
       connectors.push(connector);
     }
 

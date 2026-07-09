@@ -64,6 +64,10 @@ export class GameHudController extends Component {
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
 
+    // Hide the native panel immediately to prevent XAML binding race
+    // (unresolved bindings default to Visible, covering the screen)
+    this.uiComponent.isVisible = false;
+
     this.viewModel = new GameHudViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
@@ -79,6 +83,7 @@ export class GameHudController extends Component {
   onLevelSelected(_p: Events.LevelSelectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    if (this.uiComponent) this.uiComponent.isVisible = true;
     this.viewModel.visible = true;
   }
 
@@ -87,6 +92,7 @@ export class GameHudController extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     this.viewModel.visible = false;
+    if (this.uiComponent) this.uiComponent.isVisible = false;
   }
 
   @subscribe(Events.ResourceChanged, { execution: ExecuteOn.Owner })
@@ -136,6 +142,7 @@ export class GameHudController extends Component {
     if (!this.viewModel) return;
     // Hide HUD — will show again when LevelSelected fires
     this.viewModel.visible = false;
+    if (this.uiComponent) this.uiComponent.isVisible = false;
     this.viewModel.waveNumber = 1;
     this.viewModel.totalWaves = LEVEL_DEFS[0].waves.length;
     this.viewModel.waveText = "";
