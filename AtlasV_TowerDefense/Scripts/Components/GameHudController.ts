@@ -24,7 +24,6 @@ import type { Maybe, OnWorldUpdateEventPayload } from 'meta/worlds';
 import { Events, GamePhase, UiEvents } from '../Types';
 import { ResourceService } from '../Services/ResourceService';
 import { START_GOLD, START_LIVES } from '../Constants';
-import { LEVEL_DEFS } from '../Defs/LevelDefs';
 
 @uiViewModel()
 export class GameHudViewModel extends UiViewModel {
@@ -32,7 +31,7 @@ export class GameHudViewModel extends UiViewModel {
   lives: number = START_LIVES;
   gold: number = START_GOLD;
   waveNumber: number = 1;
-  totalWaves: number = LEVEL_DEFS[0].waves.length;
+  totalWaves: number = 0;
   waveText: string = '';
   countdown: number = 0;
   showCountdown: boolean = false;
@@ -76,7 +75,7 @@ export class GameHudController extends Component {
     this.viewModel.lives = resourceSvc.lives;
     this.viewModel.gold = resourceSvc.gold;
     this.viewModel.waveNumber = 1;
-    this.viewModel.totalWaves = LEVEL_DEFS[0].waves.length;
+    this.viewModel.totalWaves = 0;
   }
 
   @subscribe(Events.LevelSelected, { execution: ExecuteOn.Owner })
@@ -144,7 +143,7 @@ export class GameHudController extends Component {
     this.viewModel.visible = false;
     if (this.uiComponent) this.uiComponent.isVisible = false;
     this.viewModel.waveNumber = 1;
-    this.viewModel.totalWaves = LEVEL_DEFS[0].waves.length;
+    this.viewModel.totalWaves = 0;
     this.viewModel.waveText = "";
     this.viewModel.countdown = 0;
     this.viewModel.showCountdown = false;

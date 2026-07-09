@@ -33,6 +33,7 @@ import { VfxService } from '../Services/VfxService';
 import { GROUND_COLOR, hexColor } from '../Constants';
 import { CameraShakeService } from '../Services/CameraShakeService';
 import { PathTileService } from '../Services/PathTileService';
+import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 
 @component()
 export class GameManager extends Component {
@@ -43,6 +44,7 @@ export class GameManager extends Component {
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
+    LevelGeneratorService.get(); // Force instantiation before StartGame
     SlowService.get();
     if (this.enabled) {
       this._startGame();

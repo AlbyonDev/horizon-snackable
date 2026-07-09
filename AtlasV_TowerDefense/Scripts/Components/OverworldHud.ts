@@ -34,7 +34,6 @@ import {
 import type { Maybe } from 'meta/worlds';
 
 import { Events, GamePhase, UiEvents } from '../Types';
-import { LEVEL_DEFS } from '../Defs/LevelDefs';
 
 // ── Level Node sub-ViewModel ─────────────────────────────────────────────────────
 
@@ -204,10 +203,8 @@ export class OverworldHud extends Component {
     const levelIndex = parseInt(payload.parameter, 10);
     if (isNaN(levelIndex)) return;
 
-    // Clamp to available levels
-    const clampedIndex = Math.min(levelIndex, LEVEL_DEFS.length - 1);
-
-    console.log(`[OverworldHud] Level ${clampedIndex + 1} selected`);
+    // No clamping needed — levels are procedurally generated to match levelCount
+    console.log(`[OverworldHud] Level ${levelIndex + 1} selected`);
 
     // Hide ourselves
     this.viewModel.visible = false;
@@ -215,7 +212,7 @@ export class OverworldHud extends Component {
 
     // Fire the LevelSelected event
     const p = new Events.LevelSelectedPayload();
-    p.levelIndex = clampedIndex;
+    p.levelIndex = levelIndex;
     EventService.sendLocally(Events.LevelSelected, p);
   }
 

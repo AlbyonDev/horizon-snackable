@@ -144,18 +144,19 @@ Scripts/
   Defs/
     TowerDefs.ts    — TOWER_DEFS: ITowerDef[] (4 towers + upgrade trees)
     EnemyDefs.ts    — ENEMY_DEFS: IEnemyDef[] (4 enemy types)
-    LevelDefs.ts    — LEVEL_DEFS: ILevelDef[] (20 waves, 1 level, includes path waypoints)
-    PathDefs.ts     — (waypoints now embedded in LevelDefs per ILevelDef)
+    LevelDefs.ts    — LEVEL_DEFS: ILevelDef[] (20 waves, 1 level, includes path waypoints); WAVES_LEVEL_0 exported but unused by runtime
+    PathDefs.ts     — PATH_WAYPOINTS_LEVEL_0 exported but unused by runtime (legacy reference data)
     UpgradeDefs.ts  — Upg atoms catalog + tree() builder
 
   Services/
-    PathService         — waypoint path, cellToWorld(), isPathCell()
+    PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
     PathTileService     — spawns path tiles using 5 templates (4 pre-rotated corners + 1 straight with runtime Y-rotation) and 2 shared UV-sliced materials
+    LevelGeneratorService — procedural level generation; generates TOTAL_LEVELS random ILevelDef instances on StartGame event
     TowerService        — selectedId, place on GridTapped, upgrade, sell
     EnemyService        — live enemy registry (worldX, worldZ, pathT, hp, speedFactor)
     ResourceService     — gold, lives, earn(), spend(), loseLife(), reset()
     TargetingService    — getBestTarget(), getEnemiesInRadius()
-    WaveService         — state machine: Build → Wave → WaveClear → loop
+    WaveService         — state machine: Build → Wave → WaveClear → loop (reads from LevelGeneratorService)
     PlacementService    — drag-to-place input handler + preview + range indicator
     HitService          — hit target expansion pipeline
     SplashSystem        — registers AoE modifier into HitService
@@ -253,6 +254,7 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 |-----------|-------|
 | Start gold | 120g (`START_GOLD`) |
 | Start lives | 10 (`START_LIVES`) |
+| Total levels per run | 5 (`TOTAL_LEVELS` in Constants.ts) |
 | Wave bonus | +15g flat (`WAVE_BONUS_GOLD`) + 15% of gold on hand (`INCOME_RATE`) at wave end |
 | Sell refund | 60% of total invested (`SELL_RATIO = 0.6`) |
 
@@ -262,10 +264,10 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 
 ```
 Title Screen → Overworld (Level Select) → Build (5s) → Wave → WaveClear (0.5s) → Build → … → Victory
-                                                                                                  ↓
-                                                                                               GameOver (lives = 0)
-                                                                                                  ↓
-                                                                                            Title → Overworld
+                 ↑                                                                                  ↓
+    (StartGame generates                                                                       GameOver (lives = 0)
+     TOTAL_LEVELS random                                                                            ↓
+     ILevelDef instances)                                                                      Title → Overworld
 ```
 
 ---
@@ -304,8 +306,8 @@ Title Screen → Overworld (Level Select) → Build (5s) → Wave → WaveClear 
 | `TowerSold` | `col, row, refund` | TowerService |
 | `TowerUpgraded` | `col, row, tier, choice` | TowerService |
 | `GameOver` | `won: boolean` | GameOverScreenHud |
-| `StartGame` | — | GameManager (transitions to Overworld) |
-| `LevelSelected` | `levelIndex` | GameManager (starts the game), WaveService, TowerShopHud, GameHudController |
+| `StartGame` | — | GameManager (transitions to Overworld), LevelGeneratorService (generates N random levels) |
+| `LevelSelected` | `levelIndex` | GameManager (starts the game), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
 | `RestartGame` | — | GameManager (transitions to Overworld), all services with state |
 | `ActivateFloatingText` | `text, worldX, worldZ, colorR, colorG, colorB` | FloatingTextController |
 

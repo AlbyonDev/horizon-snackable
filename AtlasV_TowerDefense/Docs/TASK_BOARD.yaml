@@ -1,6 +1,5 @@
 tasks:
 
-
 done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
   - Grass Ground Plane -- Bloons TD style cartoon grass, UV tiling (6,4)
@@ -33,6 +32,10 @@ done:
   - Overworld Path Segment Tiling -- repeat pattern instead of stretch, configurable segmentLength
   - Fix UI Overlap on Launch -- panels start hidden, show only on correct phase
   - Overworld Node Numbers -- size 72px, centered, exposed fontSize + offsetY props
+  - Random Level Generation -- N procedural levels with random waves and paths
+  - Fix Stale Path Tiles on Abandon -- destroy tiles on RestartGame event
+  - Persistent Pre-Generated Levels -- generate once on StartGame, persist on abandon
+  - OrcishFlag at Path Start -- repositions to first waypoint on LevelSelected
 
 chopping_block:
   disabled_systems: []

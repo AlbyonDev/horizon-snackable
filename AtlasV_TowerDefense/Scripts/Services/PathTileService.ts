@@ -17,9 +17,11 @@
 import { Service, Vec3, Quaternion, NetworkMode, WorldService, TemplateAsset } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
 import { OnServiceReadyEvent, NetworkingService } from 'meta/worlds';
+import type { Entity } from 'meta/worlds';
 import { GROUND_Y } from '../Constants';
 import { PathService } from './PathService';
-import { LEVEL_DEFS } from '../Defs/LevelDefs';
+import { LevelGeneratorService } from './LevelGeneratorService';
+import { Events } from '../Types';
 import { Assets } from '../Assets';
 
 const LOG_TAG = '[PathTileService]';
@@ -85,17 +87,40 @@ function getStraightTile(dir: Dir): TileSelection {
 
 @service()
 export class PathTileService extends Service {
+  private _currentLevel: number = 0;
+  private _tiles: Entity[] = [];
+
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
     console.log(`${LOG_TAG} Service ready`);
   }
 
+  @subscribe(Events.LevelSelected)
+  onLevelSelected(p: Events.LevelSelectedPayload): void {
+    this._currentLevel = p.levelIndex;
+  }
+
+  @subscribe(Events.RestartGame)
+  onRestart(_p: Events.RestartGamePayload): void {
+    console.log(`${LOG_TAG} Cleaning up ${this._tiles.length} path tiles`);
+    for (const tile of this._tiles) {
+      tile.destroy();
+    }
+    this._tiles = [];
+  }
+
   async prewarm(): Promise<void> {
     if (NetworkingService.get().isServerContext()) return;
 
+    // Clean up any existing tiles before spawning new ones
+    for (const tile of this._tiles) {
+      tile.destroy();
+    }
+    this._tiles = [];
+
     console.log(`${LOG_TAG} Prewarming path tiles...`);
 
-    const waypoints = LEVEL_DEFS[0].pathWaypoints;
+    const waypoints = LevelGeneratorService.get().getLevelDef(this._currentLevel).pathWaypoints;
     const pathService = PathService.get();
 
     // Build ordered list of cells with inDir/outDir
@@ -157,7 +182,7 @@ export class PathTileService extends Service {
 
     // Spawn tiles — uses 5 templates (4 corners + 1 straight with rotation)
     const worldService = WorldService.get();
-    const spawnPromises: Promise<unknown>[] = [];
+    const spawnPromises: Promise<Entity>[] = [];
 
     for (const cell of orderedCells) {
       const pos = pathService.cellToWorld(cell.col, cell.row);
@@ -188,7 +213,8 @@ export class PathTileService extends Service {
       );
     }
 
-    await Promise.all(spawnPromises);
-    console.log(`${LOG_TAG} Spawned ${spawnPromises.length} path tiles`);
+    const spawnedEntities = await Promise.all(spawnPromises);
+    this._tiles = spawnedEntities;
+    console.log(`${LOG_TAG} Spawned ${this._tiles.length} path tiles`);
   }
 }

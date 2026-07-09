@@ -32,11 +32,23 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 9,
+                        "version": 11,
                         "data": {
                             "type": "StaticCollision",
                             "useGravity": false
                         }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "OrcishFlagController",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "15612746458808867169",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 }

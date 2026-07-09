@@ -32,7 +32,7 @@ export interface ILevelDef {
 // ── Act 4 (W16–20): Endgame — économie jugée, skill checks durs ─────────────────
 // W17 "Boss Rush" : 6 Boss à HP ×3.4 — seules les tours upgradées enchaînent.
 // W20 "Finale" : tout à la fois, un joueur pauvre perd plusieurs vies ici.
-const WAVES_LEVEL_0: IWaveDef[] = [
+export const WAVES_LEVEL_0: IWaveDef[] = [
 
   // ── Act 1 ──────────────────────────────────────────────────────────────────
 

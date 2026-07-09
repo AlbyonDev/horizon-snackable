@@ -25,7 +25,6 @@ import {
 import type { Maybe } from 'meta/worlds';
 
 import { Events, UiEvents } from '../Types';
-import { LEVEL_DEFS } from '../Defs/LevelDefs';
 
 // ── Module-level UiEvent constants ──────────────────────────────────────────
 
@@ -49,7 +48,7 @@ export class GameOverScreenViewModel extends UiViewModel {
   enemiesKilled: number = 0;
   goldEarned: number = 0;
   wavesCompleted: number = 0;
-  totalWaves: number = LEVEL_DEFS[0].waves.length;
+  totalWaves: number = 0;
 }
 
 // ── Component ───────────────────────────────────────────────────────────────

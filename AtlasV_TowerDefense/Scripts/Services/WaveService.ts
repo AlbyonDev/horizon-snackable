@@ -16,7 +16,7 @@ import { service, subscribe } from 'meta/worlds';
 import { OnServiceReadyEvent } from 'meta/worlds';
 import { Events, GamePhase } from '../Types';
 import { WAVE_CLEAR_DURATION, WAVE_BONUS_GOLD, WAVE_BUILD_DURATION, ENEMY_SPAWN_INTERVAL, INCOME_RATE } from '../Constants';
-import { LEVEL_DEFS } from '../Defs/LevelDefs';
+import { LevelGeneratorService } from './LevelGeneratorService';
 import { EnemyService } from './EnemyService';
 import { ResourceService } from './ResourceService';
 
@@ -37,7 +37,8 @@ export class WaveService extends Service {
 
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
-    this._totalWaves = LEVEL_DEFS[0].waves.length;
+    // totalWaves will be set when a level is selected (from LevelGeneratorService)
+    this._totalWaves = 0;
   }
 
   get waveIndex(): number { return this._waveIndex; }
@@ -46,8 +47,9 @@ export class WaveService extends Service {
 
   @subscribe(Events.LevelSelected)
   onLevelSelected(p: Events.LevelSelectedPayload): void {
-    this._currentLevel = Math.min(p.levelIndex, LEVEL_DEFS.length - 1);
-    this._totalWaves = LEVEL_DEFS[this._currentLevel].waves.length;
+    this._currentLevel = p.levelIndex;
+    const levelDef = LevelGeneratorService.get().getLevelDef(this._currentLevel);
+    this._totalWaves = levelDef.waves.length;
   }
 
   @subscribe(Events.RestartGame)
@@ -166,7 +168,7 @@ export class WaveService extends Service {
     this._spawnedCount = 0;
     this._spawnTimer = 0;
 
-    const waveDef = LEVEL_DEFS[this._currentLevel].waves[this._waveIndex];
+    const waveDef = LevelGeneratorService.get().getLevelDef(this._currentLevel).waves[this._waveIndex];
     this._spawnQueue = [];
     for (const group of waveDef.groups) {
       for (let i = 0; i < group.count; i++) {

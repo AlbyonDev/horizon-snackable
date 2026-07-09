@@ -13,7 +13,8 @@ import { Service, Vec3 } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
 import { OnServiceReadyEvent } from 'meta/worlds';
 import { CELL_WIDTH, CELL_HEIGHT, GRID_COLS, GRID_ROWS, GRID_ORIGIN_X, GRID_ORIGIN_Z, GROUND_Y } from '../Constants';
-import { LEVEL_DEFS } from '../Defs/LevelDefs';
+import { LevelGeneratorService } from './LevelGeneratorService';
+import { Events } from '../Types';
 
 interface IPathSegment {
   startX: number;
@@ -37,8 +38,15 @@ export class PathService extends Service {
 
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
-    this._waypoints = LEVEL_DEFS[0].pathWaypoints;
+    // Path will be built when a level is selected (from LevelGeneratorService)
+  }
+
+  @subscribe(Events.LevelSelected)
+  onLevelSelected(p: Events.LevelSelectedPayload): void {
+    const levelDef = LevelGeneratorService.get().getLevelDef(p.levelIndex);
+    this._waypoints = levelDef.pathWaypoints;
     this._buildPath();
+    console.log(`[PathService] Path rebuilt for level ${p.levelIndex} with ${this._waypoints.length} waypoints`);
   }
 
   async prewarm(): Promise<void> {

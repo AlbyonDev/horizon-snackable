@@ -29,6 +29,8 @@ export const ENEMY_SPAWN_INTERVAL  = 0.75; // seconds between enemy spawns withi
 
 // ─── Economy ──────────────────────────────────────────────────────────────────
 
+export const TOTAL_LEVELS = 5; // number of procedurally generated levels per run
+
 export const START_GOLD  = 120;
 export const START_LIVES = 10;
 export const WAVE_BONUS_GOLD = 15; // flat gold awarded at end of each wave
