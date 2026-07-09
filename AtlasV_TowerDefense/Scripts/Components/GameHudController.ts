@@ -23,6 +23,7 @@ import type { Maybe, OnWorldUpdateEventPayload } from 'meta/worlds';
 
 import { Events, GamePhase, UiEvents } from '../Types';
 import { ResourceService } from '../Services/ResourceService';
+import { EnemyService } from '../Services/EnemyService';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { START_GOLD, START_LIVES } from '../Constants';
 
@@ -38,12 +39,14 @@ export class GameHudViewModel extends UiViewModel {
   showCountdown: boolean = false;
   showAbandon: boolean = false;
   showConfirmPopup: boolean = false;
+  showNextWave: boolean = false;
 
   override readonly events = {
     skipWaveTap: UiEvents.skipWaveTap,
     abandonLevelTap: UiEvents.abandonLevelTap,
     confirmYesTap: UiEvents.confirmAbandonYesTap,
     confirmNoTap: UiEvents.confirmAbandonNoTap,
+    nextWaveTap: UiEvents.nextWaveTap,
   };
 }
 
@@ -155,8 +158,8 @@ export class GameHudController extends Component {
     this.viewModel.countdown = 0;
     this.viewModel.showCountdown = false;
     this.viewModel.showConfirmPopup = false;
+    this.viewModel.showNextWave = false;
   }
-
 
   @subscribe(UiEvents.skipWaveTap, { execution: ExecuteOn.Owner })
   onSkipWaveTap(_p: UiEvents.SkipWaveTapPayload): void {
@@ -199,6 +202,24 @@ export class GameHudController extends Component {
       phase === GamePhase.Build ||
       phase === GamePhase.Wave ||
       phase === GamePhase.WaveClear;
+    // Show "Next Wave" debug button only during active Wave phase
+    this.viewModel.showNextWave = phase === GamePhase.Wave;
+  }
+
+  @subscribe(UiEvents.nextWaveTap, { execution: ExecuteOn.Owner })
+  onNextWaveTap(_p: UiEvents.SkipWaveTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    console.log('[GameHudController] Next Wave tapped — killing all enemies');
+    const enemies = EnemyService.get().getAll();
+    for (const [id, rec] of enemies) {
+      const dmgP = new Events.TakeDamagePayload();
+      dmgP.enemyId = id;
+      dmgP.damage = rec.hp; // lethal damage
+      dmgP.props = {};
+      dmgP.originX = rec.worldX;
+      dmgP.originZ = rec.worldZ;
+      EventService.sendLocally(Events.TakeDamage, dmgP, { eventTarget: rec.entity });
+    }
   }
 
   private _updateWaveText(): void {

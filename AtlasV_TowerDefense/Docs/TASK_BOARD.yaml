@@ -42,7 +42,8 @@ done:
 
 chopping_block:
   disabled_systems: []
-  temp_scaffolding: []
+  temp_scaffolding:
+    - "Next Wave debug button -- remove before shipping"
   failed_attempts: []
 
 notes:

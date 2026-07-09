@@ -243,4 +243,5 @@ export namespace UiEvents {
   export const confirmAbandonYesTap = new UiEvent('GameHudViewModel-onConfirmAbandonYes',   SkipWaveTapPayload);
   export const confirmAbandonNoTap  = new UiEvent('GameHudViewModel-onConfirmAbandonNo',    SkipWaveTapPayload);
   export const overworldLevelTap = new UiEvent('OverworldViewModel-onLevelTap',              OverworldLevelTapPayload);
+  export const nextWaveTap       = new UiEvent('GameHudViewModel-onNextWaveTap',             SkipWaveTapPayload);
 }
