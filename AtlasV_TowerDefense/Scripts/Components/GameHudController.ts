@@ -23,6 +23,7 @@ import type { Maybe, OnWorldUpdateEventPayload } from 'meta/worlds';
 
 import { Events, GamePhase, UiEvents } from '../Types';
 import { ResourceService } from '../Services/ResourceService';
+import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { START_GOLD, START_LIVES } from '../Constants';
 
 @uiViewModel()
@@ -79,11 +80,17 @@ export class GameHudController extends Component {
   }
 
   @subscribe(Events.LevelSelected, { execution: ExecuteOn.Owner })
-  onLevelSelected(_p: Events.LevelSelectedPayload): void {
+  onLevelSelected(p: Events.LevelSelectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     if (this.uiComponent) this.uiComponent.isVisible = true;
     this.viewModel.visible = true;
+
+    // Show total waves summary on level entry; switches to "WAVE X/N" on WaveStarted
+    const levelDef = LevelGeneratorService.get().getLevelDef(p.levelIndex);
+    this.viewModel.waveNumber = 0;
+    this.viewModel.totalWaves = levelDef.waves.length;
+    this.viewModel.waveText = `${levelDef.waves.length} waves in this level`;
   }
 
   @subscribe(Events.ShowTitleScreen, { execution: ExecuteOn.Owner })

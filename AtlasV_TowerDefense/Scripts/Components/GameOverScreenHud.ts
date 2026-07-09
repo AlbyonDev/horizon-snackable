@@ -6,7 +6,7 @@
  * Component Ownership: Server-owned scene entity, but UI logic runs on client via ExecuteOn.Owner
  *
  * Shows a full-screen overlay when the game ends (victory or defeat).
- * Displays stats and allows the player to tap anywhere to restart.
+ * Displays stats and allows the player to restart or return to overworld.
  */
 import {
   Component,
@@ -26,7 +26,7 @@ import type { Maybe } from 'meta/worlds';
 
 import { Events, UiEvents } from '../Types';
 
-// ── Module-level UiEvent constants ──────────────────────────────────────────
+// -- Module-level UiEvent constants --
 
 @serializable()
 export class RestartTapPayload {
@@ -35,12 +35,20 @@ export class RestartTapPayload {
 
 const restartTapEvent = new UiEvent('GameOverScreenViewModel-onRestartTap', RestartTapPayload);
 
-// ── ViewModel ───────────────────────────────────────────────────────────────
+@serializable()
+export class OverworldTapPayload {
+  readonly parameter: string = '';
+}
+
+const overworldTapEvent = new UiEvent('GameOverScreenViewModel-onOverworldTap', OverworldTapPayload);
+
+// -- ViewModel --
 
 @uiViewModel()
 export class GameOverScreenViewModel extends UiViewModel {
   override readonly events = {
     restartTap: restartTapEvent,
+    overworldTap: overworldTapEvent,
   };
 
   visible: boolean = false;
@@ -51,7 +59,7 @@ export class GameOverScreenViewModel extends UiViewModel {
   totalWaves: number = 0;
 }
 
-// ── Component ───────────────────────────────────────────────────────────────
+// -- Component --
 
 @component()
 export class GameOverScreenHud extends Component {
@@ -62,9 +70,10 @@ export class GameOverScreenHud extends Component {
   private _enemiesKilled: number = 0;
   private _goldEarned: number = 0;
   private _currentWave: number = 0;
+  private _totalWaves: number = 0;
   private _ended: boolean = false;
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
+  // -- Lifecycle --
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
   onStart(): void {
@@ -82,7 +91,7 @@ export class GameOverScreenHud extends Component {
     this.viewModel.visible = false;
   }
 
-  // ── Events ────────────────────────────────────────────────────────────────
+  // -- Events --
 
   /**
    * Track enemy kills for stats
@@ -95,13 +104,14 @@ export class GameOverScreenHud extends Component {
   }
 
   /**
-   * Track current wave number for stats
+   * Track current wave number and total waves for stats
    */
   @subscribe(Events.WaveStarted, { execution: ExecuteOn.Owner })
   onWaveStarted(payload: Events.WaveStartedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (this._ended) return;
     this._currentWave = payload.waveIndex + 1;
+    this._totalWaves = payload.totalWaves;
   }
 
   /**
@@ -117,6 +127,7 @@ export class GameOverScreenHud extends Component {
     this.viewModel.enemiesKilled = this._enemiesKilled;
     this.viewModel.goldEarned = this._goldEarned;
     this.viewModel.wavesCompleted = this._currentWave;
+    this.viewModel.totalWaves = this._totalWaves;
 
     // Show the overlay - enable native panel first, then set ViewModel
     if (this.uiComponent) {
@@ -126,11 +137,35 @@ export class GameOverScreenHud extends Component {
   }
 
   /**
-   * When the overlay is tapped, fire restart event and hide
+   * When Play Again is tapped, fire ShowTitleScreen event and hide
    */
   @subscribe(restartTapEvent, { execution: ExecuteOn.Owner })
   onRestartTap(_payload: RestartTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    this._resetAndHide();
+
+    // Return to title screen
+    EventService.sendLocally(Events.ShowTitleScreen, new Events.ShowTitleScreenPayload());
+  }
+
+  /**
+   * When Return to Overworld is tapped, fire RestartGame event to go back to overworld
+   */
+  @subscribe(overworldTapEvent, { execution: ExecuteOn.Owner })
+  onOverworldTap(_payload: OverworldTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    console.log('[GameOverScreenHud] Return to Overworld tapped');
+    this._resetAndHide();
+
+    // Fire RestartGame which transitions to the Overworld phase
+    EventService.sendLocally(Events.RestartGame, new Events.RestartGamePayload());
+  }
+
+  private _resetAndHide(): void {
     if (!this.viewModel) return;
 
     this.viewModel.visible = false;
@@ -140,16 +175,16 @@ export class GameOverScreenHud extends Component {
     this._enemiesKilled = 0;
     this._goldEarned = 0;
     this._currentWave = 0;
+    this._totalWaves = 0;
     this._ended = false;
-
-    // Return to title screen instead of restarting directly
-    EventService.sendLocally(Events.ShowTitleScreen, new Events.ShowTitleScreenPayload());
   }
 }
 
-// ── Export UiEvent for Types.ts ─────────────────────────────────────────────
+// -- Export UiEvent for Types.ts --
 
 export namespace GameOverUiEvents {
   export const restartTap = restartTapEvent;
+  export const overworldTap = overworldTapEvent;
   export type RestartTapPayload = typeof RestartTapPayload;
+  export type OverworldTapPayload = typeof OverworldTapPayload;
 }

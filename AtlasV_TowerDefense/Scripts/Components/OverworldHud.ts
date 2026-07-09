@@ -11,12 +11,12 @@
  * When a level is tapped, fires Events.LevelSelected with the chosen levelIndex.
  * Shows only during the Overworld GamePhase.
  *
- * Node size, spacing, and horizontal offset all scale dynamically based on totalLevels:
- *   1-5 levels  -> large nodes (~180-200px), generous spacing
- *   10-20 levels -> smaller nodes (~120-140px), tighter spacing
+ * Level states:
+ *   - Open: clickable, highlighted/glowing sprite (next to play)
+ *   - Beaten: clickable, default sprite (already completed)
+ *   - Locked: not clickable, greyed out sprite (not yet available)
  *
- * Path connectors use a tiling/repeat strategy: the path segment pattern repeats
- * based on a configurable segmentLength rather than being stretched to fit.
+ * On start, only level 1 is open. Beating a level marks it beaten and opens the next.
  */
 import {
   Component,
@@ -33,9 +33,9 @@ import {
 } from 'meta/worlds';
 import type { Maybe } from 'meta/worlds';
 
-import { Events, GamePhase, UiEvents } from '../Types';
+import { Events, GamePhase, OverworldNodeState, UiEvents } from '../Types';
 
-// ── Level Node sub-ViewModel ─────────────────────────────────────────────────────
+// —— Level Node sub-ViewModel ———————————————————————————————————————————
 
 @uiViewModel()
 export class OverworldPathNodeViewModel extends UiViewModel {
@@ -55,9 +55,13 @@ export class OverworldPathNodeViewModel extends UiViewModel {
   fontSize: number = 72;
   /** Vertical offset margin for the level number (top,right,bottom,left format) */
   numberMargin: string = '0,0,0,0';
+  /** Node state: "open", "beaten", or "locked" — drives sprite visibility in XAML */
+  nodeState: string = 'locked';
+  /** Whether this node is interactable (open or beaten) */
+  isInteractable: boolean = false;
 }
 
-// ── Segment sub-ViewModel (one tile of the repeated path pattern) ────────────────
+// —— Segment sub-ViewModel (one tile of the repeated path pattern) ————————
 
 @uiViewModel()
 export class OverworldPathSegmentViewModel extends UiViewModel {
@@ -67,7 +71,7 @@ export class OverworldPathSegmentViewModel extends UiViewModel {
   segmentHeight: number = 36;
 }
 
-// ── Connector sub-ViewModel ──────────────────────────────────────────────────────
+// —— Connector sub-ViewModel ——————————————————————————————————————————————
 
 @uiViewModel()
 export class OverworldPathConnectorViewModel extends UiViewModel {
@@ -85,7 +89,7 @@ export class OverworldPathConnectorViewModel extends UiViewModel {
   segments: readonly OverworldPathSegmentViewModel[] = [];
 }
 
-// ── Main ViewModel ───────────────────────────────────────────────────────────────
+// —— Main ViewModel ———————————————————————————————————————————————————————
 
 @uiViewModel()
 export class OverworldViewModel extends UiViewModel {
@@ -99,71 +103,45 @@ export class OverworldViewModel extends UiViewModel {
   canvasHeight: number = 800;
 }
 
-// ── Component ────────────────────────────────────────────────────────────────────
+// —— Component ————————————————————————————————————————————————————————————
 
 @component()
 export class OverworldHud extends Component {
   /** Number of level buttons to display */
   @property() levelCount: number = 5;
 
-  // ══════════════════════════════════════════════════════════════════════════════════
-  // LAYOUT PROPERTIES — editable from the MHS properties panel
-  // ══════════════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
+  // LAYOUT PROPERTIES
+  // ══════════════════════════════════════════════════════════════════════════
 
-  /** Width of the Canvas used for positioning nodes (px) */
   @property() canvasWidth: number = 900;
-  /** Top padding before first node center (px) */
   @property() topPadding: number = 120;
-  /** Bottom padding after last node center (px) */
   @property() bottomPadding: number = 120;
-
-  /** Left-side node center X as a fraction of canvasWidth (0 = far left, 1 = far right) */
   @property() leftFraction: number = 0.35;
-  /** Right-side node center X as a fraction of canvasWidth */
   @property() rightFraction: number = 0.65;
-
-  /** Largest node diameter (px) — used when few levels are present */
   @property() maxNodeSize: number = 200;
-  /** Smallest node diameter (px) — used when many levels are present */
   @property() minNodeSize: number = 120;
-
-  /** Greatest vertical distance between node centers (px) — used with few levels */
   @property() maxVerticalSpacing: number = 240;
-  /** Smallest vertical distance between node centers (px) — used with many levels */
   @property() minVerticalSpacing: number = 150;
-
-  /** Scale multiplier applied to the last (boss) node relative to computed node size */
   @property() bossSizeMultiplier: number = 1.3;
-
-  /** Level count at or below which nodes/spacing are at their maximum (largest) */
   @property() minLevelCountForScaling: number = 1;
-  /** Level count at or above which nodes/spacing are at their minimum (smallest) */
   @property() maxLevelCountForScaling: number = 20;
-
-  /** Font size for level numbers inside nodes (px) */
   @property() levelNumberFontSize: number = 72;
-
-  /** Vertical offset of level number from node center (px, positive = down) */
   @property() levelNumberOffsetX: number = 0;
-
-  /** Horizontal offset of level number from node center (px, positive = left) */
   @property() levelNumberOffsetZ: number = 0;
-
-  /** Height of the connector bar between nodes (px) */
   @property() connectorHeight: number = 40;
-
-  /** Length of one path segment tile (px). The pattern repeats to fill the connector. */
   @property() segmentLength: number = 80;
-
-  /** Width (thickness) of the path segment connectors between nodes (px). */
   @property() segmentWidth: number = 36;
 
-  // ══════════════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
 
   private viewModel: Maybe<OverworldViewModel> = null;
   private uiComponent: Maybe<CustomUiComponent> = null;
 
-  // ── Lifecycle ──────────────────────────────────────────────────────────────────
+  /** Per-level state tracking: index -> OverworldNodeState */
+  private levelStates: OverworldNodeState[] = [];
+
+  // —— Lifecycle ——————————————————————————————————————————————————————————
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
   onStart(): void {
@@ -173,17 +151,18 @@ export class OverworldHud extends Component {
     if (!this.uiComponent) return;
 
     // Hide the native panel immediately to prevent XAML binding race
-    // (unresolved bindings default to Visible, covering the screen)
     this.uiComponent.isVisible = false;
 
     this.viewModel = new OverworldViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
 
+    // Initialize level states: level 0 is open, all others locked
+    this._initLevelStates();
     this._populateLevels();
   }
 
-  // ── Events ─────────────────────────────────────────────────────────────────────
+  // —— Events ———————————————————————————————————————————————————————————————
 
   @subscribe(Events.GamePhaseChanged, { execution: ExecuteOn.Owner })
   onPhaseChanged(payload: Events.GamePhaseChangedPayload): void {
@@ -192,6 +171,34 @@ export class OverworldHud extends Component {
     const shouldShow = payload.phase === GamePhase.Overworld;
     this.viewModel.visible = shouldShow;
     if (this.uiComponent) this.uiComponent.isVisible = shouldShow;
+
+    // Refresh node states when returning to overworld
+    if (shouldShow) {
+      this._refreshNodeStates();
+    }
+  }
+
+  @subscribe(Events.LevelCompleted, { execution: ExecuteOn.Owner })
+  onLevelCompleted(payload: Events.LevelCompletedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+
+    const idx = payload.levelIndex;
+    console.log(`[OverworldHud] Level ${idx + 1} completed`);
+
+    // Mark this level as beaten
+    if (idx >= 0 && idx < this.levelStates.length) {
+      this.levelStates[idx] = OverworldNodeState.Beaten;
+    }
+
+    // Unlock the next level (if it exists and is currently locked)
+    const nextIdx = idx + 1;
+    if (nextIdx < this.levelStates.length && this.levelStates[nextIdx] === OverworldNodeState.Locked) {
+      this.levelStates[nextIdx] = OverworldNodeState.Open;
+      console.log(`[OverworldHud] Level ${nextIdx + 1} unlocked`);
+    }
+
+    // Refresh the ViewModel so sprites update
+    this._refreshNodeStates();
   }
 
   @subscribe(UiEvents.overworldLevelTap, { execution: ExecuteOn.Owner })
@@ -203,8 +210,15 @@ export class OverworldHud extends Component {
     const levelIndex = parseInt(payload.parameter, 10);
     if (isNaN(levelIndex)) return;
 
-    // No clamping needed — levels are procedurally generated to match levelCount
-    console.log(`[OverworldHud] Level ${levelIndex + 1} selected`);
+    // Block taps on locked nodes
+    if (levelIndex >= 0 && levelIndex < this.levelStates.length) {
+      if (this.levelStates[levelIndex] === OverworldNodeState.Locked) {
+        console.log(`[OverworldHud] Level ${levelIndex + 1} is locked, tap ignored`);
+        return;
+      }
+    }
+
+    console.log(`[OverworldHud] Level ${levelIndex + 1} selected (state: ${this._stateToString(this.levelStates[levelIndex])})`);
 
     // Hide ourselves
     this.viewModel.visible = false;
@@ -216,38 +230,65 @@ export class OverworldHud extends Component {
     EventService.sendLocally(Events.LevelSelected, p);
   }
 
-  // ── Private ────────────────────────────────────────────────────────────────────
+  // —— Private ————————————————————————————————————————————————————————————
 
-  /**
-   * Computes node size and vertical spacing based on total level count.
-   * Fewer levels -> larger nodes and more generous spacing.
-   * Many levels -> smaller nodes and tighter spacing.
-   */
+  /** Initialize level states: first level open, rest locked */
+  private _initLevelStates(): void {
+    this.levelStates = [];
+    for (let i = 0; i < this.levelCount; i++) {
+      this.levelStates.push(i === 0 ? OverworldNodeState.Open : OverworldNodeState.Locked);
+    }
+  }
+
+  /** Convert enum to string for XAML binding */
+  private _stateToString(state: OverworldNodeState): string {
+    switch (state) {
+      case OverworldNodeState.Open: return 'open';
+      case OverworldNodeState.Beaten: return 'beaten';
+      case OverworldNodeState.Locked:
+      default: return 'locked';
+    }
+  }
+
+  /** Refresh all node ViewModels with current level states */
+  private _refreshNodeStates(): void {
+    if (!this.viewModel) return;
+    const currentNodes = this.viewModel.nodes;
+    const updatedNodes: OverworldPathNodeViewModel[] = [];
+
+    for (let i = 0; i < currentNodes.length; i++) {
+      const node = new OverworldPathNodeViewModel();
+      const src = currentNodes[i];
+      node.posX = src.posX;
+      node.posY = src.posY;
+      node.levelNumber = src.levelNumber;
+      node.levelIndex = src.levelIndex;
+      node.isBoss = src.isBoss;
+      node.nodeSize = src.nodeSize;
+      node.fontSize = src.fontSize;
+      node.numberMargin = src.numberMargin;
+
+      const state = i < this.levelStates.length ? this.levelStates[i] : OverworldNodeState.Locked;
+      node.nodeState = this._stateToString(state);
+      node.isInteractable = state !== OverworldNodeState.Locked;
+      updatedNodes.push(node);
+    }
+
+    this.viewModel.nodes = updatedNodes;
+  }
+
   private computeLayoutParams(totalLevels: number): { nodeSize: number; verticalSpacing: number } {
     const range = this.maxLevelCountForScaling - this.minLevelCountForScaling;
     const t = Math.max(0, Math.min(1, (totalLevels - this.minLevelCountForScaling) / range));
-
-    // Node size: MAX at few levels -> MIN at many levels
     const nodeSize = Math.round(this.maxNodeSize - t * (this.maxNodeSize - this.minNodeSize));
-
-    // Vertical spacing: MAX at few levels -> MIN at many levels
     const verticalSpacing = Math.round(this.maxVerticalSpacing - t * (this.maxVerticalSpacing - this.minVerticalSpacing));
-
     return { nodeSize, verticalSpacing };
   }
 
-  /**
-   * Builds the segment tiles array for a connector of a given length.
-   * The pattern tile repeats at segmentLength intervals. The last tile may be
-   * slightly smaller or larger to avoid gaps (distributes evenly).
-   */
   private _buildSegments(connectorLength: number): OverworldPathSegmentViewModel[] {
     const segLen = Math.max(1, this.segmentLength);
-    // Calculate how many tiles to fit — at least 1
     const count = Math.max(1, Math.round(connectorLength / segLen));
-    // Distribute width evenly so there are no gaps or overflow
     const tileWidth = connectorLength / count;
-
     const segments: OverworldPathSegmentViewModel[] = [];
     for (let s = 0; s < count; s++) {
       const seg = new OverworldPathSegmentViewModel();
@@ -260,20 +301,16 @@ export class OverworldHud extends Component {
 
   private _populateLevels(): void {
     const totalLevels = this.levelCount;
-
-    // Dynamically compute sizing based on level count
     const { nodeSize, verticalSpacing } = this.computeLayoutParams(totalLevels);
     const bossNodeSize = Math.round(nodeSize * this.bossSizeMultiplier);
 
     // Compute node center positions along the S-curve
     const nodeCenters: Array<{ x: number; y: number }> = [];
     for (let i = 0; i < totalLevels; i++) {
-      // Alternate left and right: even indices (0,2,4) on left, odd (1,3,5) on right
       const isRight = i % 2 === 1;
       const centerX = isRight
         ? this.canvasWidth * this.rightFraction
         : this.canvasWidth * this.leftFraction;
-      // Reversed: level 1 (i=0) at bottom, boss (last) at top
       const centerY = this.topPadding + (totalLevels - 1 - i) * verticalSpacing;
       nodeCenters.push({ x: centerX, y: centerY });
     }
@@ -293,33 +330,32 @@ export class OverworldHud extends Component {
       node.nodeSize = size;
       node.fontSize = this.levelNumberFontSize;
       node.numberMargin = `0,${this.levelNumberOffsetX},${this.levelNumberOffsetZ},0`;
+
+      // Set node state
+      const state = i < this.levelStates.length ? this.levelStates[i] : OverworldNodeState.Locked;
+      node.nodeState = this._stateToString(state);
+      node.isInteractable = state !== OverworldNodeState.Locked;
       nodes.push(node);
     }
 
     // Build connector ViewModels between consecutive nodes
     const connectors: OverworldPathConnectorViewModel[] = [];
-
     for (let i = 0; i < totalLevels - 1; i++) {
       const c1 = nodeCenters[i];
       const c2 = nodeCenters[i + 1];
-
       const dx = c2.x - c1.x;
       const dy = c2.y - c1.y;
       const length = Math.sqrt(dx * dx + dy * dy);
       const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
-
-      // Midpoint between the two node centers
       const midX = (c1.x + c2.x) / 2;
       const midY = (c1.y + c2.y) / 2;
 
       const connector = new OverworldPathConnectorViewModel();
-      // Position the connector so its center aligns with the midpoint
       connector.posX = midX - length / 2;
       connector.posY = midY - this.connectorHeight / 2;
       connector.angle = angleDeg;
       connector.connectorWidth = length;
       connector.connectorThickness = this.connectorHeight;
-      // Build repeating segment tiles for this connector
       connector.segments = this._buildSegments(length);
       connectors.push(connector);
     }

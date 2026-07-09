@@ -55,9 +55,10 @@
             </Grid>
         </DataTemplate>
 
-        <!-- Level Node template using sprites -->
+        <!-- Level Node template with state-driven sprites -->
         <DataTemplate x:Key="LevelNodeTemplate">
             <Grid Width="{Binding nodeSize}" Height="{Binding nodeSize}">
+                <!-- Tap handler (command still fires; logic in TS blocks locked taps) -->
                 <b:Interaction.Triggers>
                     <b:EventTrigger EventName="MouseLeftButtonUp">
                         <b:InvokeCommandAction Command="{Binding DataContext.events.levelTap, RelativeSource={RelativeSource AncestorType=Page}}"
@@ -65,8 +66,117 @@
                     </b:EventTrigger>
                 </b:Interaction.Triggers>
 
-                <!-- Combat node sprite (default, visible when NOT boss) -->
-                <Image Source="sprites/overworld_node_combat.png" Stretch="Uniform"/>
+                <!-- ═══ COMBAT NODE SPRITES (hidden when isBoss=true) ═══ -->
+
+                <!-- COMBAT BEATEN state sprite -->
+                <Image Source="sprites/overworld_node_combat.png" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding isBoss}" Value="False"/>
+                                        <Condition Binding="{Binding nodeState}" Value="beaten"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- COMBAT OPEN state sprite -->
+                <Image Source="sprites/overworld_node_combat_open.png" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding isBoss}" Value="False"/>
+                                        <Condition Binding="{Binding nodeState}" Value="open"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- COMBAT LOCKED state sprite -->
+                <Image Source="sprites/overworld_node_combat_locked.png" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding isBoss}" Value="False"/>
+                                        <Condition Binding="{Binding nodeState}" Value="locked"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- ═══ BOSS NODE SPRITES (visible only when isBoss=true) ═══ -->
+
+                <!-- BOSS BEATEN state sprite -->
+                <Image Source="sprites/overworld_node_boss.png" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding isBoss}" Value="True"/>
+                                        <Condition Binding="{Binding nodeState}" Value="beaten"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- BOSS OPEN state sprite -->
+                <Image Source="sprites/overworld_node_boss_open.png" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding isBoss}" Value="True"/>
+                                        <Condition Binding="{Binding nodeState}" Value="open"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- BOSS LOCKED state sprite -->
+                <Image Source="sprites/overworld_node_boss_locked.png" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding isBoss}" Value="True"/>
+                                        <Condition Binding="{Binding nodeState}" Value="locked"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
 
                 <!-- Level number with text outline effect -->
                 <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{Binding numberMargin}">
@@ -85,20 +195,6 @@
                     <TextBlock Text="{Binding levelNumber}" FontSize="{Binding fontSize}" FontWeight="Bold"
                                FontFamily="Anton" Foreground="{StaticResource TextLightBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
-
-                <!-- Boss overlay: boss node sprite (only visible when isBoss=true) -->
-                <Grid>
-                    <Grid.Visibility>
-                        <Binding Path="isBoss">
-                            <Binding.Converter>
-                                <BooleanToVisibilityConverter/>
-                            </Binding.Converter>
-                        </Binding>
-                    </Grid.Visibility>
-
-                    <!-- Boss node sprite replaces combat node visually -->
-                    <Image Source="sprites/overworld_node_boss.png" Stretch="Uniform"/>
                 </Grid>
             </Grid>
         </DataTemplate>

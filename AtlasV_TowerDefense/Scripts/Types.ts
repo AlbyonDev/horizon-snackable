@@ -10,6 +10,12 @@ import type { TemplateAsset } from 'meta/worlds';
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
+export enum OverworldNodeState {
+  Locked  = 0,
+  Open    = 1,
+  Beaten  = 2,
+}
+
 export enum GamePhase {
   Idle      = 0,
   Build     = 1,
@@ -192,6 +198,10 @@ export namespace Events {
   // Level selected (fired by overworld screen)
   export class LevelSelectedPayload { levelIndex: number = 0; }
   export const LevelSelected = new LocalEvent<LevelSelectedPayload>('EvLevelSelected', LevelSelectedPayload);
+
+  // Level completed (fired when player wins a level, transitions back to overworld)
+  export class LevelCompletedPayload { levelIndex: number = 0; }
+  export const LevelCompleted = new LocalEvent<LevelCompletedPayload>('EvLevelCompleted', LevelCompletedPayload);
 
   // Start game (fired by title screen)
   export class StartGamePayload {}

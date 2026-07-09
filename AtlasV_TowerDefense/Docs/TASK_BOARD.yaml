@@ -15,7 +15,7 @@ done:
   - Tower Cards Layout and Animation Fixes -- 4 cards, selection animation 150px rise
   - Tower Cards Visual Polish -- radial gradient, scale 1.05x, color outlines
   - GameOverScreen Medieval Fantasy Redesign -- parchemin panel, gold frame, stats
-  - GameOverScreen English + Dark Background -- VICTORY/DEFEAT/PLAY AGAIN, dark bg
+  - GameOverScreen -- wave count fix, Overworld button, VICTORY/DEFEAT layout
   - GameHud Medieval Fantasy Polish -- taille x2, fond bois, panels ornés
   - Tower Upgrade Menu Card Style Redesign -- 2 cards style TowerShop, SELL button
   - Hook Tower Textures in Shop and Upgrade UI -- balista/canon/frost/laser textures
@@ -36,6 +36,9 @@ done:
   - Fix Stale Path Tiles on Abandon -- destroy tiles on RestartGame event
   - Persistent Pre-Generated Levels -- generate once on StartGame, persist on abandon
   - OrcishFlag at Path Start -- repositions to first waypoint on LevelSelected
+  - Level Node States -- open/beaten/locked sprites + progression logic
+  - Overworld Node Combat Inclination -- matched tilt to open/locked variants
+  - Wave Counter Visible on Level Start -- shows "N waves in this level" then WAVE X/N on start
 
 chopping_block:
   disabled_systems: []

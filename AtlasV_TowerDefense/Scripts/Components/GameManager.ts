@@ -40,6 +40,7 @@ export class GameManager extends Component {
   @property() enabled: boolean = false;
 
   private _running: boolean = false;
+  private _currentLevelIndex: number = 0;
 
   @subscribe(OnEntityStartEvent)
   onStart(): void {
@@ -65,6 +66,7 @@ export class GameManager extends Component {
   onLevelSelected(_p: Events.LevelSelectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (this._running) return;
+    this._currentLevelIndex = _p.levelIndex;
     console.log(`[GameManager] Level ${_p.levelIndex} selected, starting game`);
     this._startGame();
   }
@@ -126,5 +128,13 @@ export class GameManager extends Component {
     const p = new Events.GameOverPayload();
     p.won = won;
     EventService.sendLocally(Events.GameOver, p);
+
+    // If the player won, fire LevelCompleted to unlock next level in overworld
+    if (won) {
+      const lcp = new Events.LevelCompletedPayload();
+      lcp.levelIndex = this._currentLevelIndex;
+      EventService.sendLocally(Events.LevelCompleted, lcp);
+      console.log(`[GameManager] Level ${this._currentLevelIndex + 1} completed, firing LevelCompleted`);
+    }
   }
 }

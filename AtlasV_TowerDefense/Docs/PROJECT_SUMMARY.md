@@ -277,7 +277,7 @@ Title Screen → Overworld (Level Select) → Build (5s) → Wave → WaveClear 
 | Panel | File | Phase | Status |
 |-------|------|-------|--------|
 | **Title Screen** | `UI/TitleScreen.xaml` | Pre-game | ✅ — Full-screen dark overlay with logo and "JOUER" button. Fires StartGame on tap. |
-| **Overworld (Level Select)** | `UI/Overworld.xaml` | Overworld | ✅ — Fantasy adventure map with detailed cartoon painted landscape background (Kingdom Rush+ style), sprite-based stone medallion combat nodes (crossed swords), sprite-based boss nodes (golden spiked skull emblem), and sprite-based rough-hewn stone paver path connectors that tile/repeat based on a configurable `segmentLength` property (default 80px). S-curve winding layout. Fires LevelSelected on tap. |
+| **Overworld (Level Select)** | `UI/Overworld.xaml` | Overworld | ✅ — Fantasy adventure map with detailed cartoon painted landscape background (Kingdom Rush+ style), sprite-based stone medallion combat nodes (crossed swords), sprite-based boss nodes (golden spiked skull emblem), and sprite-based rough-hewn stone paver path connectors that tile/repeat based on a configurable `segmentLength` property (default 80px). S-curve winding layout. Three node states: Open (golden glowing sprite, clickable), Beaten (default sprite, clickable), Locked (grey/chained sprite, not clickable). Level 1 starts open; beating a level marks it beaten and opens the next. Fires LevelSelected on tap. |
 | **HUD** | `UI/GameHud.xaml` | Build/Wave/WaveClear | ✅ — Gold, lives, wave counter, countdown, and Abandon button (returns to Overworld). |
 | **Tower Shop** | `UI/TowerShop.xaml` | Build + Wave | ✅ |
 | **Tower Upgrade Menu** | `UI/TowerUpgradeMenu.xaml` | Tower selected | ✅ — 4-column layout: [Info Panel] [Upgrade1] [Upgrade2] [Sell]. Info panel shows tower name + upgrade history (up to 3 lines). Upgrade buttons hidden when tower is at max tier (3). |
@@ -308,6 +308,7 @@ Title Screen → Overworld (Level Select) → Build (5s) → Wave → WaveClear 
 | `GameOver` | `won: boolean` | GameOverScreenHud |
 | `StartGame` | — | GameManager (transitions to Overworld), LevelGeneratorService (generates N random levels) |
 | `LevelSelected` | `levelIndex` | GameManager (starts the game), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
+| `LevelCompleted` | `levelIndex` | OverworldHud (marks level beaten, unlocks next) |
 | `RestartGame` | — | GameManager (transitions to Overworld), all services with state |
 | `ActivateFloatingText` | `text, worldX, worldZ, colorR, colorG, colorB` | FloatingTextController |
 
