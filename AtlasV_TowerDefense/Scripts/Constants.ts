@@ -29,14 +29,14 @@ export const ENEMY_SPAWN_INTERVAL  = 0.75; // seconds between enemy spawns withi
 
 // ─── Economy ──────────────────────────────────────────────────────────────────
 
-export const START_GOLD  = 120;
+export const START_GOLD  = 100; // opening fork: 1 Cannon | 2 Arrows | Frost+spare | bank toward Laser
 export const START_LIVES = 10;
-export const WAVE_BONUS_GOLD = 15; // flat gold awarded at end of each wave
-export const INCOME_RATE = 0.15;   // 10% of gold on hand → bonus at wave end
+export const WAVE_BONUS_GOLD = 8;  // flat gold at wave end — death-spiral floor (small)
+export const INCOME_RATE = 0.10;   // 10% of gold on hand at wave end → hoarding reward, uncapped (Lever 1)
 
 // ─── Enemy scaling ────────────────────────────────────────────────────────────
 
-export const HP_SCALE_PER_WAVE = 0.15; // HP multiplier = 1 + waveIndex * HP_SCALE_PER_WAVE
+export const HP_SCALE_PER_WAVE = 0.12; // HP multiplier = 1 + waveIndex * HP_SCALE_PER_WAVE
 
 // ─── Economy (continued) ──────────────────────────────────────────────────────
 
@@ -52,6 +52,7 @@ export const PROJECTILE_POOL_SIZE  = 30;   // pre-spawned projectile instances
 export const PROJECTILE_POOL_Y     = -100; // off-screen park position Y
 export const HEALTHBAR_POOL_SIZE   = 30;   // pre-spawned health bar instances
 export const HEALTHBAR_OFFSET_X    = 0.75; // world units ahead of enemy (X axis)
+export const HEALTHBAR_OFFSET_Y    = 0.6;  // world units toward the camera (top-down, camera at +Y), lifts the bar above tall models like the boss
 export const HEALTHBAR_WIDTH       = 0.4;  // world units (matches cell size)
 export const HEALTHBAR_HEIGHT      = 0.06; // world units (thin bar)
 export const HEALTHBAR_DEPTH       = 0.02; // world units (flat)

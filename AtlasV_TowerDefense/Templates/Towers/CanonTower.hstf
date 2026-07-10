@@ -41,9 +41,9 @@
                             "barrel": "b379ac17-7f96-4340-99a4-c543efdf63e4",
                             "spawnPoint": "2589505b-2fe6-4b73-86e1-4bb15530afef",
                             "shadow": "517eb378-6e14-4715-a78c-614322980d54",
-                            "icon1": "5c98f4b7-c8f9-4844-aa74-459e929b5b1f/df2c9483-57a3-4f62-9b9b-4f9f19f0958f",
-                            "icon2": "5c98f4b7-c8f9-4844-aa74-459e929b5b1f/36438361-f302-4e7a-abf1-b34ce45e71a2",
-                            "icon3": "5c98f4b7-c8f9-4844-aa74-459e929b5b1f/96384f29-549f-4631-84f7-59bbe1c273f7",
+                            "modelTier1": "5c98f4b7-c8f9-4844-aa74-459e929b5b1f/df2c9483-57a3-4f62-9b9b-4f9f19f0958f",
+                            "modelTier2": "5c98f4b7-c8f9-4844-aa74-459e929b5b1f/36438361-f302-4e7a-abf1-b34ce45e71a2",
+                            "modelTier3": "5c98f4b7-c8f9-4844-aa74-459e929b5b1f/96384f29-549f-4631-84f7-59bbe1c273f7",
                             "barrelForwardOffsetDeg": 180.0
                         }
                     },

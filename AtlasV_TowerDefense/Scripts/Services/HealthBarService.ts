@@ -13,7 +13,7 @@ import { OnWorldUpdateEvent } from 'meta/worlds';
 import type { Entity } from 'meta/worlds';
 import { ExecuteOn } from 'meta/worlds';
 import { Assets } from '../Assets';
-import { HEALTHBAR_POOL_SIZE, HEALTHBAR_OFFSET_X, HEALTHBAR_WIDTH, HEALTHBAR_HEIGHT, HEALTHBAR_DEPTH, PROJECTILE_POOL_Y, GROUND_Y } from '../Constants';
+import { HEALTHBAR_POOL_SIZE, HEALTHBAR_OFFSET_X, HEALTHBAR_OFFSET_Y, HEALTHBAR_WIDTH, HEALTHBAR_HEIGHT, HEALTHBAR_DEPTH, PROJECTILE_POOL_Y, GROUND_Y } from '../Constants';
 import { EnemyService } from './EnemyService';
 import { Events } from '../Types';
 
@@ -75,7 +75,7 @@ export class HealthBarService extends Service {
       if (!rec) continue;
       const p = new Events.UpdateHealthBarPayload();
       p.worldX = rec.worldX + HEALTHBAR_OFFSET_X;
-      p.worldY = GROUND_Y + 1.5 + 0.02;
+      p.worldY = GROUND_Y + 1.5 + 0.02 + HEALTHBAR_OFFSET_Y;
       p.worldZ = rec.worldZ;
       p.hp     = rec.hp;
       p.maxHp  = rec.maxHp;

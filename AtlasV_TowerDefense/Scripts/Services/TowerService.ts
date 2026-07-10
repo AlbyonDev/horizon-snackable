@@ -225,7 +225,7 @@ export class TowerService extends Service {
     if (!rec) return;
 
     const refund = Math.floor(rec.totalInvested * SELL_RATIO);
-    ResourceService.get().earn(refund);
+    ResourceService.get().earn(refund, false); // refund, not income — excluded from totalEarned
     const towerPos = PathService.get().cellToWorld(rec.col, rec.row);
     FloatingTextService.get().show(towerPos.x, towerPos.z, refund);
     rec.entity.destroy();

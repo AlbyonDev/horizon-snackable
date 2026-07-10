@@ -1,0 +1,91 @@
+name: Content Validation
+
+on:
+  push:
+    paths:
+      - '**.ts'
+      - '**.json'
+      - '**.mp3'
+
+jobs:
+  check-apis:
+    name: Check for Non-Durable API Usage
+    runs-on: ubuntu-latest
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Check for non-durable APIs
+        run: node .github/scripts/check-non-durable-apis.js
+
+      - name: Resolve DRI
+        if: failure()
+        id: dri
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          STUDIO=$(echo "$BRANCH" | sed 's/-.*//')
+          DRI_JSON='${{ secrets.DRI_CONFIG }}'
+          GCHAT_ID=$(echo "$DRI_JSON" | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));const k='${STUDIO}'.toLowerCase();console.log(d[k]||'')")
+          if [ -n "$GCHAT_ID" ]; then
+            echo "mention=<users/${GCHAT_ID}>" >> $GITHUB_OUTPUT
+          else
+            echo "mention=DRI not found for studio: ${STUDIO}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify GChat on failure
+        if: failure()
+        run: |
+          curl -X POST \
+            --url "${{ secrets.GCHAT_WEBHOOK_URL }}" \
+            --header "Content-Type: application/json" \
+            --data "{
+              \"text\": \"🚫 *Non-Durable API Violation* on branch \`${{ github.ref_name }}\` by ${{ github.actor }}\n\nThe push contains Provisional or Experimental API imports that are not allowed in 3P Snackable content.\n\nDRI: ${{ steps.dri.outputs.mention }}\n\nSee: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}\"
+            }"
+
+  check-mp3:
+    name: Check for MP3 Files
+    runs-on: ubuntu-latest
+
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Check for .mp3 files
+        run: node .github/scripts/check-mp3-files.js
+
+      - name: Resolve DRI
+        if: failure()
+        id: dri
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          STUDIO=$(echo "$BRANCH" | sed 's/-.*//')
+          DRI_JSON='${{ secrets.DRI_CONFIG }}'
+          GCHAT_ID=$(echo "$DRI_JSON" | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));const k='${STUDIO}'.toLowerCase();console.log(d[k]||'')")
+          if [ -n "$GCHAT_ID" ]; then
+            echo "mention=<users/${GCHAT_ID}>" >> $GITHUB_OUTPUT
+          else
+            echo "mention=DRI not found for studio: ${STUDIO}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify GChat on failure
+        if: failure()
+        run: |
+          curl -X POST \
+            --url "${{ secrets.GCHAT_WEBHOOK_URL }}" \
+            --header "Content-Type: application/json" \
+            --data "{
+              \"text\": \"🚫 *MP3 File Detected* on branch \`${{ github.ref_name }}\` by ${{ github.actor }}\n\nThe push contains .mp3 files. Use .ogg format instead.\n\nDRI: ${{ steps.dri.outputs.mention }}\n\nSee: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}\"
+            }"

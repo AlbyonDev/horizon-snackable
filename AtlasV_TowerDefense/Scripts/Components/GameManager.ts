@@ -34,6 +34,7 @@ import { GROUND_COLOR, hexColor } from '../Constants';
 import { CameraShakeService } from '../Services/CameraShakeService';
 import { PathTileService } from '../Services/PathTileService';
 
+
 @component()
 export class GameManager extends Component {
   @property() enabled: boolean = false;

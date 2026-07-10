@@ -54,10 +54,13 @@ export class GameHudController extends Component {
 
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
+    this.uiComponent.isVisible = false;
 
     this.viewModel = new GameHudViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
+
+    this.uiComponent.isVisible = true;
 
     const resourceSvc = ResourceService.get();
     this.viewModel.lives = resourceSvc.lives;
@@ -125,7 +128,7 @@ export class GameHudController extends Component {
   @subscribe(Events.RestartGame, { execution: ExecuteOn.Owner })
   onRestart(_p: Events.RestartGamePayload): void {
     if (!this.viewModel) return;
-    this.viewModel.visible = false;
+    this.viewModel.visible = true;
     this.viewModel.waveNumber = 1;
     this.viewModel.totalWaves = LEVEL_DEFS[0].waves.length;
     this.viewModel.waveText = "";

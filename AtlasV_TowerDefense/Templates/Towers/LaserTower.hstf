@@ -25,9 +25,9 @@
                             "barrel": "6f2a3929-6225-4c9f-8901-b26067ed420c",
                             "spawnPoint": "d7cdd3ef-c5b6-456b-bb33-9d96c0e6dae4",
                             "shadow": "d6cf4963-2f22-4e50-a6c6-0117de85e28a",
-                            "icon1": "e2b8447d-3712-4cc0-9839-d22a2e873279/df2c9483-57a3-4f62-9b9b-4f9f19f0958f",
-                            "icon2": "e2b8447d-3712-4cc0-9839-d22a2e873279/36438361-f302-4e7a-abf1-b34ce45e71a2",
-                            "icon3": "e2b8447d-3712-4cc0-9839-d22a2e873279/96384f29-549f-4631-84f7-59bbe1c273f7",
+                            "modelTier1": "e2b8447d-3712-4cc0-9839-d22a2e873279/df2c9483-57a3-4f62-9b9b-4f9f19f0958f",
+                            "modelTier2": "e2b8447d-3712-4cc0-9839-d22a2e873279/36438361-f302-4e7a-abf1-b34ce45e71a2",
+                            "modelTier3": "e2b8447d-3712-4cc0-9839-d22a2e873279/96384f29-549f-4631-84f7-59bbe1c273f7",
                             "barrelForwardOffsetDeg": 180.0
                         }
                     },
@@ -154,7 +154,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -245,7 +245,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {
@@ -336,7 +336,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
-                        "version": 1,
+                        "version": 2,
                         "data": {
                             "materials": [
                                 {

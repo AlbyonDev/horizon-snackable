@@ -16,7 +16,7 @@ import { component, property, subscribe } from 'meta/worlds';
 import { OnEntityStartEvent, OnWorldUpdateEvent } from 'meta/worlds';
 import type { OnWorldUpdateEventPayload } from 'meta/worlds';
 import { NetworkingService } from 'meta/worlds';
-import { Events, type ITowerStats } from '../Types';
+import { Events, TargetingMode, type ITowerStats } from '../Types';
 import { TargetingService } from '../Services/TargetingService';
 import { EnemyService } from '../Services/EnemyService';
 import { TowerService } from '../Services/TowerService';
@@ -38,6 +38,14 @@ export class TowerController extends Component {
   private _row: number = 0;
   private _cooldown: number = 0;
   private _ready: boolean = false;
+  // Targeting rule for this tower, read from its def on init (stable; upgrades never change it).
+  private _targeting: TargetingMode = TargetingMode.First;
+  // Sticky targeting: keep firing at the locked enemy while it stays alive and in range.
+  // Only re-acquire (furthest-along) when the lock is lost. Lets the spool-up Laser hold a boss.
+  private _lockedId: number = -1;
+  // Spool-up: effective fire rate ramps (×1 → ×spoolPeak) the longer the tower holds ONE
+  // target; resets on target switch. Gated by props.spoolPeak > 1. See _effectiveFireRate().
+  private _spoolTime: number = 0;
   private _stats: ITowerStats = { damage: 0, range: 0, fireRate: 1, projectileSpeed: 1, props: {} };
   private _bouncing: boolean = false;
   private _bounceElapsed: number = 0;
@@ -79,6 +87,11 @@ export class TowerController extends Component {
     this._col      = p.col;
     this._row      = p.row;
     this._cooldown = 0;
+    this._lockedId = -1;
+    this._spoolTime = 0;
+    const rec = TowerService.get().getAt(p.col, p.row);
+    const def = rec ? TowerService.get().find(rec.defId) : undefined;
+    this._targeting = def?.targeting ?? TargetingMode.First;
     this._ready    = true;
     this._bouncing = true;
     this._bounceElapsed = 0;
@@ -155,8 +168,12 @@ export class TowerController extends Component {
     }
 
     const pos = this._transform.worldPosition;
-    const targetId = TargetingService.get().getBestTarget(pos.x, pos.z, this._stats.range);
-    if (targetId === -1) return;
+
+    const targetId = this._acquireTarget(pos.x, pos.z);
+    if (targetId === -1) { this._spoolTime = 0; return; }
+
+    // Spool-up: accumulate time-on-target; effective fire rate ramps ×1 → ×spoolPeak.
+    this._spoolTime += dt;
 
     if (this.barrel) {
       const target = EnemyService.get().get(targetId);
@@ -178,7 +195,7 @@ export class TowerController extends Component {
     const entity = ProjectilePool.get().acquire();
     if (!entity) return;
 
-    this._cooldown = 1 / this._stats.fireRate;
+    this._cooldown = 1 / this._effectiveFireRate();
 
     if (this.barrel) {
       const barrelT = this.barrel.getComponent(TransformComponent);
@@ -243,5 +260,51 @@ export class TowerController extends Component {
   private _refreshStats(): void {
     const stats = TowerService.get().getEffectiveStats(this._col, this._row);
     if (stats) this._stats = stats;
+  }
+
+  // Pick the enemy this tower fires at this frame, per its TargetingMode.
+  // Returns an enemyId, or -1 if nothing in range. Resets the spool when the target changes.
+  // To add a new mode: add it to TargetingMode (Types.ts) and a case here.
+  private _acquireTarget(x: number, z: number): number {
+    let targetId = -1;
+
+    switch (this._targeting) {
+      case TargetingMode.Sticky: {
+        // Keep the locked enemy while it is alive and still within range.
+        if (this._lockedId !== -1) {
+          const locked = EnemyService.get().get(this._lockedId);
+          if (locked) {
+            const dx = locked.worldX - x;
+            const dz = locked.worldZ - z;
+            if (dx * dx + dz * dz <= this._stats.range * this._stats.range) targetId = this._lockedId;
+          }
+        }
+        // Lost the lock → re-acquire furthest-along.
+        if (targetId === -1) targetId = TargetingService.get().getBestTarget(x, z, this._stats.range);
+        break;
+      }
+      case TargetingMode.First:
+      default:
+        targetId = TargetingService.get().getBestTarget(x, z, this._stats.range);
+        break;
+    }
+
+    if (targetId !== this._lockedId) this._spoolTime = 0; // target switched → reset spool ramp
+    this._lockedId = targetId;
+    return targetId;
+  }
+
+  // Spool-up fire rate. Spool is a MULTIPLIER on the tower's base fireRate stat (composes
+  // like crit/splash) so it works on ANY tower and stacks with Rate upgrades:
+  //   effectiveRate = fireRate × ( 1 → spoolPeak ), ramped over props.spoolTime seconds of
+  //   holding one target (_spoolTime). spoolPeak ≤ 1 (or absent) = no spool.
+  // Ramp metric is time-on-target; this is the single extension point if a future spool
+  // wants to ramp by shots-landed / time-targeting instead — change how _spoolTime is fed.
+  private _effectiveFireRate(): number {
+    const peak = this._stats.props['spoolPeak'] as number | undefined;
+    if (peak === undefined || peak <= 1) return this._stats.fireRate;
+    const time = (this._stats.props['spoolTime'] as number | undefined) ?? 2.5;
+    const ramp = time > 0 ? Math.min(1, this._spoolTime / time) : 1;
+    return this._stats.fireRate * (1 + (peak - 1) * ramp);
   }
 }

@@ -155,7 +155,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                        "version": 9,
+                        "version": 10,
                         "data": {
                             "type": "StaticCollision"
                         }
@@ -257,6 +257,53 @@
             "attributes": []
         },
         {
+            "id": "4064225a-805a-433d-a93e-e6b5a69c2bec",
+            "name": "TitleScreenUI",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "10200357756570333573",
+                                "targetId": "2149638574"
+                            },
+                            "width": 0,
+                            "height": 0,
+                            "panelVisibility": true,
+                            "isInteractable": true,
+                            "renderOrderOffset": 400
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "TitleScreenHud",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "17011308130094871400",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
             "id": "4c1e1a40-31ca-449f-bef5-87095211b019",
             "name": "GameHud",
             "components": [
@@ -287,7 +334,7 @@
                             },
                             "width": 0,
                             "height": 0,
-                            "panelVisibility": true
+                            "panelVisibility": false
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -343,6 +390,7 @@
                             },
                             "width": 0,
                             "height": 0,
+                            "panelVisibility": false,
                             "isInteractable": true,
                             "renderOrderOffset": 100
                         }
@@ -400,6 +448,7 @@
                             },
                             "width": 0,
                             "height": 0,
+                            "panelVisibility": false,
                             "isInteractable": true
                         }
                     },
@@ -451,6 +500,7 @@
                             },
                             "width": 0,
                             "height": 0,
+                            "panelVisibility": false,
                             "renderOrderOffset": 200
                         }
                     },
@@ -502,7 +552,7 @@
                             },
                             "width": 0,
                             "height": 0,
-                            "panelVisibility": true,
+                            "panelVisibility": false,
                             "isInteractable": true
                         }
                     },
@@ -646,51 +696,6 @@
             "attributes": []
         },
         {
-            "id": "4064225a-805a-433d-a93e-e6b5a69c2bec",
-            "name": "TitleScreenUI",
-            "components": [
-                {
-                    "data": {
-                        "class": "horizon::platform_api::TransformPlatformComponent",
-                        "version": 3,
-                        "data": {}
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::CustomUiPlatformComponent",
-                        "version": 16,
-                        "data": {
-                            "customUiType": "ScreenSpace",
-                            "xaml": {
-                                "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "10200357756570333573",
-                                "targetId": "2149638574"
-                            },
-                            "width": 0,
-                            "height": 0,
-                            "isInteractable": true
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "TitleScreenHud",
-                        "definitionAsset": {
-                            "packageOrRemoteId": "26631398616455768",
-                            "ingestionId": "17011308130094871400",
-                            "targetId": "4237980480"
-                        },
-                        "data": {}
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                }
-            ],
-            "attributes": []
-        },
-        {
             "id": "30b6cd95-c66a-438f-9b38-30b456857a4d",
             "name": "OrcishFlag",
             "type": {
@@ -730,7 +735,7 @@
                             "dataType": "horizon::DataDefinitionAsset",
                             "data": {
                                 "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
-                                "version": 9,
+                                "version": 10,
                                 "data": null
                             }
                         }
@@ -804,6 +809,487 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "e6730bef-2aac-4a0e-afa8-dd279e613b5f",
+            "name": "PreloadCache",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": -50.0,
+                                "z": 0.0
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "PreloadDestroyer",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "14616447986781547905",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "8474410a-ff75-4dd7-a1d2-83a214dc8323",
+            "name": "PreloadArrow",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "7118911806608631134",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "b568d258-4773-4744-bcd1-b1788f701013",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": 0.0,
+                                        "y": -50.0,
+                                        "z": 0.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "TowerController",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "15027774208938648437",
+                                    "targetId": "4237980480"
+                                },
+                                "data": null
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "PreloadDestroyer",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "14616447986781547905",
+                                    "targetId": "4237980480"
+                                },
+                                "data": {}
+                            }
+                        }
+                    ],
+                    "attributes": []
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "fc7b8e77-aff5-449a-8c31-4be287f4f669",
+            "name": "PreloadCannon",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "1637784053927604813",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "2e7f0eb8-c407-4566-b3ea-73d31d752c49",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": 0.0,
+                                        "y": -50.0,
+                                        "z": 0.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "TowerController",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "15027774208938648437",
+                                    "targetId": "4237980480"
+                                },
+                                "data": null
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "PreloadDestroyer",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "14616447986781547905",
+                                    "targetId": "4237980480"
+                                },
+                                "data": {}
+                            }
+                        }
+                    ],
+                    "attributes": []
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "5cb682cd-48c9-40dd-8048-a8cde0e7e1ec",
+            "name": "PreloadFrost",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "5444508097008036874",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "6b3f0462-ba77-47cb-83c4-06aa7f2a8372",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": 0.0,
+                                        "y": -50.0,
+                                        "z": 0.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "TowerController",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "15027774208938648437",
+                                    "targetId": "4237980480"
+                                },
+                                "data": null
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "PreloadDestroyer",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "14616447986781547905",
+                                    "targetId": "4237980480"
+                                },
+                                "data": {}
+                            }
+                        }
+                    ],
+                    "attributes": []
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "8b760a74-8e49-4417-b9c4-797dd4669926",
+            "name": "PreloadLaser",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "4525556473120456989",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "63d9a8d8-549d-4ddc-bff7-45b5fb5cebcf",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": 0.0,
+                                        "y": -50.0,
+                                        "z": 0.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "TowerController",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "15027774208938648437",
+                                    "targetId": "4237980480"
+                                },
+                                "data": null
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "PreloadDestroyer",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "14616447986781547905",
+                                    "targetId": "4237980480"
+                                },
+                                "data": {}
+                            }
+                        }
+                    ],
+                    "attributes": []
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "f27d9cfa-c124-44e3-b1ec-0762f466665b",
+            "name": "PreloadEnemyBasic",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "10451250870154484588",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "c27edc0d-1b0d-4da3-938d-55567eb71cb8",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": 0.0,
+                                        "y": -50.0,
+                                        "z": 0.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "EnemyController",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "5136565064235760864",
+                                    "targetId": "4237980480"
+                                },
+                                "data": null
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "PreloadDestroyer",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "14616447986781547905",
+                                    "targetId": "4237980480"
+                                },
+                                "data": {}
+                            }
+                        }
+                    ],
+                    "attributes": []
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "39684d7b-a961-40b4-b396-7d77e80c5f62",
+            "name": "PreloadEnemyFast",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "15940306669194784922",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "cf72b5d7-c1a7-46b5-8fec-c8dc4bc3ed72",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": 0.0,
+                                        "y": -50.0,
+                                        "z": 0.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "EnemyController",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "5136565064235760864",
+                                    "targetId": "4237980480"
+                                },
+                                "data": null
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "PreloadDestroyer",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "14616447986781547905",
+                                    "targetId": "4237980480"
+                                },
+                                "data": {}
+                            }
+                        }
+                    ],
+                    "attributes": []
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "f989ea25-3d4a-4b3b-9e26-6b88914e53bf",
+            "name": "PreloadEnemyTank",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "5671441425473511725",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "532318e2-f2f2-4435-85f6-618449c50000",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": 0.0,
+                                        "y": -50.0,
+                                        "z": 0.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "EnemyController",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "5136565064235760864",
+                                    "targetId": "4237980480"
+                                },
+                                "data": null
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "PreloadDestroyer",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "14616447986781547905",
+                                    "targetId": "4237980480"
+                                },
+                                "data": {}
+                            }
+                        }
+                    ],
+                    "attributes": []
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "4f178336-f788-45cd-badf-e5d1ec33694f",
+            "name": "PreloadEnemyBoss",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "11135728448837891491",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "d998bd5b-74b4-4d12-8d20-fe857533e0d4",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": 0.0,
+                                        "y": -50.0,
+                                        "z": 0.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "EnemyController",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "5136565064235760864",
+                                    "targetId": "4237980480"
+                                },
+                                "data": null
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "PreloadDestroyer",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "14616447986781547905",
+                                    "targetId": "4237980480"
+                                },
+                                "data": {}
+                            }
+                        }
+                    ],
+                    "attributes": []
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -831,6 +1317,11 @@
             "relationshipType": "RelationChildOf",
             "source": "f13514f0-27f7-40a8-83c2-97e74008556c",
             "destination": "2b1c87ce-337d-4e7a-b041-e619d6fd4b3f"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "4064225a-805a-433d-a93e-e6b5a69c2bec",
+            "destination": "f13514f0-27f7-40a8-83c2-97e74008556c"
         },
         {
             "relationshipType": "RelationChildOf",
@@ -869,17 +1360,57 @@
         },
         {
             "relationshipType": "RelationChildOf",
-            "source": "4064225a-805a-433d-a93e-e6b5a69c2bec",
-            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
-        },
-        {
-            "relationshipType": "RelationChildOf",
             "source": "30b6cd95-c66a-438f-9b38-30b456857a4d",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         },
         {
             "relationshipType": "RelationChildOf",
             "source": "b341a2f3-289e-41f0-9e77-a789f7897e64",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "e6730bef-2aac-4a0e-afa8-dd279e613b5f",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "8474410a-ff75-4dd7-a1d2-83a214dc8323",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "fc7b8e77-aff5-449a-8c31-4be287f4f669",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "5cb682cd-48c9-40dd-8048-a8cde0e7e1ec",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "8b760a74-8e49-4417-b9c4-797dd4669926",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "f27d9cfa-c124-44e3-b1ec-0762f466665b",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "39684d7b-a961-40b4-b396-7d77e80c5f62",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "f989ea25-3d4a-4b3b-9e26-6b88914e53bf",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "4f178336-f788-45cd-badf-e5d1ec33694f",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

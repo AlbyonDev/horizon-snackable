@@ -1,5 +1,5 @@
 {
-    "id": "084174a6-00e2-4126-906e-00beaa7d51cd",
+    "id": "3bab55b7-8de9-4b58-9a75-add89dd4a58c",
     "defaultTemplateAssetId": {
         "packageOrRemoteId": "26631398616455768",
         "ingestionId": "9669399445146366561",
@@ -47,6 +47,6 @@
         "avatarMax": 1,
         "screenOrientation": "Portrait"
     },
-    "editorVersion": "172.0.0.43.107",
+    "editorVersion": "175.0.0.8.102",
     "remotePackageId": "26631398616455768"
 }

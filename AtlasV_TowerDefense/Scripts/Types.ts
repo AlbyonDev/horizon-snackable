@@ -19,6 +19,13 @@ export enum GamePhase {
   Victory   = 5,
 }
 
+// How a tower chooses its target each frame. Set per-tower in TowerDefs via ITowerDef.targeting.
+// To add a new mode: add a value here, then handle it in TowerController._acquireTarget().
+export enum TargetingMode {
+  First  = 0, // furthest along the path (closest to leaking) — the default
+  Sticky = 1, // hold current target until it dies / leaves range, then re-acquire by First
+}
+
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
 export interface ITowerStats {
@@ -46,6 +53,9 @@ export interface ITowerDef {
 
   template: TemplateAsset;
   upgrades: readonly [IUpgradeNode, IUpgradeNode];
+
+  // Target selection rule. Stable per tower (upgrades never change it). Omitted = First.
+  targeting?: TargetingMode;
 }
 
 export interface IEnemyDef {

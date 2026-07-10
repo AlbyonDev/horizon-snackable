@@ -22,6 +22,7 @@ import { EnemyService } from '../Services/EnemyService';
 import { HitService } from '../Services/HitService';
 import { ProjectilePool, POOL_PARK_POSITION } from '../Services/ProjectilePool';
 import { VfxService } from '../Services/VfxService';
+import { FloatingTextService } from '../Services/FloatingTextService';
 
 @component()
 export class ProjectileController extends Component {
@@ -146,7 +147,10 @@ export class ProjectileController extends Component {
     for (const id of hitCtx.targets) {
       const rec = EnemyService.get().get(id);
       const def = rec ? EnemyService.get().find(rec.defId) : undefined;
-      if (def?.dodgeChance && Math.random() < def.dodgeChance) continue;
+      if (def?.dodgeChance && Math.random() < def.dodgeChance) {
+        FloatingTextService.get().showMiss(this._originX, this._originZ);
+        continue;
+      }
       EventService.sendLocally(Events.TakeDamage,
         { enemyId: id, damage: hitCtx.damage, props: hitCtx.props, originX: this._originX, originZ: this._originZ });
     }

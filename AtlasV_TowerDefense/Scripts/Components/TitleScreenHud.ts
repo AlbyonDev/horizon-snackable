@@ -63,10 +63,13 @@ export class TitleScreenHud extends Component {
 
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
+    this.uiComponent.isVisible = false;
 
     this.viewModel = new TitleScreenViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = true;
+
+    this.uiComponent.isVisible = true;
   }
 
   // ── Events ────────────────────────────────────────────────────────────────

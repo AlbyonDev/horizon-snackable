@@ -44,6 +44,8 @@ const u = (label: string, apply: (s: ITowerStats) => ITowerStats): AtomFn =>
   (cost: number) => ({ label, cost, apply });
 
 export const Upg = {
+  // Rate doubles fireRate. For spool towers this also scales the spooled peak automatically,
+  // since spool is a MULTIPLIER on fireRate (no special-casing needed).
   rate:         u('Rate',     s => ({ ...s, fireRate: s.fireRate * 2.0 })),
   damage:       u('Damage',   s => ({ ...s, damage: s.damage * 2.0 })),
   range:        u('Range',    s => ({ ...s, range: s.range + 1.0 })),

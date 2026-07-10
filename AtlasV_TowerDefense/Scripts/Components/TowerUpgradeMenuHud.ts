@@ -132,10 +132,13 @@ export class TowerUpgradeMenuHud extends Component {
 
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
+    this.uiComponent.isVisible = false;
 
     this.viewModel = new TowerUpgradeMenuViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
+
+    this.uiComponent.isVisible = true;
   }
 
   @subscribe(Events.TowerSelected, { execution: ExecuteOn.Owner })

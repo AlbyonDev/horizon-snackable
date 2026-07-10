@@ -18,102 +18,104 @@ export interface ILevelDef {
   waves: IWaveDef[];
 }
 
-// ── Act 1 (W1–5): Apprentissage — une mécanique introduite par vague ───────────
-// Pas de skill check. Pression suffisante pour signaler que 1 tour ne suffit pas.
+// ── Act 1 (W1–5): Onboarding — one threat type introduced per wave ──────────────
+// No skill check. Enough pressure to signal that 1 tower is not sufficient.
 //
-// ── Act 2 (W6–10): Montée — compositions mixtes, deux skill checks ──────────────
-// W7 "Tank Wall" : regen 8/s × 8 tanks — DPS insuffisant sans Laser/Cannon upgradé.
-// W10 "Speed Run" : 25 Fast dodge 15% — couverture dense requise, Cannon peu fiable.
+// ── Act 2 (W6–10): the threats sharpen — first hoarding decision + swarm checks ─
+// W6 first Boss — bank for a Laser? W8 spread-Fast swarm (Cannon needs Frost to re-bunch).
+// W10 "Speed Run": 22 pure Fast (spread + dodge) — hard Frost+Cannon combo check.
 //
-// ── Act 3 (W11–15): Maîtrise — Boss récurrent, combos qui forcent la variété ────
-// W13 "Boss Escort" : Boss immune slow + Fast dodge = Frost quasi inutile.
-// W15 "Double Menace" : Boss + Tank simultanément, pas de réponse unique.
+// ── Act 3 (W11–15): combos force the full toolkit ───────────────────────────────
+// W13 "Boss Escort": Boss (Laser) + spread Fast (Frost+Cannon) — two answers at once.
+// W15 bulk overload: Boss + Tank + basics, no single answer.
 //
-// ── Act 4 (W16–20): Endgame — économie jugée, skill checks durs ─────────────────
-// W17 "Boss Rush" : 6 Boss à HP ×3.4 — seules les tours upgradées enchaînent.
-// W20 "Finale" : tout à la fois, un joueur pauvre perd plusieurs vies ici.
+// ── Act 4 (W16–20): Endgame — economy + toolkit tested hard ─────────────────────
+// W17 "Boss Rush": 4 Boss + escort — the payoff wave for the banked-for Laser.
+// W20 "Finale": everything at once, a poor economy loses lives here.
 const WAVES_LEVEL_0: IWaveDef[] = [
 
-  // ── Act 1 ──────────────────────────────────────────────────────────────────
+  // Arc principle: alternate threat TYPES so the player keeps switching tools. Swarm difficulty
+  // is set by SPEED/SPREAD (fast = spread = hard for Cannon), not just count. Named skill-checks
+  // each demand a specific tool/combo, unbeatable by mono-strategy.
+  //   basic = bunched swarm (Cannon solos) · fast = spread swarm (needs Frost+Cannon, dodges)
+  //   tank/boss = bulk (needs Laser's concentrated spool DPS; boss is slow-immune)
 
-  // W1 — Tuto : 1 Basic. Voir sa tour tirer, comprendre que ça marche.
+  // ── Act 1 (W1–5): one mechanic introduced per wave, no skill check ──────────
+
+  // W1 — Tutorial: a single Basic. See the tower fire, understand the loop. No real pressure.
   { groups: [{ enemyId: 'basic', count: 1 }] },
 
-  // W2 — Volume léger : assez pour stresser 1 tour, pas assez pour perdre des vies.
-  { groups: [{ enemyId: 'basic', count: 6 }] },
+  // W2 — Bunched swarm: slow basics clump; Cannon/Arrow handle it.
+  { groups: [{ enemyId: 'basic', count: 8 }] },
 
-  // W3 — Introduction Fast : rapides, dodge 15%. Signal que le Cannon rate souvent.
-  { groups: [{ enemyId: 'basic', count: 5 }, { enemyId: 'fast', count: 3 }] },
+  // W3 — Intro Fast (spread): quick, dodgy. Cannon starts missing the strung-out ones.
+  { groups: [{ enemyId: 'basic', count: 6 }, { enemyId: 'fast', count: 4 }] },
 
-  // W4 — Introduction Tank : lent, regen 8/s. Le Frost seul le soigne — signal fort.
-  { groups: [{ enemyId: 'tank', count: 2 }, { enemyId: 'basic', count: 6 }] },
+  // W4 — Intro Tank (bulk): slow, high HP. Single-target throughput needed.
+  { groups: [{ enemyId: 'basic', count: 6 }, { enemyId: 'tank', count: 2 }] },
 
-  // W5 — Mix Act 1 : pression douce sur tous les fronts. 1 seule tour commence à laisser passer.
+  // W5 — Mixed pressure on all fronts; one tower starts to leak. (Eased: 4 fast, was 5 —
+  //   slightly less early spend pressure so a small pile can start forming for hoarding.)
   { groups: [{ enemyId: 'basic', count: 8 }, { enemyId: 'fast', count: 4 }, { enemyId: 'tank', count: 1 }] },
 
-  // ── Act 2 ──────────────────────────────────────────────────────────────────
+  // ── Act 2 (W6–10): the threats sharpen; first hoarding decision + swarm checks ──
 
-  // W6 — Premier Boss : immune slow, quelques Basics pour distraire. Introduction douce.
+  // W6 — FIRST BOSS: slow-immune bulk. Did you bank for a Laser? An unprepared boss punishes.
   { groups: [{ enemyId: 'basic', count: 8 }, { enemyId: 'boss', count: 1 }] },
 
-  // W7 — SKILL CHECK "Tank Wall" : 8 Tanks consécutifs, regen 8/s chacun.
-  //   Frost net DPS négatif sur Tank. Arrow seul tient juste. Laser/Cannon upgradé = confort.
-  { groups: [{ enemyId: 'tank', count: 8 }, { enemyId: 'basic', count: 5 }] },
+  // W7 — Tank wall: bulk that only concentrated DPS (Laser) chews through.
+  { groups: [{ enemyId: 'tank', count: 6 }, { enemyId: 'basic', count: 4 }] },
 
-  // W8 — Fast flood : après le choc des tanks, pression vitesse. Signal pour W10.
-  { groups: [{ enemyId: 'fast', count: 14 }, { enemyId: 'basic', count: 6 }] },
+  // W8 — SKILL CHECK (spread swarm): Fast string out → Cannon alone leaks → bring Frost to re-bunch.
+  { groups: [{ enemyId: 'fast', count: 16 }, { enemyId: 'basic', count: 4 }] },
 
-  // W9 — Boss + Tank escort : immune slow + regen simultanément. Frost contre-productif sur les deux.
-  { groups: [{ enemyId: 'boss', count: 2 }, { enemyId: 'tank', count: 5 }, { enemyId: 'basic', count: 8 }] },
+  // W9 — Bulk-stacked: boss + tanks together. One Laser strains; needs help or a 2nd.
+  { groups: [{ enemyId: 'boss', count: 1 }, { enemyId: 'tank', count: 4 }, { enemyId: 'basic', count: 6 }] },
 
-  // W10 — SKILL CHECK "Speed Run" : 25 Fast, dodge 15%. Pas de Boss ni Tank.
-  //   Pression pure couverture + volume tirs. Cannon (0.6/s) souvent dodgé, laisse passer.
-  { groups: [{ enemyId: 'fast', count: 25 }] },
+  // W10 — SKILL CHECK "Speed Run": 22 pure Fast, spread + dodge. Hard Frost+Cannon combo check.
+  { groups: [{ enemyId: 'fast', count: 22 }] },
 
-  // ── Act 3 ──────────────────────────────────────────────────────────────────
+  // ── Act 3 (W11–15): combos that force the full toolkit ──────────────────────
 
-  // W11 — Respiration : Basics en nombre. Moment d'upgrader avant les vagues dures.
-  { groups: [{ enemyId: 'basic', count: 20 }] },
+  // W11 — Breather: bunched basics. Spend/upgrade before the hard waves.
+  { groups: [{ enemyId: 'basic', count: 18 }] },
 
-  // W12 — Tank + Fast combo : Frost ralentit les Fast mais soigne les Tanks — dilemme de placement.
-  { groups: [{ enemyId: 'tank', count: 6 }, { enemyId: 'fast', count: 12 }, { enemyId: 'basic', count: 8 }] },
+  // W12 — Everything at once: tanks + spread fast + basics. Diversify.
+  { groups: [{ enemyId: 'tank', count: 5 }, { enemyId: 'fast', count: 12 }, { enemyId: 'basic', count: 6 }] },
 
-  // W13 — "Boss Escort" : Boss immune slow + Fast dodge = Frost inutile sur les deux.
-  //   Vague signature pour le joueur Frost-centrique.
-  { groups: [{ enemyId: 'boss', count: 3 }, { enemyId: 'fast', count: 15 }] },
+  // W13 — SKILL CHECK "Boss Escort": bosses + spread fast. Laser for the boss AND Frost+Cannon for the escort.
+  { groups: [{ enemyId: 'boss', count: 2 }, { enemyId: 'fast', count: 14 }] },
 
-  // W14 — Tank tide : 10 Tanks simultanément, regen brutal sans DPS soutenu.
-  //   Tours cheap non upgradées commencent à saturer.
-  { groups: [{ enemyId: 'tank', count: 10 }, { enemyId: 'basic', count: 10 }] },
+  // W14 — Tank tide: a wall of bulk. Multi-Laser or a fully-committed single.
+  { groups: [{ enemyId: 'tank', count: 9 }, { enemyId: 'basic', count: 8 }] },
 
-  // W15 — SKILL CHECK "Double Menace" : Boss + Tank en grand nombre, pas de réponse unique.
-  //   Laser pour les Tanks, DPS pur pour les Boss, Frost quasi inutile sur les deux.
-  { groups: [{ enemyId: 'boss', count: 3 }, { enemyId: 'tank', count: 8 }, { enemyId: 'basic', count: 10 }] },
+  // W15 — Bulk overload: bosses + tanks + basics, no single answer.
+  { groups: [{ enemyId: 'boss', count: 2 }, { enemyId: 'tank', count: 6 }, { enemyId: 'basic', count: 8 }] },
 
-  // ── Act 4 ──────────────────────────────────────────────────────────────────
+  // ── Act 4 (W16–20): endgame — economy + toolkit tested hard ─────────────────
 
-  // W16 — Saturation : tout en volume, dernier moment pour dépenser l'income accumulé.
-  { groups: [{ enemyId: 'basic', count: 20 }, { enemyId: 'fast', count: 15 }, { enemyId: 'tank', count: 8 }] },
+  // W16 — All swarm types + bulk: bunched basics, spread fast, tanks. Coverage + diversity.
+  { groups: [{ enemyId: 'basic', count: 16 }, { enemyId: 'fast', count: 14 }, { enemyId: 'tank', count: 6 }] },
 
-  // W17 — SKILL CHECK "Boss Rush" : 6 Boss immune slow, HP ×3.4 (wave 17).
-  //   ~2040 HP/Boss — seul Laser ou Cannon tier 2 les enchaîne. Vague la plus mémorable.
-  { groups: [{ enemyId: 'boss', count: 6 }, { enemyId: 'fast', count: 10 }] },
+  // W17 — SKILL CHECK "Boss Rush": 4 bosses + fast escort. The payoff wave for the Laser investment.
+  { groups: [{ enemyId: 'boss', count: 4 }, { enemyId: 'fast', count: 10 }] },
 
-  // W18 — Récupération tendue : volume élevé sans Boss ni Tank. Tenir pour aborder W19–20 intact.
-  { groups: [{ enemyId: 'basic', count: 25 }, { enemyId: 'fast', count: 20 }] },
+  // W18 — Massive mixed swarm, no bulk: hold the coverage line for W19–20.
+  { groups: [{ enemyId: 'basic', count: 20 }, { enemyId: 'fast', count: 18 }] },
 
-  // W19 — "Mur d'Acier" : Tank tide massive + Boss en soutien. Regen brutal à HP ×3.7.
-  { groups: [{ enemyId: 'tank', count: 15 }, { enemyId: 'boss', count: 3 }, { enemyId: 'basic', count: 10 }] },
+  // W19 — Bulk finale prep: tank tide + boss support.
+  { groups: [{ enemyId: 'tank', count: 12 }, { enemyId: 'boss', count: 2 }, { enemyId: 'basic', count: 8 }] },
 
-  // W20 — Finale : tout à la fois. Économie bien gérée = on finit proprement.
-  //   Économie gaspillée = on finit mais avec des vies perdues.
-  { groups: [{ enemyId: 'boss', count: 5 }, { enemyId: 'tank', count: 12 }, { enemyId: 'fast', count: 20 }, { enemyId: 'basic', count: 15 }] },
+  // W20 — Finale: everything. Needs the full toolkit; a poor economy loses lives here.
+  { groups: [{ enemyId: 'boss', count: 4 }, { enemyId: 'tank', count: 10 }, { enemyId: 'fast', count: 16 }, { enemyId: 'basic', count: 12 }] },
 ];
 
 export const LEVEL_DEFS: ILevelDef[] = [
   {
+    // NOTE: ResourceService reads START_GOLD / START_LIVES from Constants.ts — those are the
+    // LIVE values. These fields are mirrored for reference only (kept in sync to avoid confusion).
     startGold: 100,
-    startLives: 20,
+    startLives: 10,
     pathWaypoints: PATH_WAYPOINTS_LEVEL_0,
     waves: WAVES_LEVEL_0,
   },

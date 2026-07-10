@@ -26,6 +26,7 @@ import type { Maybe } from 'meta/worlds';
 
 import { Events, UiEvents } from '../Types';
 import { LEVEL_DEFS } from '../Defs/LevelDefs';
+import { ResourceService } from '../Services/ResourceService';
 
 // ── Module-level UiEvent constants ──────────────────────────────────────────
 
@@ -61,7 +62,6 @@ export class GameOverScreenHud extends Component {
 
   // Track stats during gameplay
   private _enemiesKilled: number = 0;
-  private _goldEarned: number = 0;
   private _currentWave: number = 0;
   private _ended: boolean = false;
 
@@ -73,10 +73,13 @@ export class GameOverScreenHud extends Component {
 
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
+    this.uiComponent.isVisible = false;
 
     this.viewModel = new GameOverScreenViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
+
+    this.uiComponent.isVisible = true;
   }
 
   // ── Events ────────────────────────────────────────────────────────────────
@@ -85,10 +88,9 @@ export class GameOverScreenHud extends Component {
    * Track enemy kills for stats
    */
   @subscribe(Events.EnemyDied, { execution: ExecuteOn.Owner })
-  onEnemyDied(payload: Events.EnemyDiedPayload): void {
+  onEnemyDied(_payload: Events.EnemyDiedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     this._enemiesKilled++;
-    this._goldEarned += payload.reward;
   }
 
   /**
@@ -112,7 +114,7 @@ export class GameOverScreenHud extends Component {
     this._ended = true;
     this.viewModel.isVictory = payload.won;
     this.viewModel.enemiesKilled = this._enemiesKilled;
-    this.viewModel.goldEarned = this._goldEarned;
+    this.viewModel.goldEarned = ResourceService.get().totalEarned;
     this.viewModel.wavesCompleted = this._currentWave;
 
     // Show the overlay
@@ -129,7 +131,6 @@ export class GameOverScreenHud extends Component {
 
     this.viewModel.visible = false;
     this._enemiesKilled = 0;
-    this._goldEarned = 0;
     this._currentWave = 0;
     this._ended = false;
 

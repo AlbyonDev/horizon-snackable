@@ -52,6 +52,20 @@ export class FloatingTextService extends Service {
     EventService.sendLocally(Events.ActivateFloatingText, p, { eventTarget: entity });
   }
 
+  showMiss(worldX: number, worldZ: number): void {
+    if (this._pool.length === 0) return;
+    const entity = this._pool[this._poolIndex];
+    this._poolIndex = (this._poolIndex + 1) % this._pool.length;
+    const p = new Events.ActivateFloatingTextPayload();
+    p.text   = 'Miss';
+    p.worldX = worldX;
+    p.worldZ = worldZ;
+    p.colorR = 0.7;
+    p.colorG = 0.75;
+    p.colorB = 0.8;
+    EventService.sendLocally(Events.ActivateFloatingText, p, { eventTarget: entity });
+  }
+
   show(worldX: number, worldZ: number, value: number): void {
     if (this._pool.length === 0) return;
     const entity = this._pool[this._poolIndex];

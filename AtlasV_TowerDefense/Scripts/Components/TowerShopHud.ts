@@ -64,7 +64,7 @@ export class TowerShopViewModel extends UiViewModel {
 
   items: readonly TowerShopItemViewModel[] = [];
   selectedTowerId: string = '';
-  visible: boolean = true;
+  visible: boolean = false;
 }
 
 @component()
@@ -79,10 +79,13 @@ export class TowerShopHud extends Component {
 
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
+    this.uiComponent.isVisible = false;
 
     this.viewModel = new TowerShopViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
+
+    this.uiComponent.isVisible = true;
 
     this._populateTowers();
     this._updateAffordability(ResourceService.get().gold);

@@ -1,5 +1,6 @@
 tasks:
 
+
 done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
   - Grass Ground Plane -- Bloons TD style cartoon grass, UV tiling (6,4)
@@ -25,6 +26,8 @@ done:
   - Basic Enemy -- goblin warrior chibi mesh, walk anim, AnimGraph in Enemy.hstf
   - Fast/Tank/Boss Enemies -- Kobold Scout, Troll (Tank), Ogre Warchief (Boss) meshes + anims + templates
   - Troll Tank Enemy Mesh Swap -- chibi medieval troll, big head, walk anim, EnemyTank.hstf updated
+  - UI Visibility Bugs -- startup stacking + restart HUD fixed
+  - Preload Templates -- scene-placed entities destroyed on start, no runtime spawn
 
 chopping_block:
   disabled_systems: []
