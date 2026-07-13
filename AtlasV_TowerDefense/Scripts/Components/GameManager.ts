@@ -17,8 +17,6 @@ import { OnEntityStartEvent, OnWorldUpdateEvent } from 'meta/worlds';
 import type { OnWorldUpdateEventPayload, Maybe, Entity } from 'meta/worlds';
 import { NetworkingService } from 'meta/worlds';
 import { Events, GamePhase } from '../Types';
-
-import { BIOME_DEFS } from '../Defs/BiomeDefs';
 import { WaveService } from '../Services/WaveService';
 import { ResourceService } from '../Services/ResourceService';
 import { SlowService } from '../Services/SlowService';
@@ -58,16 +56,10 @@ export class GameManager extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (this._running) return;
 
-    // Pick a random biome ONCE per run (before showing overworld so background is correct)
-    const biome = BIOME_DEFS[Math.floor(Math.random() * BIOME_DEFS.length)];
-    console.log(`[GameManager] Random biome selected for this run: ${biome.name}`);
-    const bp = new Events.BiomeChangedPayload();
-    bp.biomeId = biome.id;
-    EventService.sendLocally(Events.BiomeChanged, bp);
-
-    // Transition to Overworld (level select) — biome is already set
+    // Transition to BiomeSelect screen (user picks biome before Overworld)
+    console.log('[GameManager] StartGame received, transitioning to BiomeSelect');
     const phase = new Events.GamePhaseChangedPayload();
-    phase.phase = GamePhase.Overworld;
+    phase.phase = GamePhase.BiomeSelect;
     EventService.sendLocally(Events.GamePhaseChanged, phase);
   }
 

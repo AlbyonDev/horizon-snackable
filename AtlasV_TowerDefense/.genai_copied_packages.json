@@ -1,5 +1,17 @@
 {
   "packages": {
+    "meta/DesertGateRed/0.0.2": {
+      "author": "meta",
+      "folderName": "DesertGateRed",
+      "name": "DesertGateRed",
+      "version": "0.0.2"
+    },
+    "meta/GreenFlag/0.0.2": {
+      "author": "meta",
+      "folderName": "GreenFlag",
+      "name": "GreenFlag",
+      "version": "0.0.2"
+    },
     "meta/human_jog_masculine_forward/0.0.6": {
       "author": "meta",
       "folderName": "human_jog_masculine_forward",

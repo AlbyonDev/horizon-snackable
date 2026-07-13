@@ -185,6 +185,7 @@ Scripts/
     GameOverScreenHud    — ViewModel for end screen + stats
     TitleScreenHud       — ViewModel for pre-game title screen + Play button
     OverworldHud         — ViewModel for level select screen (Overworld phase)
+    BiomeSelectHud       — ViewModel for debug biome selection screen (BiomeSelect phase)
     GroundBiomeController — Swaps ground plane material on BiomeChanged event
     CoinController       — physics-simulated coin loot with bounce, gravity, and collect animation
     WaveBannerHud        — ViewModel for wave announcement banner (WAVE X, animated)
@@ -264,17 +265,18 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 
 ## Biome System
 
-Each level randomly selects one of three biomes when starting, changing the ground material, overworld background, and path tile texture.
+Each level randomly selects one of three biomes when starting, changing the ground material, overworld background, path tile texture, and flag mesh.
 
-| Biome | Ground Material | Overworld Background | Path Texture |
-|-------|----------------|---------------------|--------------|
-| Grass (default) | `Models/Environment/Grass.material` | `sprites/overworld_background.png` | `Textures/path_tiles_cobblestone.png` |
-| Snow | `Models/Environment/Snow.material` | `sprites/overworld_background-snow.png` | `Textures/path_tiles_ice.png` |
-| Volcano | `Models/Environment/Volcano.material` | `sprites/overworld_background-volcano.png` | `Textures/path_tiles_lava.png` |
+| Biome | Ground Material | Overworld Background | Path Texture | Flag Mesh |
+|-------|----------------|---------------------|--------------|-----------|
+| Grass (default) | `Models/Environment/Grass.material` | `sprites/overworld_background.png` | `Textures/path_tiles_cobblestone.png` | `Models/GameplayObjects/GrassFlag/GrassFlag.fbx` (orc/goblin war banner) |
+| Snow | `Models/Environment/Snow.material` | `sprites/overworld_background-snow.png` | `Textures/path_tiles_ice.png` | `Models/GameplayObjects/SnowFlag/SnowFlag.fbx` (icy/frost war banner) |
+| Volcano | `Models/Environment/Volcano.material` | `sprites/overworld_background-volcano.png` | `Textures/path_tiles_lava.png` | `Models/GameplayObjects/VolcanoFlag/VolcanoFlag.fbx` (charred/fiery war banner) |
 
-- Random biome selection fires on `LevelSelected` event (in GameManager)
+- Biome selection happens via the BiomeSelect debug screen (user picks manually before entering Overworld)
 - `BiomeChanged` event broadcasts the chosen biome ID
 - `GroundBiomeController` (on the ground Plane entity) swaps the MaterialComponent at runtime
+- `OrcishFlagController` (on the OrcishFlag entity) swaps both the MeshComponent and MaterialComponent on the Visuals child to the biome-specific flag variant
 - `OverworldHud` updates its background image via data-bound ViewModel property
 - `PathTileService` subscribes to `BiomeChanged` and swaps the `pathTex` parameter on the shared `TileStraight.material` and `TileCorner.material` materials (world-space texture sampling means all spawned tiles update instantly)
 
@@ -283,11 +285,11 @@ Each level randomly selects one of three biomes when starting, changing the grou
 ## Game Phases
 
 ```
-Title Screen → Overworld (Level Select) → Build (5s) → Wave → WaveClear (0.5s) → Build → … → Victory
-                 ↑                                                                                  ↓
-    (StartGame generates                                                                       GameOver (lives = 0)
-     TOTAL_LEVELS random                                                                            ↓
-     ILevelDef instances)                                                                      Title → Overworld
+Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select) → Build (5s) → Wave → WaveClear (0.5s) → Build → … → Victory
+                                                       ↑                                                                              ↓
+                                          (StartGame generates                                                                   GameOver (lives = 0)
+                                           TOTAL_LEVELS random                                                                        ↓
+                                           ILevelDef instances)                                                                  Title → Overworld
 ```
 
 ---
@@ -297,6 +299,7 @@ Title Screen → Overworld (Level Select) → Build (5s) → Wave → WaveClear 
 | Panel | File | Phase | Status |
 |-------|------|-------|--------|
 | **Title Screen** | `UI/TitleScreen.xaml` | Pre-game | ✅ — Full-screen dark overlay with logo and "JOUER" button. Fires StartGame on tap. |
+| **Biome Select** | `UI/BiomeSelect.xaml` | BiomeSelect | ✅ — Debug scaffolding. Three buttons (Grass, Snow, Volcano). Fires BiomeChanged then transitions to Overworld. |
 | **Overworld (Level Select)** | `UI/Overworld.xaml` | Overworld | ✅ — Fantasy adventure map with detailed cartoon painted landscape background (Kingdom Rush+ style), sprite-based stone medallion combat nodes (crossed swords), sprite-based boss nodes (golden spiked skull emblem), and sprite-based rough-hewn stone paver path connectors that tile/repeat based on a configurable `segmentLength` property (default 80px). S-curve winding layout. Three node states: Open (golden glowing sprite, clickable), Beaten (default sprite, clickable), Locked (grey/chained sprite, not clickable). Level 1 starts open; beating a level marks it beaten and opens the next. Fires LevelSelected on tap. |
 | **HUD** | `UI/GameHud.xaml` | Build/Wave/WaveClear | ✅ — Gold, lives, wave counter, countdown, Abandon button (returns to Overworld), and debug "Skip Wave" button (kills all enemies, visible during Wave phase only). |
 | **Tower Shop** | `UI/TowerShop.xaml` | Build + Wave | ✅ |
@@ -326,10 +329,10 @@ Title Screen → Overworld (Level Select) → Build (5s) → Wave → WaveClear 
 | `TowerSold` | `col, row, refund` | TowerService |
 | `TowerUpgraded` | `col, row, tier, choice` | TowerService |
 | `GameOver` | `won: boolean` | GameOverScreenHud |
-| `StartGame` | — | GameManager (transitions to Overworld), LevelGeneratorService (generates N random levels) |
+| `StartGame` | — | GameManager (transitions to BiomeSelect), LevelGeneratorService (generates N random levels) |
 | `LevelSelected` | `levelIndex` | GameManager (starts the game), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
 | `LevelCompleted` | `levelIndex` | OverworldHud (marks level beaten, unlocks next) |
-| `BiomeChanged` | `biomeId` | GroundBiomeController (swaps ground material), OverworldHud (swaps background image) |
+| `BiomeChanged` | `biomeId` | GroundBiomeController (swaps ground material), OrcishFlagController (swaps flag mesh/material), OverworldHud (swaps background image) |
 | `RestartGame` | — | GameManager (transitions to Overworld), all services with state |
 | `ActivateFloatingText` | `text, worldX, worldZ, colorR, colorG, colorB` | FloatingTextController |
 

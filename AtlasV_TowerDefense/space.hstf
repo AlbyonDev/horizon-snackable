@@ -892,6 +892,51 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "e2e52343-5562-43db-82a9-4064a981acfa",
+            "name": "BiomeSelectUI",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "7812163847834177175",
+                                "targetId": "2149638574"
+                            },
+                            "isInteractable": true,
+                            "isBlocking": true,
+                            "renderOrderOffset": 5
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "BiomeSelectHud",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "12680416872510562995",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -973,6 +1018,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "d317536e-2951-4218-aa42-e4a4031f91db",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "e2e52343-5562-43db-82a9-4064a981acfa",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

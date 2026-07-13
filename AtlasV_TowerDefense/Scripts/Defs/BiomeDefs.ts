@@ -17,6 +17,8 @@ export interface IBiomeDef {
   overworldBackground: string; // overworld screen background sprite
   gameBackground: string;      // in-game background texture
   pathTexture: string;         // path tile texture (project-relative path)
+  flagMeshPath: string;        // flag mesh (project-relative .fbx path)
+  flagMaterialPath: string;    // flag material (project-relative .material path)
 }
 
 export const BIOME_DEFS: readonly IBiomeDef[] = [
@@ -27,6 +29,8 @@ export const BIOME_DEFS: readonly IBiomeDef[] = [
     overworldBackground: 'sprites/overworld_background-grass.png',
     gameBackground: 'Models/Environment/background-grass.png',
     pathTexture: 'Textures/path_tiles_cobblestone.png',
+    flagMeshPath: 'Models/GameplayObjects/GrassFlag/GrassFlag.fbx',
+    flagMaterialPath: 'Models/GameplayObjects/GrassFlag/GrassFlag.material',
   },
   {
     id: 'snow',
@@ -35,6 +39,8 @@ export const BIOME_DEFS: readonly IBiomeDef[] = [
     overworldBackground: 'sprites/overworld_background-snow.png',
     gameBackground: 'Models/Environment/background-snow.png',
     pathTexture: 'Textures/path_tiles_ice.png',
+    flagMeshPath: 'Models/GameplayObjects/SnowFlag/SnowFlag.fbx',
+    flagMaterialPath: 'Models/GameplayObjects/SnowFlag/SnowFlag.material',
   },
   {
     id: 'volcano',
@@ -43,5 +49,7 @@ export const BIOME_DEFS: readonly IBiomeDef[] = [
     overworldBackground: 'sprites/overworld_background-volcano.png',
     gameBackground: 'Models/Environment/background-volcano.png',
     pathTexture: 'Textures/path_tiles_lava.png',
+    flagMeshPath: 'Models/GameplayObjects/VolcanoFlag/VolcanoFlag.fbx',
+    flagMaterialPath: 'Models/GameplayObjects/VolcanoFlag/VolcanoFlag.material',
   },
 ];

@@ -41,11 +41,13 @@ done:
   - Wave Counter Visible on Level Start -- shows "N waves in this level" then WAVE X/N on start
   - Snow and Volcano Biome Assets -- textures + materials for both biomes
   - Biome System -- random biome per level, ground + overworld swap
+  - GrassFlag and VolcanoFlag Assets -- new folders with fbx/material/png, BiomeDefs updated
 
 chopping_block:
   disabled_systems: []
   temp_scaffolding:
     - "Next Wave debug button -- remove before shipping"
+    - "BiomeSelect debug screen -- remove before shipping"
   failed_attempts: []
 
 notes:

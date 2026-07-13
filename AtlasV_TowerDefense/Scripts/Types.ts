@@ -17,13 +17,14 @@ export enum OverworldNodeState {
 }
 
 export enum GamePhase {
-  Idle      = 0,
-  Build     = 1,
-  Wave      = 2,
-  WaveClear = 3,
-  GameOver  = 4,
-  Victory   = 5,
-  Overworld = 6,
+  Idle        = 0,
+  Build       = 1,
+  Wave        = 2,
+  WaveClear   = 3,
+  GameOver    = 4,
+  Victory     = 5,
+  Overworld   = 6,
+  BiomeSelect = 7,
 }
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -248,4 +249,7 @@ export namespace UiEvents {
   export const confirmAbandonNoTap  = new UiEvent('GameHudViewModel-onConfirmAbandonNo',    SkipWaveTapPayload);
   export const overworldLevelTap = new UiEvent('OverworldViewModel-onLevelTap',              OverworldLevelTapPayload);
   export const nextWaveTap       = new UiEvent('GameHudViewModel-onNextWaveTap',             SkipWaveTapPayload);
+
+  @serializable() export class BiomeSelectTapPayload     { readonly parameter: string = ''; }
+  export const biomeSelectTap  = new UiEvent('BiomeSelectViewModel-onBiomeTap',             BiomeSelectTapPayload);
 }
