@@ -203,6 +203,10 @@ export namespace Events {
   export class LevelCompletedPayload { levelIndex: number = 0; }
   export const LevelCompleted = new LocalEvent<LevelCompletedPayload>('EvLevelCompleted', LevelCompletedPayload);
 
+  // Biome changed (fired when a biome is randomly selected for a level)
+  export class BiomeChangedPayload { biomeId: string = 'grass'; }
+  export const BiomeChanged = new LocalEvent<BiomeChangedPayload>('EvBiomeChanged', BiomeChangedPayload);
+
   // Start game (fired by title screen)
   export class StartGamePayload {}
   export const StartGame = new LocalEvent<StartGamePayload>('EvStartGame', StartGamePayload);

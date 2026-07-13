@@ -204,7 +204,23 @@
                     "data": {
                         "class": "horizon::platform_api::TransformPlatformComponent",
                         "version": 3,
-                        "data": {}
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localRotation": {
+                                "x": -0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 1.0,
+                                "y": 1.0,
+                                "z": 1.0
+                            }
+                        }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 },
@@ -413,7 +429,7 @@
                         "class": "TowerUpgradeMenuHud",
                         "definitionAsset": {
                             "packageOrRemoteId": "26631398616455768",
-                            "ingestionId": "609740852708442460",
+                            "ingestionId": "2965256041253123432",
                             "targetId": "4237980480"
                         },
                         "data": {}
@@ -644,6 +660,18 @@
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "GroundBiomeController",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "17476017714879191340",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
                 }
             ],
             "attributes": []
@@ -683,7 +711,7 @@
                         "class": "TitleScreenHud",
                         "definitionAsset": {
                             "packageOrRemoteId": "26631398616455768",
-                            "ingestionId": "17011308130094871400",
+                            "ingestionId": "9946252611162271778",
                             "targetId": "4237980480"
                         },
                         "data": {}

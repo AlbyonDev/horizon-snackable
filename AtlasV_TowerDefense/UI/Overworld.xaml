@@ -211,7 +211,11 @@
         </Grid.Visibility>
 
         <!-- Full-screen fantasy landscape background -->
-        <Image Source="sprites/overworld_background.png" Stretch="UniformToFill"/>
+        <Border HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border.Background>
+                <ImageBrush ImageSource="{Binding backgroundImage}" Stretch="UniformToFill"/>
+            </Border.Background>
+        </Border>
 
         <!-- Semi-transparent dark overlay for readability -->
         <Border Background="#22000000"/>

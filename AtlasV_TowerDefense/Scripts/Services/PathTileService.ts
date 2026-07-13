@@ -14,7 +14,7 @@
  *
  * Coordinate mapping: col → Z axis, row → X axis (row 0 = top of screen).
  */
-import { Service, Vec3, Quaternion, NetworkMode, WorldService, TemplateAsset } from 'meta/worlds';
+import { Service, Vec3, Quaternion, NetworkMode, WorldService, TemplateAsset, Material, MaterialAsset, TextureAsset } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
 import { OnServiceReadyEvent, NetworkingService } from 'meta/worlds';
 import type { Entity } from 'meta/worlds';
@@ -23,9 +23,21 @@ import { PathService } from './PathService';
 import { LevelGeneratorService } from './LevelGeneratorService';
 import { Events } from '../Types';
 import { Assets } from '../Assets';
+import { BIOME_DEFS } from '../Defs/BiomeDefs';
 
 const LOG_TAG = '[PathTileService]';
 const TILE_Y_OFFSET = -0.01;
+
+// Pre-defined path texture assets per biome
+const PATH_TEXTURES: Record<string, TextureAsset> = {
+  grass: new TextureAsset('@Textures/path_tiles_cobblestone.png'),
+  snow: new TextureAsset('@Textures/path_tiles_ice.png'),
+  volcano: new TextureAsset('@Textures/path_tiles_lava.png'),
+};
+
+// Shared material assets for path tiles
+const TILE_STRAIGHT_MATERIAL = new MaterialAsset('@Materials/TileStraight.material');
+const TILE_CORNER_MATERIAL = new MaterialAsset('@Materials/TileCorner.material');
 
 // Direction vectors in grid space [dCol, dRow]
 // col → Z, row → X
@@ -89,10 +101,42 @@ function getStraightTile(dir: Dir): TileSelection {
 export class PathTileService extends Service {
   private _currentLevel: number = 0;
   private _tiles: Entity[] = [];
+  private _currentBiomeId: string = 'grass';
+  private _straightMat: Material | null = null;
+  private _cornerMat: Material | null = null;
 
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
     console.log(`${LOG_TAG} Service ready`);
+  }
+
+  @subscribe(Events.BiomeChanged)
+  onBiomeChanged(payload: Events.BiomeChangedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._currentBiomeId = payload.biomeId;
+    console.log(`${LOG_TAG} Biome changed to: ${payload.biomeId}`);
+    void this._applyPathTexture(payload.biomeId);
+  }
+
+  private async _applyPathTexture(biomeId: string): Promise<void> {
+    const texture = PATH_TEXTURES[biomeId] ?? PATH_TEXTURES['grass'];
+
+    try {
+      // Load shared materials if not already cached
+      if (!this._straightMat) {
+        this._straightMat = await Material.loadAsset(TILE_STRAIGHT_MATERIAL);
+      }
+      if (!this._cornerMat) {
+        this._cornerMat = await Material.loadAsset(TILE_CORNER_MATERIAL);
+      }
+
+      // Swap pathTex on both shared materials — affects all spawned tiles using them
+      this._straightMat.setTextureParam('pathTex', texture);
+      this._cornerMat.setTextureParam('pathTex', texture);
+      console.log(`${LOG_TAG} Path texture applied for biome: ${biomeId}`);
+    } catch (e) {
+      console.log(`${LOG_TAG} Failed to apply path texture for biome: ${biomeId}`);
+    }
   }
 
   @subscribe(Events.LevelSelected)

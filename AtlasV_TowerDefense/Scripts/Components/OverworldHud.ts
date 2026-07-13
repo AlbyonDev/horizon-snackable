@@ -24,6 +24,7 @@ import {
   NetworkingService,
   ExecuteOn,
   EventService,
+  TextureAsset,
   component,
   subscribe,
   property,
@@ -34,6 +35,18 @@ import {
 import type { Maybe } from 'meta/worlds';
 
 import { Events, GamePhase, OverworldNodeState, UiEvents } from '../Types';
+import { BIOME_DEFS } from '../Defs/BiomeDefs';
+
+// Pre-defined TextureAssets for each biome background (must be static string literals)
+const BG_GRASS = new TextureAsset('@sprites/overworld_background-grass.png');
+const BG_SNOW = new TextureAsset('@sprites/overworld_background-snow.png');
+const BG_VOLCANO = new TextureAsset('@sprites/overworld_background-volcano.png');
+
+const BIOME_BACKGROUNDS: Record<string, TextureAsset> = {
+  grass: BG_GRASS,
+  snow: BG_SNOW,
+  volcano: BG_VOLCANO,
+};
 
 // —— Level Node sub-ViewModel ———————————————————————————————————————————
 
@@ -101,6 +114,7 @@ export class OverworldViewModel extends UiViewModel {
   nodes: readonly OverworldPathNodeViewModel[] = [];
   connectors: readonly OverworldPathConnectorViewModel[] = [];
   canvasHeight: number = 800;
+  backgroundImage: Maybe<TextureAsset> = null;
 }
 
 // —— Component ————————————————————————————————————————————————————————————
@@ -154,6 +168,7 @@ export class OverworldHud extends Component {
     this.uiComponent.isVisible = false;
 
     this.viewModel = new OverworldViewModel();
+    this.viewModel.backgroundImage = BG_GRASS;
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
 
@@ -199,6 +214,21 @@ export class OverworldHud extends Component {
 
     // Refresh the ViewModel so sprites update
     this._refreshNodeStates();
+  }
+
+  @subscribe(Events.BiomeChanged, { execution: ExecuteOn.Owner })
+  onBiomeChanged(payload: Events.BiomeChangedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    const biome = BIOME_DEFS.find(b => b.id === payload.biomeId);
+    if (!biome) return;
+
+    console.log(`[OverworldHud] Biome changed to ${biome.name}, updating background`);
+    const bgTexture = BIOME_BACKGROUNDS[biome.id];
+    if (bgTexture) {
+      this.viewModel.backgroundImage = bgTexture;
+    }
   }
 
   @subscribe(UiEvents.overworldLevelTap, { execution: ExecuteOn.Owner })

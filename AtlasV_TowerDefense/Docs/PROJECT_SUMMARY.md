@@ -147,10 +147,11 @@ Scripts/
     LevelDefs.ts    — LEVEL_DEFS: ILevelDef[] (20 waves, 1 level, includes path waypoints); WAVES_LEVEL_0 exported but unused by runtime
     PathDefs.ts     — PATH_WAYPOINTS_LEVEL_0 exported but unused by runtime (legacy reference data)
     UpgradeDefs.ts  — Upg atoms catalog + tree() builder
+    BiomeDefs.ts    — BIOME_DEFS: IBiomeDef[] (3 biomes: grass, snow, volcano)
 
   Services/
     PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
-    PathTileService     — spawns path tiles using 5 templates (4 pre-rotated corners + 1 straight with runtime Y-rotation) and 2 shared UV-sliced materials
+    PathTileService     — spawns path tiles using 5 templates (4 pre-rotated corners + 1 straight with runtime Y-rotation) and 2 shared UV-sliced materials; swaps pathTex on BiomeChanged
     LevelGeneratorService — procedural level generation; generates TOTAL_LEVELS random ILevelDef instances on StartGame event
     TowerService        — selectedId, place on GridTapped, upgrade, sell
     EnemyService        — live enemy registry (worldX, worldZ, pathT, hp, speedFactor)
@@ -184,6 +185,7 @@ Scripts/
     GameOverScreenHud    — ViewModel for end screen + stats
     TitleScreenHud       — ViewModel for pre-game title screen + Play button
     OverworldHud         — ViewModel for level select screen (Overworld phase)
+    GroundBiomeController — Swaps ground plane material on BiomeChanged event
     CoinController       — physics-simulated coin loot with bounce, gravity, and collect animation
     WaveBannerHud        — ViewModel for wave announcement banner (WAVE X, animated)
 ```
@@ -260,6 +262,24 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 
 ---
 
+## Biome System
+
+Each level randomly selects one of three biomes when starting, changing the ground material, overworld background, and path tile texture.
+
+| Biome | Ground Material | Overworld Background | Path Texture |
+|-------|----------------|---------------------|--------------|
+| Grass (default) | `Models/Environment/Grass.material` | `sprites/overworld_background.png` | `Textures/path_tiles_cobblestone.png` |
+| Snow | `Models/Environment/Snow.material` | `sprites/overworld_background-snow.png` | `Textures/path_tiles_ice.png` |
+| Volcano | `Models/Environment/Volcano.material` | `sprites/overworld_background-volcano.png` | `Textures/path_tiles_lava.png` |
+
+- Random biome selection fires on `LevelSelected` event (in GameManager)
+- `BiomeChanged` event broadcasts the chosen biome ID
+- `GroundBiomeController` (on the ground Plane entity) swaps the MaterialComponent at runtime
+- `OverworldHud` updates its background image via data-bound ViewModel property
+- `PathTileService` subscribes to `BiomeChanged` and swaps the `pathTex` parameter on the shared `TileStraight.material` and `TileCorner.material` materials (world-space texture sampling means all spawned tiles update instantly)
+
+---
+
 ## Game Phases
 
 ```
@@ -309,6 +329,7 @@ Title Screen → Overworld (Level Select) → Build (5s) → Wave → WaveClear 
 | `StartGame` | — | GameManager (transitions to Overworld), LevelGeneratorService (generates N random levels) |
 | `LevelSelected` | `levelIndex` | GameManager (starts the game), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
 | `LevelCompleted` | `levelIndex` | OverworldHud (marks level beaten, unlocks next) |
+| `BiomeChanged` | `biomeId` | GroundBiomeController (swaps ground material), OverworldHud (swaps background image) |
 | `RestartGame` | — | GameManager (transitions to Overworld), all services with state |
 | `ActivateFloatingText` | `text, worldX, worldZ, colorR, colorG, colorB` | FloatingTextController |
 
