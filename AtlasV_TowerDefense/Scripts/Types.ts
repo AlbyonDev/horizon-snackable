@@ -259,4 +259,7 @@ export namespace UiEvents {
 
   @serializable() export class BiomeSelectTapPayload     { readonly parameter: string = ''; }
   export const biomeSelectTap  = new UiEvent('BiomeSelectViewModel-onBiomeTap',             BiomeSelectTapPayload);
+
+  @serializable() export class OverworldRelicIconTapPayload { readonly parameter: string = ''; }
+  export const overworldRelicIconTap = new UiEvent('OverworldViewModel-onRelicIconTap',     OverworldRelicIconTapPayload);
 }

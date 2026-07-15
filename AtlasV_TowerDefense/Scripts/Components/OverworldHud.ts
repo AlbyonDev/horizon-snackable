@@ -36,6 +36,8 @@ import type { Maybe } from 'meta/worlds';
 
 import { Events, GamePhase, OverworldNodeState, UiEvents } from '../Types';
 import { BIOME_DEFS } from '../Defs/BiomeDefs';
+import { RelicService } from '../Services/RelicService';
+import { RELIC_DEFS } from '../Defs/RelicDefs';
 
 // Pre-defined TextureAssets for each biome background (must be static string literals)
 const BG_GRASS = new TextureAsset('@sprites/overworld_background-grass.png');
@@ -46,6 +48,23 @@ const BIOME_BACKGROUNDS: Record<string, TextureAsset> = {
   grass: BG_GRASS,
   snow: BG_SNOW,
   volcano: BG_VOLCANO,
+};
+
+// Pre-defined TextureAssets for relic icons (must be static string literals)
+const RELIC_ICON_GOLD = new TextureAsset('@sprites/relic_gold.png');
+const RELIC_ICON_DAMAGE = new TextureAsset('@sprites/relic_damage.png');
+const RELIC_ICON_SPEED = new TextureAsset('@sprites/relic_speed.png');
+const RELIC_ICON_RANGE = new TextureAsset('@sprites/relic_range.png');
+const RELIC_ICON_LIVES = new TextureAsset('@sprites/relic_fortification.png');
+const RELIC_ICON_SLOW = new TextureAsset('@sprites/relic_permafrost.png');
+
+const RELIC_ICONS: Record<string, TextureAsset> = {
+  gold: RELIC_ICON_GOLD,
+  damage: RELIC_ICON_DAMAGE,
+  speed: RELIC_ICON_SPEED,
+  range: RELIC_ICON_RANGE,
+  lives: RELIC_ICON_LIVES,
+  slow: RELIC_ICON_SLOW,
 };
 
 // —— Level Node sub-ViewModel ———————————————————————————————————————————
@@ -104,10 +123,23 @@ export class OverworldPathConnectorViewModel extends UiViewModel {
 
 // —— Main ViewModel ———————————————————————————————————————————————————————
 
+// —— Relic Icon sub-ViewModel ——————————————————————————————————————
+
+@uiViewModel()
+export class OverworldRelicIconViewModel extends UiViewModel {
+  /** Relic id used as CommandParameter */
+  relicId: string = '';
+  /** The relic icon texture */
+  icon: Maybe<TextureAsset> = null;
+}
+
+// —— Main ViewModel ———————————————————————————————————————————————
+
 @uiViewModel()
 export class OverworldViewModel extends UiViewModel {
   override readonly events = {
     levelTap: UiEvents.overworldLevelTap,
+    relicIconTap: UiEvents.overworldRelicIconTap,
   };
 
   visible: boolean = false;
@@ -115,6 +147,16 @@ export class OverworldViewModel extends UiViewModel {
   connectors: readonly OverworldPathConnectorViewModel[] = [];
   canvasHeight: number = 800;
   backgroundImage: Maybe<TextureAsset> = null;
+
+  // Relic icons
+  relicIcons: readonly OverworldRelicIconViewModel[] = [];
+  relicIconsVisible: boolean = false;
+
+  // Relic popup
+  relicPopupVisible: boolean = false;
+  relicPopupName: string = '';
+  relicPopupDescription: string = '';
+  relicPopupMargin: string = '300,24,0,0';
 }
 
 // —— Component ————————————————————————————————————————————————————————————
@@ -175,6 +217,7 @@ export class OverworldHud extends Component {
     // Initialize level states: level 0 is open, all others locked
     this._initLevelStates();
     this._populateLevels();
+    this._refreshRelicIcons();
   }
 
   // —— Events ———————————————————————————————————————————————————————————————
@@ -190,6 +233,7 @@ export class OverworldHud extends Component {
     // Refresh node states when returning to overworld
     if (shouldShow) {
       this._refreshNodeStates();
+      this._refreshRelicIcons();
     }
   }
 
@@ -236,6 +280,9 @@ export class OverworldHud extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     if (!this.viewModel.visible) return;
+
+    // Dismiss relic popup on any level tap
+    this.viewModel.relicPopupVisible = false;
 
     const levelIndex = parseInt(payload.parameter, 10);
     if (isNaN(levelIndex)) return;
@@ -398,5 +445,83 @@ export class OverworldHud extends Component {
       this.viewModel.connectors = connectors;
       this.viewModel.canvasHeight = canvasHeight;
     }
+  }
+
+  // —— Relic Icons ——————————————————————————————————————————————————
+
+  @subscribe(UiEvents.overworldRelicIconTap, { execution: ExecuteOn.Owner })
+  onRelicIconTap(payload: UiEvents.OverworldRelicIconTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    const relicId = payload.parameter;
+
+    // Dismiss on explicit dismiss or tap on popup card
+    if (relicId === '__dismiss__') {
+      this.viewModel.relicPopupVisible = false;
+      console.log(`[OverworldHud] Relic popup dismissed`);
+      return;
+    }
+
+    // If popup is already showing for this relic, dismiss it (toggle)
+    if (this.viewModel.relicPopupVisible) {
+      const currentDef = RELIC_DEFS.find(r => r.name === this.viewModel!.relicPopupName);
+      if (currentDef && currentDef.id === relicId) {
+        this.viewModel.relicPopupVisible = false;
+        console.log(`[OverworldHud] Relic popup dismissed (toggle)`);
+        return;
+      }
+    }
+
+    // Show popup for the tapped relic
+    const def = RELIC_DEFS.find(r => r.id === relicId);
+    if (!def) return;
+
+    // Calculate vertical offset based on which relic icon was tapped
+    // Icons are 250px tall with 6px vertical margin (Margin="0,6") in a StackPanel starting at top margin 24
+    // The StackPanel itself has Margin="32,24,0,0"
+    const relicIndex = this.viewModel.relicIcons.findIndex(icon => icon.relicId === relicId);
+    const iconHeight = 250;
+    const iconVerticalMargin = 12; // 6px top + 6px bottom from Margin="0,6"
+    const stackPanelTopMargin = 24;
+    const popupTopOffset = stackPanelTopMargin + relicIndex * (iconHeight + iconVerticalMargin);
+    // Position popup to the right of icons: left offset = 32 (stack margin) + 250 (icon width) + 16 (gap)
+    const popupLeftOffset = 300;
+    this.viewModel.relicPopupMargin = `${popupLeftOffset},${popupTopOffset},0,0`;
+
+    this.viewModel.relicPopupName = def.name;
+    this.viewModel.relicPopupDescription = def.description;
+    this.viewModel.relicPopupVisible = true;
+    console.log(`[OverworldHud] Relic popup shown: ${def.name} at index ${relicIndex}, topOffset=${popupTopOffset}`);
+  }
+
+  /** Refresh the relic icon list from RelicService active relics. */
+  private _refreshRelicIcons(): void {
+    if (!this.viewModel) return;
+
+    const activeIds = RelicService.get().getActiveRelicIds();
+    if (activeIds.length === 0) {
+      this.viewModel.relicIcons = [];
+      this.viewModel.relicIconsVisible = false;
+      this.viewModel.relicPopupVisible = false;
+      return;
+    }
+
+    const icons: OverworldRelicIconViewModel[] = [];
+    for (const relicId of activeIds) {
+      const def = RELIC_DEFS.find(r => r.id === relicId);
+      if (!def) continue;
+      const iconTexture = RELIC_ICONS[relicId];
+      if (!iconTexture) continue;
+      const vm = new OverworldRelicIconViewModel();
+      vm.relicId = def.id;
+      vm.icon = iconTexture;
+      icons.push(vm);
+    }
+
+    this.viewModel.relicIcons = icons;
+    this.viewModel.relicIconsVisible = icons.length > 0;
+    this.viewModel.relicPopupVisible = false;
+    console.log(`[OverworldHud] Refreshed relic icons: ${icons.length} active`);
   }
 }

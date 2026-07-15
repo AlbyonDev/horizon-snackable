@@ -9,6 +9,8 @@
         <!-- Fantasy adventure map colors -->
         <SolidColorBrush x:Key="GoldBrush" Color="#FFf5c518"/>
         <SolidColorBrush x:Key="TextLightBrush" Color="#FFF5E6C8"/>
+        <SolidColorBrush x:Key="ParchmentBrush" Color="#FFF5E6C8"/>
+        <SolidColorBrush x:Key="DarkStoneBrush" Color="#FF2A1A0A"/>
 
         <!-- Canvas panel for absolute positioning -->
         <ItemsPanelTemplate x:Key="CanvasPanel">
@@ -38,6 +40,30 @@
                    Width="{Binding segmentWidth}" Height="{Binding segmentHeight}"
                    VerticalAlignment="Center"/>
         </DataTemplate>
+
+        <!-- Relic icon template -->
+        <DataTemplate x:Key="RelicIconTemplate">
+            <Border Width="250" Height="250" CornerRadius="8" Margin="0,6"
+                    BorderBrush="{StaticResource GoldBrush}" BorderThickness="2"
+                    Background="#88000000">
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                        <b:InvokeCommandAction Command="{Binding DataContext.events.relicIconTap, RelativeSource={RelativeSource AncestorType=Page}}"
+                                               CommandParameter="{Binding relicId}"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+                <Border CornerRadius="6" Margin="4">
+                    <Border.Background>
+                        <ImageBrush ImageSource="{Binding icon}" Stretch="Uniform"/>
+                    </Border.Background>
+                </Border>
+            </Border>
+        </DataTemplate>
+
+        <!-- Vertical panel for relic icons column -->
+        <ItemsPanelTemplate x:Key="VerticalRelicPanel">
+            <StackPanel Orientation="Vertical"/>
+        </ItemsPanelTemplate>
 
         <!-- Path connector template using repeating tiles -->
         <DataTemplate x:Key="ConnectorTemplate">
@@ -281,5 +307,55 @@
                 </Canvas>
             </ScrollViewer>
         </Grid>
+
+        <!-- Relic icons column (top-left corner) -->
+        <StackPanel Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Margin="32,24,0,0">
+            <StackPanel.Visibility>
+                <Binding Path="relicIconsVisible">
+                    <Binding.Converter>
+                        <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                </Binding>
+            </StackPanel.Visibility>
+            <ItemsControl ItemsSource="{Binding relicIcons}"
+                          ItemsPanel="{StaticResource VerticalRelicPanel}"
+                          ItemTemplate="{StaticResource RelicIconTemplate}"/>
+        </StackPanel>
+
+        <!-- Relic popup tooltip overlay -->
+        <Border HorizontalAlignment="Left" VerticalAlignment="Top"
+                Margin="{Binding relicPopupMargin}" Padding="40,32" CornerRadius="20"
+                MaxWidth="640"
+                BorderBrush="{StaticResource GoldBrush}" BorderThickness="4">
+            <Border.Visibility>
+                <Binding Path="relicPopupVisible">
+                    <Binding.Converter>
+                        <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                </Binding>
+            </Border.Visibility>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#F52A1A0A" Offset="0"/>
+                    <GradientStop Color="#F5382010" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <!-- Dismiss popup on tap anywhere on the card -->
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="MouseLeftButtonUp">
+                    <b:InvokeCommandAction Command="{Binding events.relicIconTap}"
+                                           CommandParameter="__dismiss__"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
+            <StackPanel>
+                <TextBlock Text="{Binding relicPopupName}" FontSize="72" FontWeight="Bold"
+                           FontFamily="Almendra" Foreground="{StaticResource GoldBrush}"
+                           Margin="0,0,0,16"/>
+                <TextBlock Text="{Binding relicPopupDescription}" FontSize="56"
+                           FontFamily="Almendra" Foreground="{StaticResource ParchmentBrush}"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>
