@@ -57,11 +57,12 @@ export class GroundBiomeController extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.meshComp) return;
 
-    // Show ground only during gameplay phases
+    // Show ground only during gameplay phases (including Victory so it stays visible behind relic choice UI)
     const isGameplay =
       payload.phase === GamePhase.Build ||
       payload.phase === GamePhase.Wave ||
-      payload.phase === GamePhase.WaveClear;
+      payload.phase === GamePhase.WaveClear ||
+      payload.phase === GamePhase.Victory;
 
     this.meshComp.isVisibleSelf = isGameplay;
     console.log(`[GroundBiomeController] Mesh visible: ${isGameplay} (phase: ${payload.phase})`);

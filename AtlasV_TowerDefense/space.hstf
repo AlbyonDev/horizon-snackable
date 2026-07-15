@@ -937,6 +937,51 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "7bc07eab-29e9-4097-8ce8-859ab71cf101",
+            "name": "RelicChoiceUI",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "4489421753707734048",
+                                "targetId": "2149638574"
+                            },
+                            "isInteractable": true,
+                            "isBlocking": true,
+                            "renderOrderOffset": 15
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "RelicChoiceHud",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "7264522408091585588",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -1023,6 +1068,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "e2e52343-5562-43db-82a9-4064a981acfa",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "7bc07eab-29e9-4097-8ce8-859ab71cf101",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

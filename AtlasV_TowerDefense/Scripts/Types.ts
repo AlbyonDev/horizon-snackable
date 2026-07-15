@@ -228,6 +228,13 @@ export namespace Events {
   export class FtueHintPayload {}
   export const FtueHint = new LocalEvent<FtueHintPayload>('EvFtueHint', FtueHintPayload);
 
+  // Relic choice flow
+  export class ShowRelicChoicePayload {}
+  export const ShowRelicChoice = new LocalEvent<ShowRelicChoicePayload>('EvShowRelicChoice', ShowRelicChoicePayload);
+
+  export class RelicChosenPayload { relicId: string = ''; }
+  export const RelicChosen = new LocalEvent<RelicChosenPayload>('EvRelicChosen', RelicChosenPayload);
+
 }
 
 // ─── UI Events ────────────────────────────────────────────────────────────────

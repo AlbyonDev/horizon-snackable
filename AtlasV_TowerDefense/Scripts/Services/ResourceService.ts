@@ -14,6 +14,7 @@ import { OnServiceReadyEvent } from 'meta/worlds';
 import { Events } from '../Types';
 import { START_GOLD, START_LIVES } from '../Constants';
 import { LevelGeneratorService } from './LevelGeneratorService';
+import { RelicService } from './RelicService';
 
 @service()
 export class ResourceService extends Service {
@@ -63,8 +64,9 @@ export class ResourceService extends Service {
   }
 
   reset(): void {
-    this._gold = this._startGold;
-    this._lives = this._startLives;
+    const relics = RelicService.get();
+    this._gold = Math.floor(this._startGold * relics.getGoldMultiplier());
+    this._lives = this._startLives + relics.getBonusLives();
     this._notify();
   }
 

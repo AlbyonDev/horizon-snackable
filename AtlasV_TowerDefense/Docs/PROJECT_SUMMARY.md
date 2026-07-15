@@ -127,7 +127,7 @@ One resolution pipeline — a `reduce` over registered modifier closures:
 
 | Service | Pipeline | Current modifiers |
 |---------|----------|-------------------|
-| `HitService` | `IHitContext → IHitContext` | `SplashSystem` (AoE target expansion), `CritService` (crit damage × multiplier) |
+| `HitService` | `IHitContext → IHitContext` | `SplashSystem` (AoE target expansion), `CritService` (crit damage × multiplier), `RelicService` (damage × relic multiplier, slow duration × relic multiplier) |
 
 Adding a new mechanic (chain, pierce, burn…) = one new `@service()` that calls `HitService.get().register(modifier)` in `onReady()`, then one import line in `GameManager`.
 
@@ -148,6 +148,7 @@ Scripts/
     PathDefs.ts     — PATH_WAYPOINTS_LEVEL_0 exported but unused by runtime (legacy reference data)
     UpgradeDefs.ts  — Upg atoms catalog + tree() builder
     BiomeDefs.ts    — BIOME_DEFS: IBiomeDef[] (3 biomes: grass, snow, volcano)
+    RelicDefs.ts    — RELIC_DEFS: IRelicDef[] (6 relics: gold, damage, speed, range, lives, slow)
 
   Services/
     PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
@@ -169,6 +170,7 @@ Scripts/
     CameraShakeService  — shakes camera when an enemy reaches the end (life lost feedback)
     VfxService          — hit flash, impact/death particles, pooled particle physics
     CoinService         — pre-spawned coin pool (75 entities), physics loot coins on kill
+    RelicService        — relic activation/deactivation, HitService damage modifier, exposes multipliers for TowerService and ResourceService
 
   Components/
     GameManager         — onStart prewarm, onUpdate tick, game start/end/restart
@@ -182,7 +184,8 @@ Scripts/
     GameHudController    — ViewModel for gold/lives/wave HUD
     TowerShopHud         — ViewModel for tower purchase bar
     TowerUpgradeMenuHud  — ViewModel for upgrade/sell panel
-    GameOverScreenHud    — ViewModel for end screen + stats
+    GameOverScreenHud    — ViewModel for end screen + stats (defeat: Overworld/Play Again; victory: Choose Relic)
+    RelicChoiceHud       — ViewModel for relic choice panel (2 random cards, activates chosen relic)
     TitleScreenHud       — ViewModel for pre-game title screen + Play button
     OverworldHud         — ViewModel for level select screen (Overworld phase)
     BiomeSelectHud       — ViewModel for debug biome selection screen (BiomeSelect phase)
@@ -263,6 +266,28 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 
 ---
 
+## Relic System
+
+Relics are persistent modifiers that buff gameplay systems when activated. After winning a level the player is presented with a Relic Choice screen offering 2 random relics they don't already have; tapping one activates it and returns to the Overworld. Relics persist across levels within a run and reset when a new game starts (`RelicService.reset()` on `StartGame` event).
+
+| ID | Name | Modifier | Effect |
+|----|------|----------|--------|
+| `gold` | Gold Relic | `goldMultiplier: 2.0` | Doubles starting gold on level reset |
+| `damage` | Damage Relic | `damageMultiplier: 1.2` | All tower damage ×1.2 (via HitService pipeline) |
+| `speed` | Speed Relic | `fireRateMultiplier: 1.2` | All towers fire 1.2× faster (via TowerService) |
+| `range` | Range Relic | `rangeMultiplier: 1.15` | All towers have 1.15× range (via TowerService) |
+| `lives` | Fortification Relic | `bonusLives: 5` | +5 starting lives on level reset |
+| `slow` | Permafrost Relic | `slowDurationMultiplier: 1.3` | Slow effects last 1.3× longer (via HitService pipeline) |
+
+### Integration points
+
+- **HitService pipeline**: `RelicService` registers a modifier in `onReady()` that applies `damageMultiplier` and `slowDurationMultiplier`.
+- **TowerService.getEffectiveStats()**: applies `fireRateMultiplier` and `rangeMultiplier` after upgrade tree walk.
+- **ResourceService.reset()**: applies `goldMultiplier` (floor) and `bonusLives` to starting values.
+- **GameManager._startGame()**: force-instantiates `RelicService` to ensure hit modifier registers before combat.
+
+---
+
 ## Biome System
 
 Each level randomly selects one of three biomes when starting, changing the ground material, overworld background, path tile texture, and flag mesh.
@@ -287,9 +312,15 @@ Each level randomly selects one of three biomes when starting, changing the grou
 ```
 Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select) → Build (5s) → Wave → WaveClear (0.5s) → Build → … → Victory
                                                        ↑                                                                              ↓
-                                          (StartGame generates                                                                   GameOver (lives = 0)
+                                          (StartGame generates                                                                   GameOver (won=true)
                                            TOTAL_LEVELS random                                                                        ↓
-                                           ILevelDef instances)                                                                  Title → Overworld
+                                           ILevelDef instances)                                                                  Relic Choice (pick 1 of 2)
+                                                                                                                                      ↓
+                                                                                                                                 → Overworld
+                                                                                                                                 
+                                                                                                                              GameOver (lives = 0)
+                                                                                                                                      ↓
+                                                                                                                                 Title → Overworld
 ```
 
 ---
@@ -304,7 +335,8 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | **HUD** | `UI/GameHud.xaml` | Build/Wave/WaveClear | ✅ — Gold, lives, wave counter, countdown, Abandon button (returns to Overworld), and debug "Skip Wave" button (kills all enemies, visible during Wave phase only). |
 | **Tower Shop** | `UI/TowerShop.xaml` | Build + Wave | ✅ |
 | **Tower Upgrade Menu** | `UI/TowerUpgradeMenu.xaml` | Tower selected | ✅ — 4-column layout: [Info Panel] [Upgrade1] [Upgrade2] [Sell]. Info panel shows tower name + upgrade history (up to 3 lines). Upgrade buttons hidden when tower is at max tier (3). |
-| **Game Over / Victory** | `UI/GameOverScreen.xaml` | End | ✅ |
+| **Game Over / Victory** | `UI/GameOverScreen.xaml` | End | ✅ — On defeat: shows Overworld + Play Again buttons. On victory: shows "Choose Relic" button that opens the Relic Choice panel. |
+| **Relic Choice** | `UI/RelicChoice.xaml` | Victory (after GameOver) | ✅ — Two random relic cards with unique painted icons (from relics not already active). Tapping one activates it and transitions to Overworld. |
 | **Wave Banner** | UI/WaveBanner.xaml | Wave start | ✅ |
 
 ---
@@ -329,7 +361,9 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | `TowerSold` | `col, row, refund` | TowerService |
 | `TowerUpgraded` | `col, row, tier, choice` | TowerService |
 | `GameOver` | `won: boolean` | GameOverScreenHud |
-| `StartGame` | — | GameManager (transitions to BiomeSelect), LevelGeneratorService (generates N random levels) |
+| `ShowRelicChoice` | — | RelicChoiceHud (shows 2 random relic cards) |
+| `RelicChosen` | `relicId` | (reserved for future use) |
+| `StartGame` | — | GameManager (transitions to BiomeSelect), LevelGeneratorService (generates N random levels), RelicService (resets active relics) |
 | `LevelSelected` | `levelIndex` | GameManager (starts the game), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
 | `LevelCompleted` | `levelIndex` | OverworldHud (marks level beaten, unlocks next) |
 | `BiomeChanged` | `biomeId` | GroundBiomeController (swaps ground material), OrcishFlagController (swaps flag mesh/material), OverworldHud (swaps background image) |

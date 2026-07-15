@@ -21,6 +21,7 @@ import { TOWER_DEFS } from '../Defs/TowerDefs';
 import { PathService } from './PathService';
 import { ResourceService } from './ResourceService';
 import { FloatingTextService } from './FloatingTextService';
+import { RelicService } from './RelicService';
 
 // ── Record ────────────────────────────────────────────────────────────────────
 
@@ -78,13 +79,26 @@ export class TowerService extends Service {
     const base: ITowerStats = def.stats;
 
     let node: IUpgradeNode | undefined = undefined;
-    return rec.choices.reduce<ITowerStats>((stats, choice) => {
+    const upgraded = rec.choices.reduce<ITowerStats>((stats, choice) => {
       node = node === undefined
         ? def.upgrades[choice]
         : node.next?.[choice];
       if (!node) return stats;
       return node.apply(stats);
     }, base);
+
+    // Apply relic multipliers (fire rate & range)
+    const relics = RelicService.get();
+    const fireRateMult = relics.getFireRateMultiplier();
+    const rangeMult = relics.getRangeMultiplier();
+    if (fireRateMult !== 1 || rangeMult !== 1) {
+      return {
+        ...upgraded,
+        fireRate: upgraded.fireRate * fireRateMult,
+        range: upgraded.range * rangeMult,
+      };
+    }
+    return upgraded;
   }
 
   // Returns the two upgrade options available for the next tier, or undefined if maxed.

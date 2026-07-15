@@ -33,6 +33,7 @@ import { GROUND_COLOR, hexColor } from '../Constants';
 import { CameraShakeService } from '../Services/CameraShakeService';
 import { PathTileService } from '../Services/PathTileService';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
+import { RelicService } from '../Services/RelicService';
 
 @component()
 export class GameManager extends Component {
@@ -106,6 +107,7 @@ export class GameManager extends Component {
 
   private _startGame(): void {
     this._running = true;
+    RelicService.get();
     CritService.get();
     SplashSystem.get();
     VfxService.get();

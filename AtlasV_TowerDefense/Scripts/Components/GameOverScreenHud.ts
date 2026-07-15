@@ -42,6 +42,13 @@ export class OverworldTapPayload {
 
 const overworldTapEvent = new UiEvent('GameOverScreenViewModel-onOverworldTap', OverworldTapPayload);
 
+@serializable()
+export class ChooseRelicTapPayload {
+  readonly parameter: string = '';
+}
+
+const chooseRelicTapEvent = new UiEvent('GameOverScreenViewModel-onChooseRelicTap', ChooseRelicTapPayload);
+
 // -- ViewModel --
 
 @uiViewModel()
@@ -49,10 +56,13 @@ export class GameOverScreenViewModel extends UiViewModel {
   override readonly events = {
     restartTap: restartTapEvent,
     overworldTap: overworldTapEvent,
+    chooseRelicTap: chooseRelicTapEvent,
   };
 
   visible: boolean = false;
   isVictory: boolean = false;
+  showDefeatButtons: boolean = false;
+  showChooseRelic: boolean = false;
   enemiesKilled: number = 0;
   goldEarned: number = 0;
   wavesCompleted: number = 0;
@@ -129,6 +139,10 @@ export class GameOverScreenHud extends Component {
     this.viewModel.wavesCompleted = this._currentWave;
     this.viewModel.totalWaves = this._totalWaves;
 
+    // On victory: show "Choose Relic" button; on defeat: show Overworld/Play Again
+    this.viewModel.showChooseRelic = payload.won;
+    this.viewModel.showDefeatButtons = !payload.won;
+
     // Show the overlay - enable native panel first, then set ViewModel
     if (this.uiComponent) {
       this.uiComponent.isVisible = true;
@@ -163,6 +177,21 @@ export class GameOverScreenHud extends Component {
 
     // Fire RestartGame which transitions to the Overworld phase
     EventService.sendLocally(Events.RestartGame, new Events.RestartGamePayload());
+  }
+
+  /**
+   * When Choose Relic is tapped (victory only), hide this screen and show relic choice
+   */
+  @subscribe(chooseRelicTapEvent, { execution: ExecuteOn.Owner })
+  onChooseRelicTap(_payload: ChooseRelicTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    console.log('[GameOverScreenHud] Choose Relic tapped');
+    this._resetAndHide();
+
+    // Show the relic choice screen
+    EventService.sendLocally(Events.ShowRelicChoice, new Events.ShowRelicChoicePayload());
   }
 
   private _resetAndHide(): void {

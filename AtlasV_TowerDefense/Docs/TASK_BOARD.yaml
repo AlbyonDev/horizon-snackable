@@ -42,6 +42,7 @@ done:
   - Snow and Volcano Biome Assets -- textures + materials for both biomes
   - Biome System -- random biome per level, ground + overworld swap
   - GrassFlag and VolcanoFlag Assets -- new folders with fbx/material/png, BiomeDefs updated
+  - Relic System -- 6 relics + choice UI after victory, persists per run
 
 chopping_block:
   disabled_systems: []
