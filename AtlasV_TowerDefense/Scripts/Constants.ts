@@ -34,7 +34,7 @@ export const TOTAL_LEVELS = 5; // number of procedurally generated levels per ru
 export const START_GOLD  = 120;
 export const START_LIVES = 10;
 export const WAVE_BONUS_GOLD = 15; // flat gold awarded at end of each wave
-export const INCOME_RATE = 0.15;   // 10% of gold on hand → bonus at wave end
+export const INCOME_RATE = 0.15;   // 15% of gold on hand → bonus at wave end
 
 // ─── Enemy scaling ────────────────────────────────────────────────────────────
 

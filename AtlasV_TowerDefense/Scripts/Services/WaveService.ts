@@ -137,13 +137,16 @@ export class WaveService extends Service {
     if (this._spawnedCount < this._totalInWave) return; // still spawning
     if (EnemyService.get().count > 0) return;
 
+    const goldBeforeBonus = ResourceService.get().gold;
     ResourceService.get().earn(WAVE_BONUS_GOLD);
-    const incomeBonus = Math.floor(ResourceService.get().gold * INCOME_RATE);
+    const incomeBonus = Math.floor(goldBeforeBonus * INCOME_RATE);
     if (incomeBonus > 0) ResourceService.get().earn(incomeBonus);
+    const totalBonus = WAVE_BONUS_GOLD + incomeBonus;
     this._waveIndex++;
 
     const doneP = new Events.WaveCompletedPayload();
     doneP.waveIndex = this._waveIndex - 1;
+    doneP.bonusGold = totalBonus;
     EventService.sendLocally(Events.WaveCompleted, doneP);
 
     this._phase = GamePhase.WaveClear;

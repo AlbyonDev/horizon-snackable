@@ -101,7 +101,7 @@ export namespace Events {
   export class WaveStartedPayload { waveIndex: number = 0; totalWaves: number = 0; }
   export const WaveStarted = new LocalEvent<WaveStartedPayload>('EvWaveStarted', WaveStartedPayload);
 
-  export class WaveCompletedPayload { waveIndex: number = 0; }
+  export class WaveCompletedPayload { waveIndex: number = 0; bonusGold: number = 0; }
   export const WaveCompleted = new LocalEvent<WaveCompletedPayload>('EvWaveCompleted', WaveCompletedPayload);
 
   export class CountdownTickPayload { secondsLeft: number = 0; }

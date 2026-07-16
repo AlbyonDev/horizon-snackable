@@ -1,5 +1,6 @@
 tasks:
 
+
 done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
   - Grass Ground Plane -- Bloons TD style cartoon grass, UV tiling (6,4)
@@ -43,6 +44,7 @@ done:
   - Biome System -- random biome per level, ground + overworld swap
   - GrassFlag and VolcanoFlag Assets -- new folders with fbx/material/png, BiomeDefs updated
   - Relic System -- 6 relics + choice UI after victory, persists per run
+  - Fix Gold Calculation -- earned-gold stat now includes wave bonuses and sell refunds
 
 chopping_block:
   disabled_systems: []

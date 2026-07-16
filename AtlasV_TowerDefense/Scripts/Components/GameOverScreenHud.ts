@@ -114,6 +114,24 @@ export class GameOverScreenHud extends Component {
   }
 
   /**
+   * Track wave completion bonus gold for stats
+   */
+  @subscribe(Events.WaveCompleted, { execution: ExecuteOn.Owner })
+  onWaveCompleted(payload: Events.WaveCompletedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._goldEarned += payload.bonusGold;
+  }
+
+  /**
+   * Track tower sell refunds for stats
+   */
+  @subscribe(Events.TowerSold, { execution: ExecuteOn.Owner })
+  onTowerSold(payload: Events.TowerSoldPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._goldEarned += payload.refund;
+  }
+
+  /**
    * Track current wave number and total waves for stats
    */
   @subscribe(Events.WaveStarted, { execution: ExecuteOn.Owner })
