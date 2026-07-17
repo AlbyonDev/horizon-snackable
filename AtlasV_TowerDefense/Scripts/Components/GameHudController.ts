@@ -95,7 +95,7 @@ export class GameHudController extends Component {
     const levelDef = LevelGeneratorService.get().getLevelDef(p.levelIndex);
     this.viewModel.waveNumber = 0;
     this.viewModel.totalWaves = levelDef.waves.length;
-    this.viewModel.waveText = `${levelDef.waves.length} waves in this level`;
+    this.viewModel.waveText = `Beat ${levelDef.waves.length} waves`;
   }
 
   @subscribe(Events.ShowTitleScreen, { execution: ExecuteOn.Owner })

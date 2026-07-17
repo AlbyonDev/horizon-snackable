@@ -153,19 +153,71 @@
                 </Grid>
             </Border>
 
-            <!-- CENTER SECTION: Wave with outlined text -->
-            <Grid Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,100,0,0">
-                <TextBlock Text="{Binding Path=waveText}" 
-                           FontSize="80" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"/>
-                <TextBlock Text="{Binding Path=waveText}" 
-                           FontSize="80" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"/>
-                <TextBlock Text="{Binding Path=waveText}" 
-                           FontSize="80" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"/>
-                <TextBlock Text="{Binding Path=waveText}" 
-                           FontSize="80" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"/>
-                <TextBlock Text="{Binding Path=waveText}" 
-                           FontSize="80" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
-            </Grid>
+            <!-- CENTER SECTION: Wave text in styled panel -->
+            <Border Grid.Column="1" 
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="#CC1a1a2e"
+                    BorderBrush="{StaticResource GoldBrush}"
+                    BorderThickness="6"
+                    CornerRadius="20"
+                    Padding="30,15,40,15"
+                    MinHeight="150">
+                <Grid>
+                    <!-- Corner Ornaments - Top Left -->
+                    <Ellipse Width="22" Height="22" 
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                             Margin="-20,-8,0,0"/>
+                    <Ellipse Width="14" Height="14" 
+                             Fill="{StaticResource GoldDarkBrush}"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                             Margin="-16,-4,0,0"/>
+                    <!-- Corner Ornaments - Top Right -->
+                    <Ellipse Width="22" Height="22" 
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Margin="0,-8,-20,0"/>
+                    <Ellipse Width="14" Height="14" 
+                             Fill="{StaticResource GoldDarkBrush}"
+                             HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Margin="0,-4,-16,0"/>
+                    <!-- Corner Ornaments - Bottom Left -->
+                    <Ellipse Width="22" Height="22" 
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                             Margin="-20,0,0,-8"/>
+                    <Ellipse Width="14" Height="14" 
+                             Fill="{StaticResource GoldDarkBrush}"
+                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                             Margin="-16,0,0,-4"/>
+                    <!-- Corner Ornaments - Bottom Right -->
+                    <Ellipse Width="22" Height="22" 
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Margin="0,0,-20,-8"/>
+                    <Ellipse Width="14" Height="14" 
+                             Fill="{StaticResource GoldDarkBrush}"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Margin="0,0,-16,-4"/>
+
+                    <!-- Wave text with outline -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Grid VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Path=waveText}" FontFamily="Anton"
+                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"/>
+                            <TextBlock Text="{Binding Path=waveText}" FontFamily="Anton"
+                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"/>
+                            <TextBlock Text="{Binding Path=waveText}" FontFamily="Anton"
+                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"/>
+                            <TextBlock Text="{Binding Path=waveText}" FontFamily="Anton"
+                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding Path=waveText}" FontFamily="Anton"
+                                       FontSize="120" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
             <!-- RIGHT SECTION: Gold Counter Panel -->
             <Border Grid.Column="2" 

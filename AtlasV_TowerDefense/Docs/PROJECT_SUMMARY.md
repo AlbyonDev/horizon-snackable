@@ -155,7 +155,7 @@ Scripts/
   Services/
     PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
     PathTileService     — spawns path tiles using 5 templates (4 pre-rotated corners + 1 straight with runtime Y-rotation) and 2 shared UV-sliced materials; swaps pathTex on BiomeChanged
-    LevelGeneratorService — procedural level generation; generates TOTAL_LEVELS random ILevelDef instances on StartGame event
+    LevelGeneratorService — procedural level generation; generates TOTAL_LEVELS random ILevelDef instances on StartGame event; tracks runCount (resets on StartGame, increments on advanceRun when all levels beaten); tracks runCount (resets to 1 on StartGame, increments via advanceRun() when all levels beaten)
     TowerService        — selectedId, place on GridTapped, upgrade, sell
     EnemyService        — live enemy registry (worldX, worldZ, pathT, hp, speedFactor)
     ResourceService     — gold, lives, earn(), spend(), loseLife(), reset()
@@ -173,7 +173,7 @@ Scripts/
     VfxService          — hit flash, impact/death particles, pooled particle physics
     CoinService         — pre-spawned coin pool (75 entities), physics loot coins on kill
     RelicService        — relic activation/deactivation, HitService damage modifier, exposes multipliers for TowerService and ResourceService
-    BossModifierService — activates on boss-node levels; applies a single randomly-assigned modifier (one of 6: HP x1.2, Speed x1.5, Damage x0.9, 1 Life, No Income, Tower Destroyed /5 Waves); modifier is determined at level generation and shown on the overworld map before entering the level
+    BossModifierService — activates on boss-node levels; applies a single modifier (one of 6: HP x1.2, Speed x1.5, Damage x0.9, 1 Life, No Income, Tower Destroyed /5 Waves); uses a shuffle-bag so all 6 modifiers appear exactly once before any repeats; bag resets on new game and new run
     TowerDestroyAnimService — animated tower destruction for boss modifier; spawns a red meteor projectile from above, flies it to the tower, shakes the tower on impact, scales it to 0, then removes it from the grid
 
   Components/
@@ -267,6 +267,7 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 | Start gold | 120g (`START_GOLD`) |
 | Start lives | 10 (`START_LIVES`) |
 | Total levels per run | 5 (`TOTAL_LEVELS` in Constants.ts) |
+| Run counter | Starts at 1, increments when all levels beaten (boss included), resets on new game (`StartGame`). Tracked in `LevelGeneratorService.runCount`. |
 | Wave bonus | +15g flat (`WAVE_BONUS_GOLD`) + 15% of gold on hand (`INCOME_RATE`) at wave end |
 | Sell refund | 60% of total invested (`SELL_RATIO = 0.6`) |
 
@@ -323,7 +324,9 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
                                            ILevelDef instances)                                                                  Relic Choice (pick 1 of 2)
                                                                                                                                       ↓
                                                                                                                                  → Overworld
-                                                                                                                                 
+                                                                                                                                   (if all levels beaten:
+                                                                                                                                    advanceRun → regenerate
+                                                                                                                                    levels, runCount++)
                                                                                                                               GameOver (lives = 0)
                                                                                                                                       ↓
                                                                                                                                  Title → Overworld
@@ -378,8 +381,10 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | `StartGame` | — | GameManager (transitions to BiomeSelect), LevelGeneratorService (generates N random levels), RelicService (resets active relics) |
 | `LevelSelected` | `levelIndex, nodeType` | GameManager (starts the game or enters minigame), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
 | `LevelCompleted` | `levelIndex` | OverworldHud (marks level beaten, unlocks next) |
+| `RunAdvanced` | `runCount` | OverworldHud (fired when all levels are beaten and a new run begins) |
 | `BiomeChanged` | `biomeId` | GroundBiomeController (swaps ground material), OrcishFlagController (swaps flag mesh/material), OverworldHud (swaps background image) |
 | `MinigameCompleted` | `levelIndex, result` | GameManager (fires LevelCompleted, transitions to Overworld) |
+| `RunAdvanced` | `runCount` | Fired by OverworldHud when all levels beaten; signals new overworld generation |
 | `RestartGame` | — | GameManager (transitions to Overworld), all services with state |
 | `ActivateFloatingText` | `text, worldX, worldZ, colorR, colorG, colorB` | FloatingTextController |
 

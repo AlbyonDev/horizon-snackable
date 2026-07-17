@@ -258,6 +258,10 @@ export namespace Events {
   export class MinigameCompletedPayload { levelIndex: number = 0; result: string = ''; }
   export const MinigameCompleted = new LocalEvent<MinigameCompletedPayload>('EvMinigameCompleted', MinigameCompletedPayload);
 
+  // Run advanced (new overworld generated)
+  export class RunAdvancedPayload { runCount: number = 1; }
+  export const RunAdvanced = new LocalEvent<RunAdvancedPayload>('EvRunAdvanced', RunAdvancedPayload);
+
 }
 
 // --- UI Events ---------------------------------------------------------------

@@ -153,6 +153,7 @@ export class OverworldViewModel extends UiViewModel {
   };
 
   visible: boolean = false;
+  runLabel: string = 'RUN 1';
   nodes: readonly OverworldPathNodeViewModel[] = [];
   connectors: readonly OverworldPathConnectorViewModel[] = [];
   canvasHeight: number = 800;
@@ -228,6 +229,7 @@ export class OverworldHud extends Component {
     this._initLevelStates();
     this._populateLevels();
     this._refreshRelicIcons();
+    this._updateRunLabel();
   }
 
   // —— Events ———————————————————————————————————————————————————————————————
@@ -242,8 +244,13 @@ export class OverworldHud extends Component {
 
     // Refresh node states when returning to overworld
     if (shouldShow) {
+      // Check if all levels are beaten → advance to next run
+      if (this._allLevelsBeaten()) {
+        this._advanceRun();
+      }
       this._refreshNodeStates();
       this._refreshRelicIcons();
+      this._updateRunLabel();
     }
   }
 
@@ -347,6 +354,32 @@ export class OverworldHud extends Component {
     for (let i = 0; i < this.levelCount; i++) {
       this.levelStates.push(i === 0 ? OverworldNodeState.Open : OverworldNodeState.Locked);
     }
+  }
+
+  /** Check if all levels in the current run have been beaten */
+  private _allLevelsBeaten(): boolean {
+    if (this.levelStates.length === 0) return false;
+    return this.levelStates.every(state => state === OverworldNodeState.Beaten);
+  }
+
+  /** Advance to a new run: regenerate levels, reset states, increment counter */
+  private _advanceRun(): void {
+    console.log('[OverworldHud] All levels beaten! Advancing to next run');
+    LevelGeneratorService.get().advanceRun();
+    RelicService.get().reset();
+    this._initLevelStates();
+    this._populateLevels();
+
+    // Fire RunAdvanced event so other systems can react
+    const p = new Events.RunAdvancedPayload();
+    p.runCount = LevelGeneratorService.get().runCount;
+    EventService.sendLocally(Events.RunAdvanced, p);
+  }
+
+  /** Update the run label in the ViewModel */
+  private _updateRunLabel(): void {
+    if (!this.viewModel) return;
+    this.viewModel.runLabel = `RUN ${LevelGeneratorService.get().runCount}`;
   }
 
   /** Convert enum to string for XAML binding */

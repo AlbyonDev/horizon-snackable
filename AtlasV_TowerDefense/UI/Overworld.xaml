@@ -365,39 +365,75 @@
         <!-- Layout -->
         <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Grid.RowDefinitions>
-                <RowDefinition Height="0.10*"/>
+                <RowDefinition Height="0.04*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="0.03*"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="0.06*"/>
+                <RowDefinition Height="0.03*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="0.04*"/>
             </Grid.RowDefinitions>
 
-            <!-- Title: SELECT LEVEL with ornate text -->
-            <Grid Grid.Row="1" HorizontalAlignment="Center">
-                <!-- Title outline shadow -->
-                <TextBlock Text="SELECT LEVEL" FontSize="96" FontWeight="Bold"
-                           FontFamily="Almendra" Foreground="#FF2A1A0A" Margin="-3,0,0,0"
-                           HorizontalAlignment="Center"/>
-                <TextBlock Text="SELECT LEVEL" FontSize="96" FontWeight="Bold"
-                           FontFamily="Almendra" Foreground="#FF2A1A0A" Margin="3,0,0,0"
-                           HorizontalAlignment="Center"/>
-                <TextBlock Text="SELECT LEVEL" FontSize="96" FontWeight="Bold"
-                           FontFamily="Almendra" Foreground="#FF2A1A0A" Margin="0,-3,0,0"
-                           HorizontalAlignment="Center"/>
-                <TextBlock Text="SELECT LEVEL" FontSize="96" FontWeight="Bold"
-                           FontFamily="Almendra" Foreground="#FF2A1A0A" Margin="0,3,0,0"
-                           HorizontalAlignment="Center"/>
-                <TextBlock Text="SELECT LEVEL" FontSize="96" FontWeight="Bold"
-                           FontFamily="Almendra" HorizontalAlignment="Center">
-                    <TextBlock.Foreground>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#FFFFD700" Offset="0"/>
-                            <GradientStop Color="#FFE8A800" Offset="0.5"/>
-                            <GradientStop Color="#FFCC8800" Offset="1"/>
-                        </LinearGradientBrush>
-                    </TextBlock.Foreground>
-                </TextBlock>
-            </Grid>
+            <!-- RUN header bar (GameHud style: dark panel, gold border, corner ornaments) -->
+            <Border Grid.Row="1" HorizontalAlignment="Center"
+                    Background="#CC1a1a2e"
+                    BorderBrush="{StaticResource GoldBrush}"
+                    BorderThickness="6"
+                    CornerRadius="20"
+                    Padding="60,16,60,16">
+                <Grid>
+                    <!-- Corner Ornaments - Top Left -->
+                    <Ellipse Width="22" Height="22"
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                             Margin="-20,-8,0,0"/>
+                    <Ellipse Width="14" Height="14"
+                             Fill="#FFc9a000"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                             Margin="-16,-4,0,0"/>
+                    <!-- Corner Ornaments - Top Right -->
+                    <Ellipse Width="22" Height="22"
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Margin="0,-8,-20,0"/>
+                    <Ellipse Width="14" Height="14"
+                             Fill="#FFc9a000"
+                             HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Margin="0,-4,-16,0"/>
+                    <!-- Corner Ornaments - Bottom Left -->
+                    <Ellipse Width="22" Height="22"
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                             Margin="-20,0,0,-8"/>
+                    <Ellipse Width="14" Height="14"
+                             Fill="#FFc9a000"
+                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                             Margin="-16,0,0,-4"/>
+                    <!-- Corner Ornaments - Bottom Right -->
+                    <Ellipse Width="22" Height="22"
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Margin="0,0,-20,-8"/>
+                    <Ellipse Width="14" Height="14"
+                             Fill="#FFc9a000"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Margin="0,0,-16,-4"/>
+
+                    <!-- RUN 1 text with outline (Anton bold, gold, matching GameHud) -->
+                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Margin="4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                    </Grid>
+                </Grid>
+            </Border>
 
             <!-- Winding path scroll area -->
             <ScrollViewer Grid.Row="3"
@@ -422,6 +458,67 @@
                                   Canvas.ZIndex="1"/>
                 </Canvas>
             </ScrollViewer>
+
+            <!-- SELECT LEVEL footer panel (matches RUN header style) -->
+            <Border Grid.Row="5" HorizontalAlignment="Center"
+                    Background="#CC1a1a2e"
+                    BorderBrush="{StaticResource GoldBrush}"
+                    BorderThickness="6"
+                    CornerRadius="20"
+                    Padding="60,16,60,16">
+                <Grid>
+                    <!-- Corner Ornaments - Top Left -->
+                    <Ellipse Width="22" Height="22"
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                             Margin="-20,-8,0,0"/>
+                    <Ellipse Width="14" Height="14"
+                             Fill="#FFc9a000"
+                             HorizontalAlignment="Left" VerticalAlignment="Top"
+                             Margin="-16,-4,0,0"/>
+                    <!-- Corner Ornaments - Top Right -->
+                    <Ellipse Width="22" Height="22"
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Margin="0,-8,-20,0"/>
+                    <Ellipse Width="14" Height="14"
+                             Fill="#FFc9a000"
+                             HorizontalAlignment="Right" VerticalAlignment="Top"
+                             Margin="0,-4,-16,0"/>
+                    <!-- Corner Ornaments - Bottom Left -->
+                    <Ellipse Width="22" Height="22"
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                             Margin="-20,0,0,-8"/>
+                    <Ellipse Width="14" Height="14"
+                             Fill="#FFc9a000"
+                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                             Margin="-16,0,0,-4"/>
+                    <!-- Corner Ornaments - Bottom Right -->
+                    <Ellipse Width="22" Height="22"
+                             Fill="{StaticResource GoldBrush}"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Margin="0,0,-20,-8"/>
+                    <Ellipse Width="14" Height="14"
+                             Fill="#FFc9a000"
+                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                             Margin="0,0,-16,-4"/>
+
+                    <!-- SELECT LEVEL text with outline (Anton bold, gold, matching RUN header) -->
+                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Margin="4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                    </Grid>
+                </Grid>
+            </Border>
         </Grid>
 
         <!-- Relic icons column (top-left corner) -->

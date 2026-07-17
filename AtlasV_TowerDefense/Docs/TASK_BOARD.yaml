@@ -1,5 +1,6 @@
 tasks:
 
+
 done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
   - Grass Ground Plane -- Bloons TD style cartoon grass, UV tiling (6,4)
@@ -38,7 +39,7 @@ done:
   - OrcishFlag at Path Start -- repositions to first waypoint on LevelSelected
   - Level Node States -- open/beaten/locked sprites + progression logic
   - Overworld Node Combat Inclination -- matched tilt to open/locked variants
-  - Wave Counter Visible on Level Start -- shows "N waves in this level" then WAVE X/N on start
+  - Wave Counter Visible on Level Start -- "Beat X waves" centered in gold-bordered box
   - Snow and Volcano Biome Assets -- textures + materials for both biomes
   - Biome System -- random biome per level, ground + overworld swap
   - GrassFlag and VolcanoFlag Assets -- new folders with fbx/material/png, BiomeDefs updated
@@ -49,8 +50,11 @@ done:
   - Card Shuffle Minigame -- shell game with gold bonus/malus/neutral, full UI + phase
   - Debug Buttons -- renamed Skip to Kill, added Finish (complete level) button
   - Beaten Levels Not Reclickable -- only Open nodes clickable now
-  - Boss Level Modifiers -- 6 rules: HP/speed/damage/lives/income/tower destruction
+  - Boss Level Modifiers -- shuffle-bag, no repeats until all 6 used
   - Boss Warning UI -- single random modifier per boss, overworld label, large badge
+  - Overworld RUN 1 Header -- gold-framed header matching GameHud style
+  - Run Progression System -- beat boss → new overworld, RUN X increments, relics reset
+  - Overworld SELECT LEVEL Footer -- bottom box, same style as RUN 1 header
 
 chopping_block:
   disabled_systems: []

@@ -37,12 +37,69 @@ const DIFFICULTY_TIERS: Array<{ basic: number; fast: number; tank: number; boss:
 export class LevelGeneratorService extends Service {
   private _levels: ILevelDef[] = [];
   private _generated: boolean = false;
+  private _runCount: number = 1;
+
+  // Shuffle-bag for boss modifiers: guarantees all 6 appear before any repeats
+  private _modifierBag: BossModifier[] = [];
+  private _modifierBagIndex: number = 0;
 
   get isGenerated(): boolean { return this._generated; }
+  get runCount(): number { return this._runCount; }
 
   @subscribe(Events.StartGame)
   onStartGame(_p: Events.StartGamePayload): void {
+    this._runCount = 1;
+    this._resetModifierBag();
     this.generate(TOTAL_LEVELS);
+    console.log(`[LevelGeneratorService] New game started, run count reset to 1`);
+  }
+
+  /** Advance to the next run: increment counter and regenerate levels. */
+  advanceRun(): void {
+    this._runCount++;
+    this._resetModifierBag();
+    this.generate(TOTAL_LEVELS);
+    console.log(`[LevelGeneratorService] Advanced to run ${this._runCount}`);
+  }
+
+  // ─── Shuffle-bag for boss modifiers ─────────────────────────────────────────
+
+  /** Reset and reshuffle the modifier bag (called on new game / new run). */
+  private _resetModifierBag(): void {
+    this._modifierBag = [];
+    this._modifierBagIndex = 0;
+    console.log(`[LevelGeneratorService] Boss modifier shuffle-bag reset`);
+  }
+
+  /** Draw next modifier from the shuffle-bag. Reshuffles when exhausted. */
+  private _nextBossModifier(): BossModifier {
+    if (this._modifierBagIndex >= this._modifierBag.length) {
+      this._shuffleNewBag();
+    }
+    const modifier = this._modifierBag[this._modifierBagIndex];
+    this._modifierBagIndex++;
+    return modifier;
+  }
+
+  /** Fill the bag with all 6 modifiers and Fisher-Yates shuffle. */
+  private _shuffleNewBag(): void {
+    this._modifierBag = [
+      BossModifier.HpUp,
+      BossModifier.SpeedUp,
+      BossModifier.DmgDown,
+      BossModifier.OneLife,
+      BossModifier.NoIncome,
+      BossModifier.TowerDestroy,
+    ];
+    // Fisher-Yates shuffle
+    for (let i = this._modifierBag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = this._modifierBag[i];
+      this._modifierBag[i] = this._modifierBag[j];
+      this._modifierBag[j] = tmp;
+    }
+    this._modifierBagIndex = 0;
+    console.log(`[LevelGeneratorService] Shuffled new modifier bag: [${this._modifierBag.map(m => BossModifier[m]).join(', ')}]`);
   }
 
   /** Generate N random levels. Called automatically on StartGame. */
@@ -78,10 +135,10 @@ export class LevelGeneratorService extends Service {
     const pathWaypoints = this._generatePath();
     const isBoss = levelIndex === totalLevels - 1;
     const bossModifier = isBoss
-      ? Math.floor(Math.random() * 6) as BossModifier
+      ? this._nextBossModifier()
       : undefined;
     if (isBoss) {
-      console.log(`[LevelGeneratorService] Boss level ${levelIndex} assigned modifier: ${BossModifier[bossModifier!]}`);
+      console.log(`[LevelGeneratorService] Boss level ${levelIndex} assigned modifier: ${BossModifier[bossModifier!]} (bag ${this._modifierBagIndex}/${this._modifierBag.length})`);
     }
     return {
       startGold: START_GOLD,
