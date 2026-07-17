@@ -198,6 +198,7 @@ Scripts/
     WaveBannerHud        — ViewModel for wave announcement banner (WAVE X, animated)
     BossWarningHudController — ViewModel for boss level warning banner + active modifiers strip
     MinigameHud          — ViewModel for card shuffle minigame (shell game: Reveal→FlipDown→Shuffle→Pick→Result state machine)
+    LevelSaveComponent   — Persists level beaten state to PlayerVariablesService (key "td_level_sav"); restores on load via ProgressRestored event
 ```
 
 ---
@@ -350,6 +351,7 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | **Wave Banner** | UI/WaveBanner.xaml | Wave start | ✅ |
 | **Boss Warning** | UI/BossWarning.xaml | Boss level (Build phase) | ✅ — Dramatic "BOSS LEVEL" banner with skull icon and fiery gold text, auto-dismisses after 3s. Persistent modifier strip below HUD shows active boss modifiers (HP, SPD, DMG multipliers, income disabled, lives override, tower destruction). Hides on level end/restart. |
 | **Minigame** | UI/Minigame.xaml | Minigame | ✅ — Card shuffle (shell game). Three cards (Gold Bonus +50, Gold Malus -30 next level, Neutral) shown face up, flipped, shuffled with animated position swaps, player picks one. Medieval fantasy card style with gold accents. Gold malus deducted at next combat level start via ResourceService. |
+| **Save Indicator** | UI/SaveIndicator.xaml | On LevelCompleted | ✅ — Small "Saving..." pill in bottom-left corner. Fades in on level save, stays 2s, fades out. Non-interactive overlay. |
 
 ---
 
@@ -377,9 +379,10 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | `RelicChosen` | `relicId` | (reserved for future use) |
 | `StartGame` | — | GameManager (transitions to BiomeSelect), LevelGeneratorService (generates N random levels), RelicService (resets active relics) |
 | `LevelSelected` | `levelIndex, nodeType` | GameManager (starts the game or enters minigame), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
-| `LevelCompleted` | `levelIndex` | OverworldHud (marks level beaten, unlocks next) |
+| `LevelCompleted` | `levelIndex` | OverworldHud (marks level beaten, unlocks next), LevelSaveComponent (persists to PlayerVariablesService) |
 | `BiomeChanged` | `biomeId` | GroundBiomeController (swaps ground material), OrcishFlagController (swaps flag mesh/material), OverworldHud (swaps background image) |
 | `MinigameCompleted` | `levelIndex, result` | GameManager (fires LevelCompleted, transitions to Overworld) |
+| `ProgressRestored` | `beatenLevels` | OverworldHud (restores beaten/open/locked states from saved data) |
 | `RestartGame` | — | GameManager (transitions to Overworld), all services with state |
 | `ActivateFloatingText` | `text, worldX, worldZ, colorR, colorG, colorB` | FloatingTextController |
 

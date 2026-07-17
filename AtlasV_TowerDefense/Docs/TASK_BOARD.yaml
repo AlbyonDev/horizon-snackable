@@ -51,6 +51,8 @@ done:
   - Beaten Levels Not Reclickable -- only Open nodes clickable now
   - Boss Level Modifiers -- 6 rules: HP/speed/damage/lives/income/tower destruction
   - Boss Warning UI -- single random modifier per boss, overworld label, large badge
+  - Level Progress Save System -- persists beaten levels via td_level_sav
+  - Save Indicator UI -- "Saving..." pill fades in bottom-left for 2s on save
 
 chopping_block:
   disabled_systems: []

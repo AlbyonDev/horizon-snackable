@@ -1089,6 +1089,48 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "25cefedb-4815-4722-810e-53a922549b46",
+            "name": "SaveIndicatorHud",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "4174424964356173188",
+                                "targetId": "2149638574"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "SaveIndicatorHudController",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "1810077058245685356",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -1190,6 +1232,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "ccf03be3-e8b4-495d-a97c-350b80b4ca48",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "25cefedb-4815-4722-810e-53a922549b46",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]
