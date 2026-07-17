@@ -147,10 +147,14 @@
 
                       <!-- Card content -->
                       <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <TextBlock Text="{Binding Path=icon}"
-                                   FontSize="80"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,0,0,16"/>
+                        <Border Width="100" Height="100"
+                                HorizontalAlignment="Center"
+                                Margin="0,0,0,16"
+                                CornerRadius="8">
+                          <Border.Background>
+                            <ImageBrush ImageSource="{Binding Path=iconImage}" Stretch="Uniform"/>
+                          </Border.Background>
+                        </Border>
                         <TextBlock Text="{Binding Path=label}"
                                    FontSize="44" FontWeight="Bold"
                                    Foreground="#f5c518"

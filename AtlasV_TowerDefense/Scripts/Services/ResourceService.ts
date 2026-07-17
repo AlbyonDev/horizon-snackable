@@ -24,6 +24,8 @@ export class ResourceService extends Service {
   private _startLives: number = START_LIVES;
   private _goldMalus: number = 0;
   private _goldBonus: number = 0;
+  private _livesBonus: number = 0;
+  private _livesMalus: number = 0;
 
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
@@ -60,6 +62,18 @@ export class ResourceService extends Service {
     console.log(`[ResourceService] Gold bonus set: +${this._goldBonus} on next level`);
   }
 
+  /** Apply a lives bonus that will be added at the start of the next level. */
+  applyLivesBonus(amount: number): void {
+    this._livesBonus += amount;
+    console.log(`[ResourceService] Lives bonus set: +${this._livesBonus} on next level`);
+  }
+
+  /** Apply a lives malus that will be deducted at the start of the next level. */
+  applyLivesMalus(amount: number): void {
+    this._livesMalus += amount;
+    console.log(`[ResourceService] Lives malus set: -${this._livesMalus} on next level`);
+  }
+
   loseLife(): void {
     this._lives = Math.max(0, this._lives - 1);
     this._notify();
@@ -94,6 +108,20 @@ export class ResourceService extends Service {
       console.log(`[ResourceService] Applying gold bonus: +${this._goldBonus}`);
       this._gold += this._goldBonus;
       this._goldBonus = 0;
+    }
+
+    // Apply lives bonus from minigame (if any)
+    if (this._livesBonus > 0) {
+      console.log(`[ResourceService] Applying lives bonus: +${this._livesBonus}`);
+      this._lives += this._livesBonus;
+      this._livesBonus = 0;
+    }
+
+    // Apply lives malus from minigame (if any)
+    if (this._livesMalus > 0) {
+      console.log(`[ResourceService] Applying lives malus: -${this._livesMalus}`);
+      this._lives = Math.max(1, this._lives - this._livesMalus);
+      this._livesMalus = 0;
     }
 
     this._notify();

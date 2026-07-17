@@ -17,6 +17,7 @@ import {
   ExecuteOn,
   EventService,
   CustomUiComponent,
+  TextureAsset,
   component,
   subscribe,
   uiViewModel,
@@ -38,11 +39,18 @@ const REVEAL_OTHERS_DELAY = 0.6;   // seconds before revealing remaining cards
 const RESULT_DURATION = 2.5;       // seconds to show result (after all cards revealed)
 const GOLD_BONUS = 50;
 const GOLD_MALUS = 30;
+const LIVES_BONUS = 2;
+const LIVES_MALUS = 2;
 
 // Card types
-const CARD_BONUS = 'bonus';
-const CARD_MALUS = 'malus';
+const CARD_GOLD_BONUS = 'gold_bonus';
+const CARD_GOLD_MALUS = 'gold_malus';
+const CARD_HEART_BONUS = 'heart_bonus';
+const CARD_HEART_MALUS = 'heart_malus';
 const CARD_NEUTRAL = 'neutral';
+
+// Full pool of card types (each minigame picks 3 randomly from this)
+const CARD_POOL: string[] = [CARD_GOLD_BONUS, CARD_GOLD_MALUS, CARD_HEART_BONUS, CARD_HEART_MALUS, CARD_NEUTRAL];
 
 // Card positions (portrait 1080 wide, cards ~208px each, centered)
 const CARD_Y = 700;
@@ -91,6 +99,7 @@ export class MinigameCardViewModel extends UiViewModel {
   cardIndex: string = '0';         // CommandParameter for tap
   label: string = '';
   icon: string = '';               // money bag, skull, dash
+  iconImage: Maybe<TextureAsset> = null;  // TextureAsset for card icon image
   /** Horizontal scale for 3D flip effect (1=full, 0=edge-on). */
   cardScaleX: number = 1;
   /** Vertical scale for subtle depth pop during flip (1=normal, ~1.05=popped). */
@@ -124,7 +133,7 @@ export class MinigameHud extends Component {
   private levelIndex: number = 0;
 
   // Card data (logical order: which card type is at which slot)
-  private cardTypes: string[] = [CARD_BONUS, CARD_MALUS, CARD_NEUTRAL];
+  private cardTypes: string[] = [CARD_NEUTRAL, CARD_NEUTRAL, CARD_NEUTRAL];
 
   // Persistent card ViewModel references (mutated in place to avoid flicker)
   private cardViewModels: MinigameCardViewModel[] = [];
@@ -326,6 +335,7 @@ export class MinigameHud extends Component {
     card.faceDown = !showFaceUp;
     card.label = showFaceUp ? this._labelForType(this.cardTypes[cardIndex]) : '?';
     card.icon = showFaceUp ? this._iconForType(this.cardTypes[cardIndex]) : '';
+    card.iconImage = showFaceUp ? this._iconImageForType(this.cardTypes[cardIndex]) : null;
   }
 
   // --- State transitions ---
@@ -334,9 +344,15 @@ export class MinigameHud extends Component {
     if (!this.viewModel) return;
     console.log('[MinigameHud] Starting minigame');
 
-    // Shuffle card types randomly
-    this.cardTypes = [CARD_BONUS, CARD_MALUS, CARD_NEUTRAL];
-    this._shuffleArray(this.cardTypes);
+    // Pick 3 distinct card types from the pool (no duplicates)
+    // Validation: re-draw if no bonus card (gold_bonus or heart_bonus) is present
+    let drawn: string[];
+    do {
+      const poolCopy = [...CARD_POOL];
+      this._shuffleArray(poolCopy);
+      drawn = poolCopy.slice(0, 3);
+    } while (!drawn.some(c => c === CARD_GOLD_BONUS || c === CARD_HEART_BONUS));
+    this.cardTypes = drawn;
 
     // Reset positions
     this.cardPosX = [...CARD_POSITIONS];
@@ -460,15 +476,25 @@ export class MinigameHud extends Component {
     // Apply effect
     let feedbackText = '';
     switch (this.chosenResult) {
-      case CARD_BONUS:
+      case CARD_GOLD_BONUS:
         ResourceService.get().applyBonus(GOLD_BONUS);
         feedbackText = `+${GOLD_BONUS} Gold next level`;
-        console.log(`[MinigameHud] Bonus: +${GOLD_BONUS} gold next level`);
+        console.log(`[MinigameHud] Gold Bonus: +${GOLD_BONUS} gold next level`);
         break;
-      case CARD_MALUS:
+      case CARD_GOLD_MALUS:
         ResourceService.get().applyMalus(GOLD_MALUS);
         feedbackText = `-${GOLD_MALUS} Gold next level`;
-        console.log(`[MinigameHud] Malus: -${GOLD_MALUS} gold next level`);
+        console.log(`[MinigameHud] Gold Malus: -${GOLD_MALUS} gold next level`);
+        break;
+      case CARD_HEART_BONUS:
+        ResourceService.get().applyLivesBonus(LIVES_BONUS);
+        feedbackText = `+${LIVES_BONUS} Hearts next level`;
+        console.log(`[MinigameHud] Heart Bonus: +${LIVES_BONUS} lives next level`);
+        break;
+      case CARD_HEART_MALUS:
+        ResourceService.get().applyLivesMalus(LIVES_MALUS);
+        feedbackText = `-${LIVES_MALUS} Hearts next level`;
+        console.log(`[MinigameHud] Heart Malus: -${LIVES_MALUS} lives next level`);
         break;
       case CARD_NEUTRAL:
       default:
@@ -532,6 +558,7 @@ export class MinigameHud extends Component {
       card.cardIndex = `${i}`;
       card.label = faceUp ? this._labelForType(this.cardTypes[i]) : '?';
       card.icon = faceUp ? this._iconForType(this.cardTypes[i]) : '';
+      card.iconImage = faceUp ? this._iconImageForType(this.cardTypes[i]) : null;
       card.cardScaleX = 1;
       card.cardScaleY = 1;
       this.cardViewModels.push(card);
@@ -551,8 +578,10 @@ export class MinigameHud extends Component {
 
   private _labelForType(type: string): string {
     switch (type) {
-      case CARD_BONUS: return '+50 Gold';
-      case CARD_MALUS: return '-30 Gold';
+      case CARD_GOLD_BONUS: return '+50 Gold';
+      case CARD_GOLD_MALUS: return '-30 Gold';
+      case CARD_HEART_BONUS: return '+2 Hearts';
+      case CARD_HEART_MALUS: return '-2 Hearts';
       case CARD_NEUTRAL: return 'Nothing';
       default: return '?';
     }
@@ -560,10 +589,23 @@ export class MinigameHud extends Component {
 
   private _iconForType(type: string): string {
     switch (type) {
-      case CARD_BONUS: return '\ud83d\udcb0';
-      case CARD_MALUS: return '\ud83d\udc80';
+      case CARD_GOLD_BONUS: return '\ud83d\udcb0';
+      case CARD_GOLD_MALUS: return '\ud83d\udc80';
+      case CARD_HEART_BONUS: return '\u2764\ufe0f';
+      case CARD_HEART_MALUS: return '\ud83d\udc94';
       case CARD_NEUTRAL: return '\u2014';
       default: return '?';
+    }
+  }
+
+  private _iconImageForType(type: string): TextureAsset | null {
+    switch (type) {
+      case CARD_GOLD_BONUS: return new TextureAsset('@sprites/minigame_icon_gold_bonus.png');
+      case CARD_GOLD_MALUS: return new TextureAsset('@sprites/minigame_icon_gold_malus.png');
+      case CARD_HEART_BONUS: return new TextureAsset('@sprites/minigame_icon_heart_bonus.png');
+      case CARD_HEART_MALUS: return new TextureAsset('@sprites/minigame_icon_heart_malus.png');
+      case CARD_NEUTRAL: return new TextureAsset('@sprites/minigame_icon_neutral.png');
+      default: return null;
     }
   }
 
