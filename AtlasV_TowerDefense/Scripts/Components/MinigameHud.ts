@@ -119,6 +119,7 @@ export class MinigameViewModel extends UiViewModel {
   feedbackText: string = '';
   feedbackVisible: boolean = false;
   titleText: string = 'Memorize the cards!';
+  titleVisible: boolean = true;
 }
 
 // --- Component ---
@@ -371,6 +372,7 @@ export class MinigameHud extends Component {
     this.viewModel.visible = true;
     this.viewModel.feedbackVisible = false;
     this.viewModel.titleText = 'Memorize the cards!';
+    this.viewModel.titleVisible = true;
     if (this.uiComponent) this.uiComponent.isVisible = true;
 
     this.state = MinigameState.Reveal;
@@ -381,6 +383,7 @@ export class MinigameHud extends Component {
     if (!this.viewModel) return;
     console.log('[MinigameHud] Flipping cards down (animated)');
     this.viewModel.titleText = '';
+    this.viewModel.titleVisible = false;
 
     // Start flip animation for all 3 cards simultaneously (face up -> face down)
     for (let i = 0; i < 3; i++) {
@@ -394,6 +397,7 @@ export class MinigameHud extends Component {
   private _enterShuffle(): void {
     console.log('[MinigameHud] Starting shuffle');
     this.viewModel!.titleText = 'Watch closely...';
+    this.viewModel!.titleVisible = true;
     this.swapCount = SWAP_COUNT_MIN + Math.floor(Math.random() * (SWAP_COUNT_MAX - SWAP_COUNT_MIN + 1));
     this.currentSwap = 0;
     this._startNextSwap();
@@ -460,6 +464,7 @@ export class MinigameHud extends Component {
     if (!this.viewModel) return;
     console.log('[MinigameHud] Awaiting player pick');
     this.viewModel.titleText = 'Pick a card!';
+    this.viewModel.titleVisible = true;
     this._updateCardPositions();
     this.state = MinigameState.Pick;
     this.stateTimer = 0;
@@ -506,6 +511,7 @@ export class MinigameHud extends Component {
     this.viewModel.feedbackText = feedbackText;
     this.viewModel.feedbackVisible = true;
     this.viewModel.titleText = '';
+    this.viewModel.titleVisible = false;
 
     this.state = MinigameState.RevealChosen;
     this.stateTimer = 0;
@@ -537,6 +543,7 @@ export class MinigameHud extends Component {
     if (this.viewModel) {
       this.viewModel.visible = false;
       this.viewModel.feedbackVisible = false;
+      this.viewModel.titleVisible = false;
     }
     if (this.uiComponent) this.uiComponent.isVisible = false;
     this.state = MinigameState.Inactive;

@@ -29,14 +29,62 @@
           </Binding>
         </Grid.Visibility>
 
-        <!-- Title text -->
-        <Grid VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,200,0,0">
-          <TextBlock Text="{Binding Path=titleText}"
-                     FontSize="80" FontWeight="Bold"
-                     Foreground="#f5c518"
-                     FontFamily="Almendra"
-                     HorizontalAlignment="Center"/>
-        </Grid>
+        <!-- Title text in styled box -->
+        <Border VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,200,0,0"
+                Background="#CC1a1a2e"
+                BorderBrush="#f5c518"
+                BorderThickness="6"
+                CornerRadius="20"
+                Padding="24,10,30,10">
+          <Border.Visibility>
+            <Binding Path="titleVisible">
+              <Binding.Converter>
+                <BooleanToVisibilityConverter/>
+              </Binding.Converter>
+            </Binding>
+          </Border.Visibility>
+          <Grid>
+            <!-- Corner Ornaments - Top Left -->
+            <Ellipse Width="22" Height="22" Fill="#f5c518"
+                     HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-20,-8,0,0"/>
+            <Ellipse Width="14" Height="14" Fill="#c9a000"
+                     HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-16,-4,0,0"/>
+            <!-- Corner Ornaments - Top Right -->
+            <Ellipse Width="22" Height="22" Fill="#f5c518"
+                     HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-8,-20,0"/>
+            <Ellipse Width="14" Height="14" Fill="#c9a000"
+                     HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-16,0"/>
+            <!-- Corner Ornaments - Bottom Left -->
+            <Ellipse Width="22" Height="22" Fill="#f5c518"
+                     HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-20,0,0,-8"/>
+            <Ellipse Width="14" Height="14" Fill="#c9a000"
+                     HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-16,0,0,-4"/>
+            <!-- Corner Ornaments - Bottom Right -->
+            <Ellipse Width="22" Height="22" Fill="#f5c518"
+                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-20,-8"/>
+            <Ellipse Width="14" Height="14" Fill="#c9a000"
+                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-16,-4"/>
+
+            <!-- Title text with outline -->
+            <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+              <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
+                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
+                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
+                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
+                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
+                         FontSize="96" FontWeight="Bold" Foreground="#f5c518"
+                         HorizontalAlignment="Center"/>
+            </Grid>
+          </Grid>
+        </Border>
 
         <!-- Cards area (Canvas for absolute positioning) -->
         <ItemsControl ItemsSource="{Binding Path=cards}"
@@ -171,29 +219,62 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <!-- Feedback text -->
-        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,300">
-          <Grid.Visibility>
+        <!-- Feedback text in styled box -->
+        <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,440"
+                Background="#CC1a1a2e"
+                BorderBrush="#f5c518"
+                BorderThickness="6"
+                CornerRadius="20"
+                Padding="24,10,30,10">
+          <Border.Visibility>
             <Binding Path="feedbackVisible">
               <Binding.Converter>
                 <BooleanToVisibilityConverter/>
               </Binding.Converter>
             </Binding>
-          </Grid.Visibility>
-          <!-- Shadow -->
-          <TextBlock Text="{Binding Path=feedbackText}"
-                     FontSize="72" FontWeight="Bold"
-                     Foreground="Black"
-                     FontFamily="Almendra"
-                     HorizontalAlignment="Center"
-                     Margin="4,4,0,0"/>
-          <!-- Main -->
-          <TextBlock Text="{Binding Path=feedbackText}"
-                     FontSize="72" FontWeight="Bold"
-                     Foreground="#f5c518"
-                     FontFamily="Almendra"
-                     HorizontalAlignment="Center"/>
-        </Grid>
+          </Border.Visibility>
+          <Grid>
+            <!-- Corner Ornaments - Top Left -->
+            <Ellipse Width="22" Height="22" Fill="#f5c518"
+                     HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-20,-8,0,0"/>
+            <Ellipse Width="14" Height="14" Fill="#c9a000"
+                     HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-16,-4,0,0"/>
+            <!-- Corner Ornaments - Top Right -->
+            <Ellipse Width="22" Height="22" Fill="#f5c518"
+                     HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-8,-20,0"/>
+            <Ellipse Width="14" Height="14" Fill="#c9a000"
+                     HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-16,0"/>
+            <!-- Corner Ornaments - Bottom Left -->
+            <Ellipse Width="22" Height="22" Fill="#f5c518"
+                     HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-20,0,0,-8"/>
+            <Ellipse Width="14" Height="14" Fill="#c9a000"
+                     HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-16,0,0,-4"/>
+            <!-- Corner Ornaments - Bottom Right -->
+            <Ellipse Width="22" Height="22" Fill="#f5c518"
+                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-20,-8"/>
+            <Ellipse Width="14" Height="14" Fill="#c9a000"
+                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-16,-4"/>
+
+            <!-- Feedback text with outline -->
+            <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+              <TextBlock Text="{Binding Path=feedbackText}" FontFamily="Anton"
+                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding Path=feedbackText}" FontFamily="Anton"
+                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding Path=feedbackText}" FontFamily="Anton"
+                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding Path=feedbackText}" FontFamily="Anton"
+                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding Path=feedbackText}" FontFamily="Anton"
+                         FontSize="96" FontWeight="Bold" Foreground="#f5c518"
+                         HorizontalAlignment="Center"/>
+            </Grid>
+          </Grid>
+        </Border>
 
       </Grid>
     </Grid>
