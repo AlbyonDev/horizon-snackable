@@ -19,6 +19,8 @@ import { WAVE_CLEAR_DURATION, WAVE_BONUS_GOLD, WAVE_BUILD_DURATION, ENEMY_SPAWN_
 import { LevelGeneratorService } from './LevelGeneratorService';
 import { EnemyService } from './EnemyService';
 import { ResourceService } from './ResourceService';
+import { BossModifierService } from './BossModifierService';
+import { TowerService } from './TowerService';
 
 @service()
 export class WaveService extends Service {
@@ -138,10 +140,12 @@ export class WaveService extends Service {
     if (EnemyService.get().count > 0) return;
 
     const goldBeforeBonus = ResourceService.get().gold;
-    ResourceService.get().earn(WAVE_BONUS_GOLD);
-    const incomeBonus = Math.floor(goldBeforeBonus * INCOME_RATE);
+    const incomeMultiplier = BossModifierService.get().incomeMultiplier;
+    const waveBonus = Math.floor(WAVE_BONUS_GOLD * incomeMultiplier);
+    const incomeBonus = Math.floor(goldBeforeBonus * INCOME_RATE * incomeMultiplier);
+    if (waveBonus > 0) ResourceService.get().earn(waveBonus);
     if (incomeBonus > 0) ResourceService.get().earn(incomeBonus);
-    const totalBonus = WAVE_BONUS_GOLD + incomeBonus;
+    const totalBonus = waveBonus + incomeBonus;
     this._waveIndex++;
 
     const doneP = new Events.WaveCompletedPayload();
@@ -190,6 +194,24 @@ export class WaveService extends Service {
     startP.waveIndex = this._waveIndex;
     startP.totalWaves = this._totalWaves;
     EventService.sendLocally(Events.WaveStarted, startP);
+
+    // Boss modifier: destroy a random tower every 5 waves
+    const waveNumber = this._waveIndex + 1;
+    if (BossModifierService.get().shouldDestroyTower(waveNumber)) {
+      const allTowers = TowerService.get().getAll();
+      if (allTowers.size > 0) {
+        const towerIds = [...allTowers.keys()];
+        const randomIdx = Math.floor(Math.random() * towerIds.length);
+        const rec = allTowers.get(towerIds[randomIdx]);
+        if (rec) {
+          console.log(`[WaveService] Boss modifier: destroying tower at col=${rec.col}, row=${rec.row} (wave ${waveNumber})`);
+          rec.entity.destroy();
+          TowerService.get().removeTowerAt(rec.col, rec.row);
+        }
+      } else {
+        console.log(`[WaveService] Boss modifier: no towers to destroy at wave ${waveNumber}`);
+      }
+    }
 
     this._sendPhase(GamePhase.Wave);
   }

@@ -10,6 +10,9 @@
  *   - Scale-in phase: 0.0–0.3s (opacity 0→1)
  *   - Hold phase: 0.3–1.1s (full opacity)
  *   - Fade-out phase: 1.1–1.5s (opacity 1→0, then hide)
+ *
+ * On boss levels, the FTUE hint is delayed ~3.2s so it appears after the boss
+ * warning banner has dismissed.
  */
 import {
   Component,
@@ -28,13 +31,16 @@ import type { Maybe } from 'meta/worlds';
 
 import { Events } from '../Types';
 
-// ── Animation timing constants ──────────────────────────────────────
+// Animation timing constants
 const SCALE_IN_DURATION = 0.3;
 const HOLD_DURATION = 0.8;
 const FADE_OUT_DURATION = 0.4;
 const TOTAL_DURATION = SCALE_IN_DURATION + HOLD_DURATION + FADE_OUT_DURATION;
 
-// ── ViewModel ───────────────────────────────────────────────────────
+// Delay before showing FTUE hint on boss levels (boss banner: 0.4+2.0+0.6 = 3.0s + buffer)
+const BOSS_FTUE_DELAY = 3.2;
+
+// ViewModel
 
 @uiViewModel()
 export class WaveBannerViewModel extends UiViewModel {
@@ -43,7 +49,7 @@ export class WaveBannerViewModel extends UiViewModel {
   opacity: number = 0;
 }
 
-// ── Component ───────────────────────────────────────────────────────
+// Component
 
 @component()
 export class WaveBannerHud extends Component {
@@ -55,7 +61,12 @@ export class WaveBannerHud extends Component {
   private _elapsed: number = 0;
   private _holding: boolean = false; // FTUE: banner stays visible until dismissed
 
-  // ── Lifecycle ─────────────────────────────────────────────────────
+  // Boss-level FTUE delay state
+  private _isBossLevel: boolean = false;
+  private _ftueDelayWaiting: boolean = false;
+  private _ftueDelayTimer: number = 0;
+
+  // Lifecycle
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
   onStart(): void {
@@ -74,15 +85,39 @@ export class WaveBannerHud extends Component {
     this.viewModel.opacity = 0;
   }
 
-  // ── Events ────────────────────────────────────────────────────────
+  // Events
 
   /**
-   * When a wave starts, begin the banner animation.
-   * WaveStarted is a LocalEvent so it fires on all sides — guard for client only.
+   * Track whether the current level is a boss level so we can delay FTUE hint.
+   */
+  @subscribe(Events.LevelSelected, { execution: ExecuteOn.Owner })
+  onLevelSelected(p: Events.LevelSelectedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._isBossLevel = p.nodeType === 'boss';
+    console.log(`[WaveBannerHud] LevelSelected nodeType=${p.nodeType}, isBoss=${this._isBossLevel}`);
+  }
+
+  /**
+   * When FTUE hint fires, show immediately on non-boss levels.
+   * On boss levels, delay by BOSS_FTUE_DELAY so the boss warning banner finishes first.
    */
   @subscribe(Events.FtueHint, { execution: ExecuteOn.Owner })
   onFtueHint(_p: Events.FtueHintPayload): void {
     if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    if (this._isBossLevel) {
+      // Delay showing until boss banner has dismissed
+      console.log('[WaveBannerHud] Boss level detected, delaying FTUE hint by ~3.2s');
+      this._ftueDelayWaiting = true;
+      this._ftueDelayTimer = 0;
+    } else {
+      // Non-boss: show immediately as before
+      this._showFtueHint();
+    }
+  }
+
+  private _showFtueHint(): void {
     if (!this.viewModel) return;
     this.viewModel.waveText = 'Place a tower to begin!';
     this.viewModel.opacity = 1;
@@ -106,6 +141,9 @@ export class WaveBannerHud extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
 
+    // Cancel any pending FTUE delay if waves already started
+    this._ftueDelayWaiting = false;
+
     const waveNumber = payload.waveIndex + 1; // 1-based display
     this.viewModel.waveText = `WAVE ${waveNumber}`;
     this.viewModel.opacity = 0;
@@ -113,7 +151,6 @@ export class WaveBannerHud extends Component {
     this.viewModel.visible = true;
     this._elapsed = 0;
     this._animating = true;
-
   }
 
   /**
@@ -126,21 +163,38 @@ export class WaveBannerHud extends Component {
 
     this._animating = false;
     this._elapsed = 0;
+    this._holding = false;
+    this._isBossLevel = false;
+    this._ftueDelayWaiting = false;
+    this._ftueDelayTimer = 0;
     this.viewModel.visible = false;
     this.viewModel.opacity = 0;
     this.viewModel.waveText = '';
     if (this.uiComponent) this.uiComponent.isVisible = false;
   }
 
-  // ── Animation tick ────────────────────────────────────────────────
+  // Animation tick
 
   /**
    * Drives the scale-in / hold / fade-out animation each frame.
+   * Also handles the FTUE delay countdown on boss levels.
    * ExecuteOn.Owner on a scene entity runs on server+client — guard for client.
    */
   @subscribe(OnWorldUpdateEvent, { execution: ExecuteOn.Owner })
   onUpdate(payload: OnWorldUpdateEventPayload): void {
     if (NetworkingService.get().isServerContext()) return;
+
+    // Handle boss-level FTUE delay countdown
+    if (this._ftueDelayWaiting) {
+      this._ftueDelayTimer += payload.deltaTime;
+      if (this._ftueDelayTimer >= BOSS_FTUE_DELAY) {
+        console.log('[WaveBannerHud] Boss FTUE delay elapsed, showing hint now');
+        this._ftueDelayWaiting = false;
+        this._showFtueHint();
+      }
+      return; // Don't run animation while waiting for delay
+    }
+
     if (!this._animating || !this.viewModel) return;
 
     this._elapsed += payload.deltaTime;

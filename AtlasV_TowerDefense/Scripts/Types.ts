@@ -1,14 +1,33 @@
 /**
- * Types.ts — Central type registry for the entire project.
+ * Types.ts - Central type registry for the entire project.
  *
  * Contains ALL: enums, interfaces, pipeline contexts, LocalEvents, UiEvents.
- * No imports from sibling files — zero local dependencies.
+ * No imports from sibling files - zero local dependencies.
  * Add new events, interfaces, and enums here at implementation time only.
  */
 import { LocalEvent, UiEvent, serializable } from 'meta/worlds';
 import type { TemplateAsset } from 'meta/worlds';
 
-// ─── Enums ────────────────────────────────────────────────────────────────────
+// --- Enums -------------------------------------------------------------------
+
+export enum BossModifier {
+  HpUp = 0,
+  SpeedUp = 1,
+  DmgDown = 2,
+  OneLife = 3,
+  NoIncome = 4,
+  TowerDestroy = 5,
+}
+
+/** Short display labels for each boss modifier (overworld + in-level HUD). */
+export const BOSS_MODIFIER_LABELS: Record<BossModifier, string> = {
+  [BossModifier.HpUp]: 'Ennemies bulkier',
+  [BossModifier.SpeedUp]: 'Ennemies faster',
+  [BossModifier.DmgDown]: 'Towers weaker',
+  [BossModifier.OneLife]: '1 HP only',
+  [BossModifier.NoIncome]: '-10% Income',
+  [BossModifier.TowerDestroy]: 'Destroy towers',
+};
 
 export enum OverworldNodeState {
   Locked  = 0,
@@ -27,14 +46,14 @@ export enum GamePhase {
   BiomeSelect = 7,
 }
 
-// ─── Interfaces ───────────────────────────────────────────────────────────────
+// --- Interfaces --------------------------------------------------------------
 
 export interface ITowerStats {
   damage: number;
   range: number;
   fireRate: number;
   projectileSpeed: number;
-  props: Record<string, unknown>; // splashRadius, debuff, and any future per-system data
+  props: Record<string, unknown>;
 }
 
 export type UpgradeApplyFn = (stats: ITowerStats) => ITowerStats;
@@ -60,13 +79,13 @@ export interface IEnemyDef {
   id: string;
   name: string;
   hp: number;
-  speed: number;      // cells per second
-  reward: number;     // gold on death
+  speed: number;
+  reward: number;
   color: { r: number; g: number; b: number };
   template: TemplateAsset;
-  dodgeChance?: number;  // 0–1 probability to ignore a projectile hit
-  regenPerSec?: number;  // HP regenerated per second while alive
-  slowImmune?: boolean;  // if true, slow debuffs have no effect
+  dodgeChance?: number;
+  regenPerSec?: number;
+  slowImmune?: boolean;
 }
 
 export interface IWaveGroup {
@@ -78,7 +97,7 @@ export interface IWaveDef {
   groups: IWaveGroup[];
 }
 
-// ─── Pipeline Contexts ────────────────────────────────────────────────────────
+// --- Pipeline Contexts -------------------------------------------------------
 
 export interface IHitContext {
   originX: number;
@@ -89,7 +108,7 @@ export interface IHitContext {
   props: Record<string, unknown>;
 }
 
-// ─── Events ───────────────────────────────────────────────────────────────────
+// --- Events ------------------------------------------------------------------
 
 export namespace Events {
 
@@ -131,7 +150,7 @@ export namespace Events {
     text: string = '';
     worldX: number = 0;
     worldZ: number = 0;
-    colorR: number = 0.96; // default gold
+    colorR: number = 0.96;
     colorG: number = 0.77;
     colorB: number = 0.09;
   }
@@ -212,7 +231,7 @@ export namespace Events {
   export class StartGamePayload {}
   export const StartGame = new LocalEvent<StartGamePayload>('EvStartGame', StartGamePayload);
 
-  // Skip build phase → immediately start wave
+  // Skip build phase -> immediately start wave
   export class SkipBuildPayload {}
   export const SkipBuild = new LocalEvent<SkipBuildPayload>('EvSkipBuild', SkipBuildPayload);
 
@@ -241,7 +260,7 @@ export namespace Events {
 
 }
 
-// ─── UI Events ────────────────────────────────────────────────────────────────
+// --- UI Events ---------------------------------------------------------------
 
 export namespace UiEvents {
   @serializable() export class TowerShopTapPayload      { readonly parameter: string = ''; }

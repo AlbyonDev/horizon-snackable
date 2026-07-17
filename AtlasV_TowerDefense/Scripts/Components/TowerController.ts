@@ -21,6 +21,7 @@ import { TargetingService } from '../Services/TargetingService';
 import { EnemyService } from '../Services/EnemyService';
 import { TowerService } from '../Services/TowerService';
 import { ProjectilePool } from '../Services/ProjectilePool';
+import { BossModifierService } from '../Services/BossModifierService';
 
 // ── Bounce animation constants ───────────────────────────────────────────────
 const BOUNCE_DURATION = 0.35;  // total bounce time in seconds
@@ -213,7 +214,7 @@ export class TowerController extends Component {
 
     const initP = new Events.InitProjectilePayload();
     initP.targetEnemyId = targetId;
-    initP.damage        = this._stats.damage;
+    initP.damage        = this._stats.damage * BossModifierService.get().damageMultiplier;
     initP.speed         = this._stats.projectileSpeed;
     initP.props         = this._stats.props;
     initP.originX       = pos.x;

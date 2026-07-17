@@ -9,6 +9,7 @@
  * Read by WaveService and PathService via LEVEL_DEFS[0].
  */
 import type { IWaveDef } from '../Types';
+import { BossModifier } from '../Types';
 import { PATH_WAYPOINTS_LEVEL_0 } from './PathDefs';
 
 export interface ILevelDef {
@@ -16,6 +17,8 @@ export interface ILevelDef {
   startLives: number;
   pathWaypoints: ReadonlyArray<readonly [number, number]>;
   waves: IWaveDef[];
+  /** If this is a boss level, which single modifier applies. */
+  bossModifier?: BossModifier;
 }
 
 // ── Act 1 (W1–5): Apprentissage — une mécanique introduite par vague ───────────

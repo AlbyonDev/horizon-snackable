@@ -83,7 +83,8 @@
 
         <!-- Level Node template with state-driven sprites -->
         <DataTemplate x:Key="LevelNodeTemplate">
-            <Grid Width="{Binding nodeSize}" Height="{Binding nodeSize}">
+            <Grid Width="{Binding nodeSize}" Height="{Binding nodeSize}" ClipToBounds="False">
+                <Grid Width="{Binding nodeSize}" Height="{Binding nodeSize}">
                 <!-- Tap handler (command still fires; logic in TS blocks locked taps) -->
                 <b:Interaction.Triggers>
                     <b:EventTrigger EventName="MouseLeftButtonUp">
@@ -278,6 +279,65 @@
                                FontFamily="Anton" Foreground="{StaticResource TextLightBrush}"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
+                </Grid>
+
+                <!-- Boss modifier label (shown to the right of the node for boss type only) -->
+                <Border HorizontalAlignment="Left" VerticalAlignment="Center"
+                        CornerRadius="12" Padding="28,16" BorderThickness="4"
+                        Width="420"
+                        BorderBrush="{StaticResource GoldBrush}" Background="#F00d0d1a">
+                    <Border.RenderTransform>
+                        <TranslateTransform X="{Binding modifierOffsetX}"/>
+                    </Border.RenderTransform>
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding nodeType}" Value="boss">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel>
+                        <!-- Title: BOSS MODIFIER -->
+                        <Grid HorizontalAlignment="Center" Margin="0,0,0,8">
+                            <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
+                                       FontFamily="Anton" Foreground="#FF1A1A0A"
+                                       HorizontalAlignment="Center" Margin="-2,0,0,0"/>
+                            <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
+                                       FontFamily="Anton" Foreground="#FF1A1A0A"
+                                       HorizontalAlignment="Center" Margin="2,0,0,0"/>
+                            <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
+                                       FontFamily="Anton" Foreground="#FF1A1A0A"
+                                       HorizontalAlignment="Center" Margin="0,-2,0,0"/>
+                            <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
+                                       FontFamily="Anton" Foreground="#FF1A1A0A"
+                                       HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                            <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
+                                       FontFamily="Anton" Foreground="{StaticResource GoldBrush}"
+                                       HorizontalAlignment="Center"/>
+                        </Grid>
+                        <!-- Modifier explanation text with outline -->
+                        <Grid HorizontalAlignment="Center" MaxWidth="360">
+                            <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
+                                       FontFamily="Anton" Foreground="#FF1A1A0A"
+                                       HorizontalAlignment="Center" TextWrapping="Wrap" Margin="-2,0,0,0"/>
+                            <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
+                                       FontFamily="Anton" Foreground="#FF1A1A0A"
+                                       HorizontalAlignment="Center" TextWrapping="Wrap" Margin="2,0,0,0"/>
+                            <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
+                                       FontFamily="Anton" Foreground="#FF1A1A0A"
+                                       HorizontalAlignment="Center" TextWrapping="Wrap" Margin="0,-2,0,0"/>
+                            <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
+                                       FontFamily="Anton" Foreground="#FF1A1A0A"
+                                       HorizontalAlignment="Center" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
+                                       FontFamily="Anton" Foreground="{StaticResource GoldBrush}"
+                                       HorizontalAlignment="Center" TextWrapping="Wrap"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
             </Grid>
         </DataTemplate>
     </Page.Resources>

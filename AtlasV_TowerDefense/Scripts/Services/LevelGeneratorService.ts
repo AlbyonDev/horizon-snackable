@@ -12,7 +12,7 @@
  */
 import { Service, EventService } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
-import { Events } from '../Types';
+import { Events, BossModifier } from '../Types';
 import type { IWaveDef, IWaveGroup } from '../Types';
 import type { ILevelDef } from '../Defs/LevelDefs';
 import { TOTAL_LEVELS, START_GOLD, START_LIVES, GRID_COLS, GRID_ROWS } from '../Constants';
@@ -76,11 +76,19 @@ export class LevelGeneratorService extends Service {
   private _generateLevel(levelIndex: number, totalLevels: number): ILevelDef {
     const waves = this._generateWaves(levelIndex, totalLevels);
     const pathWaypoints = this._generatePath();
+    const isBoss = levelIndex === totalLevels - 1;
+    const bossModifier = isBoss
+      ? Math.floor(Math.random() * 6) as BossModifier
+      : undefined;
+    if (isBoss) {
+      console.log(`[LevelGeneratorService] Boss level ${levelIndex} assigned modifier: ${BossModifier[bossModifier!]}`);
+    }
     return {
       startGold: START_GOLD,
       startLives: START_LIVES,
       pathWaypoints,
       waves,
+      bossModifier,
     };
   }
 

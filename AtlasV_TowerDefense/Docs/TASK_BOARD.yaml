@@ -49,6 +49,8 @@ done:
   - Card Shuffle Minigame -- shell game with gold bonus/malus/neutral, full UI + phase
   - Debug Buttons -- renamed Skip to Kill, added Finish (complete level) button
   - Beaten Levels Not Reclickable -- only Open nodes clickable now
+  - Boss Level Modifiers -- 6 rules: HP/speed/damage/lives/income/tower destruction
+  - Boss Warning UI -- single random modifier per boss, overworld label, large badge
 
 chopping_block:
   disabled_systems: []

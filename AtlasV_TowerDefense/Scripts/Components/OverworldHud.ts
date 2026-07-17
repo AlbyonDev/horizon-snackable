@@ -35,11 +35,12 @@ import {
 } from 'meta/worlds';
 import type { Maybe } from 'meta/worlds';
 
-import { Events, GamePhase, OverworldNodeState, UiEvents } from '../Types';
+import { Events, GamePhase, OverworldNodeState, UiEvents, BOSS_MODIFIER_LABELS } from '../Types';
 import { BIOME_DEFS } from '../Defs/BiomeDefs';
 import { RelicService } from '../Services/RelicService';
 import { RELIC_DEFS } from '../Defs/RelicDefs';
 import { OverworldNodeType } from '../Defs/NodeDefs';
+import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { MinigameHud } from './MinigameHud';
 
 // Pre-defined TextureAssets for each biome background (must be static string literals)
@@ -94,6 +95,12 @@ export class OverworldPathNodeViewModel extends UiViewModel {
   nodeState: string = 'locked';
   /** Whether this node is interactable (open or beaten) */
   isInteractable: boolean = false;
+  /** Short modifier label for boss nodes (e.g. "×1.2 HP") */
+  modifierLabel: string = '';
+  /** Left margin for boss modifier badge (nodeSize + extra gap) */
+  modifierMargin: string = '230,0,0,0';
+  /** X offset for boss modifier badge RenderTransform (nodeSize + extra gap) */
+  modifierOffsetX: number = 230;
 }
 
 // —— Segment sub-ViewModel (one tile of the repeated path pattern) ————————
@@ -369,6 +376,17 @@ export class OverworldHud extends Component {
       node.nodeSize = src.nodeSize;
       node.fontSize = src.fontSize;
       node.numberMargin = src.numberMargin;
+      node.modifierMargin = src.modifierMargin;
+      node.modifierOffsetX = src.modifierOffsetX;
+      // Recompute modifier label for boss nodes (ensures it's always up-to-date)
+      if (src.nodeType === OverworldNodeType.Boss) {
+        const levelDef = LevelGeneratorService.get().getLevelDef(i);
+        if (levelDef.bossModifier !== undefined) {
+          node.modifierLabel = BOSS_MODIFIER_LABELS[levelDef.bossModifier];
+        }
+      } else {
+        node.modifierLabel = src.modifierLabel;
+      }
 
       const state = i < this.levelStates.length ? this.levelStates[i] : OverworldNodeState.Locked;
       node.nodeState = this._stateToString(state);
@@ -462,6 +480,19 @@ export class OverworldHud extends Component {
       const state = i < this.levelStates.length ? this.levelStates[i] : OverworldNodeState.Locked;
       node.nodeState = this._stateToString(state);
       node.isInteractable = state === OverworldNodeState.Open;
+
+      // Set modifier label and margin for boss nodes (getLevelDef auto-generates if needed)
+      if (isBossNode) {
+        const levelDef = LevelGeneratorService.get().getLevelDef(i);
+        if (levelDef.bossModifier !== undefined) {
+          node.modifierLabel = BOSS_MODIFIER_LABELS[levelDef.bossModifier];
+        }
+        node.modifierMargin = `${size + 50},0,0,0`;
+        node.modifierOffsetX = size + 50;
+      } else {
+        node.modifierMargin = `${size + 50},0,0,0`;
+        node.modifierOffsetX = size + 50;
+      }
       nodes.push(node);
     }
 

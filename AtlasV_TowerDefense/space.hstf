@@ -253,6 +253,18 @@
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "AvatarHider",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "8149293210865989003",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
                 }
             ],
             "attributes": []
@@ -1034,6 +1046,49 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "ccf03be3-e8b4-495d-a97c-350b80b4ca48",
+            "name": "BossWarningUI",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "8811362185660170417",
+                                "targetId": "2149638574"
+                            },
+                            "renderOrderOffset": 10
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "BossWarningHudController",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "16246614770137811023",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -1130,6 +1185,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "33565fb0-ea51-45b4-8607-07a4dbdc0156",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "ccf03be3-e8b4-495d-a97c-350b80b4ca48",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

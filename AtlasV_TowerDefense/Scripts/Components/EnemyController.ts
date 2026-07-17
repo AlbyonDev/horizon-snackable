@@ -22,6 +22,7 @@ import { HP_SCALE_PER_WAVE } from '../Constants';
 import { PathService } from '../Services/PathService';
 import { EnemyService } from '../Services/EnemyService';
 import { ResourceService } from '../Services/ResourceService';
+import { BossModifierService } from '../Services/BossModifierService';
 
 @component()
 export class EnemyController extends Component {
@@ -72,12 +73,13 @@ export class EnemyController extends Component {
     if (!def) return;
 
     const hpMult = 1 + p.waveIndex * HP_SCALE_PER_WAVE;
+    const bossMods = BossModifierService.get();
 
     this._defId       = p.defId;
-    this._hp          = Math.round(def.hp * hpMult);
+    this._hp          = Math.round(def.hp * hpMult * bossMods.hpMultiplier);
     this._maxHp       = this._hp;
     this._regenPerSec = def.regenPerSec ?? 0;
-    this._speed       = def.speed;
+    this._speed       = def.speed * bossMods.speedMultiplier;
     this._reward      = def.reward;
     this._wpIndex = 0;
     this._subT    = 0;

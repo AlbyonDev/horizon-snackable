@@ -34,6 +34,7 @@ import { CameraShakeService } from '../Services/CameraShakeService';
 import { PathTileService } from '../Services/PathTileService';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { RelicService } from '../Services/RelicService';
+import { BossModifierService } from '../Services/BossModifierService';
 
 
 @component()
@@ -110,6 +111,7 @@ export class GameManager extends Component {
   private _startGame(): void {
     this._running = true;
     RelicService.get();
+    BossModifierService.get();
     CritService.get();
     SplashSystem.get();
     VfxService.get();

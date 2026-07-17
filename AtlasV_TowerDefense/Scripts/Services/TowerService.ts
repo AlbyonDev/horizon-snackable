@@ -146,6 +146,11 @@ export class TowerService extends Service {
     return rec;
   }
 
+  /** Public removal used by BossModifierService to destroy towers without refund. */
+  removeTowerAt(col: number, row: number): void {
+    this._unregister(col, row);
+  }
+
   private _inBounds(col: number, row: number): boolean {
     return col >= 0 && col < GRID_COLS && row >= 0 && row < GRID_ROWS;
   }

@@ -1,5 +1,5 @@
 {
-    "version": 5,
+    "version": 6,
     "entities": [
         {
             "id": "54522af5-0218-4a23-a09a-3639dfcf9a28",
@@ -29,7 +29,7 @@
                                     "massWhenPushing": 0.0,
                                     "pushingExtendedRange": 0.0,
                                     "useCustomGravity": true,
-                                    "scale": 0.019999999552965165
+                                    "scale": 0.01
                                 }
                             }
                         },
@@ -45,7 +45,7 @@
                             "dataType": "horizon::DataDefinitionAsset",
                             "data": {
                                 "class": "horizon::platform_api::CustomUiPlatformComponent",
-                                "version": 14,
+                                "version": 16,
                                 "data": {}
                             }
                         }

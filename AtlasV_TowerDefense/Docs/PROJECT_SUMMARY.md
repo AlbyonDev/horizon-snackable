@@ -173,6 +173,7 @@ Scripts/
     VfxService          — hit flash, impact/death particles, pooled particle physics
     CoinService         — pre-spawned coin pool (75 entities), physics loot coins on kill
     RelicService        — relic activation/deactivation, HitService damage modifier, exposes multipliers for TowerService and ResourceService
+    BossModifierService — activates on boss-node levels; applies a single randomly-assigned modifier (one of 6: HP x1.2, Speed x1.5, Damage x0.9, 1 Life, No Income, Tower Destroyed /5 Waves); modifier is determined at level generation and shown on the overworld map before entering the level
 
   Components/
     GameManager         — onStart prewarm, onUpdate tick, game start/end/restart
@@ -194,6 +195,7 @@ Scripts/
     GroundBiomeController — Swaps ground plane material on BiomeChanged event
     CoinController       — physics-simulated coin loot with bounce, gravity, and collect animation
     WaveBannerHud        — ViewModel for wave announcement banner (WAVE X, animated)
+    BossWarningHudController — ViewModel for boss level warning banner + active modifiers strip
     MinigameHud          — ViewModel for card shuffle minigame (shell game: Reveal→FlipDown→Shuffle→Pick→Result state machine)
 ```
 
@@ -345,6 +347,7 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | **Game Over / Victory** | `UI/GameOverScreen.xaml` | End | ✅ — On defeat: shows Overworld + Play Again buttons. On victory: shows "Choose Relic" button that opens the Relic Choice panel. |
 | **Relic Choice** | `UI/RelicChoice.xaml` | Victory (after GameOver) | ✅ — Two random relic cards with unique painted icons (from relics not already active). Tapping one activates it and transitions to Overworld. |
 | **Wave Banner** | UI/WaveBanner.xaml | Wave start | ✅ |
+| **Boss Warning** | UI/BossWarning.xaml | Boss level (Build phase) | ✅ — Dramatic "BOSS LEVEL" banner with skull icon and fiery gold text, auto-dismisses after 3s. Persistent modifier strip below HUD shows active boss modifiers (HP, SPD, DMG multipliers, income disabled, lives override, tower destruction). Hides on level end/restart. |
 | **Minigame** | UI/Minigame.xaml | Minigame | ✅ — Card shuffle (shell game). Three cards (Gold Bonus +50, Gold Malus -30 next level, Neutral) shown face up, flipped, shuffled with animated position swaps, player picks one. Medieval fantasy card style with gold accents. Gold malus deducted at next combat level start via ResourceService. |
 
 ---
