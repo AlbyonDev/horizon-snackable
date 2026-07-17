@@ -174,6 +174,7 @@ Scripts/
     CoinService         — pre-spawned coin pool (75 entities), physics loot coins on kill
     RelicService        — relic activation/deactivation, HitService damage modifier, exposes multipliers for TowerService and ResourceService
     BossModifierService — activates on boss-node levels; applies a single randomly-assigned modifier (one of 6: HP x1.2, Speed x1.5, Damage x0.9, 1 Life, No Income, Tower Destroyed /5 Waves); modifier is determined at level generation and shown on the overworld map before entering the level
+    TowerDestroyAnimService — animated tower destruction for boss modifier; spawns a red meteor projectile from above, flies it to the tower, shakes the tower on impact, scales it to 0, then removes it from the grid
 
   Components/
     GameManager         — onStart prewarm, onUpdate tick, game start/end/restart

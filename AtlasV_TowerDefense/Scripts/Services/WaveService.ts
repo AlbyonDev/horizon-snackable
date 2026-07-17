@@ -21,6 +21,7 @@ import { EnemyService } from './EnemyService';
 import { ResourceService } from './ResourceService';
 import { BossModifierService } from './BossModifierService';
 import { TowerService } from './TowerService';
+import { TowerDestroyAnimService } from './TowerDestroyAnimService';
 
 @service()
 export class WaveService extends Service {
@@ -195,7 +196,7 @@ export class WaveService extends Service {
     startP.totalWaves = this._totalWaves;
     EventService.sendLocally(Events.WaveStarted, startP);
 
-    // Boss modifier: destroy a random tower every 5 waves
+    // Boss modifier: destroy a random tower every 5 waves (animated)
     const waveNumber = this._waveIndex + 1;
     if (BossModifierService.get().shouldDestroyTower(waveNumber)) {
       const allTowers = TowerService.get().getAll();
@@ -204,9 +205,8 @@ export class WaveService extends Service {
         const randomIdx = Math.floor(Math.random() * towerIds.length);
         const rec = allTowers.get(towerIds[randomIdx]);
         if (rec) {
-          console.log(`[WaveService] Boss modifier: destroying tower at col=${rec.col}, row=${rec.row} (wave ${waveNumber})`);
-          rec.entity.destroy();
-          TowerService.get().removeTowerAt(rec.col, rec.row);
+          console.log(`[WaveService] Boss modifier: animating tower destruction at col=${rec.col}, row=${rec.row} (wave ${waveNumber})`);
+          TowerDestroyAnimService.get().beginDestroy(rec.entity, rec.col, rec.row);
         }
       } else {
         console.log(`[WaveService] Boss modifier: no towers to destroy at wave ${waveNumber}`);

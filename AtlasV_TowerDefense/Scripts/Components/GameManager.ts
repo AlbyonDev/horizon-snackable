@@ -31,6 +31,7 @@ import { SplashSystem } from '../Services/SplashSystem';
 import { VfxService } from '../Services/VfxService';
 import { GROUND_COLOR, hexColor } from '../Constants';
 import { CameraShakeService } from '../Services/CameraShakeService';
+import { TowerDestroyAnimService } from '../Services/TowerDestroyAnimService';
 import { PathTileService } from '../Services/PathTileService';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { RelicService } from '../Services/RelicService';
@@ -116,6 +117,7 @@ export class GameManager extends Component {
     SplashSystem.get();
     VfxService.get();
     CameraShakeService.get();
+    TowerDestroyAnimService.get();
     void Promise.all([
       ProjectilePool.get().prewarm(),
       HealthBarService.get().prewarm(),

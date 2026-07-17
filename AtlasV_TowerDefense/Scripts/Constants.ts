@@ -69,6 +69,14 @@ export function hexColor(hex: string): { r: number; g: number; b: number } {
   return { r: ((n >> 16) & 0xff) / 255, g: ((n >> 8) & 0xff) / 255, b: (n & 0xff) / 255 };
 }
 
+// ─── Tower Destruction Animation ──────────────────────────────────────────────
+
+export const TOWER_DESTROY_FLIGHT_DURATION = 1.0;    // seconds for meteor projectile to reach tower
+export const TOWER_DESTROY_SHAKE_DURATION  = 0.3;    // seconds of tower shaking on impact
+export const TOWER_DESTROY_SCALE_DURATION  = 0.4;    // seconds for tower to scale to 0
+export const TOWER_DESTROY_SPAWN_OFFSET_X  = 8;      // X offset from tower where rock spawns (positive = top of screen in top-down view)
+export const TOWER_DESTROY_PROJECTILE_SCALE = 2.5;   // visual scale of the rock projectile (small thrown rock feel)
+
 // ─── Floating Text ────────────────────────────────────────────────────────────
 export const FLOATING_TEXT_POOL_SIZE = 10;   // pre-spawned floating text instances
 export const FLOATING_TEXT_PARK_Y    = -100; // off-screen park position Y
