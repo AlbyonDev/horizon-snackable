@@ -22,6 +22,8 @@ export class ResourceService extends Service {
   private _lives: number = 0;
   private _startGold: number = START_GOLD;
   private _startLives: number = START_LIVES;
+  private _goldMalus: number = 0;
+  private _goldBonus: number = 0;
 
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
@@ -46,6 +48,18 @@ export class ResourceService extends Service {
     this._notify();
   }
 
+  /** Apply a gold malus that will be deducted at the start of the next level. */
+  applyMalus(amount: number): void {
+    this._goldMalus += amount;
+    console.log(`[ResourceService] Gold malus set: -${this._goldMalus} on next level`);
+  }
+
+  /** Apply a gold bonus that will be added at the start of the next level. */
+  applyBonus(amount: number): void {
+    this._goldBonus += amount;
+    console.log(`[ResourceService] Gold bonus set: +${this._goldBonus} on next level`);
+  }
+
   loseLife(): void {
     this._lives = Math.max(0, this._lives - 1);
     this._notify();
@@ -67,6 +81,21 @@ export class ResourceService extends Service {
     const relics = RelicService.get();
     this._gold = Math.floor(this._startGold * relics.getGoldMultiplier());
     this._lives = this._startLives + relics.getBonusLives();
+
+    // Apply gold malus from minigame (if any)
+    if (this._goldMalus > 0) {
+      console.log(`[ResourceService] Applying gold malus: -${this._goldMalus}`);
+      this._gold = Math.max(0, this._gold - this._goldMalus);
+      this._goldMalus = 0;
+    }
+
+    // Apply gold bonus from minigame (if any)
+    if (this._goldBonus > 0) {
+      console.log(`[ResourceService] Applying gold bonus: +${this._goldBonus}`);
+      this._gold += this._goldBonus;
+      this._goldBonus = 0;
+    }
+
     this._notify();
   }
 

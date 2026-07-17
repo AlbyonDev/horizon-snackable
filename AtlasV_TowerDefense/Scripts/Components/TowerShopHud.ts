@@ -130,6 +130,13 @@ export class TowerShopHud extends Component {
     this.viewModel.visible = true;
   }
 
+  @subscribe(Events.GamePhaseChanged, { execution: ExecuteOn.Owner })
+  onPhaseChanged(payload: Events.GamePhaseChangedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+  }
+
   @subscribe(Events.RestartGame, { execution: ExecuteOn.Owner })
   onRestart(_payload: Events.RestartGamePayload): void {
     if (!this.viewModel) return;

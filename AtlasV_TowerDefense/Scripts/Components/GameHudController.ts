@@ -40,6 +40,7 @@ export class GameHudViewModel extends UiViewModel {
   showAbandon: boolean = false;
   showConfirmPopup: boolean = false;
   showNextWave: boolean = false;
+  showFinishLevel: boolean = false;
 
   override readonly events = {
     skipWaveTap: UiEvents.skipWaveTap,
@@ -47,6 +48,7 @@ export class GameHudViewModel extends UiViewModel {
     confirmYesTap: UiEvents.confirmAbandonYesTap,
     confirmNoTap: UiEvents.confirmAbandonNoTap,
     nextWaveTap: UiEvents.nextWaveTap,
+    finishLevelTap: UiEvents.finishLevelTap,
   };
 }
 
@@ -197,6 +199,7 @@ export class GameHudController extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     const phase = p.phase;
+
     // Show abandon button only during active gameplay phases
     this.viewModel.showAbandon =
       phase === GamePhase.Build ||
@@ -204,6 +207,11 @@ export class GameHudController extends Component {
       phase === GamePhase.WaveClear;
     // Show "Next Wave" debug button only during active Wave phase
     this.viewModel.showNextWave = phase === GamePhase.Wave;
+    // Show "Finish Level" debug button during gameplay phases
+    this.viewModel.showFinishLevel =
+      phase === GamePhase.Build ||
+      phase === GamePhase.Wave ||
+      phase === GamePhase.WaveClear;
   }
 
   @subscribe(UiEvents.nextWaveTap, { execution: ExecuteOn.Owner })
@@ -220,6 +228,15 @@ export class GameHudController extends Component {
       dmgP.originZ = rec.worldZ;
       EventService.sendLocally(Events.TakeDamage, dmgP, { eventTarget: rec.entity });
     }
+  }
+
+  @subscribe(UiEvents.finishLevelTap, { execution: ExecuteOn.Owner })
+  onFinishLevelTap(_p: UiEvents.SkipWaveTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    console.log('[GameHudController] Finish Level tapped — triggering Victory');
+    const phasePayload = new Events.GamePhaseChangedPayload();
+    phasePayload.phase = GamePhase.Victory;
+    EventService.sendLocally(Events.GamePhaseChanged, phasePayload);
   }
 
   private _updateWaveText(): void {

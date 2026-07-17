@@ -92,7 +92,7 @@
                     </b:EventTrigger>
                 </b:Interaction.Triggers>
 
-                <!-- ═══ COMBAT NODE SPRITES (hidden when isBoss=true) ═══ -->
+                <!-- ═══ COMBAT NODE SPRITES (nodeType=combat) ═══ -->
 
                 <!-- COMBAT BEATEN state sprite -->
                 <Image Source="sprites/overworld_node_combat.png" Stretch="Uniform">
@@ -102,7 +102,7 @@
                             <Style.Triggers>
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding isBoss}" Value="False"/>
+                                        <Condition Binding="{Binding nodeType}" Value="combat"/>
                                         <Condition Binding="{Binding nodeState}" Value="beaten"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible"/>
@@ -120,7 +120,7 @@
                             <Style.Triggers>
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding isBoss}" Value="False"/>
+                                        <Condition Binding="{Binding nodeType}" Value="combat"/>
                                         <Condition Binding="{Binding nodeState}" Value="open"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible"/>
@@ -138,7 +138,7 @@
                             <Style.Triggers>
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding isBoss}" Value="False"/>
+                                        <Condition Binding="{Binding nodeType}" Value="combat"/>
                                         <Condition Binding="{Binding nodeState}" Value="locked"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible"/>
@@ -148,7 +148,7 @@
                     </Image.Style>
                 </Image>
 
-                <!-- ═══ BOSS NODE SPRITES (visible only when isBoss=true) ═══ -->
+                <!-- ═══ BOSS NODE SPRITES (nodeType=boss) ═══ -->
 
                 <!-- BOSS BEATEN state sprite -->
                 <Image Source="sprites/overworld_node_boss.png" Stretch="Uniform">
@@ -158,7 +158,7 @@
                             <Style.Triggers>
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding isBoss}" Value="True"/>
+                                        <Condition Binding="{Binding nodeType}" Value="boss"/>
                                         <Condition Binding="{Binding nodeState}" Value="beaten"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible"/>
@@ -176,7 +176,7 @@
                             <Style.Triggers>
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding isBoss}" Value="True"/>
+                                        <Condition Binding="{Binding nodeType}" Value="boss"/>
                                         <Condition Binding="{Binding nodeState}" Value="open"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible"/>
@@ -194,7 +194,63 @@
                             <Style.Triggers>
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding isBoss}" Value="True"/>
+                                        <Condition Binding="{Binding nodeType}" Value="boss"/>
+                                        <Condition Binding="{Binding nodeState}" Value="locked"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- ═══ MINIGAME NODE SPRITES (nodeType=minigame) ═══ -->
+
+                <!-- MINIGAME BEATEN state sprite -->
+                <Image Source="sprites/overworld_node_minigame.png" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding nodeType}" Value="minigame"/>
+                                        <Condition Binding="{Binding nodeState}" Value="beaten"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- MINIGAME OPEN state sprite -->
+                <Image Source="sprites/overworld_node_minigame_open.png" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding nodeType}" Value="minigame"/>
+                                        <Condition Binding="{Binding nodeState}" Value="open"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </MultiDataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+
+                <!-- MINIGAME LOCKED state sprite -->
+                <Image Source="sprites/overworld_node_minigame_locked.png" Stretch="Uniform">
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding nodeType}" Value="minigame"/>
                                         <Condition Binding="{Binding nodeState}" Value="locked"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Visibility" Value="Visible"/>

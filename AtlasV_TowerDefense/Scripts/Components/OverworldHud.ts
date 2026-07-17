@@ -13,7 +13,7 @@
  *
  * Level states:
  *   - Open: clickable, highlighted/glowing sprite (next to play)
- *   - Beaten: clickable, default sprite (already completed)
+ *   - Beaten: not clickable, default sprite (already completed)
  *   - Locked: not clickable, greyed out sprite (not yet available)
  *
  * On start, only level 1 is open. Beating a level marks it beaten and opens the next.
@@ -24,6 +24,7 @@ import {
   NetworkingService,
   ExecuteOn,
   EventService,
+  EntityService,
   TextureAsset,
   component,
   subscribe,
@@ -38,6 +39,8 @@ import { Events, GamePhase, OverworldNodeState, UiEvents } from '../Types';
 import { BIOME_DEFS } from '../Defs/BiomeDefs';
 import { RelicService } from '../Services/RelicService';
 import { RELIC_DEFS } from '../Defs/RelicDefs';
+import { OverworldNodeType } from '../Defs/NodeDefs';
+import { MinigameHud } from './MinigameHud';
 
 // Pre-defined TextureAssets for each biome background (must be static string literals)
 const BG_GRASS = new TextureAsset('@sprites/overworld_background-grass.png');
@@ -79,8 +82,8 @@ export class OverworldPathNodeViewModel extends UiViewModel {
   levelNumber: string = '1';
   /** Index as string for CommandParameter binding */
   levelIndex: string = '0';
-  /** Whether this is a boss node (last level) */
-  isBoss: boolean = false;
+  /** Node type string: 'combat', 'boss', or 'minigame' — drives sprite visibility in XAML */
+  nodeType: string = 'combat';
   /** Node size (boss nodes are larger) */
   nodeSize: number = 180;
   /** Font size for the level number text */
@@ -287,23 +290,45 @@ export class OverworldHud extends Component {
     const levelIndex = parseInt(payload.parameter, 10);
     if (isNaN(levelIndex)) return;
 
-    // Block taps on locked nodes
+    // Block taps on locked or beaten nodes (only Open nodes are playable)
     if (levelIndex >= 0 && levelIndex < this.levelStates.length) {
-      if (this.levelStates[levelIndex] === OverworldNodeState.Locked) {
+      const tappedState = this.levelStates[levelIndex];
+      if (tappedState === OverworldNodeState.Locked) {
         console.log(`[OverworldHud] Level ${levelIndex + 1} is locked, tap ignored`);
+        return;
+      }
+      if (tappedState === OverworldNodeState.Beaten) {
+        console.log(`[OverworldHud] Level ${levelIndex + 1} is already beaten, tap ignored`);
         return;
       }
     }
 
-    console.log(`[OverworldHud] Level ${levelIndex + 1} selected (state: ${this._stateToString(this.levelStates[levelIndex])})`);
+    const nodeType = this.nodeTypes[levelIndex] || OverworldNodeType.Combat;
+    console.log(`[OverworldHud] Level ${levelIndex + 1} selected (state: ${this._stateToString(this.levelStates[levelIndex])}, type: ${nodeType})`);
 
-    // Hide ourselves
+    // Minigame nodes: show minigame overlay directly, stay on Overworld
+    if (nodeType === OverworldNodeType.Minigame) {
+      console.log(`[OverworldHud] Minigame node tapped, showing overlay`);
+      const minigameEntities = EntityService.findEntitiesWithComponent(MinigameHud);
+      if (minigameEntities.length > 0) {
+        const minigameHud = minigameEntities[0].getComponent(MinigameHud);
+        if (minigameHud) {
+          minigameHud.showMinigame(levelIndex);
+        }
+      } else {
+        console.log('[OverworldHud] WARNING: No MinigameHud entity found');
+      }
+      return;
+    }
+
+    // Combat/Boss nodes: hide overworld, fire LevelSelected
     this.viewModel.visible = false;
     if (this.uiComponent) this.uiComponent.isVisible = false;
 
     // Fire the LevelSelected event
     const p = new Events.LevelSelectedPayload();
     p.levelIndex = levelIndex;
+    p.nodeType = nodeType;
     EventService.sendLocally(Events.LevelSelected, p);
   }
 
@@ -340,14 +365,14 @@ export class OverworldHud extends Component {
       node.posY = src.posY;
       node.levelNumber = src.levelNumber;
       node.levelIndex = src.levelIndex;
-      node.isBoss = src.isBoss;
+      node.nodeType = src.nodeType;
       node.nodeSize = src.nodeSize;
       node.fontSize = src.fontSize;
       node.numberMargin = src.numberMargin;
 
       const state = i < this.levelStates.length ? this.levelStates[i] : OverworldNodeState.Locked;
       node.nodeState = this._stateToString(state);
-      node.isInteractable = state !== OverworldNodeState.Locked;
+      node.isInteractable = state === OverworldNodeState.Open;
       updatedNodes.push(node);
     }
 
@@ -376,10 +401,34 @@ export class OverworldHud extends Component {
     return segments;
   }
 
+  /** Assigned node types per level index */
+  private nodeTypes: OverworldNodeType[] = [];
+
+  /** Assign node types: last=Boss, one random middle=Minigame, rest=Combat */
+  private _assignNodeTypes(totalLevels: number): void {
+    this.nodeTypes = [];
+    for (let i = 0; i < totalLevels; i++) {
+      this.nodeTypes.push(OverworldNodeType.Combat);
+    }
+    // Last node is always Boss
+    if (totalLevels > 0) {
+      this.nodeTypes[totalLevels - 1] = OverworldNodeType.Boss;
+    }
+    // One random middle node is Minigame (not first, not last)
+    if (totalLevels > 2) {
+      const minigameIndex = 1 + Math.floor(Math.random() * (totalLevels - 2));
+      this.nodeTypes[minigameIndex] = OverworldNodeType.Minigame;
+      console.log(`[OverworldHud] Minigame node assigned to level ${minigameIndex + 1}`);
+    }
+  }
+
   private _populateLevels(): void {
     const totalLevels = this.levelCount;
     const { nodeSize, verticalSpacing } = this.computeLayoutParams(totalLevels);
     const bossNodeSize = Math.round(nodeSize * this.bossSizeMultiplier);
+
+    // Assign node types
+    this._assignNodeTypes(totalLevels);
 
     // Compute node center positions along the S-curve
     const nodeCenters: Array<{ x: number; y: number }> = [];
@@ -396,14 +445,15 @@ export class OverworldHud extends Component {
     const nodes: OverworldPathNodeViewModel[] = [];
     for (let i = 0; i < totalLevels; i++) {
       const node = new OverworldPathNodeViewModel();
-      const isBoss = i === totalLevels - 1;
-      const size = isBoss ? bossNodeSize : nodeSize;
+      const type = this.nodeTypes[i] || OverworldNodeType.Combat;
+      const isBossNode = type === OverworldNodeType.Boss;
+      const size = isBossNode ? bossNodeSize : nodeSize;
       const half = size / 2;
       node.posX = nodeCenters[i].x - half;
       node.posY = nodeCenters[i].y - half;
       node.levelNumber = `${i + 1}`;
       node.levelIndex = `${i}`;
-      node.isBoss = isBoss;
+      node.nodeType = type;
       node.nodeSize = size;
       node.fontSize = this.levelNumberFontSize;
       node.numberMargin = `0,${this.levelNumberOffsetX},${this.levelNumberOffsetZ},0`;
@@ -411,7 +461,7 @@ export class OverworldHud extends Component {
       // Set node state
       const state = i < this.levelStates.length ? this.levelStates[i] : OverworldNodeState.Locked;
       node.nodeState = this._stateToString(state);
-      node.isInteractable = state !== OverworldNodeState.Locked;
+      node.isInteractable = state === OverworldNodeState.Open;
       nodes.push(node);
     }
 

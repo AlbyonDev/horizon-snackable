@@ -197,7 +197,7 @@ export namespace Events {
   export const ShowTitleScreen = new LocalEvent<ShowTitleScreenPayload>('EvShowTitleScreen', ShowTitleScreenPayload);
 
   // Level selected (fired by overworld screen)
-  export class LevelSelectedPayload { levelIndex: number = 0; }
+  export class LevelSelectedPayload { levelIndex: number = 0; nodeType: string = 'combat'; }
   export const LevelSelected = new LocalEvent<LevelSelectedPayload>('EvLevelSelected', LevelSelectedPayload);
 
   // Level completed (fired when player wins a level, transitions back to overworld)
@@ -235,6 +235,10 @@ export namespace Events {
   export class RelicChosenPayload { relicId: string = ''; }
   export const RelicChosen = new LocalEvent<RelicChosenPayload>('EvRelicChosen', RelicChosenPayload);
 
+  // Minigame flow
+  export class MinigameCompletedPayload { levelIndex: number = 0; result: string = ''; }
+  export const MinigameCompleted = new LocalEvent<MinigameCompletedPayload>('EvMinigameCompleted', MinigameCompletedPayload);
+
 }
 
 // ─── UI Events ────────────────────────────────────────────────────────────────
@@ -256,10 +260,14 @@ export namespace UiEvents {
   export const confirmAbandonNoTap  = new UiEvent('GameHudViewModel-onConfirmAbandonNo',    SkipWaveTapPayload);
   export const overworldLevelTap = new UiEvent('OverworldViewModel-onLevelTap',              OverworldLevelTapPayload);
   export const nextWaveTap       = new UiEvent('GameHudViewModel-onNextWaveTap',             SkipWaveTapPayload);
+  export const finishLevelTap    = new UiEvent('GameHudViewModel-onFinishLevelTap',          SkipWaveTapPayload);
 
   @serializable() export class BiomeSelectTapPayload     { readonly parameter: string = ''; }
   export const biomeSelectTap  = new UiEvent('BiomeSelectViewModel-onBiomeTap',             BiomeSelectTapPayload);
 
   @serializable() export class OverworldRelicIconTapPayload { readonly parameter: string = ''; }
   export const overworldRelicIconTap = new UiEvent('OverworldViewModel-onRelicIconTap',     OverworldRelicIconTapPayload);
+
+  @serializable() export class MinigameCardTapPayload { readonly parameter: string = ''; }
+  export const minigameCardTap = new UiEvent('MinigameViewModel-onCardTap', MinigameCardTapPayload);
 }

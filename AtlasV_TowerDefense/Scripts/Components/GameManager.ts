@@ -35,6 +35,7 @@ import { PathTileService } from '../Services/PathTileService';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { RelicService } from '../Services/RelicService';
 
+
 @component()
 export class GameManager extends Component {
   @property() enabled: boolean = false;
@@ -69,6 +70,7 @@ export class GameManager extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (this._running) return;
     this._currentLevelIndex = _p.levelIndex;
+
     console.log(`[GameManager] Level ${_p.levelIndex} selected, starting game`);
     this._startGame();
   }

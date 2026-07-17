@@ -149,6 +149,8 @@ Scripts/
     UpgradeDefs.ts  — Upg atoms catalog + tree() builder
     BiomeDefs.ts    — BIOME_DEFS: IBiomeDef[] (3 biomes: grass, snow, volcano)
     RelicDefs.ts    — RELIC_DEFS: IRelicDef[] (6 relics: gold, damage, speed, range, lives, slow)
+    NodeDefs.ts     — NODE_TYPE_DEFS: Record<OverworldNodeType, INodeTypeDef> (3 node types: combat, boss, minigame)
+    NodeDefs.ts     — NODE_TYPE_DEFS: Record<OverworldNodeType, INodeTypeDef> (3 types: combat, boss, minigame with sprite paths)
 
   Services/
     PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
@@ -192,6 +194,7 @@ Scripts/
     GroundBiomeController — Swaps ground plane material on BiomeChanged event
     CoinController       — physics-simulated coin loot with bounce, gravity, and collect animation
     WaveBannerHud        — ViewModel for wave announcement banner (WAVE X, animated)
+    MinigameHud          — ViewModel for card shuffle minigame (shell game: Reveal→FlipDown→Shuffle→Pick→Result state machine)
 ```
 
 ---
@@ -321,6 +324,10 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
                                                                                                                               GameOver (lives = 0)
                                                                                                                                       ↓
                                                                                                                                  Title → Overworld
+
+                                                       ↑ (from Overworld, Minigame node tapped)
+                                                       ↓
+                                                  Minigame (card shuffle) → MinigameCompleted → Overworld
 ```
 
 ---
@@ -331,13 +338,14 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 |-------|------|-------|--------|
 | **Title Screen** | `UI/TitleScreen.xaml` | Pre-game | ✅ — Full-screen dark overlay with logo and "JOUER" button. Fires StartGame on tap. |
 | **Biome Select** | `UI/BiomeSelect.xaml` | BiomeSelect | ✅ — Debug scaffolding. Three buttons (Grass, Snow, Volcano). Fires BiomeChanged then transitions to Overworld. |
-| **Overworld (Level Select)** | `UI/Overworld.xaml` | Overworld | ✅ — Fantasy adventure map with detailed cartoon painted landscape background (Kingdom Rush+ style), sprite-based stone medallion combat nodes (crossed swords), sprite-based boss nodes (golden spiked skull emblem), and sprite-based rough-hewn stone paver path connectors that tile/repeat based on a configurable `segmentLength` property (default 80px). S-curve winding layout. Three node states: Open (golden glowing sprite, clickable), Beaten (default sprite, clickable), Locked (grey/chained sprite, not clickable). Level 1 starts open; beating a level marks it beaten and opens the next. Fires LevelSelected on tap. |
+| **Overworld (Level Select)** | `UI/Overworld.xaml` | Overworld | ✅ — Fantasy adventure map with detailed cartoon painted landscape background (Kingdom Rush+ style), sprite-based stone medallion combat nodes (crossed swords), sprite-based boss nodes (golden spiked skull emblem), sprite-based minigame nodes (unique icon), and sprite-based rough-hewn stone paver path connectors that tile/repeat based on a configurable `segmentLength` property (default 80px). S-curve winding layout. Three node types: Combat (default), Boss (always last node), Minigame (one random middle node). Three node states: Open (golden glowing sprite, clickable), Beaten (default sprite, clickable), Locked (grey/chained sprite, not clickable). Each node type has its own sprite set for each state. Level 1 starts open; beating a level marks it beaten and opens the next. Fires LevelSelected on tap. Node type definitions in `Scripts/Defs/NodeDefs.ts`. |
 | **HUD** | `UI/GameHud.xaml` | Build/Wave/WaveClear | ✅ — Gold, lives, wave counter, countdown, Abandon button (returns to Overworld), and debug "Skip Wave" button (kills all enemies, visible during Wave phase only). |
 | **Tower Shop** | `UI/TowerShop.xaml` | Build + Wave | ✅ |
 | **Tower Upgrade Menu** | `UI/TowerUpgradeMenu.xaml` | Tower selected | ✅ — 4-column layout: [Info Panel] [Upgrade1] [Upgrade2] [Sell]. Info panel shows tower name + upgrade history (up to 3 lines). Upgrade buttons hidden when tower is at max tier (3). |
 | **Game Over / Victory** | `UI/GameOverScreen.xaml` | End | ✅ — On defeat: shows Overworld + Play Again buttons. On victory: shows "Choose Relic" button that opens the Relic Choice panel. |
 | **Relic Choice** | `UI/RelicChoice.xaml` | Victory (after GameOver) | ✅ — Two random relic cards with unique painted icons (from relics not already active). Tapping one activates it and transitions to Overworld. |
 | **Wave Banner** | UI/WaveBanner.xaml | Wave start | ✅ |
+| **Minigame** | UI/Minigame.xaml | Minigame | ✅ — Card shuffle (shell game). Three cards (Gold Bonus +50, Gold Malus -30 next level, Neutral) shown face up, flipped, shuffled with animated position swaps, player picks one. Medieval fantasy card style with gold accents. Gold malus deducted at next combat level start via ResourceService. |
 
 ---
 
@@ -364,9 +372,10 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | `ShowRelicChoice` | — | RelicChoiceHud (shows 2 random relic cards) |
 | `RelicChosen` | `relicId` | (reserved for future use) |
 | `StartGame` | — | GameManager (transitions to BiomeSelect), LevelGeneratorService (generates N random levels), RelicService (resets active relics) |
-| `LevelSelected` | `levelIndex` | GameManager (starts the game), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
+| `LevelSelected` | `levelIndex, nodeType` | GameManager (starts the game or enters minigame), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
 | `LevelCompleted` | `levelIndex` | OverworldHud (marks level beaten, unlocks next) |
 | `BiomeChanged` | `biomeId` | GroundBiomeController (swaps ground material), OrcishFlagController (swaps flag mesh/material), OverworldHud (swaps background image) |
+| `MinigameCompleted` | `levelIndex, result` | GameManager (fires LevelCompleted, transitions to Overworld) |
 | `RestartGame` | — | GameManager (transitions to Overworld), all services with state |
 | `ActivateFloatingText` | `text, worldX, worldZ, colorR, colorG, colorB` | FloatingTextController |
 

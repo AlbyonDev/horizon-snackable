@@ -1,3 +1,3 @@
 <Project>
-  <StartupDocument>UI/Overworld.xaml</StartupDocument>
+  <StartupDocument>UI/GameHud.xaml</StartupDocument>
 </Project>
