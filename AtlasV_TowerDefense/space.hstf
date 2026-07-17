@@ -303,7 +303,7 @@
                             },
                             "width": 0,
                             "height": 0,
-                            "panelVisibility": true,
+                            "panelVisibility": false,
                             "isInteractable": true,
                             "renderOrderOffset": 300
                         }
@@ -419,6 +419,7 @@
                             },
                             "width": 0,
                             "height": 0,
+                            "panelVisibility": false,
                             "isInteractable": true
                         }
                     },
@@ -470,6 +471,7 @@
                             },
                             "width": 0,
                             "height": 0,
+                            "panelVisibility": false,
                             "renderOrderOffset": 200
                         }
                     },
@@ -521,7 +523,7 @@
                             },
                             "width": 0,
                             "height": 0,
-                            "panelVisibility": true,
+                            "panelVisibility": false,
                             "isInteractable": true
                         }
                     },
@@ -701,6 +703,7 @@
                             },
                             "width": 0,
                             "height": 0,
+                            "panelVisibility": false,
                             "isInteractable": true
                         }
                     },
@@ -859,6 +862,7 @@
                                 "ingestionId": "16527185178079959054",
                                 "targetId": "2149638574"
                             },
+                            "panelVisibility": false,
                             "isInteractable": true
                         }
                     },
@@ -916,6 +920,7 @@
                                 "ingestionId": "7812163847834177175",
                                 "targetId": "2149638574"
                             },
+                            "panelVisibility": false,
                             "isInteractable": true,
                             "isBlocking": true,
                             "renderOrderOffset": 5
@@ -961,6 +966,7 @@
                                 "ingestionId": "4489421753707734048",
                                 "targetId": "2149638574"
                             },
+                            "panelVisibility": false,
                             "isInteractable": true,
                             "isBlocking": true,
                             "renderOrderOffset": 15

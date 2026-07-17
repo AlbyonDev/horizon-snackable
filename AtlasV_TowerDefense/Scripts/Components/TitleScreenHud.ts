@@ -64,9 +64,16 @@ export class TitleScreenHud extends Component {
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
 
+    // Hide native panel before binding to prevent unbound XAML flash
+    this.uiComponent.isVisible = false;
+
     this.viewModel = new TitleScreenViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = true;
+
+    // Show panel now that binding is complete
+    this.uiComponent.isVisible = true;
+    console.log('[TitleScreenHud] Panel bound and shown');
   }
 
   // ── Events ────────────────────────────────────────────────────────────────

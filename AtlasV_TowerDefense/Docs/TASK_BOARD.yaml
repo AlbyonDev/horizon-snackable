@@ -30,7 +30,7 @@ done:
   - Overworld Map Centering -- bottom-to-top order, middle level centered on screen
   - Overworld HD Visual Upgrade -- sprite-based painted nodes, path, and background
   - Overworld Path Segment Tiling -- repeat pattern instead of stretch, configurable segmentLength
-  - Fix UI Overlap on Launch -- panels start hidden, show only on correct phase
+  - Fix UI Flash on Launch v2 -- panelVisibility=false in template, show after bind
   - Overworld Node Numbers -- size 72px, centered, exposed fontSize + offsetY props
   - Random Level Generation -- N procedural levels with random waves and paths
   - Fix Stale Path Tiles on Abandon -- destroy tiles on RestartGame event
