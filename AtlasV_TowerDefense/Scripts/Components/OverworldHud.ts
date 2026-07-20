@@ -208,6 +208,9 @@ export class OverworldHud extends Component {
   /** Per-level state tracking: index -> OverworldNodeState */
   private levelStates: OverworldNodeState[] = [];
 
+  /** Buffered progress data if ProgressRestored fires before onStart completes */
+  private pendingBeatenLevels: string = '';
+
   // —— Lifecycle ——————————————————————————————————————————————————————————
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
@@ -230,6 +233,13 @@ export class OverworldHud extends Component {
     this._populateLevels();
     this._refreshRelicIcons();
     this._updateRunLabel();
+
+    // Apply any buffered progress that arrived before initialization
+    if (this.pendingBeatenLevels) {
+      console.log(`[OverworldHud] Applying buffered progress: ${this.pendingBeatenLevels}`);
+      this._applyRestoredProgress(this.pendingBeatenLevels);
+      this.pendingBeatenLevels = '';
+    }
   }
 
   // —— Events ———————————————————————————————————————————————————————————————
@@ -275,6 +285,60 @@ export class OverworldHud extends Component {
 
     // Refresh the ViewModel so sprites update
     this._refreshNodeStates();
+  }
+
+  @subscribe(Events.ProgressRestored, { execution: ExecuteOn.Owner })
+  onProgressRestored(payload: Events.ProgressRestoredPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!payload.beatenLevels) return;
+
+    // If not yet initialized, buffer the data for later
+    if (!this.viewModel || this.levelStates.length === 0) {
+      console.log(`[OverworldHud] Buffering progress (not yet initialized): ${payload.beatenLevels}`);
+      this.pendingBeatenLevels = payload.beatenLevels;
+      return;
+    }
+
+    this._applyRestoredProgress(payload.beatenLevels);
+  }
+
+  /** Apply restored progress data to levelStates and refresh the UI */
+  private _applyRestoredProgress(beatenLevelsJson: string): void {
+    let beaten: boolean[] = [];
+    try {
+      beaten = JSON.parse(beatenLevelsJson);
+    } catch {
+      console.log('[OverworldHud] Failed to parse saved progress');
+      return;
+    }
+
+    console.log(`[OverworldHud] Restoring progress: ${beatenLevelsJson}`);
+
+    // Restore level states from saved data
+    for (let i = 0; i < this.levelStates.length; i++) {
+      if (i < beaten.length && beaten[i]) {
+        this.levelStates[i] = OverworldNodeState.Beaten;
+      }
+    }
+
+    // Find the first non-beaten level and set it to Open
+    let foundOpen = false;
+    for (let i = 0; i < this.levelStates.length; i++) {
+      if (this.levelStates[i] !== OverworldNodeState.Beaten) {
+        this.levelStates[i] = OverworldNodeState.Open;
+        foundOpen = true;
+        break;
+      }
+    }
+
+    // If all levels are beaten, the last one stays beaten (no new open)
+    if (!foundOpen) {
+      console.log('[OverworldHud] All levels beaten!');
+    }
+
+    // Refresh the ViewModel
+    this._refreshNodeStates();
+    console.log(`[OverworldHud] Progress restored successfully`);
   }
 
   @subscribe(Events.BiomeChanged, { execution: ExecuteOn.Owner })

@@ -5,7 +5,7 @@
  * No imports from sibling files - zero local dependencies.
  * Add new events, interfaces, and enums here at implementation time only.
  */
-import { LocalEvent, UiEvent, serializable } from 'meta/worlds';
+import { LocalEvent, NetworkEvent, UiEvent, serializable, property as netProp } from 'meta/worlds';
 import type { TemplateAsset } from 'meta/worlds';
 
 // --- Enums -------------------------------------------------------------------
@@ -261,8 +261,26 @@ export namespace Events {
   // Run advanced (new overworld generated)
   export class RunAdvancedPayload { runCount: number = 1; }
   export const RunAdvanced = new LocalEvent<RunAdvancedPayload>('EvRunAdvanced', RunAdvancedPayload);
+  
+  // Level progress persistence
+  export class ProgressRestoredPayload { beatenLevels: string = ''; }
+  export const ProgressRestored = new LocalEvent<ProgressRestoredPayload>('EvProgressRestored', ProgressRestoredPayload);
 
 }
+
+// --- Network Events (cross-boundary persistence) -----------------------------
+
+@serializable()
+export class SaveLevelProgressPayload {
+  @netProp() readonly levelIndex: number = 0;
+}
+export const SaveLevelProgressEvent = new NetworkEvent<SaveLevelProgressPayload>('TDSaveLevelProgress', SaveLevelProgressPayload);
+
+@serializable()
+export class ProgressLoadedPayload {
+  @netProp() readonly beatenLevels: string = '';
+}
+export const ProgressLoadedEvent = new NetworkEvent<ProgressLoadedPayload>('TDProgressLoaded', ProgressLoadedPayload);
 
 // --- UI Events ---------------------------------------------------------------
 

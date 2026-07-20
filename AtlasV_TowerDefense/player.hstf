@@ -29,7 +29,7 @@
                                     "massWhenPushing": 0.0,
                                     "pushingExtendedRange": 0.0,
                                     "useCustomGravity": true,
-                                    "scale": 0.01
+                                    "scale": 0.0
                                 }
                             }
                         },
@@ -46,6 +46,18 @@
                             "data": {
                                 "class": "horizon::platform_api::CustomUiPlatformComponent",
                                 "version": 16,
+                                "data": {}
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "LevelSaveComponent",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "8920833266764728723",
+                                    "targetId": "4237980480"
+                                },
                                 "data": {}
                             }
                         }
