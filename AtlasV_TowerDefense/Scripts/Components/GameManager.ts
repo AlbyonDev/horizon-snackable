@@ -17,6 +17,7 @@ import { OnEntityStartEvent, OnWorldUpdateEvent } from 'meta/worlds';
 import type { OnWorldUpdateEventPayload, Maybe, Entity } from 'meta/worlds';
 import { NetworkingService } from 'meta/worlds';
 import { Events, GamePhase } from '../Types';
+import { TOTAL_LEVELS } from '../Constants';
 import { WaveService } from '../Services/WaveService';
 import { ResourceService } from '../Services/ResourceService';
 import { SlowService } from '../Services/SlowService';
@@ -136,6 +137,8 @@ export class GameManager extends Component {
     this._running = false;
     const p = new Events.GameOverPayload();
     p.won = won;
+    // Boss victory = winning the last level (triggers run advancement)
+    p.isBossVictory = won && this._currentLevelIndex === TOTAL_LEVELS - 1;
     EventService.sendLocally(Events.GameOver, p);
 
     // If the player won, fire LevelCompleted to unlock next level in overworld
@@ -143,7 +146,7 @@ export class GameManager extends Component {
       const lcp = new Events.LevelCompletedPayload();
       lcp.levelIndex = this._currentLevelIndex;
       EventService.sendLocally(Events.LevelCompleted, lcp);
-      console.log(`[GameManager] Level ${this._currentLevelIndex + 1} completed, firing LevelCompleted`);
+      console.log(`[GameManager] Level ${this._currentLevelIndex + 1} completed, firing LevelCompleted (isBoss=${p.isBossVictory})`);
     }
   }
 }

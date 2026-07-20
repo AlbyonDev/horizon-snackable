@@ -46,12 +46,17 @@ export class LevelGeneratorService extends Service {
   get isGenerated(): boolean { return this._generated; }
   get runCount(): number { return this._runCount; }
 
+  /** Restore run count from saved progress (called on session load). */
+  setRunCount(count: number): void {
+    this._runCount = count;
+    console.log(`[LevelGeneratorService] Run count restored to ${count}`);
+  }
+
   @subscribe(Events.StartGame)
   onStartGame(_p: Events.StartGamePayload): void {
-    this._runCount = 1;
     this._resetModifierBag();
     this.generate(TOTAL_LEVELS);
-    console.log(`[LevelGeneratorService] New game started, run count reset to 1`);
+    console.log(`[LevelGeneratorService] New game started, run count = ${this._runCount}`);
   }
 
   /** Advance to the next run: increment counter and regenerate levels. */

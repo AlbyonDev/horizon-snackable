@@ -204,7 +204,7 @@ export namespace Events {
   export const TowerUpgraded = new LocalEvent<TowerUpgradedPayload>('EvTowerUpgraded', TowerUpgradedPayload);
 
   // Game end
-  export class GameOverPayload { won: boolean = false; }
+  export class GameOverPayload { won: boolean = false; isBossVictory: boolean = false; }
   export const GameOver = new LocalEvent<GameOverPayload>('EvGameOver', GameOverPayload);
 
   // Restart game
@@ -263,7 +263,7 @@ export namespace Events {
   export const RunAdvanced = new LocalEvent<RunAdvancedPayload>('EvRunAdvanced', RunAdvancedPayload);
   
   // Level progress persistence
-  export class ProgressRestoredPayload { beatenLevels: string = ''; }
+  export class ProgressRestoredPayload { beatenLevels: string = ''; runCount: number = 1; }
   export const ProgressRestored = new LocalEvent<ProgressRestoredPayload>('EvProgressRestored', ProgressRestoredPayload);
 
 }
@@ -277,8 +277,15 @@ export class SaveLevelProgressPayload {
 export const SaveLevelProgressEvent = new NetworkEvent<SaveLevelProgressPayload>('TDSaveLevelProgress', SaveLevelProgressPayload);
 
 @serializable()
+export class SaveRunCountPayload {
+  @netProp() readonly runCount: number = 1;
+}
+export const SaveRunCountEvent = new NetworkEvent<SaveRunCountPayload>('TDSaveRunCount', SaveRunCountPayload);
+
+@serializable()
 export class ProgressLoadedPayload {
   @netProp() readonly beatenLevels: string = '';
+  @netProp() readonly runCount: number = 1;
 }
 export const ProgressLoadedEvent = new NetworkEvent<ProgressLoadedPayload>('TDProgressLoaded', ProgressLoadedPayload);
 

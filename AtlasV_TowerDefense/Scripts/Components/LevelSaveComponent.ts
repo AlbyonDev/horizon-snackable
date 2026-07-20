@@ -32,15 +32,19 @@ import {
   Events,
   SaveLevelProgressEvent,
   SaveLevelProgressPayload,
+  SaveRunCountEvent,
+  SaveRunCountPayload,
   ProgressLoadedEvent,
   ProgressLoadedPayload,
 } from '../Types';
+import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 
 const SAVE_KEY = 'td_level_sav';
 
 /** Save data shape stored in PlayerVariablesService */
 interface LevelSaveData {
   b: boolean[]; // beaten flags per level index
+  r: number;    // run count
 }
 
 @component()
@@ -63,13 +67,19 @@ export class LevelSaveComponent extends Component {
     try {
       const saved = await this.playerVarsService.fetchVariable<LevelSaveData>(this.entity, SAVE_KEY);
       let beatenStr = '';
-      if (saved && saved.b) {
-        beatenStr = JSON.stringify(saved.b);
+      let runCount = 1;
+      if (saved) {
+        if (saved.b) {
+          beatenStr = JSON.stringify(saved.b);
+        }
+        if (saved.r !== undefined) {
+          runCount = saved.r;
+        }
       }
-      console.log(`[LevelSaveComponent] Server loaded progress: ${beatenStr || '(none)'}`);
+      console.log(`[LevelSaveComponent] Server loaded progress: beaten=${beatenStr || '(none)'}, runCount=${runCount}`);
 
       // Send to owning client via NetworkEvent (plain object literal — required for serialization)
-      this.sendEventToOwner(ProgressLoadedEvent, { beatenLevels: beatenStr });
+      this.sendEventToOwner(ProgressLoadedEvent, { beatenLevels: beatenStr, runCount });
     } catch (e) {
       console.log(`[LevelSaveComponent] Error loading progress: ${e}`);
     }
@@ -81,11 +91,15 @@ export class LevelSaveComponent extends Component {
   onProgressLoaded(payload: ProgressLoadedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
 
-    console.log(`[LevelSaveComponent] Client received progress: ${payload.beatenLevels || '(none)'}`);
+    console.log(`[LevelSaveComponent] Client received progress: beaten=${payload.beatenLevels || '(none)'}, runCount=${payload.runCount}`);
+
+    // Restore run count to LevelGeneratorService
+    LevelGeneratorService.get().setRunCount(payload.runCount);
 
     // Broadcast locally so OverworldHud can restore node states
     const lp = new Events.ProgressRestoredPayload();
     lp.beatenLevels = payload.beatenLevels;
+    lp.runCount = payload.runCount;
     EventService.sendLocally(Events.ProgressRestored, lp);
   }
 
@@ -112,6 +126,40 @@ export class LevelSaveComponent extends Component {
     this._saveLevel(payload.levelIndex);
   }
 
+  // ── Client: on run advanced, request run count save ─────────────────────────
+
+  @subscribe(Events.RunAdvanced, { execution: ExecuteOn.Everywhere })
+  onRunAdvanced(payload: Events.RunAdvancedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+
+    console.log(`[LevelSaveComponent] Client requesting save for run count ${payload.runCount}`);
+    this.sendEventToEveryone(SaveRunCountEvent, { runCount: payload.runCount });
+  }
+
+  // ── Server: handle run count save request ──────────────────────────────────
+
+  @subscribe(SaveRunCountEvent, { execution: ExecuteOn.Everywhere })
+  onSaveRunCount(payload: SaveRunCountPayload): void {
+    if (!NetworkingService.get().isServerContext()) return;
+
+    console.log(`[LevelSaveComponent] Server saving run count ${payload.runCount}`);
+    this._saveRunCount(payload.runCount);
+  }
+
+  private async _saveRunCount(runCount: number): Promise<void> {
+    try {
+      // Advancing a run resets beaten flags — new run means fresh levels.
+      // We intentionally do NOT preserve the old beaten array here.
+      const beaten: boolean[] = [];
+
+      const saveData: LevelSaveData = { b: beaten, r: runCount };
+      await this.playerVarsService.setVariable(this.entity, SAVE_KEY, saveData);
+      console.log(`[LevelSaveComponent] Server saved run count (beaten reset): ${JSON.stringify(saveData)}`);
+    } catch (e) {
+      console.log(`[LevelSaveComponent] Error saving run count: ${e}`);
+    }
+  }
+
   private async _saveLevel(levelIndex: number): Promise<void> {
     try {
       // Fetch current state
@@ -132,7 +180,9 @@ export class LevelSaveComponent extends Component {
         beaten[levelIndex] = true;
       }
 
-      const saveData: LevelSaveData = { b: beaten };
+      // Preserve run count from existing save
+      const runCount = (existing && existing.r !== undefined) ? existing.r : 1;
+      const saveData: LevelSaveData = { b: beaten, r: runCount };
       await this.playerVarsService.setVariable(this.entity, SAVE_KEY, saveData);
       console.log(`[LevelSaveComponent] Server saved progress: ${JSON.stringify(saveData)}`);
     } catch (e) {

@@ -1,6 +1,5 @@
 tasks:
 
-
 done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
   - Grass Ground Plane -- Bloons TD style cartoon grass, UV tiling (6,4)
@@ -56,7 +55,9 @@ done:
   - Save Indicator UI -- "Saving..." pill fades in bottom-left for 2s on save
   - Overworld RUN 1 Header -- gold-framed header matching GameHud style
   - Run Progression System -- beat boss → new overworld, RUN X increments, relics reset
+  - Save Run Count Variable -- persists run count, loads on start, saves on advance
   - Overworld SELECT LEVEL Footer -- bottom box, same style as RUN 1 header
+  - Boss Victory Skip Relic -- "NEXT RUN" button, skips relic choice on boss win
 
 chopping_block:
   disabled_systems: []

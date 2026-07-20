@@ -49,6 +49,13 @@ export class ChooseRelicTapPayload {
 
 const chooseRelicTapEvent = new UiEvent('GameOverScreenViewModel-onChooseRelicTap', ChooseRelicTapPayload);
 
+@serializable()
+export class NextRunTapPayload {
+  readonly parameter: string = '';
+}
+
+const nextRunTapEvent = new UiEvent('GameOverScreenViewModel-onNextRunTap', NextRunTapPayload);
+
 // -- ViewModel --
 
 @uiViewModel()
@@ -57,12 +64,14 @@ export class GameOverScreenViewModel extends UiViewModel {
     restartTap: restartTapEvent,
     overworldTap: overworldTapEvent,
     chooseRelicTap: chooseRelicTapEvent,
+    nextRunTap: nextRunTapEvent,
   };
 
   visible: boolean = false;
   isVictory: boolean = false;
   showDefeatButtons: boolean = false;
   showChooseRelic: boolean = false;
+  showNextRun: boolean = false;
   enemiesKilled: number = 0;
   goldEarned: number = 0;
   wavesCompleted: number = 0;
@@ -157,8 +166,10 @@ export class GameOverScreenHud extends Component {
     this.viewModel.wavesCompleted = this._currentWave;
     this.viewModel.totalWaves = this._totalWaves;
 
-    // On victory: show "Choose Relic" button; on defeat: show Overworld/Play Again
-    this.viewModel.showChooseRelic = payload.won;
+    // On victory: show "Choose Relic" for regular wins, "Next Run" for boss wins
+    // On defeat: show Overworld/Play Again
+    this.viewModel.showChooseRelic = payload.won && !payload.isBossVictory;
+    this.viewModel.showNextRun = payload.won && payload.isBossVictory;
     this.viewModel.showDefeatButtons = !payload.won;
 
     // Show the overlay - enable native panel first, then set ViewModel
@@ -210,6 +221,22 @@ export class GameOverScreenHud extends Component {
 
     // Show the relic choice screen
     EventService.sendLocally(Events.ShowRelicChoice, new Events.ShowRelicChoicePayload());
+  }
+
+  /**
+   * When "Move on to next run" is tapped (boss victory only), skip relic choice
+   * and go directly to overworld where _advanceRun() will trigger.
+   */
+  @subscribe(nextRunTapEvent, { execution: ExecuteOn.Owner })
+  onNextRunTap(_payload: NextRunTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    console.log('[GameOverScreenHud] Next Run tapped — skipping relic choice');
+    this._resetAndHide();
+
+    // Fire RestartGame which transitions to Overworld phase (triggers run advancement)
+    EventService.sendLocally(Events.RestartGame, new Events.RestartGamePayload());
   }
 
   private _resetAndHide(): void {
