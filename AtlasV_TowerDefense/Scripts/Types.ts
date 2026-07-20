@@ -263,7 +263,7 @@ export namespace Events {
   export const RunAdvanced = new LocalEvent<RunAdvancedPayload>('EvRunAdvanced', RunAdvancedPayload);
   
   // Level progress persistence
-  export class ProgressRestoredPayload { beatenLevels: string = ''; runCount: number = 1; }
+  export class ProgressRestoredPayload { beatenLevels: string = ''; runCount: number = 1; relics: string = ''; bossModState: string = ''; }
   export const ProgressRestored = new LocalEvent<ProgressRestoredPayload>('EvProgressRestored', ProgressRestoredPayload);
 
 }
@@ -279,13 +279,22 @@ export const SaveLevelProgressEvent = new NetworkEvent<SaveLevelProgressPayload>
 @serializable()
 export class SaveRunCountPayload {
   @netProp() readonly runCount: number = 1;
+  @netProp() readonly bossModState: string = '';
 }
 export const SaveRunCountEvent = new NetworkEvent<SaveRunCountPayload>('TDSaveRunCount', SaveRunCountPayload);
+
+@serializable()
+export class SaveRelicsPayload {
+  @netProp() readonly relics: string = '';
+}
+export const SaveRelicsEvent = new NetworkEvent<SaveRelicsPayload>('TDSaveRelics', SaveRelicsPayload);
 
 @serializable()
 export class ProgressLoadedPayload {
   @netProp() readonly beatenLevels: string = '';
   @netProp() readonly runCount: number = 1;
+  @netProp() readonly relics: string = '';
+  @netProp() readonly bossModState: string = '';
 }
 export const ProgressLoadedEvent = new NetworkEvent<ProgressLoadedPayload>('TDProgressLoaded', ProgressLoadedPayload);
 

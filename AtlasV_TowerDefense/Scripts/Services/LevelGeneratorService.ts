@@ -43,6 +43,9 @@ export class LevelGeneratorService extends Service {
   private _modifierBag: BossModifier[] = [];
   private _modifierBagIndex: number = 0;
 
+  // Flag: true if bag was restored from save this session (prevents StartGame from wiping it)
+  private _bagRestoredFromSave: boolean = false;
+
   get isGenerated(): boolean { return this._generated; }
   get runCount(): number { return this._runCount; }
 
@@ -52,9 +55,33 @@ export class LevelGeneratorService extends Service {
     console.log(`[LevelGeneratorService] Run count restored to ${count}`);
   }
 
+  /** Get current shuffle-bag state for persistence. */
+  getBagState(): { bag: number[]; idx: number } {
+    return { bag: [...this._modifierBag], idx: this._modifierBagIndex };
+  }
+
+  /** Restore shuffle-bag state from saved progress (called on session load). */
+  restoreBagState(state: { bag: number[]; idx: number }): void {
+    this._modifierBag = [...state.bag];
+    this._modifierBagIndex = state.idx;
+    this._bagRestoredFromSave = true;
+    console.log(`[LevelGeneratorService] Boss modifier bag restored: [${this._modifierBag.map(m => BossModifier[m]).join(', ')}] idx=${this._modifierBagIndex}`);
+  }
+
   @subscribe(Events.StartGame)
   onStartGame(_p: Events.StartGamePayload): void {
-    this._resetModifierBag();
+    if (this._bagRestoredFromSave) {
+      // Bag was restored from save. The saved idx already reflects the boss modifier
+      // consumed during advanceRun(). Rewind by 1 so generate() re-draws the same
+      // modifier that was originally assigned (generate always consumes 1 for the boss level).
+      this._bagRestoredFromSave = false;
+      if (this._modifierBagIndex > 0) {
+        this._modifierBagIndex--;
+      }
+      console.log(`[LevelGeneratorService] StartGame: bag restored from save, rewound idx to ${this._modifierBagIndex}`);
+    } else {
+      this._resetModifierBag();
+    }
     this.generate(TOTAL_LEVELS);
     console.log(`[LevelGeneratorService] New game started, run count = ${this._runCount}`);
   }
@@ -62,9 +89,11 @@ export class LevelGeneratorService extends Service {
   /** Advance to the next run: increment counter and regenerate levels. */
   advanceRun(): void {
     this._runCount++;
-    this._resetModifierBag();
+    // Do NOT reset the modifier bag here — _nextBossModifier() handles reshuffling
+    // only when all 6 entries are exhausted. Resetting every run was causing the
+    // bag to always draw index 0 (same modifier every run).
     this.generate(TOTAL_LEVELS);
-    console.log(`[LevelGeneratorService] Advanced to run ${this._runCount}`);
+    console.log(`[LevelGeneratorService] Advanced to run ${this._runCount}, bag ${this._modifierBagIndex}/${this._modifierBag.length}`);
   }
 
   // ─── Shuffle-bag for boss modifiers ─────────────────────────────────────────

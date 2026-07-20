@@ -198,7 +198,7 @@ Scripts/
     WaveBannerHud        — ViewModel for wave announcement banner (WAVE X, animated)
     BossWarningHudController — ViewModel for boss level warning banner + active modifiers strip
     MinigameHud          — ViewModel for card shuffle minigame (shell game: Reveal→FlipDown→Shuffle→Pick→Result state machine)
-    LevelSaveComponent   — Persists level beaten state to PlayerVariablesService (key "td_level_sav"); restores on load via ProgressRestored event
+    LevelSaveComponent   — Persists level beaten state and active relics to PlayerVariablesService (key "td_level_sav"); restores on load via ProgressRestored event
 ```
 
 ---
@@ -276,7 +276,7 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 
 ## Relic System
 
-Relics are persistent modifiers that buff gameplay systems when activated. After winning a level the player is presented with a Relic Choice screen offering 2 random relics they don't already have; tapping one activates it and returns to the Overworld. Relics persist across levels within a run and reset when a new game starts (`RelicService.reset()` on `StartGame` event).
+Relics are persistent modifiers that buff gameplay systems when activated. After winning a level the player is presented with a Relic Choice screen offering 2 random relics they don't already have; tapping one activates it and returns to the Overworld. Relics persist across levels within a run, are saved to `PlayerVariablesService` (as part of the `td_level_sav` object under the `rel` field), and are restored on session load. Relics reset when the run advances (boss beaten) or a new game starts (`RelicService.reset()` on `StartGame` event).
 
 | ID | Name | Modifier | Effect |
 |----|------|----------|--------|
@@ -383,7 +383,7 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | `TowerUpgraded` | `col, row, tier, choice` | TowerService |
 | `GameOver` | `won: boolean, isBossVictory: boolean` | GameOverScreenHud |
 | `ShowRelicChoice` | — | RelicChoiceHud (shows 2 random relic cards) |
-| `RelicChosen` | `relicId` | (reserved for future use) |
+| `RelicChosen` | `relicId` | LevelSaveComponent (persists active relics to PlayerVariablesService) |
 | `StartGame` | — | GameManager (transitions to BiomeSelect), LevelGeneratorService (generates N random levels), RelicService (resets active relics) |
 | `LevelSelected` | `levelIndex, nodeType` | GameManager (starts the game or enters minigame), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
 | `LevelCompleted` | `levelIndex` | OverworldHud (marks level beaten, unlocks next), LevelSaveComponent (persists to PlayerVariablesService) |

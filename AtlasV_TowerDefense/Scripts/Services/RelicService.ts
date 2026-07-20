@@ -16,10 +16,10 @@
  */
 import { Service } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
-import { OnServiceReadyEvent, EventService } from 'meta/worlds';
+import { OnServiceReadyEvent } from 'meta/worlds';
 import { RELIC_DEFS, type IRelicDef } from '../Defs/RelicDefs';
 import { HitService } from './HitService';
-import { Events, type IHitContext } from '../Types';
+import { type IHitContext } from '../Types';
 
 @service()
 export class RelicService extends Service {
@@ -36,11 +36,12 @@ export class RelicService extends Service {
     console.log('[RelicService] Initialized with hit pipeline modifier');
   }
 
-  /** Reset all active relics at the start of a new run. */
-  @subscribe(Events.StartGame)
-  onStartGame(_p: Events.StartGamePayload): void {
-    this.reset();
-  }
+  /**
+   * Note: Relics are NOT reset on Events.StartGame. The save system handles this:
+   * - When a run advances, _saveRunCount() writes rel: [] to the save.
+   * - Next session load correctly restores empty relics for the new run.
+   * - Resetting here would wipe relics that were just restored from the save.
+   */
 
   /** Clear all active relics. Called when a new game begins. */
   reset(): void {
@@ -50,7 +51,18 @@ export class RelicService extends Service {
     }
   }
 
-  // ── Public API ──────────────────────────────────────────────────────────────
+  /** Restore a set of relics from saved data (used on session load). */
+  restoreRelics(relicIds: string[]): void {
+    this._activeRelicIds.clear();
+    for (const id of relicIds) {
+      if (this._relicMap.has(id)) {
+        this._activeRelicIds.add(id);
+      }
+    }
+    console.log(`[RelicService] Restored ${this._activeRelicIds.size} relics: ${[...this._activeRelicIds].join(', ')}`);
+  }
+
+  // ── Public API u2500─────────────────────────────────────────────────────────────
 
   /** Activate a relic by id. No-op if already active or id unknown. */
   activate(relicId: string): boolean {
