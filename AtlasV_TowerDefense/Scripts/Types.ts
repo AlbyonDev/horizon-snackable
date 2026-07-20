@@ -258,6 +258,10 @@ export namespace Events {
   export class MinigameCompletedPayload { levelIndex: number = 0; result: string = ''; }
   export const MinigameCompleted = new LocalEvent<MinigameCompletedPayload>('EvMinigameCompleted', MinigameCompletedPayload);
 
+  // Boss modifier assigned (fired after generate() draws from the shuffle-bag)
+  export class BossModAssignedPayload { bossModState: string = ''; }
+  export const BossModAssigned = new LocalEvent<BossModAssignedPayload>('EvBossModAssigned', BossModAssignedPayload);
+
   // Run advanced (new overworld generated)
   export class RunAdvancedPayload { runCount: number = 1; }
   export const RunAdvanced = new LocalEvent<RunAdvancedPayload>('EvRunAdvanced', RunAdvancedPayload);
@@ -288,6 +292,12 @@ export class SaveRelicsPayload {
   @netProp() readonly relics: string = '';
 }
 export const SaveRelicsEvent = new NetworkEvent<SaveRelicsPayload>('TDSaveRelics', SaveRelicsPayload);
+
+@serializable()
+export class SaveBossModPayload {
+  @netProp() readonly bossModState: string = '';
+}
+export const SaveBossModEvent = new NetworkEvent<SaveBossModPayload>('TDSaveBossMod', SaveBossModPayload);
 
 @serializable()
 export class ProgressLoadedPayload {

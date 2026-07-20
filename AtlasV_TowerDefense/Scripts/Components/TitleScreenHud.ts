@@ -8,6 +8,12 @@
  * Shows a full-screen overlay with the game logo and a Play button.
  * When the player taps the button, the overlay hides and fires Events.StartGame
  * to kick off the game via GameManager.
+ *
+ * IMPORTANT: Play is gated behind Events.ProgressRestored so that
+ * LevelGeneratorService.restoreBagState() has already executed before StartGame
+ * fires. This prevents a timing race where the boss modifier shuffle-bag is
+ * reset and reshuffled (producing a different modifier) because the save data
+ * hadn't arrived from the server yet.
  */
 import {
   Component,
@@ -27,7 +33,10 @@ import type { Maybe } from 'meta/worlds';
 
 import { Events } from '../Types';
 
-// ── Module-level UiEvent constants ──────────────────────────────────────────
+/** How long (ms) to wait for save data before allowing Play anyway. */
+const PROGRESS_LOAD_TIMEOUT_MS = 5000;
+
+// ── Module-level UiEvent constants ──────────────────────────────────────────────
 
 @serializable()
 export class TitleScreenPlayTapPayload {
@@ -36,7 +45,7 @@ export class TitleScreenPlayTapPayload {
 
 const playTapEvent = new UiEvent('TitleScreenViewModel-onPlayTap', TitleScreenPlayTapPayload);
 
-// ── ViewModel ───────────────────────────────────────────────────────────────
+// ── ViewModel ───────────────────────────────────────────────────────────────────
 
 @uiViewModel()
 export class TitleScreenViewModel extends UiViewModel {
@@ -47,7 +56,7 @@ export class TitleScreenViewModel extends UiViewModel {
   visible: boolean = true;
 }
 
-// ── Component ───────────────────────────────────────────────────────────────
+// ── Component ───────────────────────────────────────────────────────────────────
 
 @component()
 export class TitleScreenHud extends Component {
@@ -55,7 +64,10 @@ export class TitleScreenHud extends Component {
   private uiComponent: Maybe<CustomUiComponent> = null;
   private _hasPlayed: boolean = false;
 
-  // ── Lifecycle ─────────────────────────────────────────────────────────────
+  /** True once ProgressRestored fires (or timeout expires). Blocks Play until set. */
+  private _progressLoaded: boolean = false;
+
+  // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
   onStart(): void {
@@ -74,9 +86,26 @@ export class TitleScreenHud extends Component {
     // Show panel now that binding is complete
     this.uiComponent.isVisible = true;
     console.log('[TitleScreenHud] Panel bound and shown');
+
+    // Safety timeout: if ProgressRestored never fires, unblock Play anyway
+    setTimeout(() => {
+      if (!this._progressLoaded) {
+        console.log('[TitleScreenHud] Progress load timeout reached, unblocking Play');
+        this._progressLoaded = true;
+      }
+    }, PROGRESS_LOAD_TIMEOUT_MS);
   }
 
-  // ── Events ────────────────────────────────────────────────────────────────
+  // ── Progress restore gate ─────────────────────────────────────────────────────
+
+  @subscribe(Events.ProgressRestored, { execution: ExecuteOn.Owner })
+  onProgressRestored(_p: Events.ProgressRestoredPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._progressLoaded = true;
+    console.log('[TitleScreenHud] Progress loaded, Play unblocked');
+  }
+
+  // ── Events ────────────────────────────────────────────────────────────────────
 
   @subscribe(Events.ShowTitleScreen, { execution: ExecuteOn.Owner })
   onShowTitleScreen(_payload: Events.ShowTitleScreenPayload): void {
@@ -90,6 +119,14 @@ export class TitleScreenHud extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     if (!this.viewModel.visible) return;
+
+    // Block Play until progress data has been restored from the server.
+    // This prevents a timing race where the boss modifier shuffle-bag is
+    // reset before the saved bag state arrives.
+    if (!this._progressLoaded) {
+      console.log('[TitleScreenHud] Play tapped but progress not loaded yet, ignoring');
+      return;
+    }
 
     this.viewModel.visible = false;
     // Always fire StartGame which transitions to Overworld

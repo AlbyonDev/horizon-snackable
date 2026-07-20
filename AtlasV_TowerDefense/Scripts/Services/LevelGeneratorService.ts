@@ -60,6 +60,11 @@ export class LevelGeneratorService extends Service {
     return { bag: [...this._modifierBag], idx: this._modifierBagIndex };
   }
 
+  /** Returns true when all modifiers in the current bag have been consumed. */
+  isBagExhausted(): boolean {
+    return this._modifierBagIndex >= this._modifierBag.length;
+  }
+
   /** Restore shuffle-bag state from saved progress (called on session load). */
   restoreBagState(state: { bag: number[]; idx: number }): void {
     this._modifierBag = [...state.bag];
@@ -70,16 +75,7 @@ export class LevelGeneratorService extends Service {
 
   @subscribe(Events.StartGame)
   onStartGame(_p: Events.StartGamePayload): void {
-    if (this._bagRestoredFromSave) {
-      // Bag was restored from save. The saved idx already reflects the boss modifier
-      // consumed during advanceRun(). Rewind by 1 so generate() re-draws the same
-      // modifier that was originally assigned (generate always consumes 1 for the boss level).
-      this._bagRestoredFromSave = false;
-      if (this._modifierBagIndex > 0) {
-        this._modifierBagIndex--;
-      }
-      console.log(`[LevelGeneratorService] StartGame: bag restored from save, rewound idx to ${this._modifierBagIndex}`);
-    } else {
+    if (!this._bagRestoredFromSave) {
       this._resetModifierBag();
     }
     this.generate(TOTAL_LEVELS);
@@ -138,6 +134,18 @@ export class LevelGeneratorService extends Service {
 
   /** Generate N random levels. Called automatically on StartGame. */
   generate(count: number): void {
+    // If bag was restored from save, rewind idx by 1 so generate() re-draws the same
+    // modifier that was originally assigned. This logic lives here (not only in onStartGame)
+    // so it works regardless of whether the service received the StartGame event or
+    // generation was triggered lazily via getLevelDef().
+    if (this._bagRestoredFromSave) {
+      this._bagRestoredFromSave = false;
+      if (this._modifierBagIndex > 0) {
+        this._modifierBagIndex--;
+      }
+      console.log(`[LevelGeneratorService] generate(): bag restored from save, rewound idx to ${this._modifierBagIndex}`);
+    }
+
     console.log(`[LevelGeneratorService] Generating ${count} random levels`);
     this._levels = [];
     for (let i = 0; i < count; i++) {
@@ -145,6 +153,12 @@ export class LevelGeneratorService extends Service {
     }
     this._generated = true;
     console.log(`[LevelGeneratorService] Generation complete`);
+
+    // Persist boss modifier bag state immediately after generation
+    const bagState = this.getBagState();
+    const bossModState = JSON.stringify(bagState);
+    console.log(`[LevelGeneratorService] Firing BossModAssigned with state: ${bossModState}`);
+    EventService.sendLocally(Events.BossModAssigned, { bossModState });
   }
 
   /** Retrieve the generated level def for a given index. */

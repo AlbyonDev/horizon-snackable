@@ -36,6 +36,8 @@ import {
   SaveRunCountPayload,
   SaveRelicsEvent,
   SaveRelicsPayload,
+  SaveBossModEvent,
+  SaveBossModPayload,
   ProgressLoadedEvent,
   ProgressLoadedPayload,
 } from '../Types';
@@ -193,6 +195,26 @@ export class LevelSaveComponent extends Component {
     this._queueSave(() => this._saveRunCount(payload.runCount, payload.bossModState));
   }
 
+  // ── Client: on boss modifier assigned (at generation time), save immediately ────
+
+  @subscribe(Events.BossModAssigned, { execution: ExecuteOn.Everywhere })
+  onBossModAssigned(payload: Events.BossModAssignedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+
+    console.log(`[LevelSaveComponent] BossModAssigned, saving bossModState=${payload.bossModState}`);
+    this.sendEventToEveryone(SaveBossModEvent, { bossModState: payload.bossModState });
+  }
+
+  // ── Server: handle boss mod save request ──────────────────────────────────
+
+  @subscribe(SaveBossModEvent, { execution: ExecuteOn.Everywhere })
+  onSaveBossMod(payload: SaveBossModPayload): void {
+    if (!NetworkingService.get().isServerContext()) return;
+
+    console.log(`[LevelSaveComponent] Server saving boss mod state: ${payload.bossModState}`);
+    this._queueSave(() => this._saveBossMod(payload.bossModState));
+  }
+
   // ── Client: on relic chosen, request save ──────────────────────────────────
 
   @subscribe(Events.RelicChosen, { execution: ExecuteOn.Everywhere })
@@ -293,6 +315,22 @@ export class LevelSaveComponent extends Component {
       console.log(`[LevelSaveComponent] Server saved relics: ${JSON.stringify(saveData)}`);
     } catch (e) {
       console.log(`[LevelSaveComponent] Error saving relics: ${e}`);
+    }
+  }
+
+  private async _saveBossMod(bossModState: string): Promise<void> {
+    try {
+      // Fetch current state and merge — never overwrite the whole object
+      const existing = await this.playerVarsService.fetchVariable<LevelSaveData>(this.entity, SAVE_KEY);
+      const beaten: boolean[] = (existing && existing.b) ? existing.b : [];
+      const runCount = (existing && existing.r !== undefined) ? existing.r : 1;
+      const rel: string[] = (existing && existing.rel) ? existing.rel : [];
+
+      const saveData: LevelSaveData = { b: beaten, r: runCount, rel, bm: bossModState };
+      await this.playerVarsService.setVariable(this.entity, SAVE_KEY, saveData);
+      console.log(`[LevelSaveComponent] Server saved boss mod state: ${JSON.stringify(saveData)}`);
+    } catch (e) {
+      console.log(`[LevelSaveComponent] Error saving boss mod state: ${e}`);
     }
   }
 }
