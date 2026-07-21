@@ -50,7 +50,7 @@ done:
   - Beaten Levels Not Reclickable -- only Open nodes clickable now
   - Boss Level Modifiers -- shuffle-bag, no repeats until all 6 used
   - Boss Warning UI -- single random modifier per boss, overworld label, large badge
-  - Level Progress Save System -- persists beaten levels via td_level_sav
+  - Global Save System -- saves runCount, relics, biome, beaten levels at key moments
   - Save Indicator UI -- "Saving..." pill fades in bottom-left for 2s on save
   - Overworld RUN 1 Header -- gold-framed header matching GameHud style
   - Run Progression System -- beat boss → new overworld, RUN X increments, relics reset

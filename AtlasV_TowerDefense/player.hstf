@@ -52,10 +52,10 @@
                         {
                             "dataType": "horizon::DataDefinitionAsset",
                             "data": {
-                                "class": "LevelSaveComponent",
+                                "class": "RunSaveComponent",
                                 "definitionAsset": {
                                     "packageOrRemoteId": "26631398616455768",
-                                    "ingestionId": "8920833266764728723",
+                                    "ingestionId": "10661660503987482170",
                                     "targetId": "4237980480"
                                 },
                                 "data": {}

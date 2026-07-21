@@ -55,6 +55,28 @@ export class GameManager extends Component {
     }
   }
 
+  /** Handle loaded save data: if a save exists with progress, resume to Overworld or BiomeSelect. */
+  @subscribe(Events.RunSaveLoaded)
+  onRunSaveLoaded(payload: Events.RunSaveLoadedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (this._running) return;
+
+    // runCount > 0 means a valid save exists
+    if (payload.runCount > 0) {
+      console.log(`[GameManager] Save data found (runCount=${payload.runCount}, biome=${payload.biomeId}), auto-resuming`);
+
+      // If biome was selected, go directly to Overworld
+      // If biome is empty, go to BiomeSelect (user hadn't picked yet)
+      const targetPhase = payload.biomeId ? GamePhase.Overworld : GamePhase.BiomeSelect;
+      const phase = new Events.GamePhaseChangedPayload();
+      phase.phase = targetPhase;
+      EventService.sendLocally(Events.GamePhaseChanged, phase);
+      console.log(`[GameManager] Auto-resumed to ${targetPhase === GamePhase.Overworld ? 'Overworld' : 'BiomeSelect'}`);
+    } else {
+      console.log(`[GameManager] No save data, awaiting player start`);
+    }
+  }
+
   @subscribe(Events.StartGame)
   onStartGame(_p: Events.StartGamePayload): void {
     if (NetworkingService.get().isServerContext()) return;

@@ -50,6 +50,17 @@ export class RelicService extends Service {
     }
   }
 
+  /** Restore active relics from save data (array of relic ids). */
+  restoreRelics(relicIds: string[]): void {
+    this._activeRelicIds.clear();
+    for (const id of relicIds) {
+      if (this._relicMap.has(id)) {
+        this._activeRelicIds.add(id);
+      }
+    }
+    console.log(`[RelicService] Restored ${this._activeRelicIds.size} relics: [${relicIds.join(', ')}]`);
+  }
+
   // ── Public API ──────────────────────────────────────────────────────────────
 
   /** Activate a relic by id. No-op if already active or id unknown. */

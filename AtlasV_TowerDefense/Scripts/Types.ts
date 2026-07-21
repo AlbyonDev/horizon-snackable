@@ -266,6 +266,19 @@ export namespace Events {
   export class ProgressRestoredPayload { beatenLevels: string = ''; }
   export const ProgressRestored = new LocalEvent<ProgressRestoredPayload>('EvProgressRestored', ProgressRestoredPayload);
 
+  // Global run save system
+  export class RunSaveLoadedPayload {
+    runCount: number = 0;
+    activeRelicIds: string = '';  // JSON array string
+    beatenLevels: string = '';    // JSON boolean[] string
+    biomeId: string = '';
+  }
+  export const RunSaveLoaded = new LocalEvent<RunSaveLoadedPayload>('EvRunSaveLoaded', RunSaveLoadedPayload);
+
+  // Run save: service → component request to persist
+  export class RequestRunSavePayload { saveJson: string = ''; }
+  export const RequestRunSave = new LocalEvent<RequestRunSavePayload>('EvRequestRunSave', RequestRunSavePayload);
+
 }
 
 // --- Network Events (cross-boundary persistence) -----------------------------
@@ -281,6 +294,22 @@ export class ProgressLoadedPayload {
   @netProp() readonly beatenLevels: string = '';
 }
 export const ProgressLoadedEvent = new NetworkEvent<ProgressLoadedPayload>('TDProgressLoaded', ProgressLoadedPayload);
+
+// --- Run Save Network Events -------------------------------------------------
+
+/** Client → Server: request to persist run save data */
+@serializable()
+export class SaveRunDataNetworkPayload {
+  @netProp() readonly saveJson: string = '';
+}
+export const SaveRunDataNetworkEvent = new NetworkEvent<SaveRunDataNetworkPayload>('TDSaveRunData', SaveRunDataNetworkPayload);
+
+/** Server → Client: loaded run save data on start */
+@serializable()
+export class RunDataLoadedNetworkPayload {
+  @netProp() readonly saveJson: string = '';
+}
+export const RunDataLoadedNetworkEvent = new NetworkEvent<RunDataLoadedNetworkPayload>('TDRunDataLoaded', RunDataLoadedNetworkPayload);
 
 // --- UI Events ---------------------------------------------------------------
 

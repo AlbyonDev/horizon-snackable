@@ -158,6 +158,11 @@ export class RelicChoiceHud extends Component {
     // Activate the chosen relic
     RelicService.get().activate(relicId);
 
+    // Fire RelicChosen event so save system and other systems can react
+    const rcp = new Events.RelicChosenPayload();
+    rcp.relicId = relicId;
+    EventService.sendLocally(Events.RelicChosen, rcp);
+
     // Hide this panel
     this.viewModel.visible = false;
     if (this.uiComponent) {

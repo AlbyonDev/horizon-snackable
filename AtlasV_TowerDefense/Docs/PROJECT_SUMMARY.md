@@ -175,6 +175,7 @@ Scripts/
     RelicService        — relic activation/deactivation, HitService damage modifier, exposes multipliers for TowerService and ResourceService
     BossModifierService — activates on boss-node levels; applies a single modifier (one of 6: HP x1.2, Speed x1.5, Damage x0.9, 1 Life, No Income, Tower Destroyed /5 Waves); uses a shuffle-bag so all 6 modifiers appear exactly once before any repeats; bag resets on new game and new run
     TowerDestroyAnimService — animated tower destruction for boss modifier; spawns a red meteor projectile from above, flies it to the tower, shakes the tower on impact, scales it to 0, then removes it from the grid
+    RunSaveService      — client-side orchestrator for global run persistence; tracks biome and beaten levels locally; subscribes to save triggers (StartGame, RunAdvanced, RelicChosen); collects all state into IRunSaveData and fires RequestRunSave for RunSaveComponent to persist server-side; on load, restores state and transitions to Overworld
 
   Components/
     GameManager         — onStart prewarm, onUpdate tick, game start/end/restart
@@ -198,7 +199,9 @@ Scripts/
     WaveBannerHud        — ViewModel for wave announcement banner (WAVE X, animated)
     BossWarningHudController — ViewModel for boss level warning banner + active modifiers strip
     MinigameHud          — ViewModel for card shuffle minigame (shell game: Reveal→FlipDown→Shuffle→Pick→Result state machine)
-    LevelSaveComponent   — Persists level beaten state to PlayerVariablesService (key "td_level_sav"); restores on load via ProgressRestored event
+    LevelSaveComponent   — (DEPRECATED — replaced by RunSaveComponent) Persists level beaten state to PlayerVariablesService (key "td_level_sav"); restores on load via ProgressRestored event
+    RunSaveComponent     — Player-attached persistence layer for the global save system; on start (server) loads IRunSaveData from PlayerVariablesService (key "td_run_save") and sends to client; on RequestRunSave (client) forwards to server for persistence
+    RunSaveComponent     — Global extensible save system. Persists full run state (runCount, active relics, beaten levels, biome) to PlayerVariablesService (key "td_run_save"). Saves on StartGame, RunAdvanced, RelicChosen events. Loads on world start; if save exists, auto-resumes to Overworld (or BiomeSelect if biome not yet chosen). Fires RunSaveLoaded event for GameManager to handle game flow.
 ```
 
 ---
@@ -271,6 +274,37 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 | Run counter | Starts at 1, increments when all levels beaten (boss included), resets on new game (`StartGame`). Tracked in `LevelGeneratorService.runCount`. |
 | Wave bonus | +15g flat (`WAVE_BONUS_GOLD`) + 15% of gold on hand (`INCOME_RATE`) at wave end |
 | Sell refund | 60% of total invested (`SELL_RATIO = 0.6`) |
+
+---
+
+## Save System (Run Persistence)
+
+The game persists run state across sessions via `RunSaveComponent` on the player entity. Uses `PlayerVariablesService` (server-only) with NetworkEvents to cross the client/server boundary.
+
+### Save Data Shape
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `version` | number | Schema version for future migration |
+| `runCount` | number | Current run number (1-based) |
+| `activeRelicIds` | string[] | Active relic IDs |
+| `beatenLevels` | boolean[] | Per-level beaten flags |
+| `biomeId` | string | Currently selected biome |
+
+### Save Triggers
+
+1. **After run generation** — `StartGame` event (new game from title screen) and `RunAdvanced` event (all levels beaten, new run begins)
+2. **After relic chosen** — `RelicChosen` event (player picks a relic after winning a level)
+
+### Load Behavior
+
+- On world start (player entity created): server loads save data from `PlayerVariablesService`, sends to client
+- If save data exists: restores runCount, regenerates levels, restores relics, fires BiomeChanged and ProgressRestored, then auto-transitions to Overworld (or BiomeSelect if biome not yet chosen)
+- If no save data: normal fresh flow (title screen → Start Game)
+
+### Extensibility
+
+To add new persisted variables: update the `IRunSaveData` interface in `RunSaveComponent.ts`, then update `_collectState()` and `_restoreState()` to read/write the new field. All fields are serialized as a single JSON object under PlayerVariable key `td_level_sav`.
 
 ---
 
@@ -379,7 +413,7 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | `TowerUpgraded` | `col, row, tier, choice` | TowerService |
 | `GameOver` | `won: boolean` | GameOverScreenHud |
 | `ShowRelicChoice` | — | RelicChoiceHud (shows 2 random relic cards) |
-| `RelicChosen` | `relicId` | (reserved for future use) |
+| `RelicChosen` | `relicId` | RunSaveComponent (triggers save), RelicService (activates relic) |
 | `StartGame` | — | GameManager (transitions to BiomeSelect), LevelGeneratorService (generates N random levels), RelicService (resets active relics) |
 | `LevelSelected` | `levelIndex, nodeType` | GameManager (starts the game or enters minigame), WaveService, PathService, PathTileService, ResourceService, TowerShopHud, GameHudController |
 | `LevelCompleted` | `levelIndex` | OverworldHud (marks level beaten, unlocks next), LevelSaveComponent (persists to PlayerVariablesService) |
@@ -390,7 +424,8 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | `RunAdvanced` | `runCount` | OverworldHud (fired when all levels are beaten and a new run begins) |
 | `BiomeChanged` | `biomeId` | GroundBiomeController (swaps ground material), OrcishFlagController (swaps flag mesh/material), OverworldHud (swaps background image) |
 | `MinigameCompleted` | `levelIndex, result` | GameManager (fires LevelCompleted, transitions to Overworld) |
-| `RunAdvanced` | `runCount` | Fired by OverworldHud when all levels beaten; signals new overworld generation |
+| `RunAdvanced` | `runCount` | Fired by OverworldHud when all levels beaten; signals new overworld generation, RunSaveComponent (triggers save) |
+| `RunSaveLoaded` | `runCount, activeRelicIds, beatenLevels, biomeId` | GameManager (auto-resumes to Overworld/BiomeSelect if save exists) |
 | `RestartGame` | — | GameManager (transitions to Overworld), all services with state |
 | `ActivateFloatingText` | `text, worldX, worldZ, colorR, colorG, colorB` | FloatingTextController |
 
