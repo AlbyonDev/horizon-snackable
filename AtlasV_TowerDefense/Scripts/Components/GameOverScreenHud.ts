@@ -198,18 +198,18 @@ export class GameOverScreenHud extends Component {
   }
 
   /**
-   * When Choose Relic is tapped (victory only), hide this screen and show relic choice
+   * When Next Run is tapped (victory only), hide this screen and advance directly to overworld
    */
   @subscribe(chooseRelicTapEvent, { execution: ExecuteOn.Owner })
   onChooseRelicTap(_payload: ChooseRelicTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
 
-    console.log('[GameOverScreenHud] Choose Relic tapped');
+    console.log('[GameOverScreenHud] Next Run tapped, advancing directly to overworld');
     this._resetAndHide();
 
-    // Show the relic choice screen
-    EventService.sendLocally(Events.ShowRelicChoice, new Events.ShowRelicChoicePayload());
+    // Skip relic choice, go directly to overworld
+    EventService.sendLocally(Events.RestartGame, new Events.RestartGamePayload());
   }
 
   private _resetAndHide(): void {

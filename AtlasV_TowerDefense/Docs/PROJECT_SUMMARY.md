@@ -322,7 +322,7 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
                                                        ↑                                                                              ↓
                                           (StartGame generates                                                                   GameOver (won=true)
                                            TOTAL_LEVELS random                                                                        ↓
-                                           ILevelDef instances)                                                                  Relic Choice (pick 1 of 2)
+                                           ILevelDef instances)                                                                  "Next Run" button
                                                                                                                                       ↓
                                                                                                                                  → Overworld
                                                                                                                                    (if all levels beaten:
@@ -349,8 +349,8 @@ Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select)
 | **HUD** | `UI/GameHud.xaml` | Build/Wave/WaveClear | ✅ — Gold, lives, wave counter, countdown, Abandon button (returns to Overworld), and debug "Skip Wave" button (kills all enemies, visible during Wave phase only). |
 | **Tower Shop** | `UI/TowerShop.xaml` | Build + Wave | ✅ |
 | **Tower Upgrade Menu** | `UI/TowerUpgradeMenu.xaml` | Tower selected | ✅ — 4-column layout: [Info Panel] [Upgrade1] [Upgrade2] [Sell]. Info panel shows tower name + upgrade history (up to 3 lines). Upgrade buttons hidden when tower is at max tier (3). |
-| **Game Over / Victory** | `UI/GameOverScreen.xaml` | End | ✅ — On defeat: shows Overworld + Play Again buttons. On victory: shows "Choose Relic" button that opens the Relic Choice panel. |
-| **Relic Choice** | `UI/RelicChoice.xaml` | Victory (after GameOver) | ✅ — Two random relic cards with unique painted icons (from relics not already active). Tapping one activates it and transitions to Overworld. |
+| **Game Over / Victory** | `UI/GameOverScreen.xaml` | End | ✅ — On defeat: shows Overworld + Play Again buttons. On victory: shows "Next Run" button that directly advances to overworld (skips relic choice). |
+| **Relic Choice** | `UI/RelicChoice.xaml` | Victory (after GameOver) | ⚠️ Disabled — UI exists but is no longer triggered. The "Next Run" button on GameOverScreen goes directly to Overworld. |
 | **Wave Banner** | UI/WaveBanner.xaml | Wave start | ✅ |
 | **Boss Warning** | UI/BossWarning.xaml | Boss level (Build phase) | ✅ — Dramatic "BOSS LEVEL" banner with skull icon and fiery gold text, auto-dismisses after 3s. Persistent modifier strip below HUD shows active boss modifiers (HP, SPD, DMG multipliers, income disabled, lives override, tower destruction). Hides on level end/restart. |
 | **Minigame** | UI/Minigame.xaml | Minigame | ✅ — Card shuffle (shell game). Three cards (Gold Bonus +50, Gold Malus -30 next level, Neutral) shown face up, flipped, shuffled with animated position swaps, player picks one. Medieval fantasy card style with gold accents. Gold malus deducted at next combat level start via ResourceService. |

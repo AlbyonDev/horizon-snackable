@@ -519,21 +519,29 @@ export class OverworldHud extends Component {
   /** Assigned node types per level index */
   private nodeTypes: OverworldNodeType[] = [];
 
-  /** Assign node types: last=Boss, one random middle=Minigame, rest=Combat */
+  /** Assign node types: last=Boss, minigame after every 2 consecutive combats, rest=Combat */
   private _assignNodeTypes(totalLevels: number): void {
     this.nodeTypes = [];
+    let consecutiveCombats = 0;
+
     for (let i = 0; i < totalLevels; i++) {
-      this.nodeTypes.push(OverworldNodeType.Combat);
-    }
-    // Last node is always Boss
-    if (totalLevels > 0) {
-      this.nodeTypes[totalLevels - 1] = OverworldNodeType.Boss;
-    }
-    // One random middle node is Minigame (not first, not last)
-    if (totalLevels > 2) {
-      const minigameIndex = 1 + Math.floor(Math.random() * (totalLevels - 2));
-      this.nodeTypes[minigameIndex] = OverworldNodeType.Minigame;
-      console.log(`[OverworldHud] Minigame node assigned to level ${minigameIndex + 1}`);
+      const isLast = i === totalLevels - 1;
+
+      // Last node is always Boss
+      if (isLast) {
+        this.nodeTypes.push(OverworldNodeType.Boss);
+        console.log(`[OverworldHud] Node ${i + 1}: Boss (always last)`);
+      } else if (consecutiveCombats >= 2) {
+        // After 2 consecutive combat nodes, place a minigame
+        this.nodeTypes.push(OverworldNodeType.Minigame);
+        consecutiveCombats = 0;
+        console.log(`[OverworldHud] Node ${i + 1}: Minigame (after 2 combats)`);
+      } else {
+        // Default: combat node
+        this.nodeTypes.push(OverworldNodeType.Combat);
+        consecutiveCombats++;
+        console.log(`[OverworldHud] Node ${i + 1}: Combat (consecutive: ${consecutiveCombats})`);
+      }
     }
   }
 

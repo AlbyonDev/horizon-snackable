@@ -1,6 +1,5 @@
 tasks:
 
-
 done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
   - Grass Ground Plane -- Bloons TD style cartoon grass, UV tiling (6,4)
@@ -43,7 +42,6 @@ done:
   - Snow and Volcano Biome Assets -- textures + materials for both biomes
   - Biome System -- random biome per level, ground + overworld swap
   - GrassFlag and VolcanoFlag Assets -- new folders with fbx/material/png, BiomeDefs updated
-  - Relic System -- 6 relics + choice UI after victory, persists per run
   - Fix Gold Calculation -- earned-gold stat now includes wave bonuses and sell refunds
   - Minigame Overworld Node Assets -- 3 gold-themed sprites (default, locked, open)
   - Node Types System -- NodeDefs.ts + Overworld shows Combat/Boss/Minigame sprites
@@ -57,9 +55,12 @@ done:
   - Overworld RUN 1 Header -- gold-framed header matching GameHud style
   - Run Progression System -- beat boss → new overworld, RUN X increments, relics reset
   - Overworld SELECT LEVEL Footer -- bottom box, same style as RUN 1 header
+  - Minigame Node Deterministic Placement -- after every 2 combat nodes, not random
+  - Replace Relic Choice with Next Run -- victory button goes straight to Overworld
 
 chopping_block:
-  disabled_systems: []
+  disabled_systems:
+    - "Relic Choice UI -- disabled, relics no longer offered after boss"
   temp_scaffolding:
     - "Next Wave debug button -- remove before shipping"
     - "BiomeSelect debug screen -- remove before shipping"
