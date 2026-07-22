@@ -1067,6 +1067,7 @@
                                 "ingestionId": "8811362185660170417",
                                 "targetId": "2149638574"
                             },
+                            "panelVisibility": false,
                             "renderOrderOffset": 10
                         }
                     },

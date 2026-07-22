@@ -43,7 +43,7 @@ export class ClientSetup extends Component {
   // ── Camera setup ─────────────────────────────────────────────────────────────
 
   private _initCamera(): void {
-    setTimeout(() => {
+    const setup = () => {
       FocusedInteractionService.get().enableFocusedInteraction({
         disableEmotesButton: true,
         disableFocusExitButton: true,
@@ -55,7 +55,13 @@ export class ClientSetup extends Component {
 
       if (this.cameraAnchor)
         CameraShakeService.get().init(this.cameraAnchor);
-    }, this.initDelay * 1000);
+    };
+
+    if (this.initDelay > 0) {
+      setTimeout(setup, this.initDelay * 1000);
+    } else {
+      setup();
+    }
   }
 
   @subscribe(OnEntityStartEvent)
