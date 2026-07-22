@@ -1,21 +1,45 @@
 /**
- * LevelGeneratorService — Procedural level generation for each game run.
+ * LevelGeneratorService — Procedural, SEEDED level generation for each run.
  *
- * On StartGame event, generates TOTAL_LEVELS random ILevelDef instances.
+ * On StartGame, generates TOTAL_LEVELS ILevelDef instances deterministically
+ * from a numeric seed (owned/persisted by SaveService). The same seed always
+ * yields the same run — waves, paths, node types, AND boss modifier — so
+ * reloading mid-run reproduces exactly what the player saw.
+ *
  * Each level has:
- *   - Random IWaveDef[] array with escalating difficulty
- *   - Random pathWaypoints that form a valid zigzag path on the grid
+ *   - IWaveDef[] with escalating difficulty
+ *   - pathWaypoints forming a valid zigzag path on the grid
  *   - Fixed startGold / startLives from Constants
+ *   - bossModifier (boss level only)
+ * The overworld node-type layout (combat / boss / minigame) is also assigned
+ * here so the minigame position is part of the seeded run, not re-rolled by UI.
  *
- * Read by WaveService and PathService via getLevelDef(index).
- * Resets and regenerates on each StartGame.
+ * Read by WaveService and PathService via getLevelDef(index), and by
+ * OverworldHud via getNodeType(index).
+ *
+ * IMPORTANT: never call Math.random() in this service — always use this._rng()
+ * so generation stays deterministic.
  */
-import { Service, EventService } from 'meta/worlds';
+import { Service } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
 import { Events, BossModifier } from '../Types';
 import type { IWaveDef, IWaveGroup } from '../Types';
 import type { ILevelDef } from '../Defs/LevelDefs';
+import { OverworldNodeType } from '../Defs/NodeDefs';
+import { SaveService } from './SaveService';
 import { TOTAL_LEVELS, START_GOLD, START_LIVES, GRID_COLS, GRID_ROWS } from '../Constants';
+
+/** Deterministic PRNG (mulberry32). Returns a function producing [0, 1). */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 // ─── Enemy pool for random generation ─────────────────────────────────────────
 
@@ -35,20 +59,32 @@ const DIFFICULTY_TIERS: Array<{ basic: number; fast: number; tank: number; boss:
 
 @service()
 export class LevelGeneratorService extends Service {
+  private readonly _saveService = Service.inject(SaveService);
+
   private _levels: ILevelDef[] = [];
+  private _nodeTypes: OverworldNodeType[] = [];
   private _generated: boolean = false;
+  private _seed: number = 0;
+
+  /** Seeded RNG for the current run. Reset by generate(); never use Math.random. */
+  private _rng: () => number = mulberry32(1);
 
   get isGenerated(): boolean { return this._generated; }
 
   @subscribe(Events.StartGame)
   onStartGame(_p: Events.StartGamePayload): void {
-    this.generate(TOTAL_LEVELS);
+    // Resume the saved run's seed, or mint a fresh one for a new run.
+    const seed = this._saveService.ensureRunSeed();
+    this.generate(TOTAL_LEVELS, seed);
   }
 
-  /** Generate N random levels. Called automatically on StartGame. */
-  generate(count: number): void {
-    console.log(`[LevelGeneratorService] Generating ${count} random levels`);
+  /** Generate N levels deterministically from a seed. Called on StartGame. */
+  generate(count: number, seed: number): void {
+    this._seed = seed || 1;
+    this._rng = mulberry32(this._seed);
+    console.log(`[LevelGeneratorService] Generating ${count} levels from seed ${this._seed}`);
     this._levels = [];
+    this._assignNodeTypes(count);
     for (let i = 0; i < count; i++) {
       this._levels.push(this._generateLevel(i, count));
     }
@@ -58,16 +94,40 @@ export class LevelGeneratorService extends Service {
 
   /** Retrieve the generated level def for a given index. */
   getLevelDef(index: number): ILevelDef {
-    if (!this._generated || this._levels.length === 0) {
-      console.warn(`[LevelGeneratorService] No levels generated yet, generating now`);
-      this.generate(TOTAL_LEVELS);
-    }
+    this._ensureGenerated();
     const clamped = Math.min(index, this._levels.length - 1);
     return this._levels[clamped];
   }
 
+  /** Overworld node type (combat / boss / minigame) for a level index. */
+  getNodeType(index: number): OverworldNodeType {
+    this._ensureGenerated();
+    if (index < 0 || index >= this._nodeTypes.length) return OverworldNodeType.Combat;
+    return this._nodeTypes[index];
+  }
+
   /** Total number of generated levels */
   get levelCount(): number { return this._levels.length; }
+
+  /** Fall back to the saved run's seed if a getter is called before StartGame. */
+  private _ensureGenerated(): void {
+    if (this._generated && this._levels.length > 0) return;
+    console.warn(`[LevelGeneratorService] No levels generated yet, generating now`);
+    this.generate(TOTAL_LEVELS, this._saveService.getSeed() || this._seed);
+  }
+
+  // ─── Node-type layout (seeded) ────────────────────────────────────────────────
+  //   Last node = Boss. One middle node = Minigame. Rest = Combat.
+  private _assignNodeTypes(count: number): void {
+    this._nodeTypes = [];
+    for (let i = 0; i < count; i++) this._nodeTypes.push(OverworldNodeType.Combat);
+    if (count > 0) this._nodeTypes[count - 1] = OverworldNodeType.Boss;
+    if (count > 2) {
+      const minigameIndex = 1 + Math.floor(this._rng() * (count - 2));
+      this._nodeTypes[minigameIndex] = OverworldNodeType.Minigame;
+      console.log(`[LevelGeneratorService] Minigame node at level ${minigameIndex + 1}`);
+    }
+  }
 
 
 
@@ -76,9 +136,9 @@ export class LevelGeneratorService extends Service {
   private _generateLevel(levelIndex: number, totalLevels: number): ILevelDef {
     const waves = this._generateWaves(levelIndex, totalLevels);
     const pathWaypoints = this._generatePath();
-    const isBoss = levelIndex === totalLevels - 1;
+    const isBoss = this._nodeTypes[levelIndex] === OverworldNodeType.Boss;
     const bossModifier = isBoss
-      ? Math.floor(Math.random() * 6) as BossModifier
+      ? Math.floor(this._rng() * 6) as BossModifier
       : undefined;
     if (isBoss) {
       console.log(`[LevelGeneratorService] Boss level ${levelIndex} assigned modifier: ${BossModifier[bossModifier!]}`);
@@ -129,7 +189,7 @@ export class LevelGeneratorService extends Service {
     const counts: Record<string, number> = { basic: 0, fast: 0, tank: 0, boss: 0 };
 
     for (let i = 0; i < totalEnemies; i++) {
-      const roll = Math.random();
+      const roll = this._rng();
       let cumulative = 0;
       let picked = 'basic';
       for (const id of ENEMY_IDS) {
@@ -173,17 +233,17 @@ export class LevelGeneratorService extends Service {
     const waypoints: Array<readonly [number, number]> = [];
 
     // Start at random column, row 0
-    let col = Math.floor(Math.random() * (GRID_COLS - 2)) + 1; // avoid edges
+    let col = Math.floor(this._rng() * (GRID_COLS - 2)) + 1; // avoid edges
     let row = 0;
     waypoints.push([col, row] as const);
 
     // Generate zigzag segments moving downward
     const maxRow = GRID_ROWS - 1;
-    let goingRight = Math.random() > 0.5;
+    let goingRight = this._rng() > 0.5;
 
     while (row < maxRow) {
       // Move down by 2-4 rows
-      const downStep = Math.min(2 + Math.floor(Math.random() * 3), maxRow - row);
+      const downStep = Math.min(2 + Math.floor(this._rng() * 3), maxRow - row);
       row += downStep;
       waypoints.push([col, row] as const);
 
@@ -194,7 +254,7 @@ export class LevelGeneratorService extends Service {
         ? GRID_COLS - 1 - col
         : col;
       if (maxHorizontal > 0) {
-        const hStep = Math.min(2 + Math.floor(Math.random() * 3), maxHorizontal);
+        const hStep = Math.min(2 + Math.floor(this._rng() * 3), maxHorizontal);
         col = goingRight ? col + hStep : col - hStep;
         waypoints.push([col, row] as const);
       }

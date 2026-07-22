@@ -28,6 +28,7 @@ import type { Maybe } from 'meta/worlds';
 
 import { Events } from '../Types';
 import { RelicService } from '../Services/RelicService';
+import { SaveService } from '../Services/SaveService';
 import { RELIC_DEFS, type IRelicDef } from '../Defs/RelicDefs';
 
 // -- Pre-created TextureAsset instances (must be static string literals) --
@@ -155,8 +156,9 @@ export class RelicChoiceHud extends Component {
     const relicId = payload.parameter;
     console.log(`[RelicChoiceHud] Player chose relic: ${relicId}`);
 
-    // Activate the chosen relic
+    // Activate the chosen relic and persist it as part of the current run.
     RelicService.get().activate(relicId);
+    SaveService.get().addRelic(relicId);
 
     // Hide this panel
     this.viewModel.visible = false;

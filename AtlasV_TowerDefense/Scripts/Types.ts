@@ -258,25 +258,55 @@ export namespace Events {
   export class MinigameCompletedPayload { levelIndex: number = 0; result: string = ''; }
   export const MinigameCompleted = new LocalEvent<MinigameCompletedPayload>('EvMinigameCompleted', MinigameCompletedPayload);
 
-  // Level progress persistence
-  export class ProgressRestoredPayload { beatenLevels: string = ''; }
-  export const ProgressRestored = new LocalEvent<ProgressRestoredPayload>('EvProgressRestored', ProgressRestoredPayload);
+  // Save data restored (client-local broadcast, decoded by SaveService).
+  //   seed       — current run's generation seed (0 = no run yet / start fresh)
+  //   runCount   — number of completed runs (permanent meta-progression)
+  //   beaten     — per-level beaten flags for the current run
+  //   relics     — active relic ids for the current run
+  export class SaveRestoredPayload {
+    seed: number = 0;
+    runCount: number = 0;
+    beaten: boolean[] = [];
+    relics: string[] = [];
+  }
+  export const SaveRestored = new LocalEvent<SaveRestoredPayload>('EvSaveRestored', SaveRestoredPayload);
+
+  // A new run just started (fresh seed minted). Run-scoped state must clear
+  // itself (relics, etc.). Fired by SaveService from ensureRunSeed().
+  export class RunResetPayload {}
+  export const RunReset = new LocalEvent<RunResetPayload>('EvRunReset', RunResetPayload);
 
 }
 
 // --- Network Events (cross-boundary persistence) -----------------------------
+//
+// SaveService is the ONLY subscriber. The full save blob is passed as a JSON
+// string so the persisted shape can grow without touching these events.
+// maxLength mirrors the backend's 10,000-char PlayerVariablesService limit.
 
-@serializable()
-export class SaveLevelProgressPayload {
-  @netProp() readonly levelIndex: number = 0;
-}
-export const SaveLevelProgressEvent = new NetworkEvent<SaveLevelProgressPayload>('TDSaveLevelProgress', SaveLevelProgressPayload);
+export namespace NetworkEvents {
+  // Client → server: "I'm ready, send me my save". Sent once the client-side
+  // SaveService is alive; the server answers with SaveLoaded (immediately if the
+  // player's data is already fetched, otherwise as soon as it is). This removes
+  // the single-broadcast race where a load could arrive before the subscriber.
+  @serializable()
+  export class SaveLoadRequestPayload {}
+  export const SaveLoadRequest = new NetworkEvent<SaveLoadRequestPayload>('TDSaveLoadRequest', SaveLoadRequestPayload);
 
-@serializable()
-export class ProgressLoadedPayload {
-  @netProp() readonly beatenLevels: string = '';
+  // Server → client: the loaded save blob (empty string = new player).
+  @serializable()
+  export class SaveLoadedPayload {
+    @netProp({ maxLength: 10000 }) readonly json: string = '';
+  }
+  export const SaveLoaded = new NetworkEvent<SaveLoadedPayload>('TDSaveLoaded', SaveLoadedPayload);
+
+  // Client → server: request to persist the save blob.
+  @serializable()
+  export class SaveRequestedPayload {
+    @netProp({ maxLength: 10000 }) readonly json: string = '';
+  }
+  export const SaveRequested = new NetworkEvent<SaveRequestedPayload>('TDSaveRequested', SaveRequestedPayload);
 }
-export const ProgressLoadedEvent = new NetworkEvent<ProgressLoadedPayload>('TDProgressLoaded', ProgressLoadedPayload);
 
 // --- UI Events ---------------------------------------------------------------
 

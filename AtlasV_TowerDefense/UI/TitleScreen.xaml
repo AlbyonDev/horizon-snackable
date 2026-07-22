@@ -55,6 +55,16 @@
 
             <!-- Row 3: JOUER Button with 3D Medieval Style -->
             <Grid Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <!-- Loading/ready state: overlay + label text driven by isLoading/buttonLabel.
+                     Tap is also ignored in TitleScreenHud.onPlayTap until the cloud save loads. -->
+                <b:Interaction.Triggers>
+                    <b:DataTrigger Binding="{Binding isLoading}" Value="True">
+                        <b:ChangePropertyAction TargetName="PlayButtonDisabled" PropertyName="Visibility" Value="Visible"/>
+                    </b:DataTrigger>
+                    <b:DataTrigger Binding="{Binding isLoading}" Value="False">
+                        <b:ChangePropertyAction TargetName="PlayButtonDisabled" PropertyName="Visibility" Value="Collapsed"/>
+                    </b:DataTrigger>
+                </b:Interaction.Triggers>
                 <!-- Shadow layer for 3D depth effect - offset behind -->
                 <Border Margin="16,16,0,0"
                         CornerRadius="32"
@@ -81,11 +91,11 @@
                             </RadialGradientBrush>
                         </Border.Background>
                         <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <TextBlock FontSize="144" FontWeight="Bold" Foreground="Black" Margin="-6,0,0,0" Text="PLAY" FontFamily="Anton"/>
-                            <TextBlock FontSize="144" FontWeight="Bold" Foreground="Black" Margin="6,0,0,0" Text="PLAY" FontFamily="Anton"/>
-                            <TextBlock FontSize="144" FontWeight="Bold" Foreground="Black" Margin="0,-6,0,0" Text="PLAY" FontFamily="Anton"/>
-                            <TextBlock FontSize="144" FontWeight="Bold" Foreground="Black" Margin="0,6,0,0" Text="PLAY" FontFamily="Anton"/>
-                            <TextBlock FontSize="144" FontWeight="Bold" Text="PLAY" FontFamily="Anton" Foreground="#FFF5E6C8"/>
+                            <TextBlock FontSize="144" FontWeight="Bold" Foreground="Black" Margin="-6,0,0,0" Text="{Binding buttonLabel}" FontFamily="Anton"/>
+                            <TextBlock FontSize="144" FontWeight="Bold" Foreground="Black" Margin="6,0,0,0" Text="{Binding buttonLabel}" FontFamily="Anton"/>
+                            <TextBlock FontSize="144" FontWeight="Bold" Foreground="Black" Margin="0,-6,0,0" Text="{Binding buttonLabel}" FontFamily="Anton"/>
+                            <TextBlock FontSize="144" FontWeight="Bold" Foreground="Black" Margin="0,6,0,0" Text="{Binding buttonLabel}" FontFamily="Anton"/>
+                            <TextBlock FontSize="144" FontWeight="Bold" Text="{Binding buttonLabel}" FontFamily="Anton" Foreground="#FFF5E6C8"/>
                         </Grid>
                     </Border>
                 </Button>
@@ -99,6 +109,16 @@
                     <Ellipse Width="36" Height="36" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,16,16"/>
                     <Ellipse Width="20" Height="20" Fill="{StaticResource GoldDarkBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,24"/>
                 </Grid>
+
+                <!-- Disabled overlay: darkens the button while waiting for the cloud save.
+                     Visible by default (matches ViewModel.isLoading=true); toggled by triggers above. -->
+                <Border x:Name="PlayButtonDisabled"
+                        CornerRadius="32"
+                        Width="960"
+                        Height="280"
+                        Background="#AF000000"
+                        IsEnabled="False"
+                        Visibility="Visible"/>
             </Grid>
 
             <!-- Row 4: Subtitle text -->

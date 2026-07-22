@@ -26,6 +26,7 @@ import {
 import type { Maybe } from 'meta/worlds';
 
 import { Events } from '../Types';
+import { SaveService } from '../Services/SaveService';
 
 // ── Module-level UiEvent constants ──────────────────────────────────────────
 
@@ -45,6 +46,14 @@ export class TitleScreenViewModel extends UiViewModel {
   };
 
   visible: boolean = true;
+
+  /** True while waiting for the cloud save. The Play button shows a darkened
+   *  overlay (PlayButtonDisabled in TitleScreen.xaml) and ignores taps until
+   *  this is false. Bound via DataTrigger on `isLoading`. */
+  isLoading: boolean = true;
+
+  /** Button caption: "LOADING" while waiting for the cloud save, "PLAY" once ready. */
+  buttonLabel: string = 'LOADING';
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -53,7 +62,6 @@ export class TitleScreenViewModel extends UiViewModel {
 export class TitleScreenHud extends Component {
   private viewModel: Maybe<TitleScreenViewModel> = null;
   private uiComponent: Maybe<CustomUiComponent> = null;
-  private _hasPlayed: boolean = false;
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -71,9 +79,28 @@ export class TitleScreenHud extends Component {
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = true;
 
+    // Reflect whatever load state already exists (save may have arrived before
+    // this panel bound), then keep it in sync via SaveRestored below.
+    this._setLoading(!SaveService.get().isLoaded);
+
     // Show panel now that binding is complete
     this.uiComponent.isVisible = true;
     console.log('[TitleScreenHud] Panel bound and shown');
+  }
+
+  /** Flip the button between loading and ready. */
+  private _setLoading(loading: boolean): void {
+    if (!this.viewModel) return;
+    this.viewModel.isLoading = loading;
+    this.viewModel.buttonLabel = loading ? 'LOADING' : 'PLAY';
+  }
+
+  @subscribe(Events.SaveRestored, { execution: ExecuteOn.Owner })
+  onSaveRestored(_p: Events.SaveRestoredPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    // Cloud save received — enable the Play button.
+    this._setLoading(false);
+    console.log('[TitleScreenHud] Save loaded — Play enabled');
   }
 
   // ── Events ────────────────────────────────────────────────────────────────
@@ -90,6 +117,14 @@ export class TitleScreenHud extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     if (!this.viewModel.visible) return;
+
+    // Block until the cloud save has been received. Tapping "Play" before the
+    // load arrives would mint a new run and overwrite the real save. The load
+    // completes within a network round-trip of join, so this is momentary.
+    if (!SaveService.get().isLoaded) {
+      console.log('[TitleScreenHud] Play tapped before save loaded — ignored');
+      return;
+    }
 
     this.viewModel.visible = false;
     // Always fire StartGame which transitions to Overworld

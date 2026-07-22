@@ -36,6 +36,8 @@ import { PathTileService } from '../Services/PathTileService';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { RelicService } from '../Services/RelicService';
 import { BossModifierService } from '../Services/BossModifierService';
+import { SaveService } from '../Services/SaveService';
+import { TOTAL_LEVELS } from '../Constants';
 
 
 @component()
@@ -48,8 +50,16 @@ export class GameManager extends Component {
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
-    LevelGeneratorService.get(); // Force instantiation before StartGame
+    LevelGeneratorService.get(); // Force instantiation before StartGame (pulls in SaveService)
     SlowService.get();
+    // RelicService must be alive before the initial SaveRestored broadcast so
+    // it can restore saved relics on load — not only from _startGame().
+    RelicService.get();
+    // Request the cloud save now. This MUST happen from a component onStart (not
+    // from SaveService's onReady): sendGlobally needs the global event entity,
+    // which doesn't exist yet during service init. All save subscribers are wired
+    // by this point, so the response can't be missed.
+    SaveService.get().requestLoad();
     if (this.enabled) {
       this._startGame();
     }
@@ -144,6 +154,13 @@ export class GameManager extends Component {
       lcp.levelIndex = this._currentLevelIndex;
       EventService.sendLocally(Events.LevelCompleted, lcp);
       console.log(`[GameManager] Level ${this._currentLevelIndex + 1} completed, firing LevelCompleted`);
+
+      // Winning the final (boss) level completes the whole run → bump runCount.
+      // SaveService then mints a fresh seed on the next StartGame.
+      if (this._currentLevelIndex >= TOTAL_LEVELS - 1) {
+        SaveService.get().markRunComplete();
+        console.log('[GameManager] Final level won — run complete');
+      }
     }
   }
 }
