@@ -6,7 +6,7 @@
  * Component Ownership: Server-owned scene entity, but UI logic runs on client via ExecuteOn.Owner
  *
  * Displays a single winding S-curve path of level nodes positioned on a Canvas.
- * Nodes alternate left/right as you scroll down, connected by diagonal dirt-trail connectors.
+ * Nodes alternate left/right as you scroll down, connected by a smooth bezier curve.
  * Level 1 appears at the top (visible first), higher levels below (scroll down).
  * When a level is tapped, fires Events.LevelSelected with the chosen levelIndex.
  * Shows only during the Overworld GamePhase.
@@ -71,7 +71,7 @@ const RELIC_ICONS: Record<string, TextureAsset> = {
   slow: RELIC_ICON_SLOW,
 };
 
-// —— Level Node sub-ViewModel ———————————————————————————————————————————
+// -- Level Node sub-ViewModel --
 
 @uiViewModel()
 export class OverworldPathNodeViewModel extends UiViewModel {
@@ -83,7 +83,7 @@ export class OverworldPathNodeViewModel extends UiViewModel {
   levelNumber: string = '1';
   /** Index as string for CommandParameter binding */
   levelIndex: string = '0';
-  /** Node type string: 'combat', 'boss', or 'minigame' — drives sprite visibility in XAML */
+  /** Node type string: 'combat', 'boss', or 'minigame' -- drives sprite visibility in XAML */
   nodeType: string = 'combat';
   /** Node size (boss nodes are larger) */
   nodeSize: number = 180;
@@ -91,11 +91,11 @@ export class OverworldPathNodeViewModel extends UiViewModel {
   fontSize: number = 72;
   /** Vertical offset margin for the level number (top,right,bottom,left format) */
   numberMargin: string = '0,0,0,0';
-  /** Node state: "open", "beaten", or "locked" — drives sprite visibility in XAML */
+  /** Node state: "open", "beaten", or "locked" -- drives sprite visibility in XAML */
   nodeState: string = 'locked';
   /** Whether this node is interactable (open or beaten) */
   isInteractable: boolean = false;
-  /** Short modifier label for boss nodes (e.g. "×1.2 HP") */
+  /** Short modifier label for boss nodes (e.g. "x1.2 HP") */
   modifierLabel: string = '';
   /** Left margin for boss modifier badge (nodeSize + extra gap) */
   modifierMargin: string = '230,0,0,0';
@@ -103,37 +103,7 @@ export class OverworldPathNodeViewModel extends UiViewModel {
   modifierOffsetX: number = 230;
 }
 
-// —— Segment sub-ViewModel (one tile of the repeated path pattern) ————————
-
-@uiViewModel()
-export class OverworldPathSegmentViewModel extends UiViewModel {
-  /** Width of this individual segment tile (px) */
-  segmentWidth: number = 80;
-  /** Height (thickness) of this segment tile (px) */
-  segmentHeight: number = 36;
-}
-
-// —— Connector sub-ViewModel ——————————————————————————————————————————————
-
-@uiViewModel()
-export class OverworldPathConnectorViewModel extends UiViewModel {
-  /** Canvas.Left position (midpoint X - width/2) */
-  posX: number = 0;
-  /** Canvas.Top position (midpoint Y - height/2) */
-  posY: number = 0;
-  /** Rotation angle in degrees */
-  angle: number = 0;
-  /** Width of the connector bar */
-  connectorWidth: number = 100;
-  /** Height (thickness) of the connector bar (px) */
-  connectorThickness: number = 40;
-  /** Repeated segment tiles to fill the connector length */
-  segments: readonly OverworldPathSegmentViewModel[] = [];
-}
-
-// —— Main ViewModel ———————————————————————————————————————————————————————
-
-// —— Relic Icon sub-ViewModel ——————————————————————————————————————
+// -- Relic Icon sub-ViewModel --
 
 @uiViewModel()
 export class OverworldRelicIconViewModel extends UiViewModel {
@@ -143,7 +113,7 @@ export class OverworldRelicIconViewModel extends UiViewModel {
   icon: Maybe<TextureAsset> = null;
 }
 
-// —— Main ViewModel ———————————————————————————————————————————————
+// -- Main ViewModel --
 
 @uiViewModel()
 export class OverworldViewModel extends UiViewModel {
@@ -155,7 +125,8 @@ export class OverworldViewModel extends UiViewModel {
   visible: boolean = false;
   runLabel: string = 'RUN 1';
   nodes: readonly OverworldPathNodeViewModel[] = [];
-  connectors: readonly OverworldPathConnectorViewModel[] = [];
+  /** SVG path data string for the smooth bezier curve connecting all nodes */
+  pathData: string = '';
   canvasHeight: number = 800;
   backgroundImage: Maybe<TextureAsset> = null;
 
@@ -170,16 +141,16 @@ export class OverworldViewModel extends UiViewModel {
   relicPopupMargin: string = '300,24,0,0';
 }
 
-// —— Component ————————————————————————————————————————————————————————————
+// -- Component --
 
 @component()
 export class OverworldHud extends Component {
   /** Number of level buttons to display */
   @property() levelCount: number = 5;
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ========================================================================
   // LAYOUT PROPERTIES
-  // ══════════════════════════════════════════════════════════════════════════
+  // ========================================================================
 
   @property() canvasWidth: number = 900;
   @property() topPadding: number = 120;
@@ -196,11 +167,10 @@ export class OverworldHud extends Component {
   @property() levelNumberFontSize: number = 72;
   @property() levelNumberOffsetX: number = 0;
   @property() levelNumberOffsetZ: number = 0;
-  @property() connectorHeight: number = 40;
-  @property() segmentLength: number = 80;
-  @property() segmentWidth: number = 36;
+  /** Thickness of the smooth bezier path stroke (px) */
+  @property() pathThickness: number = 40;
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ========================================================================
 
   private viewModel: Maybe<OverworldViewModel> = null;
   private uiComponent: Maybe<CustomUiComponent> = null;
@@ -211,7 +181,7 @@ export class OverworldHud extends Component {
   /** Buffered progress data if ProgressRestored fires before onStart completes */
   private pendingBeatenLevels: string = '';
 
-  // —— Lifecycle ——————————————————————————————————————————————————————————
+  // -- Lifecycle --
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
   onStart(): void {
@@ -242,7 +212,7 @@ export class OverworldHud extends Component {
     }
   }
 
-  // —— Events ———————————————————————————————————————————————————————————————
+  // -- Events --
 
   @subscribe(Events.GamePhaseChanged, { execution: ExecuteOn.Owner })
   onPhaseChanged(payload: Events.GamePhaseChangedPayload): void {
@@ -254,7 +224,7 @@ export class OverworldHud extends Component {
 
     // Refresh node states when returning to overworld
     if (shouldShow) {
-      // Check if all levels are beaten → advance to next run
+      // Check if all levels are beaten -> advance to next run
       if (this._allLevelsBeaten()) {
         this._advanceRun();
       }
@@ -410,7 +380,7 @@ export class OverworldHud extends Component {
     EventService.sendLocally(Events.LevelSelected, p);
   }
 
-  // —— Private ————————————————————————————————————————————————————————————
+  // -- Private --
 
   /** Initialize level states: first level open, rest locked */
   private _initLevelStates(): void {
@@ -502,18 +472,31 @@ export class OverworldHud extends Component {
     return { nodeSize, verticalSpacing };
   }
 
-  private _buildSegments(connectorLength: number): OverworldPathSegmentViewModel[] {
-    const segLen = Math.max(1, this.segmentLength);
-    const count = Math.max(1, Math.round(connectorLength / segLen));
-    const tileWidth = connectorLength / count;
-    const segments: OverworldPathSegmentViewModel[] = [];
-    for (let s = 0; s < count; s++) {
-      const seg = new OverworldPathSegmentViewModel();
-      seg.segmentWidth = tileWidth;
-      seg.segmentHeight = this.segmentWidth;
-      segments.push(seg);
+  /**
+   * Compute a smooth cubic bezier path data string connecting all node centers.
+   * Uses horizontal tangent control points at the vertical midpoint between
+   * consecutive nodes, creating the classic S-curve winding snake pattern.
+   */
+  private _buildPathData(nodeCenters: Array<{ x: number; y: number }>): string {
+    if (nodeCenters.length < 2) return '';
+
+    // Start at the first node center
+    let d = `M${nodeCenters[0].x},${nodeCenters[0].y}`;
+
+    // For each consecutive pair, draw a cubic bezier with S-curve control points
+    for (let i = 0; i < nodeCenters.length - 1; i++) {
+      const curr = nodeCenters[i];
+      const next = nodeCenters[i + 1];
+      // Control points at the same X as their respective node but at midpoint Y
+      const midY = (curr.y + next.y) / 2;
+      const cp1x = curr.x;
+      const cp1y = midY;
+      const cp2x = next.x;
+      const cp2y = midY;
+      d += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${next.x},${next.y}`;
     }
-    return segments;
+
+    return d;
   }
 
   /** Assigned node types per level index */
@@ -593,39 +576,20 @@ export class OverworldHud extends Component {
       nodes.push(node);
     }
 
-    // Build connector ViewModels between consecutive nodes
-    const connectors: OverworldPathConnectorViewModel[] = [];
-    for (let i = 0; i < totalLevels - 1; i++) {
-      const c1 = nodeCenters[i];
-      const c2 = nodeCenters[i + 1];
-      const dx = c2.x - c1.x;
-      const dy = c2.y - c1.y;
-      const length = Math.sqrt(dx * dx + dy * dy);
-      const angleDeg = Math.atan2(dy, dx) * (180 / Math.PI);
-      const midX = (c1.x + c2.x) / 2;
-      const midY = (c1.y + c2.y) / 2;
-
-      const connector = new OverworldPathConnectorViewModel();
-      connector.posX = midX - length / 2;
-      connector.posY = midY - this.connectorHeight / 2;
-      connector.angle = angleDeg;
-      connector.connectorWidth = length;
-      connector.connectorThickness = this.connectorHeight;
-      connector.segments = this._buildSegments(length);
-      connectors.push(connector);
-    }
+    // Build smooth bezier path data connecting all nodes
+    const pathData = this._buildPathData(nodeCenters);
 
     // Compute total canvas height dynamically
     const canvasHeight = this.topPadding + (totalLevels - 1) * verticalSpacing + this.bottomPadding;
 
     if (this.viewModel) {
       this.viewModel.nodes = nodes;
-      this.viewModel.connectors = connectors;
+      this.viewModel.pathData = pathData;
       this.viewModel.canvasHeight = canvasHeight;
     }
   }
 
-  // —— Relic Icons ——————————————————————————————————————————————————
+  // -- Relic Icons --
 
   @subscribe(UiEvents.overworldRelicIconTap, { execution: ExecuteOn.Owner })
   onRelicIconTap(payload: UiEvents.OverworldRelicIconTapPayload): void {
@@ -656,14 +620,11 @@ export class OverworldHud extends Component {
     if (!def) return;
 
     // Calculate vertical offset based on which relic icon was tapped
-    // Icons are 250px tall with 6px vertical margin (Margin="0,6") in a StackPanel starting at top margin 24
-    // The StackPanel itself has Margin="32,24,0,0"
     const relicIndex = this.viewModel.relicIcons.findIndex(icon => icon.relicId === relicId);
     const iconHeight = 250;
     const iconVerticalMargin = 12; // 6px top + 6px bottom from Margin="0,6"
     const stackPanelTopMargin = 24;
     const popupTopOffset = stackPanelTopMargin + relicIndex * (iconHeight + iconVerticalMargin);
-    // Position popup to the right of icons: left offset = 32 (stack margin) + 250 (icon width) + 16 (gap)
     const popupLeftOffset = 300;
     this.viewModel.relicPopupMargin = `${popupLeftOffset},${popupTopOffset},0,0`;
 

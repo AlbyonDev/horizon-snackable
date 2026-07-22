@@ -11,15 +11,13 @@
         <SolidColorBrush x:Key="TextLightBrush" Color="#FFF5E6C8"/>
         <SolidColorBrush x:Key="ParchmentBrush" Color="#FFF5E6C8"/>
         <SolidColorBrush x:Key="DarkStoneBrush" Color="#FF2A1A0A"/>
+        <!-- Path stroke: warm stone tan for the winding trail -->
+        <SolidColorBrush x:Key="PathStrokeBrush" Color="#FF8B6914"/>
+        <SolidColorBrush x:Key="PathStrokeOuterBrush" Color="#FF5C440D"/>
 
         <!-- Canvas panel for absolute positioning -->
         <ItemsPanelTemplate x:Key="CanvasPanel">
             <Canvas/>
-        </ItemsPanelTemplate>
-
-        <!-- Horizontal panel for tiled path segments -->
-        <ItemsPanelTemplate x:Key="HorizontalPanel">
-            <StackPanel Orientation="Horizontal"/>
         </ItemsPanelTemplate>
 
         <!-- Node container style: positions each node on the canvas -->
@@ -27,19 +25,6 @@
             <Setter Property="Canvas.Left" Value="{Binding posX}"/>
             <Setter Property="Canvas.Top" Value="{Binding posY}"/>
         </Style>
-
-        <!-- Connector container style: positions each connector on the canvas -->
-        <Style x:Key="ConnectorContainerStyle" TargetType="ContentPresenter">
-            <Setter Property="Canvas.Left" Value="{Binding posX}"/>
-            <Setter Property="Canvas.Top" Value="{Binding posY}"/>
-        </Style>
-
-        <!-- Individual segment tile template -->
-        <DataTemplate x:Key="SegmentTileTemplate">
-            <Image Source="sprites/overworld_path_segment.png" Stretch="Fill"
-                   Width="{Binding segmentWidth}" Height="{Binding segmentHeight}"
-                   VerticalAlignment="Center"/>
-        </DataTemplate>
 
         <!-- Relic icon template -->
         <DataTemplate x:Key="RelicIconTemplate">
@@ -65,22 +50,6 @@
             <StackPanel Orientation="Vertical"/>
         </ItemsPanelTemplate>
 
-        <!-- Path connector template using repeating tiles -->
-        <DataTemplate x:Key="ConnectorTemplate">
-            <Grid Width="{Binding connectorWidth}" Height="{Binding connectorThickness}" RenderTransformOrigin="0.5,0.5"
-                  ClipToBounds="True">
-                <Grid.RenderTransform>
-                    <RotateTransform Angle="{Binding angle}"/>
-                </Grid.RenderTransform>
-
-                <!-- Repeat the path segment pattern using ItemsControl with horizontal layout -->
-                <ItemsControl ItemsSource="{Binding segments}"
-                              ItemsPanel="{StaticResource HorizontalPanel}"
-                              ItemTemplate="{StaticResource SegmentTileTemplate}"
-                              VerticalAlignment="Center"/>
-            </Grid>
-        </DataTemplate>
-
         <!-- Level Node template with state-driven sprites -->
         <DataTemplate x:Key="LevelNodeTemplate">
             <Grid Width="{Binding nodeSize}" Height="{Binding nodeSize}" ClipToBounds="False">
@@ -93,7 +62,7 @@
                     </b:EventTrigger>
                 </b:Interaction.Triggers>
 
-                <!-- ═══ COMBAT NODE SPRITES (nodeType=combat) ═══ -->
+                <!-- === COMBAT NODE SPRITES (nodeType=combat) === -->
 
                 <!-- COMBAT BEATEN state sprite -->
                 <Image Source="sprites/overworld_node_combat.png" Stretch="Uniform">
@@ -149,7 +118,7 @@
                     </Image.Style>
                 </Image>
 
-                <!-- ═══ BOSS NODE SPRITES (nodeType=boss) ═══ -->
+                <!-- === BOSS NODE SPRITES (nodeType=boss) === -->
 
                 <!-- BOSS BEATEN state sprite -->
                 <Image Source="sprites/overworld_node_boss.png" Stretch="Uniform">
@@ -205,7 +174,7 @@
                     </Image.Style>
                 </Image>
 
-                <!-- ═══ MINIGAME NODE SPRITES (nodeType=minigame) ═══ -->
+                <!-- === MINIGAME NODE SPRITES (nodeType=minigame) === -->
 
                 <!-- MINIGAME BEATEN state sprite -->
                 <Image Source="sprites/overworld_node_minigame.png" Stretch="Uniform">
@@ -444,11 +413,21 @@
                           VerticalAlignment="Center">
 
                 <Canvas Width="900" Height="{Binding canvasHeight}">
-                    <!-- Connectors layer (behind nodes) -->
-                    <ItemsControl ItemsSource="{Binding connectors}"
-                                  ItemsPanel="{StaticResource CanvasPanel}"
-                                  ItemContainerStyle="{StaticResource ConnectorContainerStyle}"
-                                  ItemTemplate="{StaticResource ConnectorTemplate}"/>
+                    <!-- Smooth bezier curve path (behind nodes) — outer dark stroke for depth -->
+                    <Path Data="{Binding pathData}"
+                          Stroke="{StaticResource PathStrokeOuterBrush}"
+                          StrokeThickness="52"
+                          StrokeStartLineCap="Round"
+                          StrokeEndLineCap="Round"
+                          StrokeLineJoin="Round"/>
+
+                    <!-- Smooth bezier curve path — main warm stone trail -->
+                    <Path Data="{Binding pathData}"
+                          Stroke="{StaticResource PathStrokeBrush}"
+                          StrokeThickness="40"
+                          StrokeStartLineCap="Round"
+                          StrokeEndLineCap="Round"
+                          StrokeLineJoin="Round"/>
 
                     <!-- Nodes layer (on top) -->
                     <ItemsControl ItemsSource="{Binding nodes}"

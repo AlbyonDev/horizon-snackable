@@ -1,6 +1,4 @@
-tasks:
-  - name: Fix Boss Modifier Save on Pick
-    status: done
+tasks: []
 
 done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
@@ -31,7 +29,7 @@ done:
   - Abandon Confirmation Popup -- "Are you sure?" Yes/No popup on abandon tap
   - Overworld Map Centering -- bottom-to-top order, middle level centered on screen
   - Overworld HD Visual Upgrade -- sprite-based painted nodes, path, and background
-  - Overworld Path Segment Tiling -- repeat pattern instead of stretch, configurable segmentLength
+  - Overworld Curvy Snake Path -- smooth bezier curve connecting nodes, replaces tiled segments
   - Fix UI Flash on Launch v2 -- panelVisibility=false in template, show after bind
   - Overworld Node Numbers -- size 72px, centered, exposed fontSize + offsetY props
   - Random Level Generation -- N procedural levels with random waves and paths
@@ -62,6 +60,7 @@ done:
   - Overworld SELECT LEVEL Footer -- bottom box, same style as RUN 1 header
   - Boss Victory Skip Relic -- "NEXT RUN" button, skips relic choice on boss win
   - Save Owned Relics Variable -- persists relics per run, resets on boss advance
+  - Fix Boss Modifier Save on Pick -- fixed save/load timing
 
 chopping_block:
   disabled_systems: []
