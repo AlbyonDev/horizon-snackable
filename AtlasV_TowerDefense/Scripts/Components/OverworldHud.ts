@@ -30,6 +30,8 @@
 import {
   Component,
   OnEntityStartEvent,
+  OnWorldUpdateEvent,
+  OnWorldUpdateEventPayload,
   NetworkingService,
   ExecuteOn,
   EventService,
@@ -48,6 +50,7 @@ import { Events, GamePhase, OverworldNodeState, UiEvents, BOSS_MODIFIER_LABELS }
 import { BIOME_DEFS } from '../Defs/BiomeDefs';
 import { RelicService } from '../Services/RelicService';
 import { RELIC_DEFS } from '../Defs/RelicDefs';
+import type { IRelicDef } from '../Defs/RelicDefs';
 import { OverworldNodeType } from '../Defs/NodeDefs';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { TOTAL_LEVELS } from '../Constants';
@@ -123,6 +126,33 @@ export class OverworldRelicIconViewModel extends UiViewModel {
   icon: Maybe<TextureAsset> = null;
 }
 
+// -- Carousel Card sub-ViewModel --
+
+@uiViewModel()
+export class RelicCarouselCardViewModel extends UiViewModel {
+  relicId: string = '';
+  relicName: string = '';
+  relicDescription: string = '';
+  icon: Maybe<TextureAsset> = null;
+  /** Positioning and transform */
+  cardLeft: number = 0;
+  cardTop: number = 0;
+  cardWidth: number = 400;
+  cardHeight: number = 600;
+  cardScaleX: number = 1;
+  cardScaleY: number = 1;
+  cardOpacity: number = 1;
+  cardZIndex: number = 0;
+}
+
+// -- Carousel Dot sub-ViewModel --
+
+@uiViewModel()
+export class RelicCarouselDotViewModel extends UiViewModel {
+  dotSize: number = 24;
+  dotColor: string = '#88FFFFFF';
+}
+
 // -- Main ViewModel --
 
 @uiViewModel()
@@ -130,6 +160,8 @@ export class OverworldViewModel extends UiViewModel {
   override readonly events = {
     levelTap: UiEvents.overworldLevelTap,
     relicIconTap: UiEvents.overworldRelicIconTap,
+    relicCarouselTap: UiEvents.relicCarouselTap,
+    relicCarouselSwipe: UiEvents.relicCarouselSwipe,
   };
 
   visible: boolean = false;
@@ -140,15 +172,13 @@ export class OverworldViewModel extends UiViewModel {
   canvasHeight: number = 800;
   backgroundImage: Maybe<TextureAsset> = null;
 
-  // Relic icons
-  relicIcons: readonly OverworldRelicIconViewModel[] = [];
+  // Relic button visibility (true when player has relics)
   relicIconsVisible: boolean = false;
 
-  // Relic popup
-  relicPopupVisible: boolean = false;
-  relicPopupName: string = '';
-  relicPopupDescription: string = '';
-  relicPopupMargin: string = '300,24,0,0';
+  // Carousel overlay state
+  carouselVisible: boolean = false;
+  carouselCards: readonly RelicCarouselCardViewModel[] = [];
+  carouselDots: readonly RelicCarouselDotViewModel[] = [];
 }
 
 // -- Component --
@@ -362,8 +392,8 @@ export class OverworldHud extends Component {
     if (!this.viewModel) return;
     if (!this.viewModel.visible) return;
 
-    // Dismiss relic popup on any level tap
-    this.viewModel.relicPopupVisible = false;
+    // Dismiss relic carousel on any level tap
+    this.viewModel.carouselVisible = false;
 
     const levelIndex = parseInt(payload.parameter, 10);
     if (isNaN(levelIndex)) return;
@@ -723,78 +753,293 @@ export class OverworldHud extends Component {
     }
   }
 
-  // -- Relic Icons --
+  // -- Relic Carousel --
 
-  @subscribe(UiEvents.overworldRelicIconTap, { execution: ExecuteOn.Owner })
-  onRelicIconTap(payload: UiEvents.OverworldRelicIconTapPayload): void {
+  /** Current focused card index in the carousel */
+  private _carouselIndex: number = 0;
+  /** Cached active relic defs for the carousel */
+  private _carouselRelics: IRelicDef[] = [];
+
+  // Animation state for smooth 3D carousel transitions
+  private _carouselAnimating: boolean = false;
+  /** Animation speed — higher = faster transitions (6 = ~160ms settle) */
+  private _carouselAnimSpeed: number = 6;
+  /** Per-card current animated values (parallel to _carouselRelics) */
+  private _cardCurrentLeft: number[] = [];
+  private _cardCurrentTop: number[] = [];
+  private _cardCurrentScaleX: number[] = [];
+  private _cardCurrentScaleY: number[] = [];
+  private _cardCurrentOpacity: number[] = [];
+  /** Per-card target values for interpolation */
+  private _cardTargetLeft: number[] = [];
+  private _cardTargetTop: number[] = [];
+  private _cardTargetScaleX: number[] = [];
+  private _cardTargetScaleY: number[] = [];
+  private _cardTargetOpacity: number[] = [];
+  private _cardTargetZIndex: number[] = [];
+
+  // Carousel layout constants (larger cards)
+  private readonly _carouselCanvasW: number = 1800;
+  private readonly _carouselCanvasH: number = 1800;
+  private readonly _centerCardW: number = 864;
+  private readonly _centerCardH: number = 1224;
+
+  @subscribe(OnWorldUpdateEvent, { execution: ExecuteOn.Owner })
+  onCarouselUpdate(payload: OnWorldUpdateEventPayload): void {
     if (NetworkingService.get().isServerContext()) return;
-    if (!this.viewModel) return;
+    if (!this._carouselAnimating) return;
+    if (!this.viewModel || !this.viewModel.carouselVisible) return;
 
-    const relicId = payload.parameter;
+    const dt = payload.deltaTime;
+    const speed = this._carouselAnimSpeed;
+    const count = this._carouselRelics.length;
+    if (count === 0) return;
 
-    // Dismiss on explicit dismiss or tap on popup card
-    if (relicId === '__dismiss__') {
-      this.viewModel.relicPopupVisible = false;
-      console.log(`[OverworldHud] Relic popup dismissed`);
-      return;
-    }
+    // Lerp factor using exponential ease-out
+    const t = 1.0 - Math.exp(-speed * dt);
+    let allSettled = true;
 
-    // If popup is already showing for this relic, dismiss it (toggle)
-    if (this.viewModel.relicPopupVisible) {
-      const currentDef = RELIC_DEFS.find(r => r.name === this.viewModel!.relicPopupName);
-      if (currentDef && currentDef.id === relicId) {
-        this.viewModel.relicPopupVisible = false;
-        console.log(`[OverworldHud] Relic popup dismissed (toggle)`);
-        return;
+    for (let i = 0; i < count; i++) {
+      // Interpolate each property toward target
+      this._cardCurrentLeft[i] += (this._cardTargetLeft[i] - this._cardCurrentLeft[i]) * t;
+      this._cardCurrentTop[i] += (this._cardTargetTop[i] - this._cardCurrentTop[i]) * t;
+      this._cardCurrentScaleX[i] += (this._cardTargetScaleX[i] - this._cardCurrentScaleX[i]) * t;
+      this._cardCurrentScaleY[i] += (this._cardTargetScaleY[i] - this._cardCurrentScaleY[i]) * t;
+      this._cardCurrentOpacity[i] += (this._cardTargetOpacity[i] - this._cardCurrentOpacity[i]) * t;
+
+      // Check if settled (within threshold)
+      if (Math.abs(this._cardTargetLeft[i] - this._cardCurrentLeft[i]) > 0.5 ||
+          Math.abs(this._cardTargetScaleX[i] - this._cardCurrentScaleX[i]) > 0.005) {
+        allSettled = false;
       }
     }
 
-    // Show popup for the tapped relic
-    const def = RELIC_DEFS.find(r => r.id === relicId);
-    if (!def) return;
+    // Push interpolated values into the ViewModel
+    this._pushCarouselToViewModel();
 
-    // Calculate vertical offset based on which relic icon was tapped
-    const relicIndex = this.viewModel.relicIcons.findIndex(icon => icon.relicId === relicId);
-    const iconHeight = 250;
-    const iconVerticalMargin = 12; // 6px top + 6px bottom from Margin="0,6"
-    const stackPanelTopMargin = 24;
-    const popupTopOffset = stackPanelTopMargin + relicIndex * (iconHeight + iconVerticalMargin);
-    const popupLeftOffset = 300;
-    this.viewModel.relicPopupMargin = `${popupLeftOffset},${popupTopOffset},0,0`;
-
-    this.viewModel.relicPopupName = def.name;
-    this.viewModel.relicPopupDescription = def.description;
-    this.viewModel.relicPopupVisible = true;
-    console.log(`[OverworldHud] Relic popup shown: ${def.name} at index ${relicIndex}, topOffset=${popupTopOffset}`);
+    if (allSettled) {
+      this._carouselAnimating = false;
+      // Snap to final targets
+      for (let i = 0; i < count; i++) {
+        this._cardCurrentLeft[i] = this._cardTargetLeft[i];
+        this._cardCurrentTop[i] = this._cardTargetTop[i];
+        this._cardCurrentScaleX[i] = this._cardTargetScaleX[i];
+        this._cardCurrentScaleY[i] = this._cardTargetScaleY[i];
+        this._cardCurrentOpacity[i] = this._cardTargetOpacity[i];
+      }
+      this._pushCarouselToViewModel();
+    }
   }
 
-  /** Refresh the relic icon list from RelicService active relics. */
+  /** Push current animated card values into ViewModel (creates new array for reactivity) */
+  private _pushCarouselToViewModel(): void {
+    if (!this.viewModel) return;
+    const count = this._carouselRelics.length;
+    const cards: RelicCarouselCardViewModel[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const def = this._carouselRelics[i];
+      const card = new RelicCarouselCardViewModel();
+      card.relicId = def.id;
+      card.relicName = def.name;
+      card.relicDescription = def.description;
+      card.icon = RELIC_ICONS[def.id] || null;
+      card.cardWidth = this._centerCardW;
+      card.cardHeight = this._centerCardH;
+      card.cardLeft = this._cardCurrentLeft[i];
+      card.cardTop = this._cardCurrentTop[i];
+      card.cardScaleX = this._cardCurrentScaleX[i];
+      card.cardScaleY = this._cardCurrentScaleY[i];
+      card.cardOpacity = this._cardCurrentOpacity[i];
+      card.cardZIndex = this._cardTargetZIndex[i];
+      cards.push(card);
+    }
+
+    this.viewModel.carouselCards = cards;
+  }
+
+  @subscribe(UiEvents.relicCarouselTap, { execution: ExecuteOn.Owner })
+  onRelicCarouselTap(payload: UiEvents.RelicCarouselTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    const cmd = payload.parameter;
+
+    if (cmd === 'open') {
+      this._openCarousel();
+    } else if (cmd === 'close') {
+      this.viewModel.carouselVisible = false;
+      this._carouselAnimating = false;
+      console.log('[OverworldHud] Carousel closed');
+    }
+  }
+
+  /** Swipe zone index where the finger went down (-1 = no active drag) */
+  private _swipeDownZone: number = -1;
+
+  @subscribe(UiEvents.relicCarouselSwipe, { execution: ExecuteOn.Owner })
+  onRelicCarouselSwipe(payload: UiEvents.RelicCarouselSwipePayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    const cmd = payload.parameter;
+    if (cmd.length < 2) return;
+
+    const action = cmd.charAt(0); // 'd' = down, 'u' = up
+    const zone = parseInt(cmd.charAt(1), 10);
+    if (isNaN(zone)) return;
+
+    if (action === 'd') {
+      // Finger touched down on this zone
+      this._swipeDownZone = zone;
+    } else if (action === 'u') {
+      // Finger lifted — compute delta from down zone
+      if (this._swipeDownZone < 0) return;
+      const delta = zone - this._swipeDownZone;
+      this._swipeDownZone = -1;
+
+      if (delta === 0) return; // tap in place — no navigation
+
+      if (this._carouselRelics.length > 0) {
+        if (delta > 0) {
+          // Swiped right (finger moved from left to right) -> show previous card
+          if (this._carouselIndex <= 0) {
+            console.log(`[OverworldHud] Already at first card, cannot swipe right`);
+            return;
+          }
+          this._carouselIndex = this._carouselIndex - 1;
+          console.log(`[OverworldHud] Swipe right (prev) -> index ${this._carouselIndex}`);
+        } else {
+          // Swiped left (finger moved from right to left) -> show next card
+          if (this._carouselIndex >= this._carouselRelics.length - 1) {
+            console.log(`[OverworldHud] Already at last card, cannot swipe left`);
+            return;
+          }
+          this._carouselIndex = this._carouselIndex + 1;
+          console.log(`[OverworldHud] Swipe left (next) -> index ${this._carouselIndex}`);
+        }
+        this._computeCarouselTargets();
+        this._carouselAnimating = true;
+        this._updateCarouselDots();
+      }
+    }
+  }
+
+  /** Open the carousel overlay */
+  private _openCarousel(): void {
+    if (!this.viewModel) return;
+
+    const activeIds = RelicService.get().getActiveRelicIds();
+    this._carouselRelics = [];
+    for (const id of activeIds) {
+      const def = RELIC_DEFS.find(r => r.id === id);
+      if (def) this._carouselRelics.push(def);
+    }
+
+    if (this._carouselRelics.length === 0) return;
+
+    this._carouselIndex = 0;
+
+    // Initialize animation arrays
+    const count = this._carouselRelics.length;
+    this._cardCurrentLeft = new Array(count).fill(0);
+    this._cardCurrentTop = new Array(count).fill(0);
+    this._cardCurrentScaleX = new Array(count).fill(0);
+    this._cardCurrentScaleY = new Array(count).fill(0);
+    this._cardCurrentOpacity = new Array(count).fill(0);
+    this._cardTargetLeft = new Array(count).fill(0);
+    this._cardTargetTop = new Array(count).fill(0);
+    this._cardTargetScaleX = new Array(count).fill(0);
+    this._cardTargetScaleY = new Array(count).fill(0);
+    this._cardTargetOpacity = new Array(count).fill(0);
+    this._cardTargetZIndex = new Array(count).fill(0);
+
+    // Compute targets and snap to them instantly on open
+    this._computeCarouselTargets();
+    for (let i = 0; i < count; i++) {
+      this._cardCurrentLeft[i] = this._cardTargetLeft[i];
+      this._cardCurrentTop[i] = this._cardTargetTop[i];
+      this._cardCurrentScaleX[i] = this._cardTargetScaleX[i];
+      this._cardCurrentScaleY[i] = this._cardTargetScaleY[i];
+      this._cardCurrentOpacity[i] = this._cardTargetOpacity[i];
+    }
+
+    this._pushCarouselToViewModel();
+    this._updateCarouselDots();
+    this.viewModel.carouselVisible = true;
+    this._carouselAnimating = false;
+    console.log(`[OverworldHud] Carousel opened with ${this._carouselRelics.length} relics`);
+  }
+
+  /** Compute target positions/scales for all cards based on current _carouselIndex */
+  private _computeCarouselTargets(): void {
+    const count = this._carouselRelics.length;
+    if (count === 0) return;
+
+    const canvasW = this._carouselCanvasW;
+    const canvasH = this._carouselCanvasH;
+    const centerX = canvasW / 2;
+    const centerY = canvasH / 2;
+    const cardW = this._centerCardW;
+    const cardH = this._centerCardH;
+
+    for (let i = 0; i < count; i++) {
+      // Linear offset from center (no wrapping)
+      const offset = i - this._carouselIndex;
+
+      const absOffset = Math.abs(offset);
+
+      // 3D carousel arc: cards follow a circular arc
+      // Scale decreases with distance from center
+      const scale = Math.max(0.45, 1.0 - absOffset * 0.28);
+      // All cards at full opacity (no fading)
+      const opacity = 1.0;
+      // Horizontal shift with slight compression for distant cards
+      const xShift = offset * 580;
+      // Vertical arc: cards drop down as they move away from center (circular arc feel)
+      const yShift = absOffset * absOffset * 20;
+      // Z-index: center on top
+      const zIndex = absOffset > 2 ? -1 : 100 - absOffset;
+
+      this._cardTargetLeft[i] = centerX - cardW / 2 + xShift;
+      this._cardTargetTop[i] = centerY - cardH / 2 + yShift;
+      this._cardTargetScaleX[i] = scale;
+      this._cardTargetScaleY[i] = scale;
+      this._cardTargetOpacity[i] = opacity;
+      this._cardTargetZIndex[i] = zIndex;
+    }
+  }
+
+  /** Update dot indicators only (no card rebuild) */
+  private _updateCarouselDots(): void {
+    if (!this.viewModel) return;
+    const count = this._carouselRelics.length;
+    const dots: RelicCarouselDotViewModel[] = [];
+    for (let i = 0; i < count; i++) {
+      const dot = new RelicCarouselDotViewModel();
+      if (i === this._carouselIndex) {
+        dot.dotSize = 32;
+        dot.dotColor = '#FFf5c518'; // gold
+      } else {
+        dot.dotSize = 24;
+        dot.dotColor = '#88FFFFFF';
+      }
+      dots.push(dot);
+    }
+    this.viewModel.carouselDots = dots;
+  }
+
+  /** Refresh the relic button visibility from RelicService active relics. */
   private _refreshRelicIcons(): void {
     if (!this.viewModel) return;
 
     const activeIds = RelicService.get().getActiveRelicIds();
+    this.viewModel.relicIconsVisible = activeIds.length > 0;
+
+    // Close carousel if no relics remain
     if (activeIds.length === 0) {
-      this.viewModel.relicIcons = [];
-      this.viewModel.relicIconsVisible = false;
-      this.viewModel.relicPopupVisible = false;
-      return;
+      this.viewModel.carouselVisible = false;
     }
-
-    const icons: OverworldRelicIconViewModel[] = [];
-    for (const relicId of activeIds) {
-      const def = RELIC_DEFS.find(r => r.id === relicId);
-      if (!def) continue;
-      const iconTexture = RELIC_ICONS[relicId];
-      if (!iconTexture) continue;
-      const vm = new OverworldRelicIconViewModel();
-      vm.relicId = def.id;
-      vm.icon = iconTexture;
-      icons.push(vm);
-    }
-
-    this.viewModel.relicIcons = icons;
-    this.viewModel.relicIconsVisible = icons.length > 0;
-    this.viewModel.relicPopupVisible = false;
-    console.log(`[OverworldHud] Refreshed relic icons: ${icons.length} active`);
+    console.log(`[OverworldHud] Refreshed relic button: ${activeIds.length} active`);
   }
 }

@@ -343,6 +343,12 @@ export namespace UiEvents {
   @serializable() export class OverworldRelicIconTapPayload { readonly parameter: string = ''; }
   export const overworldRelicIconTap = new UiEvent('OverworldViewModel-onRelicIconTap',     OverworldRelicIconTapPayload);
 
+  @serializable() export class RelicCarouselTapPayload { readonly parameter: string = ''; }
+  export const relicCarouselTap = new UiEvent('OverworldViewModel-onRelicCarouselTap', RelicCarouselTapPayload);
+
+  @serializable() export class RelicCarouselSwipePayload { readonly parameter: string = ''; }
+  export const relicCarouselSwipe = new UiEvent('OverworldViewModel-onRelicCarouselSwipe', RelicCarouselSwipePayload);
+
   @serializable() export class MinigameCardTapPayload { readonly parameter: string = ''; }
   export const minigameCardTap = new UiEvent('MinigameViewModel-onCardTap', MinigameCardTapPayload);
 }

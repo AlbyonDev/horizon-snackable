@@ -26,26 +26,7 @@
             <Setter Property="Canvas.Top" Value="{Binding posY}"/>
         </Style>
 
-        <!-- Relic icon template -->
-        <DataTemplate x:Key="RelicIconTemplate">
-            <Border Width="250" Height="250" CornerRadius="8" Margin="0,6"
-                    BorderBrush="{StaticResource GoldBrush}" BorderThickness="2"
-                    Background="#88000000">
-                <b:Interaction.Triggers>
-                    <b:EventTrigger EventName="MouseLeftButtonUp">
-                        <b:InvokeCommandAction Command="{Binding DataContext.events.relicIconTap, RelativeSource={RelativeSource AncestorType=Page}}"
-                                               CommandParameter="{Binding relicId}"/>
-                    </b:EventTrigger>
-                </b:Interaction.Triggers>
-                <Border CornerRadius="6" Margin="4">
-                    <Border.Background>
-                        <ImageBrush ImageSource="{Binding icon}" Stretch="Uniform"/>
-                    </Border.Background>
-                </Border>
-            </Border>
-        </DataTemplate>
-
-        <!-- Vertical panel for relic icons column -->
+        <!-- Vertical panel for relic icons column (unused, kept for reference) -->
         <ItemsPanelTemplate x:Key="VerticalRelicPanel">
             <StackPanel Orientation="Vertical"/>
         </ItemsPanelTemplate>
@@ -53,8 +34,58 @@
         <!-- Level Node template with state-driven sprites -->
         <DataTemplate x:Key="LevelNodeTemplate">
             <Grid Width="{Binding nodeSize}" Height="{Binding nodeSize}" ClipToBounds="False">
+                <Grid.Resources>
+                    <!-- Looping breathing scale for open node sprites: 1.0 → 1.08 → 1.0 over 2.4s -->
+                    <Storyboard x:Key="NodeBreathingAnim" RepeatBehavior="Forever">
+                        <!-- CombatOpenSprite ScaleX -->
+                        <DoubleAnimation Storyboard.TargetName="CombatOpenSprite"
+                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <!-- CombatOpenSprite ScaleY -->
+                        <DoubleAnimation Storyboard.TargetName="CombatOpenSprite"
+                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <!-- BossOpenSprite ScaleX -->
+                        <DoubleAnimation Storyboard.TargetName="BossOpenSprite"
+                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <!-- BossOpenSprite ScaleY -->
+                        <DoubleAnimation Storyboard.TargetName="BossOpenSprite"
+                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <!-- MinigameOpenSprite ScaleX -->
+                        <DoubleAnimation Storyboard.TargetName="MinigameOpenSprite"
+                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <!-- MinigameOpenSprite ScaleY -->
+                        <DoubleAnimation Storyboard.TargetName="MinigameOpenSprite"
+                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                    </Storyboard>
+                </Grid.Resources>
+
+                <!-- Auto-play breathing scale animation on load -->
+                <b:Interaction.Triggers>
+                    <b:EventTrigger>
+                        <b:ControlStoryboardAction Storyboard="{DynamicResource NodeBreathingAnim}"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+
+
                 <Grid Width="{Binding nodeSize}" Height="{Binding nodeSize}">
-                <!-- Tap handler (command still fires; logic in TS blocks locked taps) -->
+                <!-- Tap handler -->
                 <b:Interaction.Triggers>
                     <b:EventTrigger EventName="MouseLeftButtonUp">
                         <b:InvokeCommandAction Command="{Binding DataContext.events.levelTap, RelativeSource={RelativeSource AncestorType=Page}}"
@@ -63,8 +94,6 @@
                 </b:Interaction.Triggers>
 
                 <!-- === COMBAT NODE SPRITES (nodeType=combat) === -->
-
-                <!-- COMBAT BEATEN state sprite -->
                 <Image Source="sprites/overworld_node_combat.png" Stretch="Uniform">
                     <Image.Style>
                         <Style TargetType="Image">
@@ -81,9 +110,9 @@
                         </Style>
                     </Image.Style>
                 </Image>
-
-                <!-- COMBAT OPEN state sprite -->
-                <Image Source="sprites/overworld_node_combat_open.png" Stretch="Uniform">
+                <Image x:Name="CombatOpenSprite" Source="sprites/overworld_node_combat_open.png" Stretch="Uniform"
+                       RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Image.RenderTransform>
                     <Image.Style>
                         <Style TargetType="Image">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -99,8 +128,6 @@
                         </Style>
                     </Image.Style>
                 </Image>
-
-                <!-- COMBAT LOCKED state sprite -->
                 <Image Source="sprites/overworld_node_combat_locked.png" Stretch="Uniform">
                     <Image.Style>
                         <Style TargetType="Image">
@@ -119,8 +146,6 @@
                 </Image>
 
                 <!-- === BOSS NODE SPRITES (nodeType=boss) === -->
-
-                <!-- BOSS BEATEN state sprite -->
                 <Image Source="sprites/overworld_node_boss.png" Stretch="Uniform">
                     <Image.Style>
                         <Style TargetType="Image">
@@ -137,9 +162,9 @@
                         </Style>
                     </Image.Style>
                 </Image>
-
-                <!-- BOSS OPEN state sprite -->
-                <Image Source="sprites/overworld_node_boss_open.png" Stretch="Uniform">
+                <Image x:Name="BossOpenSprite" Source="sprites/overworld_node_boss_open.png" Stretch="Uniform"
+                       RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Image.RenderTransform>
                     <Image.Style>
                         <Style TargetType="Image">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -155,8 +180,6 @@
                         </Style>
                     </Image.Style>
                 </Image>
-
-                <!-- BOSS LOCKED state sprite -->
                 <Image Source="sprites/overworld_node_boss_locked.png" Stretch="Uniform">
                     <Image.Style>
                         <Style TargetType="Image">
@@ -175,8 +198,6 @@
                 </Image>
 
                 <!-- === MINIGAME NODE SPRITES (nodeType=minigame) === -->
-
-                <!-- MINIGAME BEATEN state sprite -->
                 <Image Source="sprites/overworld_node_minigame.png" Stretch="Uniform">
                     <Image.Style>
                         <Style TargetType="Image">
@@ -193,9 +214,9 @@
                         </Style>
                     </Image.Style>
                 </Image>
-
-                <!-- MINIGAME OPEN state sprite -->
-                <Image Source="sprites/overworld_node_minigame_open.png" Stretch="Uniform">
+                <Image x:Name="MinigameOpenSprite" Source="sprites/overworld_node_minigame_open.png" Stretch="Uniform"
+                       RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Image.RenderTransform>
                     <Image.Style>
                         <Style TargetType="Image">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -211,8 +232,6 @@
                         </Style>
                     </Image.Style>
                 </Image>
-
-                <!-- MINIGAME LOCKED state sprite -->
                 <Image Source="sprites/overworld_node_minigame_locked.png" Stretch="Uniform">
                     <Image.Style>
                         <Style TargetType="Image">
@@ -229,7 +248,6 @@
                         </Style>
                     </Image.Style>
                 </Image>
-
 
                 </Grid>
 
@@ -252,7 +270,6 @@
                         </Style>
                     </Border.Style>
                     <StackPanel>
-                        <!-- Title: BOSS MODIFIER -->
                         <Grid HorizontalAlignment="Center" Margin="0,0,0,8">
                             <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
                                        FontFamily="Anton" Foreground="#FF1A1A0A"
@@ -270,7 +287,6 @@
                                        FontFamily="Anton" Foreground="{StaticResource GoldBrush}"
                                        HorizontalAlignment="Center"/>
                         </Grid>
-                        <!-- Modifier explanation text with outline -->
                         <Grid HorizontalAlignment="Center" MaxWidth="360">
                             <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
                                        FontFamily="Anton" Foreground="#FF1A1A0A"
@@ -326,7 +342,7 @@
                 <RowDefinition Height="0.04*"/>
             </Grid.RowDefinitions>
 
-            <!-- RUN header bar (GameHud style: dark panel, gold border, corner ornaments) -->
+            <!-- RUN header bar -->
             <Border Grid.Row="1" HorizontalAlignment="Center"
                     Background="#CC1a1a2e"
                     BorderBrush="{StaticResource GoldBrush}"
@@ -334,55 +350,20 @@
                     CornerRadius="20"
                     Padding="60,16,60,16">
                 <Grid>
-                    <!-- Corner Ornaments - Top Left -->
-                    <Ellipse Width="22" Height="22"
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Top"
-                             Margin="-20,-8,0,0"/>
-                    <Ellipse Width="14" Height="14"
-                             Fill="#FFc9a000"
-                             HorizontalAlignment="Left" VerticalAlignment="Top"
-                             Margin="-16,-4,0,0"/>
-                    <!-- Corner Ornaments - Top Right -->
-                    <Ellipse Width="22" Height="22"
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-8,-20,0"/>
-                    <Ellipse Width="14" Height="14"
-                             Fill="#FFc9a000"
-                             HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-4,-16,0"/>
-                    <!-- Corner Ornaments - Bottom Left -->
-                    <Ellipse Width="22" Height="22"
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                             Margin="-20,0,0,-8"/>
-                    <Ellipse Width="14" Height="14"
-                             Fill="#FFc9a000"
-                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                             Margin="-16,0,0,-4"/>
-                    <!-- Corner Ornaments - Bottom Right -->
-                    <Ellipse Width="22" Height="22"
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                             Margin="0,0,-20,-8"/>
-                    <Ellipse Width="14" Height="14"
-                             Fill="#FFc9a000"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                             Margin="0,0,-16,-4"/>
-
-                    <!-- RUN 1 text with outline (Anton bold, gold, matching GameHud) -->
+                    <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-20,-8,0,0"/>
+                    <Ellipse Width="14" Height="14" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-16,-4,0,0"/>
+                    <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-8,-20,0"/>
+                    <Ellipse Width="14" Height="14" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-16,0"/>
+                    <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-20,0,0,-8"/>
+                    <Ellipse Width="14" Height="14" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-16,0,0,-4"/>
+                    <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-20,-8"/>
+                    <Ellipse Width="14" Height="14" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-16,-4"/>
                     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="4,0,0,0" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="0,4,0,0" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
                     </Grid>
                 </Grid>
             </Border>
@@ -394,34 +375,14 @@
                           PanningMode="VerticalOnly"
                           HorizontalAlignment="Center"
                           VerticalAlignment="Center">
-
                 <Canvas Width="900" Height="{Binding canvasHeight}">
-                    <!-- Smooth bezier curve path (behind nodes) — outer dark stroke for depth -->
-                    <Path Data="{Binding pathData}"
-                          Stroke="{StaticResource PathStrokeOuterBrush}"
-                          StrokeThickness="52"
-                          StrokeStartLineCap="Round"
-                          StrokeEndLineCap="Round"
-                          StrokeLineJoin="Round"/>
-
-                    <!-- Smooth bezier curve path — main warm stone trail -->
-                    <Path Data="{Binding pathData}"
-                          Stroke="{StaticResource PathStrokeBrush}"
-                          StrokeThickness="40"
-                          StrokeStartLineCap="Round"
-                          StrokeEndLineCap="Round"
-                          StrokeLineJoin="Round"/>
-
-                    <!-- Nodes layer (on top) -->
-                    <ItemsControl ItemsSource="{Binding nodes}"
-                                  ItemsPanel="{StaticResource CanvasPanel}"
-                                  ItemContainerStyle="{StaticResource NodeContainerStyle}"
-                                  ItemTemplate="{StaticResource LevelNodeTemplate}"
-                                  Canvas.ZIndex="1"/>
+                    <Path Data="{Binding pathData}" Stroke="{StaticResource PathStrokeOuterBrush}" StrokeThickness="52" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding pathData}" Stroke="{StaticResource PathStrokeBrush}" StrokeThickness="40" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <ItemsControl ItemsSource="{Binding nodes}" ItemsPanel="{StaticResource CanvasPanel}" ItemContainerStyle="{StaticResource NodeContainerStyle}" ItemTemplate="{StaticResource LevelNodeTemplate}" Canvas.ZIndex="1"/>
                 </Canvas>
             </ScrollViewer>
 
-            <!-- SELECT LEVEL footer panel (matches RUN header style) -->
+            <!-- SELECT LEVEL footer panel -->
             <Border Grid.Row="5" HorizontalAlignment="Center"
                     Background="#CC1a1a2e"
                     BorderBrush="{StaticResource GoldBrush}"
@@ -429,108 +390,173 @@
                     CornerRadius="20"
                     Padding="60,16,60,16">
                 <Grid>
-                    <!-- Corner Ornaments - Top Left -->
-                    <Ellipse Width="22" Height="22"
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Top"
-                             Margin="-20,-8,0,0"/>
-                    <Ellipse Width="14" Height="14"
-                             Fill="#FFc9a000"
-                             HorizontalAlignment="Left" VerticalAlignment="Top"
-                             Margin="-16,-4,0,0"/>
-                    <!-- Corner Ornaments - Top Right -->
-                    <Ellipse Width="22" Height="22"
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-8,-20,0"/>
-                    <Ellipse Width="14" Height="14"
-                             Fill="#FFc9a000"
-                             HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-4,-16,0"/>
-                    <!-- Corner Ornaments - Bottom Left -->
-                    <Ellipse Width="22" Height="22"
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                             Margin="-20,0,0,-8"/>
-                    <Ellipse Width="14" Height="14"
-                             Fill="#FFc9a000"
-                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                             Margin="-16,0,0,-4"/>
-                    <!-- Corner Ornaments - Bottom Right -->
-                    <Ellipse Width="22" Height="22"
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                             Margin="0,0,-20,-8"/>
-                    <Ellipse Width="14" Height="14"
-                             Fill="#FFc9a000"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                             Margin="0,0,-16,-4"/>
-
-                    <!-- SELECT LEVEL text with outline (Anton bold, gold, matching RUN header) -->
+                    <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-20,-8,0,0"/>
+                    <Ellipse Width="14" Height="14" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-16,-4,0,0"/>
+                    <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-8,-20,0"/>
+                    <Ellipse Width="14" Height="14" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-16,0"/>
+                    <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-20,0,0,-8"/>
+                    <Ellipse Width="14" Height="14" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-16,0,0,-4"/>
+                    <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-20,-8"/>
+                    <Ellipse Width="14" Height="14" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-16,-4"/>
                     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
-                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="4,0,0,0" HorizontalAlignment="Center"/>
-                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
-                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="0,4,0,0" HorizontalAlignment="Center"/>
-                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="SELECT LEVEL" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
                     </Grid>
                 </Grid>
             </Border>
         </Grid>
 
-        <!-- Relic icons column (top-left corner) -->
-        <StackPanel Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top"
-                    Margin="32,24,0,0">
-            <StackPanel.Visibility>
+        <!-- Relics button (top-left corner) -->
+        <Border HorizontalAlignment="Left" VerticalAlignment="Top"
+                Margin="32,24,0,0" Padding="28,16" CornerRadius="16"
+                BorderBrush="{StaticResource GoldBrush}" BorderThickness="4"
+                Background="#CC1a1a2e">
+            <Border.Visibility>
                 <Binding Path="relicIconsVisible">
                     <Binding.Converter>
                         <BooleanToVisibilityConverter/>
                     </Binding.Converter>
                 </Binding>
-            </StackPanel.Visibility>
-            <ItemsControl ItemsSource="{Binding relicIcons}"
-                          ItemsPanel="{StaticResource VerticalRelicPanel}"
-                          ItemTemplate="{StaticResource RelicIconTemplate}"/>
-        </StackPanel>
+            </Border.Visibility>
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="MouseLeftButtonUp">
+                    <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="open"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0" HorizontalAlignment="Center"/>
+                <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0" HorizontalAlignment="Center"/>
+                <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0" HorizontalAlignment="Center"/>
+                <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0" HorizontalAlignment="Center"/>
+                <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+            </Grid>
+        </Border>
 
-        <!-- Relic popup tooltip overlay -->
-        <Border HorizontalAlignment="Left" VerticalAlignment="Top"
-                Margin="{Binding relicPopupMargin}" Padding="40,32" CornerRadius="20"
-                MaxWidth="640"
-                BorderBrush="{StaticResource GoldBrush}" BorderThickness="4">
-            <Border.Visibility>
-                <Binding Path="relicPopupVisible">
+        <!-- Relic carousel overlay (fullscreen) -->
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid.Visibility>
+                <Binding Path="carouselVisible">
                     <Binding.Converter>
                         <BooleanToVisibilityConverter/>
                     </Binding.Converter>
                 </Binding>
-            </Border.Visibility>
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#F52A1A0A" Offset="0"/>
-                    <GradientStop Color="#F5382010" Offset="1"/>
-                </LinearGradientBrush>
-            </Border.Background>
-            <!-- Dismiss popup on tap anywhere on the card -->
-            <b:Interaction.Triggers>
-                <b:EventTrigger EventName="MouseLeftButtonUp">
-                    <b:InvokeCommandAction Command="{Binding events.relicIconTap}"
-                                           CommandParameter="__dismiss__"/>
-                </b:EventTrigger>
-            </b:Interaction.Triggers>
-            <StackPanel>
-                <TextBlock Text="{Binding relicPopupName}" FontSize="72" FontWeight="Bold"
-                           FontFamily="Almendra" Foreground="{StaticResource GoldBrush}"
-                           Margin="0,0,0,16"/>
-                <TextBlock Text="{Binding relicPopupDescription}" FontSize="56"
-                           FontFamily="Almendra" Foreground="{StaticResource ParchmentBrush}"
-                           TextWrapping="Wrap"/>
+            </Grid.Visibility>
+
+            <Border Background="#CC000000">
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                        <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="close"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+            </Border>
+
+            <Grid VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,80,0,0">
+                <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
+                <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0" HorizontalAlignment="Center"/>
+                <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
+                <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+            </Grid>
+
+            <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="1800" Height="1800">
+                <ItemsControl ItemsSource="{Binding carouselCards}">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><Canvas/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{Binding cardLeft}"/>
+                            <Setter Property="Canvas.Top" Value="{Binding cardTop}"/>
+                            <Setter Property="Canvas.ZIndex" Value="{Binding cardZIndex}"/>
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="{Binding cardWidth}" Height="{Binding cardHeight}" CornerRadius="24" BorderThickness="5" BorderBrush="{StaticResource GoldBrush}" Opacity="{Binding cardOpacity}">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#FF2A1A0A" Offset="0"/>
+                                        <GradientStop Color="#FF1A1008" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.RenderTransform>
+                                    <ScaleTransform ScaleX="{Binding cardScaleX}" ScaleY="{Binding cardScaleY}"/>
+                                </Border.RenderTransform>
+                                <Grid Margin="32">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Width="700" Height="700" CornerRadius="20" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Border.Background><ImageBrush ImageSource="{Binding icon}" Stretch="Uniform"/></Border.Background>
+                                    </Border>
+                                    <TextBlock Grid.Row="1" Text="{Binding relicName}" FontFamily="Almendra" FontSize="96" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center" VerticalAlignment="Bottom" TextAlignment="Center" TextWrapping="Wrap" Margin="12,12,12,4"/>
+                                    <TextBlock Grid.Row="2" Text="{Binding relicDescription}" FontFamily="Almendra" FontSize="68" Foreground="{StaticResource ParchmentBrush}" HorizontalAlignment="Center" VerticalAlignment="Top" TextWrapping="Wrap" TextAlignment="Center" Margin="12,4,12,16"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Canvas>
+
+            <!-- Swipe detection grid -->
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="1800" Height="1800">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d0"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u0"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="1" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d1"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u1"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="2" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d2"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u2"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="3" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d3"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u3"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="4" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d4"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u4"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+            </Grid>
+
+            <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,60,60,0" CornerRadius="44" Background="#88000000" Width="88" Height="88">
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                        <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="close"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+                <TextBlock Text="X" FontSize="48" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,200">
+                <ItemsControl ItemsSource="{Binding carouselDots}">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Ellipse Width="{Binding dotSize}" Height="{Binding dotSize}" Margin="12,0" Fill="{Binding dotColor}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
-        </Border>
+        </Grid>
     </Grid>
 </Page>
