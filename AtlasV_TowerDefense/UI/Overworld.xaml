@@ -230,24 +230,7 @@
                     </Image.Style>
                 </Image>
 
-                <!-- Level number with text outline effect -->
-                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{Binding numberMargin}">
-                    <TextBlock Text="{Binding levelNumber}" FontSize="{Binding fontSize}" FontWeight="Bold"
-                               FontFamily="Anton" Foreground="#FF1A1A1A"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-2,0,0,0"/>
-                    <TextBlock Text="{Binding levelNumber}" FontSize="{Binding fontSize}" FontWeight="Bold"
-                               FontFamily="Anton" Foreground="#FF1A1A1A"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0"/>
-                    <TextBlock Text="{Binding levelNumber}" FontSize="{Binding fontSize}" FontWeight="Bold"
-                               FontFamily="Anton" Foreground="#FF1A1A1A"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0"/>
-                    <TextBlock Text="{Binding levelNumber}" FontSize="{Binding fontSize}" FontWeight="Bold"
-                               FontFamily="Anton" Foreground="#FF1A1A1A"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,2,0,0"/>
-                    <TextBlock Text="{Binding levelNumber}" FontSize="{Binding fontSize}" FontWeight="Bold"
-                               FontFamily="Anton" Foreground="{StaticResource TextLightBrush}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Grid>
+
                 </Grid>
 
                 <!-- Boss modifier label (shown to the right of the node for boss type only) -->

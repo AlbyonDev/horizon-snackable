@@ -31,7 +31,7 @@ done:
   - Overworld HD Visual Upgrade -- sprite-based painted nodes, path, and background
   - Overworld Curvy Snake Path -- smooth bezier curve connecting nodes, replaces tiled segments
   - Fix UI and Avatar on Start -- avatar hidden+teleported on spawn, boss UI hidden by default
-  - Overworld Node Numbers -- size 72px, centered, exposed fontSize + offsetY props
+  - Overworld Node Numbers Removed -- no text overlay on nodes
   - Random Level Generation -- N procedural levels with random waves and paths
   - Fix Stale Path Tiles on Abandon -- destroy tiles on RestartGame event
   - Persistent Pre-Generated Levels -- generate once on StartGame, persist on abandon
