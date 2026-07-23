@@ -45,6 +45,8 @@ import type { Entity, Maybe } from 'meta/worlds';
 import type { OnPlayerCreateEventPayload } from 'meta/worlds';
 
 import { Events, NetworkEvents } from '../Types';
+// TOTAL_LEVELS is used only as the initial default for _levelCount;
+// at runtime the actual level count comes from LevelGeneratorService via setLevelCount().
 import { TOTAL_LEVELS } from '../Constants';
 
 const SAVE_KEY = 'td_level_sav';
@@ -96,6 +98,18 @@ export class SaveService extends Service {
   private _serverSaveJson: string | null = null;
   private _loadRequested: boolean = false;
 
+  // ── Level count (set by LevelGeneratorService after generation) ───────────────
+  private _levelCount: number = TOTAL_LEVELS;
+
+  /** Update the expected level count for this run (called by LevelGeneratorService). */
+  setLevelCount(count: number): void {
+    this._levelCount = count;
+    console.log(`[SaveService] Level count set to ${count}`);
+  }
+
+  /** Current level count for the run. */
+  getLevelCount(): number { return this._levelCount; }
+
   // ── Public accessors (client) ─────────────────────────────────────────────────
 
   /** True once the save has been loaded (or confirmed empty) from the server. */
@@ -109,8 +123,9 @@ export class SaveService extends Service {
   /** True if every level of the current run has been beaten (run finished). */
   private _isRunComplete(): boolean {
     if (this._data.seed === 0) return false;
-    if (this._data.beaten.length < TOTAL_LEVELS) return false;
-    for (let i = 0; i < TOTAL_LEVELS; i++) {
+    const count = this._levelCount;
+    if (this._data.beaten.length < count) return false;
+    for (let i = 0; i < count; i++) {
       if (!this._data.beaten[i]) return false;
     }
     return true;
@@ -160,8 +175,9 @@ export class SaveService extends Service {
   /** Mark a level as beaten in the current run and persist. Client-only. */
   markLevelBeaten(levelIndex: number): void {
     if (NetworkingService.get().isServerContext()) return;
-    if (levelIndex < 0 || levelIndex >= TOTAL_LEVELS) return;
-    while (this._data.beaten.length < TOTAL_LEVELS) this._data.beaten.push(false);
+    const count = this._levelCount;
+    if (levelIndex < 0 || levelIndex >= count) return;
+    while (this._data.beaten.length < count) this._data.beaten.push(false);
     if (this._data.beaten[levelIndex]) return; // already recorded
     this._data.beaten[levelIndex] = true;
     console.log(`[SaveService] Level ${levelIndex} marked beaten`);

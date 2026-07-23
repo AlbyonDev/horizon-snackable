@@ -12,7 +12,8 @@
  *   - Fixed startGold / startLives from Constants
  *   - bossModifier (boss level only)
  * The overworld node-type layout (combat / boss / minigame) is also assigned
- * here so the minigame position is part of the seeded run, not re-rolled by UI.
+ * here deterministically: every 3rd node is a minigame (indices 2, 5, 8, ...)
+ * unless it's the last node (always boss).
  *
  * Read by WaveService and PathService via getLevelDef(index), and by
  * OverworldHud via getNodeType(index).
@@ -22,6 +23,7 @@
  */
 import { Service } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
+import { EventService } from 'meta/worlds';
 import { Events, BossModifier } from '../Types';
 import type { IWaveDef, IWaveGroup } from '../Types';
 import type { ILevelDef } from '../Defs/LevelDefs';
@@ -65,6 +67,10 @@ export class LevelGeneratorService extends Service {
   private _nodeTypes: OverworldNodeType[] = [];
   private _generated: boolean = false;
   private _seed: number = 0;
+  private _runCount: number = 1;
+  private _modifierBag: number[] = [];
+  private _modifierBagIndex: number = 0;
+  private _bagRestoredFromSave: boolean = false;
 
   /** Seeded RNG for the current run. Reset by generate(); never use Math.random. */
   private _rng: () => number = mulberry32(1);
@@ -76,6 +82,15 @@ export class LevelGeneratorService extends Service {
   setRunCount(count: number): void {
     this._runCount = count;
     console.log(`[LevelGeneratorService] Run count restored to ${count}`);
+  }
+
+  /** Advance to the next run: increment run count, reset generation state. */
+  advanceRun(): void {
+    this._runCount++;
+    this._generated = false;
+    this._levels = [];
+    this._nodeTypes = [];
+    console.log(`[LevelGeneratorService] Advanced to run ${this._runCount}`);
   }
 
   /** Get current shuffle-bag state for persistence. */
@@ -93,7 +108,7 @@ export class LevelGeneratorService extends Service {
     this._modifierBag = [...state.bag];
     this._modifierBagIndex = state.idx;
     this._bagRestoredFromSave = true;
-    console.log(`[LevelGeneratorService] Boss modifier bag restored: [${this._modifierBag.map(m => BossModifier[m]).join(', ')}] idx=${this._modifierBagIndex}`);
+    console.log(`[LevelGeneratorService] Boss modifier bag restored: [${this._modifierBag.map((m: number) => BossModifier[m]).join(', ')}] idx=${this._modifierBagIndex}`);
   }
 
   @subscribe(Events.StartGame)
@@ -114,6 +129,11 @@ export class LevelGeneratorService extends Service {
       this._levels.push(this._generateLevel(i, count));
     }
     this._generated = true;
+
+    // Update SaveService with the actual generated level count so beaten array
+    // adapts dynamically instead of being hardcoded to TOTAL_LEVELS.
+    this._saveService.setLevelCount(this._levels.length);
+
     console.log(`[LevelGeneratorService] Generation complete`);
 
     // Persist boss modifier bag state immediately after generation
@@ -147,16 +167,20 @@ export class LevelGeneratorService extends Service {
     this.generate(TOTAL_LEVELS, this._saveService.getSeed() || this._seed);
   }
 
-  // ─── Node-type layout (seeded) ────────────────────────────────────────────────
-  //   Last node = Boss. One middle node = Minigame. Rest = Combat.
+  // ─── Node-type layout (deterministic) ─────────────────────────────────────────
+  //   Last node = Boss. Every 3rd node (indices 2, 5, 8, ...) = Minigame (unless last). Rest = Combat.
+  //   Pattern: Combat, Combat, Minigame, Combat, Combat, Minigame, ... Boss
   private _assignNodeTypes(count: number): void {
     this._nodeTypes = [];
     for (let i = 0; i < count; i++) this._nodeTypes.push(OverworldNodeType.Combat);
+    // Last node is always boss
     if (count > 0) this._nodeTypes[count - 1] = OverworldNodeType.Boss;
-    if (count > 2) {
-      const minigameIndex = 1 + Math.floor(this._rng() * (count - 2));
-      this._nodeTypes[minigameIndex] = OverworldNodeType.Minigame;
-      console.log(`[LevelGeneratorService] Minigame node at level ${minigameIndex + 1}`);
+    // Every 3rd node (index 2, 5, 8, ...) is a minigame, unless it's the last (boss) node
+    for (let i = 2; i < count; i += 3) {
+      if (i !== count - 1) {
+        this._nodeTypes[i] = OverworldNodeType.Minigame;
+        console.log(`[LevelGeneratorService] Minigame node at level ${i + 1}`);
+      }
     }
   }
 

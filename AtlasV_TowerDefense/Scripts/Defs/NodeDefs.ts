@@ -8,8 +8,9 @@
  *
  * Node type assignment rules:
  *   1. The LAST node is always a Boss node.
- *   2. One random node (not first, not last) is a Minigame node.
+ *   2. Every 3rd node (indices 2, 5, 8, ...) is a Minigame node, unless it's the last (boss) node.
  *   3. All other nodes are Combat nodes.
+ *   Pattern: Combat, Combat, Minigame, Combat, Combat, Minigame, ... Boss
  */
 
 export enum OverworldNodeType {

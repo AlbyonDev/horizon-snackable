@@ -17,7 +17,7 @@ import { OnEntityStartEvent, OnWorldUpdateEvent } from 'meta/worlds';
 import type { OnWorldUpdateEventPayload, Maybe, Entity } from 'meta/worlds';
 import { NetworkingService } from 'meta/worlds';
 import { Events, GamePhase } from '../Types';
-import { TOTAL_LEVELS } from '../Constants';
+import { GROUND_COLOR, hexColor } from '../Constants';
 import { WaveService } from '../Services/WaveService';
 import { ResourceService } from '../Services/ResourceService';
 import { SlowService } from '../Services/SlowService';
@@ -30,7 +30,6 @@ import { CoinService } from '../Services/CoinService';
 import { CritService } from '../Services/CritService';
 import { SplashSystem } from '../Services/SplashSystem';
 import { VfxService } from '../Services/VfxService';
-import { GROUND_COLOR, hexColor } from '../Constants';
 import { CameraShakeService } from '../Services/CameraShakeService';
 import { TowerDestroyAnimService } from '../Services/TowerDestroyAnimService';
 import { PathTileService } from '../Services/PathTileService';
@@ -38,7 +37,6 @@ import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { RelicService } from '../Services/RelicService';
 import { BossModifierService } from '../Services/BossModifierService';
 import { SaveService } from '../Services/SaveService';
-import { TOTAL_LEVELS } from '../Constants';
 
 
 @component()
@@ -148,7 +146,8 @@ export class GameManager extends Component {
     const p = new Events.GameOverPayload();
     p.won = won;
     // Boss victory = winning the last level (triggers run advancement)
-    p.isBossVictory = won && this._currentLevelIndex === TOTAL_LEVELS - 1;
+    const lastLevelIndex = LevelGeneratorService.get().levelCount - 1;
+    p.isBossVictory = won && this._currentLevelIndex === lastLevelIndex;
     EventService.sendLocally(Events.GameOver, p);
 
     // If the player won, fire LevelCompleted to unlock next level in overworld
@@ -160,7 +159,7 @@ export class GameManager extends Component {
 
       // Winning the final (boss) level completes the whole run → bump runCount.
       // SaveService then mints a fresh seed on the next StartGame.
-      if (this._currentLevelIndex >= TOTAL_LEVELS - 1) {
+      if (this._currentLevelIndex >= lastLevelIndex) {
         SaveService.get().markRunComplete();
         console.log('[GameManager] Final level won — run complete');
       }

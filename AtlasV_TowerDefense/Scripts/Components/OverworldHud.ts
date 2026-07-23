@@ -50,6 +50,7 @@ import { RelicService } from '../Services/RelicService';
 import { RELIC_DEFS } from '../Defs/RelicDefs';
 import { OverworldNodeType } from '../Defs/NodeDefs';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
+import { TOTAL_LEVELS } from '../Constants';
 import { MinigameHud } from './MinigameHud';
 
 // Pre-defined TextureAssets for each biome background (must be static string literals)
@@ -91,7 +92,7 @@ export class OverworldPathNodeViewModel extends UiViewModel {
   /** Display number */
   levelNumber: string = '1';
   /** Index as string for CommandParameter binding */
-  levelIndex: string = '0';
+  levelIndex: string = '1';
   /** Node type string: 'combat', 'boss', or 'minigame' -- drives sprite visibility in XAML */
   nodeType: string = 'combat';
   /** Node size (boss nodes are larger) */
@@ -154,8 +155,15 @@ export class OverworldViewModel extends UiViewModel {
 
 @component()
 export class OverworldHud extends Component {
-  /** Number of level buttons to display */
-  @property() levelCount: number = 5;
+  /**
+   * Dynamic level count: reads from LevelGeneratorService if generated, else
+   * falls back to TOTAL_LEVELS constant in Constants.ts (the single source of truth).
+   * To change the number of levels per run, edit TOTAL_LEVELS in Constants.ts.
+   */
+  private _getDynamicLevelCount(): number {
+    const gen = LevelGeneratorService.get();
+    return gen.isGenerated ? gen.levelCount : TOTAL_LEVELS;
+  }
 
   // ========================================================================
   // LAYOUT PROPERTIES
@@ -253,7 +261,7 @@ export class OverworldHud extends Component {
     if (NetworkingService.get().isServerContext()) return;
 
     const idx = payload.levelIndex;
-    console.log(`[OverworldHud] Level ${idx + 1} completed`);
+    console.log(`[OverworldHud] Level ${idx} completed`);
 
     // Mark this level as beaten
     if (idx >= 0 && idx < this.levelStates.length) {
@@ -274,7 +282,18 @@ export class OverworldHud extends Component {
   @subscribe(Events.SaveRestored, { execution: ExecuteOn.Owner })
   onSaveRestored(payload: Events.SaveRestoredPayload): void {
     if (NetworkingService.get().isServerContext()) return;
-    if (payload.beaten.length === 0) return; // fresh save, nothing to restore
+
+    // Save stores "completed runs" (0-based). LevelGeneratorService._runCount is
+    // the "current run number" (1-based). Mapping: current = completed + 1.
+    const currentRun = payload.runCount + 1;
+    LevelGeneratorService.get().setRunCount(currentRun);
+    console.log(`[OverworldHud] Run count restored from save: completed=${payload.runCount}, currentRun=${currentRun}`);
+
+    if (payload.beaten.length === 0) {
+      // Fresh save — no beaten levels, but still update the run label
+      this._updateRunLabel();
+      return;
+    }
 
     // If not yet initialized, buffer the data for later
     if (!this.viewModel || this.levelStates.length === 0) {
@@ -307,13 +326,18 @@ export class OverworldHud extends Component {
       }
     }
 
-    // If all levels are beaten, the last one stays beaten (no new open)
+    // If all levels are beaten on restore, the run was already marked complete
+    // in the save (runCount was incremented by markRunComplete). Reset level
+    // states to a fresh run so _advanceRun() doesn't double-fire in onPhaseChanged.
     if (!foundOpen) {
-      console.log('[OverworldHud] All levels beaten!');
+      console.log('[OverworldHud] All levels beaten on restore — resetting to fresh run');
+      this._initLevelStates();
+      this._populateLevels();
     }
 
     // Refresh the ViewModel
     this._refreshNodeStates();
+    this._updateRunLabel();
     console.log(`[OverworldHud] Progress restored successfully`);
   }
 
@@ -390,8 +414,9 @@ export class OverworldHud extends Component {
 
   /** Initialize level states: first level open, rest locked */
   private _initLevelStates(): void {
+    const count = this._getDynamicLevelCount();
     this.levelStates = [];
-    for (let i = 0; i < this.levelCount; i++) {
+    for (let i = 0; i < count; i++) {
       this.levelStates.push(i === 0 ? OverworldNodeState.Open : OverworldNodeState.Locked);
     }
   }
@@ -644,7 +669,7 @@ export class OverworldHud extends Component {
   }
 
   private _populateLevels(): void {
-    const totalLevels = this.levelCount;
+    const totalLevels = this._getDynamicLevelCount();
     const { nodeSize, horizontalSpacing } = this.computeLayoutParams(totalLevels);
     const bossNodeSize = Math.round(nodeSize * this.bossSizeMultiplier);
 

@@ -29,7 +29,7 @@ export const ENEMY_SPAWN_INTERVAL  = 0.75; // seconds between enemy spawns withi
 
 // ─── Economy ──────────────────────────────────────────────────────────────────
 
-export const TOTAL_LEVELS = 5; // number of procedurally generated levels per run
+export const TOTAL_LEVELS = 6; // number of procedurally generated levels per run
 
 export const START_GOLD  = 120;
 export const START_LIVES = 10;

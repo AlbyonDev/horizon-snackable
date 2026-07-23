@@ -19,7 +19,7 @@ import { service, subscribe } from 'meta/worlds';
 import { OnServiceReadyEvent } from 'meta/worlds';
 import { RELIC_DEFS, type IRelicDef } from '../Defs/RelicDefs';
 import { HitService } from './HitService';
-import { type IHitContext } from '../Types';
+import { Events, type IHitContext } from '../Types';
 
 @service()
 export class RelicService extends Service {

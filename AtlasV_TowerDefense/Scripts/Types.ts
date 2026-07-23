@@ -276,6 +276,14 @@ export namespace Events {
   export class RunResetPayload {}
   export const RunReset = new LocalEvent<RunResetPayload>('EvRunReset', RunResetPayload);
 
+  // Boss modifier bag state assigned (fired after level generation so save can persist it)
+  export class BossModAssignedPayload { bossModState: string = ''; }
+  export const BossModAssigned = new LocalEvent<BossModAssignedPayload>('EvBossModAssigned', BossModAssignedPayload);
+
+  // Run advanced (all levels beaten, moving to next run)
+  export class RunAdvancedPayload { runCount: number = 0; }
+  export const RunAdvanced = new LocalEvent<RunAdvancedPayload>('EvRunAdvanced', RunAdvancedPayload);
+
 }
 
 // --- Network Events (cross-boundary persistence) -----------------------------

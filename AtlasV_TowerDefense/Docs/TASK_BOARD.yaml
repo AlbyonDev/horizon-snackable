@@ -61,6 +61,9 @@ done:
   - Boss Victory Skip Relic -- "NEXT RUN" button, skips relic choice on boss win
   - Save Owned Relics Variable -- persists relics per run, resets on boss advance
   - Fix Boss Modifier Save on Pick -- fixed save/load timing
+  - Fix All Build Errors -- imports, missing fields, duplicate import
+  - Fix Boss + Save Array -- boss always last, save uses dynamic count, removed legacy levelCount prop
+  - Fix Run Count HUD on Load -- correct +1 offset, no double-increment on restore
 
 chopping_block:
   disabled_systems: []
