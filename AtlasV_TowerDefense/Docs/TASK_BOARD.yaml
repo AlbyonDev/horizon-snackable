@@ -66,6 +66,7 @@ done:
   - Fix Run Count HUD on Load -- correct +1 offset, no double-increment on restore
   - Overworld Relic Carousel -- button + fullscreen 3D card carousel with navigation
   - Overworld Open Node Breathing -- subtle 1.0-1.08 scale pulse on open sprite
+  - Fix Carousel Rightmost Card Flicker -- added RenderTransformOrigin center to card
 
 chopping_block:
   disabled_systems: []

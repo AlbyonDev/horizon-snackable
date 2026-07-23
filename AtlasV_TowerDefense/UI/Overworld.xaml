@@ -473,7 +473,7 @@
                     </ItemsControl.ItemContainerStyle>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Width="{Binding cardWidth}" Height="{Binding cardHeight}" CornerRadius="24" BorderThickness="5" BorderBrush="{StaticResource GoldBrush}" Opacity="{Binding cardOpacity}">
+                            <Border Width="{Binding cardWidth}" Height="{Binding cardHeight}" CornerRadius="24" BorderThickness="5" BorderBrush="{StaticResource GoldBrush}" Opacity="{Binding cardOpacity}" RenderTransformOrigin="0.5,0.5">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                         <GradientStop Color="#FF2A1A0A" Offset="0"/>
