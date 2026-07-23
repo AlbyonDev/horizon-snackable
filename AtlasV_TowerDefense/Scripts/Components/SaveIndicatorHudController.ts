@@ -51,7 +51,7 @@ export class SaveIndicatorHudController extends Component {
 
   /**
    * When a level is completed, show the save indicator.
-   * The LevelSaveComponent will simultaneously persist progress.
+   * SaveService simultaneously persists progress.
    */
   @subscribe(Events.LevelCompleted, { execution: ExecuteOn.Everywhere })
   onLevelCompleted(): void {

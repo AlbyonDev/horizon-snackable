@@ -48,30 +48,6 @@
                                 "version": 16,
                                 "data": {}
                             }
-                        },
-                        {
-                            "dataType": "horizon::DataDefinitionAsset",
-                            "data": {
-                                "class": "LevelSaveComponent",
-                                "definitionAsset": {
-                                    "packageOrRemoteId": "26631398616455768",
-                                    "ingestionId": "8920833266764728723",
-                                    "targetId": "4237980480"
-                                },
-                                "data": {}
-                            }
-                        },
-                        {
-                            "dataType": "horizon::DataDefinitionAsset",
-                            "data": {
-                                "class": "AvatarHider",
-                                "definitionAsset": {
-                                    "packageOrRemoteId": "26631398616455768",
-                                    "ingestionId": "8149293210865989003",
-                                    "targetId": "4237980480"
-                                },
-                                "data": {}
-                            }
                         }
                     ],
                     "attributes": []

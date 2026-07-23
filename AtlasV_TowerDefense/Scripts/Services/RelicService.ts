@@ -36,14 +36,28 @@ export class RelicService extends Service {
     console.log('[RelicService] Initialized with hit pipeline modifier');
   }
 
-  /**
-   * Note: Relics are NOT reset on Events.StartGame. The save system handles this:
-   * - When a run advances, _saveRunCount() writes rel: [] to the save.
-   * - Next session load correctly restores empty relics for the new run.
-   * - Resetting here would wipe relics that were just restored from the save.
-   */
+  /** Restore active relics from a saved run. Fired on load by SaveService. */
+  @subscribe(Events.SaveRestored)
+  onSaveRestored(p: Events.SaveRestoredPayload): void {
+    this.restore(p.relics);
+  }
 
-  /** Clear all active relics. Called when a new game begins. */
+  /** Clear active relics when a new run starts. Fired by SaveService. */
+  @subscribe(Events.RunReset)
+  onRunReset(_p: Events.RunResetPayload): void {
+    this.reset();
+  }
+
+  /** Replace the active relic set with the given ids (unknown ids skipped). */
+  restore(relicIds: string[]): void {
+    this._activeRelicIds.clear();
+    for (const id of relicIds) {
+      if (this._relicMap.has(id)) this._activeRelicIds.add(id);
+    }
+    console.log(`[RelicService] Restored ${this._activeRelicIds.size} relics from save`);
+  }
+
+  /** Clear all active relics. Called when a new run begins. */
   reset(): void {
     if (this._activeRelicIds.size > 0) {
       console.log(`[RelicService] Resetting ${this._activeRelicIds.size} active relics`);

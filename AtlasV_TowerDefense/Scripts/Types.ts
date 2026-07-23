@@ -258,55 +258,55 @@ export namespace Events {
   export class MinigameCompletedPayload { levelIndex: number = 0; result: string = ''; }
   export const MinigameCompleted = new LocalEvent<MinigameCompletedPayload>('EvMinigameCompleted', MinigameCompletedPayload);
 
-  // Boss modifier assigned (fired after generate() draws from the shuffle-bag)
-  export class BossModAssignedPayload { bossModState: string = ''; }
-  export const BossModAssigned = new LocalEvent<BossModAssignedPayload>('EvBossModAssigned', BossModAssignedPayload);
+  // Save data restored (client-local broadcast, decoded by SaveService).
+  //   seed       — current run's generation seed (0 = no run yet / start fresh)
+  //   runCount   — number of completed runs (permanent meta-progression)
+  //   beaten     — per-level beaten flags for the current run
+  //   relics     — active relic ids for the current run
+  export class SaveRestoredPayload {
+    seed: number = 0;
+    runCount: number = 0;
+    beaten: boolean[] = [];
+    relics: string[] = [];
+  }
+  export const SaveRestored = new LocalEvent<SaveRestoredPayload>('EvSaveRestored', SaveRestoredPayload);
 
-  // Run advanced (new overworld generated)
-  export class RunAdvancedPayload { runCount: number = 1; }
-  export const RunAdvanced = new LocalEvent<RunAdvancedPayload>('EvRunAdvanced', RunAdvancedPayload);
-  
-  // Level progress persistence
-  export class ProgressRestoredPayload { beatenLevels: string = ''; runCount: number = 1; relics: string = ''; bossModState: string = ''; }
-  export const ProgressRestored = new LocalEvent<ProgressRestoredPayload>('EvProgressRestored', ProgressRestoredPayload);
+  // A new run just started (fresh seed minted). Run-scoped state must clear
+  // itself (relics, etc.). Fired by SaveService from ensureRunSeed().
+  export class RunResetPayload {}
+  export const RunReset = new LocalEvent<RunResetPayload>('EvRunReset', RunResetPayload);
 
 }
 
 // --- Network Events (cross-boundary persistence) -----------------------------
+//
+// SaveService is the ONLY subscriber. The full save blob is passed as a JSON
+// string so the persisted shape can grow without touching these events.
+// maxLength mirrors the backend's 10,000-char PlayerVariablesService limit.
 
-@serializable()
-export class SaveLevelProgressPayload {
-  @netProp() readonly levelIndex: number = 0;
-}
-export const SaveLevelProgressEvent = new NetworkEvent<SaveLevelProgressPayload>('TDSaveLevelProgress', SaveLevelProgressPayload);
+export namespace NetworkEvents {
+  // Client → server: "I'm ready, send me my save". Sent once the client-side
+  // SaveService is alive; the server answers with SaveLoaded (immediately if the
+  // player's data is already fetched, otherwise as soon as it is). This removes
+  // the single-broadcast race where a load could arrive before the subscriber.
+  @serializable()
+  export class SaveLoadRequestPayload {}
+  export const SaveLoadRequest = new NetworkEvent<SaveLoadRequestPayload>('TDSaveLoadRequest', SaveLoadRequestPayload);
 
-@serializable()
-export class SaveRunCountPayload {
-  @netProp() readonly runCount: number = 1;
-  @netProp() readonly bossModState: string = '';
-}
-export const SaveRunCountEvent = new NetworkEvent<SaveRunCountPayload>('TDSaveRunCount', SaveRunCountPayload);
+  // Server → client: the loaded save blob (empty string = new player).
+  @serializable()
+  export class SaveLoadedPayload {
+    @netProp({ maxLength: 10000 }) readonly json: string = '';
+  }
+  export const SaveLoaded = new NetworkEvent<SaveLoadedPayload>('TDSaveLoaded', SaveLoadedPayload);
 
-@serializable()
-export class SaveRelicsPayload {
-  @netProp() readonly relics: string = '';
+  // Client → server: request to persist the save blob.
+  @serializable()
+  export class SaveRequestedPayload {
+    @netProp({ maxLength: 10000 }) readonly json: string = '';
+  }
+  export const SaveRequested = new NetworkEvent<SaveRequestedPayload>('TDSaveRequested', SaveRequestedPayload);
 }
-export const SaveRelicsEvent = new NetworkEvent<SaveRelicsPayload>('TDSaveRelics', SaveRelicsPayload);
-
-@serializable()
-export class SaveBossModPayload {
-  @netProp() readonly bossModState: string = '';
-}
-export const SaveBossModEvent = new NetworkEvent<SaveBossModPayload>('TDSaveBossMod', SaveBossModPayload);
-
-@serializable()
-export class ProgressLoadedPayload {
-  @netProp() readonly beatenLevels: string = '';
-  @netProp() readonly runCount: number = 1;
-  @netProp() readonly relics: string = '';
-  @netProp() readonly bossModState: string = '';
-}
-export const ProgressLoadedEvent = new NetworkEvent<ProgressLoadedPayload>('TDProgressLoaded', ProgressLoadedPayload);
 
 // --- UI Events ---------------------------------------------------------------
 

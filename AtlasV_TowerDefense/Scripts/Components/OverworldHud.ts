@@ -192,8 +192,8 @@ export class OverworldHud extends Component {
   /** Per-level state tracking: index -> OverworldNodeState */
   private levelStates: OverworldNodeState[] = [];
 
-  /** Buffered progress data if ProgressRestored fires before onStart completes */
-  private pendingBeatenLevels: string = '';
+  /** Buffered progress data if SaveRestored fires before onStart completes (null = none) */
+  private pendingBeatenLevels: boolean[] | null = null;
 
   // -- Lifecycle --
 
@@ -220,9 +220,9 @@ export class OverworldHud extends Component {
 
     // Apply any buffered progress that arrived before initialization
     if (this.pendingBeatenLevels) {
-      console.log(`[OverworldHud] Applying buffered progress: ${this.pendingBeatenLevels}`);
+      console.log(`[OverworldHud] Applying buffered progress: ${JSON.stringify(this.pendingBeatenLevels)}`);
       this._applyRestoredProgress(this.pendingBeatenLevels);
-      this.pendingBeatenLevels = '';
+      this.pendingBeatenLevels = null;
     }
   }
 
@@ -271,32 +271,24 @@ export class OverworldHud extends Component {
     this._refreshNodeStates();
   }
 
-  @subscribe(Events.ProgressRestored, { execution: ExecuteOn.Owner })
-  onProgressRestored(payload: Events.ProgressRestoredPayload): void {
+  @subscribe(Events.SaveRestored, { execution: ExecuteOn.Owner })
+  onSaveRestored(payload: Events.SaveRestoredPayload): void {
     if (NetworkingService.get().isServerContext()) return;
-    if (!payload.beatenLevels) return;
+    if (payload.beaten.length === 0) return; // fresh save, nothing to restore
 
     // If not yet initialized, buffer the data for later
     if (!this.viewModel || this.levelStates.length === 0) {
-      console.log(`[OverworldHud] Buffering progress (not yet initialized): ${payload.beatenLevels}`);
-      this.pendingBeatenLevels = payload.beatenLevels;
+      console.log(`[OverworldHud] Buffering progress (not yet initialized): ${JSON.stringify(payload.beaten)}`);
+      this.pendingBeatenLevels = payload.beaten.slice();
       return;
     }
 
-    this._applyRestoredProgress(payload.beatenLevels);
+    this._applyRestoredProgress(payload.beaten);
   }
 
   /** Apply restored progress data to levelStates and refresh the UI */
-  private _applyRestoredProgress(beatenLevelsJson: string): void {
-    let beaten: boolean[] = [];
-    try {
-      beaten = JSON.parse(beatenLevelsJson);
-    } catch {
-      console.log('[OverworldHud] Failed to parse saved progress');
-      return;
-    }
-
-    console.log(`[OverworldHud] Restoring progress: ${beatenLevelsJson}`);
+  private _applyRestoredProgress(beaten: boolean[]): void {
+    console.log(`[OverworldHud] Restoring progress: ${JSON.stringify(beaten)}`);
 
     // Restore level states from saved data
     for (let i = 0; i < this.levelStates.length; i++) {
@@ -548,6 +540,7 @@ export class OverworldHud extends Component {
     return { pathData, nodeCenters };
   }
 
+  /** Local cache of node types per level index, read from the seeded generator. */
   /**
    * Sample points at equal arc-length intervals along a cubic bezier curve.
    * Uses a lookup table approach: subdivide the curve into many small segments,
@@ -639,21 +632,14 @@ export class OverworldHud extends Component {
   /** Assigned node types per level index */
   private nodeTypes: OverworldNodeType[] = [];
 
-  /** Assign node types: last=Boss, one random middle=Minigame, rest=Combat */
+  /** Pull the seeded node-type layout from LevelGeneratorService (single source
+   *  of truth). The minigame position is part of the seeded run, so it stays
+   *  stable across reloads instead of being re-rolled here. */
   private _assignNodeTypes(totalLevels: number): void {
+    const gen = LevelGeneratorService.get();
     this.nodeTypes = [];
     for (let i = 0; i < totalLevels; i++) {
-      this.nodeTypes.push(OverworldNodeType.Combat);
-    }
-    // Last node is always Boss
-    if (totalLevels > 0) {
-      this.nodeTypes[totalLevels - 1] = OverworldNodeType.Boss;
-    }
-    // One random middle node is Minigame (not first, not last)
-    if (totalLevels > 2) {
-      const minigameIndex = 1 + Math.floor(Math.random() * (totalLevels - 2));
-      this.nodeTypes[minigameIndex] = OverworldNodeType.Minigame;
-      console.log(`[OverworldHud] Minigame node assigned to level ${minigameIndex + 1}`);
+      this.nodeTypes.push(gen.getNodeType(i));
     }
   }
 
