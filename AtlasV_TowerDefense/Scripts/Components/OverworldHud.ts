@@ -1,13 +1,22 @@
 /**
- * OverworldHud — Level select screen ViewModel controller (winding path layout).
+ * OverworldHud — Level select screen ViewModel controller (S-curve path layout).
  *
  * Component Attachment: Scene entity (OverworldUI in space.hstf)
  * Component Networking: Local (client-only UI)
  * Component Ownership: Server-owned scene entity, but UI logic runs on client via ExecuteOn.Owner
  *
- * Displays a single winding S-curve path of level nodes positioned on a Canvas.
- * Nodes alternate left/right as you scroll down, connected by a smooth bezier curve.
- * Level 1 appears at the top (visible first), higher levels below (scroll down).
+ * Displays a fixed S-curve bezier path with level nodes evenly distributed
+ * along it at equal arc-length intervals. The S-curve shape is always the same
+ * regardless of node count:
+ *   - Starts at bottom-center
+ *   - Curves right via control point 1
+ *   - Crosses back left via control point 2
+ *   - Ends at top-center
+ * Nodes are sampled at evenly-spaced points along the curve's arc length:
+ *   - 2 nodes = start and end of the S
+ *   - 3 nodes = start, middle, end
+ *   - 5+ nodes = evenly distributed along the S
+ * Level 1 appears at the bottom, higher levels climb upward.
  * When a level is tapped, fires Events.LevelSelected with the chosen levelIndex.
  * Shows only during the Overworld GamePhase.
  *
@@ -153,14 +162,19 @@ export class OverworldHud extends Component {
   // ========================================================================
 
   @property() canvasWidth: number = 900;
-  @property() topPadding: number = 120;
-  @property() bottomPadding: number = 120;
+  @property() canvasHeight: number = 1600;
+  /** Distance from the top of the canvas to the last (top-most) node center */
+  @property() topPadding: number = 150;
+  /** Distance from the bottom of the canvas to the first (bottom-most) node center */
+  @property() bottomPadding: number = 150;
   @property() leftFraction: number = 0.35;
   @property() rightFraction: number = 0.65;
   @property() maxNodeSize: number = 200;
   @property() minNodeSize: number = 120;
-  @property() maxVerticalSpacing: number = 240;
-  @property() minVerticalSpacing: number = 150;
+  /** Maximum horizontal offset from canvas center (used when few levels) */
+  @property() maxHorizontalSpacing: number = 135;
+  /** Minimum horizontal offset from canvas center (used when many levels) */
+  @property() minHorizontalSpacing: number = 80;
   @property() bossSizeMultiplier: number = 1.3;
   @property() minLevelCountForScaling: number = 1;
   @property() maxLevelCountForScaling: number = 20;
@@ -464,40 +478,163 @@ export class OverworldHud extends Component {
     this.viewModel.nodes = updatedNodes;
   }
 
-  private computeLayoutParams(totalLevels: number): { nodeSize: number; verticalSpacing: number } {
+  private computeLayoutParams(totalLevels: number): { nodeSize: number; horizontalSpacing: number } {
     const range = this.maxLevelCountForScaling - this.minLevelCountForScaling;
     const t = Math.max(0, Math.min(1, (totalLevels - this.minLevelCountForScaling) / range));
     const nodeSize = Math.round(this.maxNodeSize - t * (this.maxNodeSize - this.minNodeSize));
-    const verticalSpacing = Math.round(this.maxVerticalSpacing - t * (this.maxVerticalSpacing - this.minVerticalSpacing));
-    return { nodeSize, verticalSpacing };
+    const horizontalSpacing = Math.round(this.maxHorizontalSpacing - t * (this.maxHorizontalSpacing - this.minHorizontalSpacing));
+    return { nodeSize, horizontalSpacing };
   }
 
   /**
-   * Compute a smooth cubic bezier path data string connecting all node centers.
-   * Uses horizontal tangent control points at the vertical midpoint between
-   * consecutive nodes, creating the classic S-curve winding snake pattern.
+   * Build a fixed S-curve bezier path and sample node positions along it at
+   * equal arc-length intervals. The S shape is always the same regardless of
+   * node count — nodes are simply distributed evenly along the curve.
+   *
+   * The S-curve:
+   *   - Starts at bottom-center
+   *   - Curves to one side (right)
+   *   - Crosses back to the other side (left)
+   *   - Ends at top-center
+   *
+   * Uses a cubic bezier with control points that create a classic S shape.
+   * horizontalSpacing controls the width of the S.
+   *
+   * @returns SVG path data string and an array of node center positions.
    */
-  private _buildPathData(nodeCenters: Array<{ x: number; y: number }>): string {
-    if (nodeCenters.length < 2) return '';
+  private _buildSnakePath(
+    totalNodes: number,
+    horizontalSpacing: number,
+  ): { pathData: string; nodeCenters: Array<{ x: number; y: number }> } {
+    const canvasCenter = this.canvasWidth / 2;
+    const topY = this.topPadding;
+    const bottomY = this.canvasHeight - this.bottomPadding;
 
-    // Start at the first node center
-    let d = `M${nodeCenters[0].x},${nodeCenters[0].y}`;
-
-    // For each consecutive pair, draw a cubic bezier with S-curve control points
-    for (let i = 0; i < nodeCenters.length - 1; i++) {
-      const curr = nodeCenters[i];
-      const next = nodeCenters[i + 1];
-      // Control points at the same X as their respective node but at midpoint Y
-      const midY = (curr.y + next.y) / 2;
-      const cp1x = curr.x;
-      const cp1y = midY;
-      const cp2x = next.x;
-      const cp2y = midY;
-      d += ` C${cp1x},${cp1y} ${cp2x},${cp2y} ${next.x},${next.y}`;
+    if (totalNodes <= 0) {
+      return { pathData: '', nodeCenters: [] };
     }
 
-    return d;
+    if (totalNodes === 1) {
+      const nodeCenters = [{ x: canvasCenter, y: (topY + bottomY) / 2 }];
+      return { pathData: '', nodeCenters };
+    }
+
+    // -- Define the fixed S-curve as a cubic bezier --
+    // Start: bottom-center, End: top-center
+    // Control points push right then left to create the S shape
+    const startX = canvasCenter;
+    const startY = bottomY;
+    const endX = canvasCenter;
+    const endY = topY;
+
+    const height = bottomY - topY;
+
+    // Control point 1: push right and ~1/3 up from start
+    const cp1x = canvasCenter + horizontalSpacing * 1.8;
+    const cp1y = startY - height * 0.33;
+
+    // Control point 2: push left and ~1/3 down from end
+    const cp2x = canvasCenter - horizontalSpacing * 1.8;
+    const cp2y = endY + height * 0.33;
+
+    // -- Build SVG path data for the S-curve --
+    const pathData = `M${startX},${startY} C${cp1x},${cp1y} ${cp2x},${cp2y} ${endX},${endY}`;
+
+    // -- Sample node positions at equal arc-length intervals along the bezier --
+    const nodeCenters = this._sampleBezierEqualArcLength(
+      startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY, totalNodes,
+    );
+
+    return { pathData, nodeCenters };
   }
+
+  /**
+   * Sample points at equal arc-length intervals along a cubic bezier curve.
+   * Uses a lookup table approach: subdivide the curve into many small segments,
+   * compute cumulative arc length, then interpolate to find evenly-spaced points.
+   */
+  private _sampleBezierEqualArcLength(
+    x0: number, y0: number,
+    cx1: number, cy1: number,
+    cx2: number, cy2: number,
+    x3: number, y3: number,
+    numPoints: number,
+  ): Array<{ x: number; y: number }> {
+    // Build arc-length lookup table with many subdivisions
+    const SUBDIVISIONS = 200;
+    const arcLengths: number[] = [0];
+    let prevX = x0;
+    let prevY = y0;
+    let totalLength = 0;
+
+    for (let i = 1; i <= SUBDIVISIONS; i++) {
+      const t = i / SUBDIVISIONS;
+      const pt = this._evalCubicBezier(x0, y0, cx1, cy1, cx2, cy2, x3, y3, t);
+      const dx = pt.x - prevX;
+      const dy = pt.y - prevY;
+      totalLength += Math.sqrt(dx * dx + dy * dy);
+      arcLengths.push(totalLength);
+      prevX = pt.x;
+      prevY = pt.y;
+    }
+
+    // Sample numPoints at equal arc-length intervals
+    const points: Array<{ x: number; y: number }> = [];
+
+    for (let i = 0; i < numPoints; i++) {
+      const targetLength = numPoints === 1
+        ? totalLength / 2
+        : (i / (numPoints - 1)) * totalLength;
+
+      // Binary search for the subdivision index where this arc length falls
+      let low = 0;
+      let high = SUBDIVISIONS;
+      while (low < high) {
+        const mid = Math.floor((low + high) / 2);
+        if (arcLengths[mid] < targetLength) {
+          low = mid + 1;
+        } else {
+          high = mid;
+        }
+      }
+
+      // Interpolate between subdivision steps for more precision
+      const segIndex = Math.max(0, low - 1);
+      const segLength = arcLengths[segIndex + 1] - arcLengths[segIndex];
+      const segFraction = segLength > 0
+        ? (targetLength - arcLengths[segIndex]) / segLength
+        : 0;
+      const t = (segIndex + segFraction) / SUBDIVISIONS;
+
+      const pt = this._evalCubicBezier(x0, y0, cx1, cy1, cx2, cy2, x3, y3, t);
+      points.push(pt);
+    }
+
+    return points;
+  }
+
+  /**
+   * Evaluate a cubic bezier at parameter t (0..1).
+   */
+  private _evalCubicBezier(
+    x0: number, y0: number,
+    cx1: number, cy1: number,
+    cx2: number, cy2: number,
+    x3: number, y3: number,
+    t: number,
+  ): { x: number; y: number } {
+    const mt = 1 - t;
+    const mt2 = mt * mt;
+    const mt3 = mt2 * mt;
+    const t2 = t * t;
+    const t3 = t2 * t;
+
+    const x = mt3 * x0 + 3 * mt2 * t * cx1 + 3 * mt * t2 * cx2 + t3 * x3;
+    const y = mt3 * y0 + 3 * mt2 * t * cy1 + 3 * mt * t2 * cy2 + t3 * y3;
+    return { x, y };
+  }
+
+
 
   /** Assigned node types per level index */
   private nodeTypes: OverworldNodeType[] = [];
@@ -522,22 +659,14 @@ export class OverworldHud extends Component {
 
   private _populateLevels(): void {
     const totalLevels = this.levelCount;
-    const { nodeSize, verticalSpacing } = this.computeLayoutParams(totalLevels);
+    const { nodeSize, horizontalSpacing } = this.computeLayoutParams(totalLevels);
     const bossNodeSize = Math.round(nodeSize * this.bossSizeMultiplier);
 
     // Assign node types
     this._assignNodeTypes(totalLevels);
 
-    // Compute node center positions along the S-curve
-    const nodeCenters: Array<{ x: number; y: number }> = [];
-    for (let i = 0; i < totalLevels; i++) {
-      const isRight = i % 2 === 1;
-      const centerX = isRight
-        ? this.canvasWidth * this.rightFraction
-        : this.canvasWidth * this.leftFraction;
-      const centerY = this.topPadding + (totalLevels - 1 - i) * verticalSpacing;
-      nodeCenters.push({ x: centerX, y: centerY });
-    }
+    // Build the 3-arc snake path and sample node positions along it
+    const { pathData, nodeCenters } = this._buildSnakePath(totalLevels, horizontalSpacing);
 
     // Build node ViewModels
     const nodes: OverworldPathNodeViewModel[] = [];
@@ -576,16 +705,10 @@ export class OverworldHud extends Component {
       nodes.push(node);
     }
 
-    // Build smooth bezier path data connecting all nodes
-    const pathData = this._buildPathData(nodeCenters);
-
-    // Compute total canvas height dynamically
-    const canvasHeight = this.topPadding + (totalLevels - 1) * verticalSpacing + this.bottomPadding;
-
     if (this.viewModel) {
       this.viewModel.nodes = nodes;
       this.viewModel.pathData = pathData;
-      this.viewModel.canvasHeight = canvasHeight;
+      this.viewModel.canvasHeight = this.canvasHeight;
     }
   }
 

@@ -30,7 +30,7 @@ done:
   - Overworld Map Centering -- bottom-to-top order, middle level centered on screen
   - Overworld HD Visual Upgrade -- sprite-based painted nodes, path, and background
   - Overworld Curvy Snake Path -- smooth bezier curve connecting nodes, replaces tiled segments
-  - Fix UI and Avatar on Start -- boss UI hidden by default, camera init synchronous
+  - Fix UI and Avatar on Start -- avatar hidden+teleported on spawn, boss UI hidden by default
   - Overworld Node Numbers -- size 72px, centered, exposed fontSize + offsetY props
   - Random Level Generation -- N procedural levels with random waves and paths
   - Fix Stale Path Tiles on Abandon -- destroy tiles on RestartGame event

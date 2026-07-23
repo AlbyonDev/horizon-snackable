@@ -889,13 +889,14 @@
                             "targetId": "4237980480"
                         },
                         "data": {
-                            "levelCount": 5.0,
-                            "topPadding": 100.0,
+                            "levelCount": 6.0,
+                            "canvasWidth": 1000.0,
+                            "topPadding": -50.0,
+                            "bottomPadding": -200.0,
                             "maxNodeSize": 400.0,
-                            "minNodeSize": 200.0,
-                            "maxVerticalSpacing": 550.0,
-                            "minVerticalSpacing": 550.0,
-                            "bossSizeMultiplier": 1.5,
+                            "maxHorizontalSpacing": 800.0,
+                            "minHorizontalSpacing": 800.0,
+                            "bossSizeMultiplier": 1.3,
                             "maxLevelCountForScaling": 20.0,
                             "levelNumberFontSize": 0.0,
                             "levelNumberOffsetZ": 10.0
