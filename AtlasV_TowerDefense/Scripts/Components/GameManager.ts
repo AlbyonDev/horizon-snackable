@@ -69,10 +69,18 @@ export class GameManager extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (this._running) return;
 
-    // Transition to BiomeSelect screen (user picks biome before Overworld)
-    console.log('[GameManager] StartGame received, transitioning to BiomeSelect');
+    // Bypass BiomeSelect screen for release — default to "grass" biome.
+    // To re-enable BiomeSelect, replace the block below with:
+    //   const phase = new Events.GamePhaseChangedPayload();
+    //   phase.phase = GamePhase.BiomeSelect;
+    //   EventService.sendLocally(Events.GamePhaseChanged, phase);
+    console.log('[GameManager] StartGame received, bypassing BiomeSelect (defaulting to grass)');
+    const bp = new Events.BiomeChangedPayload();
+    bp.biomeId = 'grass';
+    EventService.sendLocally(Events.BiomeChanged, bp);
+
     const phase = new Events.GamePhaseChangedPayload();
-    phase.phase = GamePhase.BiomeSelect;
+    phase.phase = GamePhase.Overworld;
     EventService.sendLocally(Events.GamePhaseChanged, phase);
   }
 

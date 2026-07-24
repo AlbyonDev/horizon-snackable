@@ -318,7 +318,7 @@ Each level randomly selects one of three biomes when starting, changing the grou
 ## Game Phases
 
 ```
-Title Screen → BiomeSelect → (user picks biome) → Overworld (Level Select) → Build (5s) → Wave → WaveClear (0.5s) → Build → … → Victory
+Title Screen → [BiomeSelect bypassed, auto-selects "grass"] → Overworld (Level Select) → Build (5s) → Wave → WaveClear (0.5s) → Build → … → Victory
                                                        ↑                                                                              ↓
                                           (StartGame generates                                                                   GameOver (won=true)
                                            TOTAL_LEVELS random                                                                        ↓

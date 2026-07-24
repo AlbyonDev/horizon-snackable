@@ -68,12 +68,13 @@ done:
   - Overworld Open Node Breathing -- subtle 1.0-1.08 scale pulse on open sprite
   - Fix Carousel Rightmost Card Flicker -- added RenderTransformOrigin center to card
   - Relic Carousel Layout Repositioning -- title lower, dots below cards, yellow X below dots
+  - Hide BiomeSelect for First Playable -- auto-selects grass, skips to Overworld
 
 chopping_block:
   disabled_systems: []
   temp_scaffolding:
     - "Next Wave debug button -- remove before shipping"
-    - "BiomeSelect debug screen -- remove before shipping"
+    - "BiomeSelect debug screen -- bypassed for First Playable, re-enable later"
   failed_attempts: []
 
 notes:
