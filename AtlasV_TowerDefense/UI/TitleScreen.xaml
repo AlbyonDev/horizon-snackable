@@ -54,7 +54,45 @@
                    Source="/Root;component/Textures/GoblinClash_logo.png" Stretch="UniformToFill"/>
 
             <!-- Row 3: JOUER Button with 3D Medieval Style -->
-            <Grid Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center"
+                  RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                <Grid.RenderTransform><ScaleTransform x:Name="PlayBtnScale" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                <Grid.Resources>
+                    <Storyboard x:Key="PlayBtnPulseAnim" RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetName="PlayBtnScale"
+                                         Storyboard.TargetProperty="ScaleX"
+                                         From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="PlayBtnScale"
+                                         Storyboard.TargetProperty="ScaleY"
+                                         From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="PlayBtnGlow"
+                                         Storyboard.TargetProperty="Opacity"
+                                         From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                    </Storyboard>
+                </Grid.Resources>
+                <b:Interaction.Triggers>
+                    <b:EventTrigger>
+                        <b:ControlStoryboardAction Storyboard="{StaticResource PlayBtnPulseAnim}"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+
+                <!-- Outer glow border (pulsing golden shimmer) -->
+                <Border x:Name="PlayBtnGlow" Opacity="0"
+                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Width="992" Height="312"
+                        Background="Transparent"
+                        BorderBrush="#AAf5c518"
+                        BorderThickness="10"
+                        CornerRadius="38"
+                        IsHitTestVisible="False"/>
+
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                 <!-- Loading/ready state: overlay + label text driven by isLoading/buttonLabel.
                      Tap is also ignored in TitleScreenHud.onPlayTap until the cloud save loads. -->
                 <b:Interaction.Triggers>
@@ -119,6 +157,7 @@
                         Background="#AF000000"
                         IsEnabled="False"
                         Visibility="Visible"/>
+            </Grid>
             </Grid>
 
             <!-- Row 4: Subtitle text -->

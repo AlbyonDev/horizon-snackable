@@ -29,8 +29,8 @@
           </Binding>
         </Grid.Visibility>
 
-        <!-- Title text in styled box -->
-        <Border VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,200,0,0"
+        <!-- Title text in styled box (below cards) -->
+        <Border VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,1050,0,0"
                 Background="#CC1a1a2e"
                 BorderBrush="#f5c518"
                 BorderThickness="6"
@@ -68,19 +68,19 @@
             <!-- Title text with outline -->
             <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
               <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
-                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"
+                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
-                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"
+                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
-                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"
+                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
-                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"
+                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
-                         FontSize="96" FontWeight="Bold" Foreground="#f5c518"
+                         FontSize="77" FontWeight="Bold" Foreground="#f5c518"
                          HorizontalAlignment="Center"/>
             </Grid>
           </Grid>
@@ -220,7 +220,7 @@
         </ItemsControl>
 
         <!-- Feedback text in styled box -->
-        <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,440"
+        <Border VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,1050,0,0"
                 Background="#CC1a1a2e"
                 BorderBrush="#f5c518"
                 BorderThickness="6"
@@ -258,19 +258,19 @@
             <!-- Feedback text with outline -->
             <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
               <TextBlock Text="{Binding Path=feedbackText}" FontFamily="Anton"
-                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"
+                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=feedbackText}" FontFamily="Anton"
-                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"
+                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=feedbackText}" FontFamily="Anton"
-                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"
+                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=feedbackText}" FontFamily="Anton"
-                         FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"
+                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=feedbackText}" FontFamily="Anton"
-                         FontSize="96" FontWeight="Bold" Foreground="#f5c518"
+                         FontSize="77" FontWeight="Bold" Foreground="#f5c518"
                          HorizontalAlignment="Center"/>
             </Grid>
           </Grid>

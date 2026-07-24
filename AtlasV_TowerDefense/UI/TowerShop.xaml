@@ -284,7 +284,7 @@
 
         <!-- Medieval wood/leather background bar (purely decorative, no children that clip) -->
         <Border VerticalAlignment="Bottom"
-                CornerRadius="38,38,0,0" Height="400" d:IsLocked="True">
+                CornerRadius="40,40,0,0" Height="400" d:IsLocked="True">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                     <GradientStop Color="#F02a1a0e" Offset="0"/>
@@ -294,7 +294,7 @@
             </Border.Background>
 
             <!-- Decorative gold top border line only -->
-            <Border BorderThickness="6,6,6,0" BorderBrush="#FF553B14"/>
+            <Border BorderThickness="0,6,0,0" BorderBrush="#FF553B14" CornerRadius="40,40,0,0"/>
         </Border>
 
         <!-- Tower Items List - FREE from CornerRadius clipping, sibling of background -->

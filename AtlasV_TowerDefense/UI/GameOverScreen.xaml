@@ -181,7 +181,33 @@
                             </StackPanel.Visibility>
 
                             <!-- RETURN TO OVERWORLD Button -->
-                            <Grid Margin="0,0,40,0">
+                            <Grid Margin="0,0,40,0" RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                                <Grid.RenderTransform><ScaleTransform x:Name="OverworldBtnScale" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                                <Grid.Resources>
+                                    <Storyboard x:Key="OverworldBtnPulse" RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="OverworldBtnScale" Storyboard.TargetProperty="ScaleX"
+                                                         From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="OverworldBtnScale" Storyboard.TargetProperty="ScaleY"
+                                                         From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="OverworldBtnGlow" Storyboard.TargetProperty="Opacity"
+                                                         From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </Grid.Resources>
+                                <b:Interaction.Triggers>
+                                    <b:EventTrigger>
+                                        <b:ControlStoryboardAction Storyboard="{StaticResource OverworldBtnPulse}"/>
+                                    </b:EventTrigger>
+                                </b:Interaction.Triggers>
+                                <Border x:Name="OverworldBtnGlow" Opacity="0" Background="Transparent"
+                                        BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="30"
+                                        Width="652" Height="232" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        IsHitTestVisible="False"/>
                                 <Button Command="{Binding Path=events.overworldTap}"
                                         Background="{StaticResource TransparentBrush}"
                                         BorderThickness="0"
@@ -225,7 +251,33 @@
                             </Grid>
 
                             <!-- PLAY AGAIN Button with 3D Medieval Style -->
-                            <Grid>
+                            <Grid RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                                <Grid.RenderTransform><ScaleTransform x:Name="PlayAgainBtnScale" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                                <Grid.Resources>
+                                    <Storyboard x:Key="PlayAgainBtnPulse" RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="PlayAgainBtnScale" Storyboard.TargetProperty="ScaleX"
+                                                         From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PlayAgainBtnScale" Storyboard.TargetProperty="ScaleY"
+                                                         From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PlayAgainBtnGlow" Storyboard.TargetProperty="Opacity"
+                                                         From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </Grid.Resources>
+                                <b:Interaction.Triggers>
+                                    <b:EventTrigger>
+                                        <b:ControlStoryboardAction Storyboard="{StaticResource PlayAgainBtnPulse}"/>
+                                    </b:EventTrigger>
+                                </b:Interaction.Triggers>
+                                <Border x:Name="PlayAgainBtnGlow" Opacity="0" Background="Transparent"
+                                        BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="30"
+                                        Width="652" Height="232" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        IsHitTestVisible="False"/>
                                 <Button Command="{Binding Path=events.restartTap}"
                                         Background="{StaticResource TransparentBrush}"
                                         BorderThickness="0"
@@ -271,7 +323,34 @@
                         </StackPanel>
 
                         <!-- CHOOSE RELIC Button (regular victory only) -->
-                        <Grid x:Name="ChooseRelicButton" HorizontalAlignment="Center">
+                        <Grid x:Name="ChooseRelicButton" HorizontalAlignment="Center"
+                              RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                            <Grid.RenderTransform><ScaleTransform x:Name="ChooseRelicBtnScale" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                            <Grid.Resources>
+                                <Storyboard x:Key="ChooseRelicBtnPulse" RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="ChooseRelicBtnScale" Storyboard.TargetProperty="ScaleX"
+                                                     From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="ChooseRelicBtnScale" Storyboard.TargetProperty="ScaleY"
+                                                     From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="ChooseRelicBtnGlow" Storyboard.TargetProperty="Opacity"
+                                                     From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </Grid.Resources>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger>
+                                    <b:ControlStoryboardAction Storyboard="{StaticResource ChooseRelicBtnPulse}"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Border x:Name="ChooseRelicBtnGlow" Opacity="0" Background="Transparent"
+                                    BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="30"
+                                    Width="732" Height="232" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    IsHitTestVisible="False"/>
                             <Grid.Visibility>
                                 <Binding Path="showChooseRelic">
                                     <Binding.Converter>
@@ -327,7 +406,34 @@
                         </Grid>
 
                         <!-- NEXT RUN Button (boss victory only) -->
-                        <Grid x:Name="NextRunButton" HorizontalAlignment="Center">
+                        <Grid x:Name="NextRunButton" HorizontalAlignment="Center"
+                              RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                            <Grid.RenderTransform><ScaleTransform x:Name="NextRunBtnScale" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                            <Grid.Resources>
+                                <Storyboard x:Key="NextRunBtnPulse" RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="NextRunBtnScale" Storyboard.TargetProperty="ScaleX"
+                                                     From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="NextRunBtnScale" Storyboard.TargetProperty="ScaleY"
+                                                     From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="NextRunBtnGlow" Storyboard.TargetProperty="Opacity"
+                                                     From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </Grid.Resources>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger>
+                                    <b:ControlStoryboardAction Storyboard="{StaticResource NextRunBtnPulse}"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Border x:Name="NextRunBtnGlow" Opacity="0" Background="Transparent"
+                                    BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="30"
+                                    Width="732" Height="232" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    IsHitTestVisible="False"/>
                             <Grid.Visibility>
                                 <Binding Path="showNextRun">
                                     <Binding.Converter>

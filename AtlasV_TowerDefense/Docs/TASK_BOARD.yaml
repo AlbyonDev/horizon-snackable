@@ -53,7 +53,7 @@ done:
   - Boss Warning UI -- single random modifier per boss, overworld label, large badge
   - Level Progress Save System -- persists beaten levels via td_level_sav
   - Save Indicator UI -- "Saving..." pill fades in bottom-left for 2s on save
-  - Overworld RUN 1 Header -- gold-framed header matching GameHud style
+  - Overworld Header HUD -- 3-panel bar with relics (clickable), run count, levels beaten
   - Run Progression System -- beat boss → new overworld, RUN X increments, relics reset
   - Save Run Count Variable -- persists run count, loads on start, saves on advance
   - Save Boss Modifier Variable -- saves at generation time via BossModAssigned event, rewind fix
@@ -67,6 +67,7 @@ done:
   - Overworld Relic Carousel -- button + fullscreen 3D card carousel with navigation
   - Overworld Open Node Breathing -- subtle 1.0-1.08 scale pulse on open sprite
   - Fix Carousel Rightmost Card Flicker -- added RenderTransformOrigin center to card
+  - Relic Carousel Layout Repositioning -- title lower, dots below cards, yellow X below dots
 
 chopping_block:
   disabled_systems: []

@@ -172,8 +172,13 @@ export class OverworldViewModel extends UiViewModel {
   canvasHeight: number = 800;
   backgroundImage: Maybe<TextureAsset> = null;
 
-  // Relic button visibility (true when player has relics)
+  // Header bar data
+  relicCount: number = 0;
+  levelsBeatenText: string = '0';
+  /** Whether the relic section of the header should appear clickable (has relics) */
   relicIconsVisible: boolean = false;
+  /** Whether the relic pulse/glow animation should be active (relicCount > 0) */
+  relicPulseActive: boolean = false;
 
   // Carousel overlay state
   carouselVisible: boolean = false;
@@ -471,10 +476,20 @@ export class OverworldHud extends Component {
     EventService.sendLocally(Events.RunAdvanced, p);
   }
 
-  /** Update the run label in the ViewModel */
+  /** Update header bar: run label, relic count, and levels beaten */
   private _updateRunLabel(): void {
     if (!this.viewModel) return;
     this.viewModel.runLabel = `RUN ${LevelGeneratorService.get().runCount}`;
+    // Relic count
+    const activeRelics = RelicService.get().getActiveRelicIds();
+    this.viewModel.relicCount = activeRelics.length;
+    this.viewModel.relicPulseActive = activeRelics.length > 0;
+    // Levels beaten count
+    let beatenCount = 0;
+    for (let i = 0; i < this.levelStates.length; i++) {
+      if (this.levelStates[i] === OverworldNodeState.Beaten) beatenCount++;
+    }
+    this.viewModel.levelsBeatenText = `${beatenCount}/${this.levelStates.length}`;
   }
 
   /** Convert enum to string for XAML binding */
@@ -1035,6 +1050,8 @@ export class OverworldHud extends Component {
 
     const activeIds = RelicService.get().getActiveRelicIds();
     this.viewModel.relicIconsVisible = activeIds.length > 0;
+    this.viewModel.relicCount = activeIds.length;
+    this.viewModel.relicPulseActive = activeIds.length > 0;
 
     // Close carousel if no relics remain
     if (activeIds.length === 0) {

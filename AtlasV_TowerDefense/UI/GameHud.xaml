@@ -50,21 +50,20 @@
     </Grid>
 
     <!-- Top HUD Bar - Lives (left), Wave (center), and Gold (right) -->
-    <Grid VerticalAlignment="Top" Height="280" IsHitTestVisible="False">
-        <!-- Dark wood gradient background matching TowerShop bottom bar -->
-        <Border CornerRadius="0,0,40,40">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                    <GradientStop Color="#F02a1a0e" Offset="0"/>
-                    <GradientStop Color="#FF0a0500" Offset="1"/>
-                </LinearGradientBrush>
-            </Border.Background>
-            <!-- Gold top border line -->
-            <Border BorderThickness="0,6,0,0" BorderBrush="#553B14"/>
-        </Border>
-        
-        <!-- Content: Three sections - left, center, and right aligned -->
-        <Grid Margin="80,30,80,30">
+    <Grid VerticalAlignment="Top" Height="280" IsHitTestVisible="False" Background="Transparent">
+        <!-- Border stroke overlay with rounded corners (no background) -->
+        <Border CornerRadius="0,0,40,40" BorderThickness="0,0,0,6" BorderBrush="#553B14" Background="Transparent"/>
+        <!-- Background fill Border with matching corners - contains content so clipping is enforced -->
+        <Border CornerRadius="0,0,40,40" Background="Transparent">
+            <Border CornerRadius="0,0,40,40" Padding="0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                        <GradientStop Color="#F02a1a0e" Offset="0"/>
+                        <GradientStop Color="#FF0a0500" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <!-- Content: Three sections - left, center, and right aligned -->
+                <Grid Margin="80,30,80,30">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -291,6 +290,8 @@
                 </Grid>
             </Border>
         </Grid>
+            </Border>
+        </Border>
     </Grid>
 
     <!-- Finish Level (Debug) Button - top-left, below the HUD bar, visible only during Wave phase -->
