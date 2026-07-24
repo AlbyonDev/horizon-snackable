@@ -35,42 +35,42 @@
         <DataTemplate x:Key="LevelNodeTemplate">
             <Grid Width="{Binding nodeSize}" Height="{Binding nodeSize}" ClipToBounds="False">
                 <Grid.Resources>
-                    <!-- Looping breathing scale for open node sprites: 1.0 → 1.08 → 1.0 over 2.4s -->
+                    <!-- Looping breathing scale for open node sprites: 1.0 → 1.18 → 1.0 over 1.6s -->
                     <Storyboard x:Key="NodeBreathingAnim" RepeatBehavior="Forever">
                         <!-- CombatOpenSprite ScaleX -->
                         <DoubleAnimation Storyboard.TargetName="CombatOpenSprite"
                                          Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                                         From="1.0" To="1.18" Duration="0:0:0.8" AutoReverse="True">
                             <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                         <!-- CombatOpenSprite ScaleY -->
                         <DoubleAnimation Storyboard.TargetName="CombatOpenSprite"
                                          Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
-                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                                         From="1.0" To="1.18" Duration="0:0:0.8" AutoReverse="True">
                             <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                         <!-- BossOpenSprite ScaleX -->
                         <DoubleAnimation Storyboard.TargetName="BossOpenSprite"
                                          Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                                         From="1.0" To="1.18" Duration="0:0:0.8" AutoReverse="True">
                             <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                         <!-- BossOpenSprite ScaleY -->
                         <DoubleAnimation Storyboard.TargetName="BossOpenSprite"
                                          Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
-                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                                         From="1.0" To="1.18" Duration="0:0:0.8" AutoReverse="True">
                             <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                         <!-- MinigameOpenSprite ScaleX -->
                         <DoubleAnimation Storyboard.TargetName="MinigameOpenSprite"
                                          Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                                         From="1.0" To="1.18" Duration="0:0:0.8" AutoReverse="True">
                             <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                         <!-- MinigameOpenSprite ScaleY -->
                         <DoubleAnimation Storyboard.TargetName="MinigameOpenSprite"
                                          Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
-                                         From="1.0" To="1.08" Duration="0:0:1.2" AutoReverse="True">
+                                         From="1.0" To="1.18" Duration="0:0:0.8" AutoReverse="True">
                             <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                     </Storyboard>
