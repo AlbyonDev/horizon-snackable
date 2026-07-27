@@ -552,8 +552,35 @@
                           HorizontalAlignment="Center"
                           VerticalAlignment="Center">
                 <Canvas Width="900" Height="{Binding canvasHeight}">
-                    <Path Data="{Binding pathData}" Stroke="{StaticResource PathStrokeOuterBrush}" StrokeThickness="52" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                    <Path Data="{Binding pathData}" Stroke="{StaticResource PathStrokeBrush}" StrokeThickness="40" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <!-- COBBLESTONE PATH: Chunky multi-layer path with texture stripes -->
+                    <!-- Layer 1: Outermost dark edge shadow (depth illusion) -->
+                    <Path Data="{Binding pathData}" Stroke="#FF1A0E05" StrokeThickness="90" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <!-- Layer 2: Dark stone border -->
+                    <Path Data="{Binding pathData}" Stroke="{StaticResource PathStrokeOuterBrush}" StrokeThickness="82" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <!-- Layer 3: Main warm stone body (thick fill) -->
+                    <Path Data="{Binding pathData}" Stroke="{StaticResource PathStrokeBrush}" StrokeThickness="68" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <!-- Layer 4: Cobblestone stripe - center groove (dark mortar line) -->
+                    <Path Data="{Binding pathData}" Stroke="#FF6B4F1A" StrokeThickness="4" StrokeStartLineCap="Flat" StrokeEndLineCap="Flat" StrokeLineJoin="Round" StrokeDashArray="6 3"/>
+                    <!-- Layer 5: Cobblestone stripe - left groove -->
+                    <Path Data="{Binding pathData}" Stroke="#FF7A5A20" StrokeThickness="3" StrokeStartLineCap="Flat" StrokeEndLineCap="Flat" StrokeLineJoin="Round" StrokeDashArray="4 5" StrokeDashOffset="2">
+                        <Path.RenderTransform><TranslateTransform X="-12"/></Path.RenderTransform>
+                    </Path>
+                    <!-- Layer 6: Cobblestone stripe - right groove -->
+                    <Path Data="{Binding pathData}" Stroke="#FF7A5A20" StrokeThickness="3" StrokeStartLineCap="Flat" StrokeEndLineCap="Flat" StrokeLineJoin="Round" StrokeDashArray="4 5" StrokeDashOffset="4">
+                        <Path.RenderTransform><TranslateTransform X="12"/></Path.RenderTransform>
+                    </Path>
+                    <!-- Layer 7: Cobblestone stripe - far left mortar -->
+                    <Path Data="{Binding pathData}" Stroke="#FF8B6828" StrokeThickness="2" StrokeStartLineCap="Flat" StrokeEndLineCap="Flat" StrokeLineJoin="Round" StrokeDashArray="3 4" StrokeDashOffset="1">
+                        <Path.RenderTransform><TranslateTransform X="-24"/></Path.RenderTransform>
+                    </Path>
+                    <!-- Layer 8: Cobblestone stripe - far right mortar -->
+                    <Path Data="{Binding pathData}" Stroke="#FF8B6828" StrokeThickness="2" StrokeStartLineCap="Flat" StrokeEndLineCap="Flat" StrokeLineJoin="Round" StrokeDashArray="3 4" StrokeDashOffset="3">
+                        <Path.RenderTransform><TranslateTransform X="24"/></Path.RenderTransform>
+                    </Path>
+                    <!-- Layer 9: Highlight edge (top bevel for volume) -->
+                    <Path Data="{Binding pathData}" Stroke="#44FFFFFF" StrokeThickness="68" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Opacity="0.12"/>
+                    <!-- Layer 10: Inner highlight line (gives raised center feel) -->
+                    <Path Data="{Binding pathData}" Stroke="#33FFE8B0" StrokeThickness="20" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Opacity="0.3"/>
                     <ItemsControl ItemsSource="{Binding nodes}" ItemsPanel="{StaticResource CanvasPanel}" ItemContainerStyle="{StaticResource NodeContainerStyle}" ItemTemplate="{StaticResource LevelNodeTemplate}" Canvas.ZIndex="1"/>
                 </Canvas>
             </ScrollViewer>

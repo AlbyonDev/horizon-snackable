@@ -224,8 +224,8 @@ export class OverworldHud extends Component {
   @property() levelNumberFontSize: number = 72;
   @property() levelNumberOffsetX: number = 0;
   @property() levelNumberOffsetZ: number = 0;
-  /** Thickness of the smooth bezier path stroke (px) */
-  @property() pathThickness: number = 40;
+  /** Thickness of the smooth bezier path stroke (px) — outermost layer is 90px, visual body is 68px */
+  @property() pathThickness: number = 90;
 
   // ========================================================================
 

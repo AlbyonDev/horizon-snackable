@@ -1,6 +1,4 @@
-tasks:
-  - name: Is Debug Toggle
-    status: in_progress
+tasks: []
 
 done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
@@ -31,7 +29,7 @@ done:
   - Abandon Confirmation Popup -- "Are you sure?" Yes/No popup on abandon tap
   - Overworld Map Centering -- bottom-to-top order, middle level centered on screen
   - Overworld HD Visual Upgrade -- sprite-based painted nodes, path, and background
-  - Overworld Curvy Snake Path -- smooth bezier curve connecting nodes, replaces tiled segments
+  - Overworld Curvy Snake Path -- volumic cobblestone stripes, 10-layer 90px thick
   - Fix UI and Avatar on Start -- avatar hidden+teleported on spawn, boss UI hidden by default
   - Overworld Node Numbers Removed -- no text overlay on nodes
   - Random Level Generation -- N procedural levels with random waves and paths
