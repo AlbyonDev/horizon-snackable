@@ -901,7 +901,8 @@ export class OverworldHud extends Component {
     if (cmd.length < 2) return;
 
     const action = cmd.charAt(0); // 'd' = down, 'u' = up
-    const zone = parseInt(cmd.charAt(1), 10);
+    // Use substring(1) to handle multi-digit zone indices (0-14)
+    const zone = parseInt(cmd.substring(1), 10);
     if (isNaN(zone)) return;
 
     if (action === 'd') {
@@ -913,30 +914,53 @@ export class OverworldHud extends Component {
       const delta = zone - this._swipeDownZone;
       this._swipeDownZone = -1;
 
-      if (delta === 0) return; // tap in place — no navigation
+      if (this._carouselRelics.length === 0) return;
 
-      if (this._carouselRelics.length > 0) {
-        if (delta > 0) {
-          // Swiped right (finger moved from left to right) -> show previous card
-          if (this._carouselIndex <= 0) {
-            console.log(`[OverworldHud] Already at first card, cannot swipe right`);
-            return;
-          }
-          this._carouselIndex = this._carouselIndex - 1;
-          console.log(`[OverworldHud] Swipe right (prev) -> index ${this._carouselIndex}`);
-        } else {
-          // Swiped left (finger moved from right to left) -> show next card
-          if (this._carouselIndex >= this._carouselRelics.length - 1) {
-            console.log(`[OverworldHud] Already at last card, cannot swipe left`);
-            return;
-          }
-          this._carouselIndex = this._carouselIndex + 1;
-          console.log(`[OverworldHud] Swipe left (next) -> index ${this._carouselIndex}`);
-        }
+      if (delta === 0) {
+        // Tap in place — navigate to the card under the tapped zone
+        // 15 zones across 1800px canvas; cards spaced 580px apart from center
+        const NUM_ZONES = 15;
+        const centerZone = Math.floor(NUM_ZONES / 2); // zone 7
+        const zoneWidth = this._carouselCanvasW / NUM_ZONES; // 120px per zone
+        const cardSpacing = 580; // px between card centers (matches _computeCarouselTargets)
+        const zonesPerCard = cardSpacing / zoneWidth; // ~4.83 zones per card
+        const cardOffset = Math.round((zone - centerZone) / zonesPerCard);
+
+        if (cardOffset === 0) return; // tapped the already-centered card
+
+        const targetIndex = this._carouselIndex + cardOffset;
+        // Clamp to valid range
+        const clampedIndex = Math.max(0, Math.min(this._carouselRelics.length - 1, targetIndex));
+        if (clampedIndex === this._carouselIndex) return; // no change after clamping
+
+        this._carouselIndex = clampedIndex;
+        console.log(`[OverworldHud] Tap-to-navigate -> index ${this._carouselIndex} (zone=${zone}, offset=${cardOffset})`);
         this._computeCarouselTargets();
         this._carouselAnimating = true;
         this._updateCarouselDots();
+        return;
       }
+
+      if (delta > 0) {
+        // Swiped right (finger moved from left to right) -> show previous card
+        if (this._carouselIndex <= 0) {
+          console.log(`[OverworldHud] Already at first card, cannot swipe right`);
+          return;
+        }
+        this._carouselIndex = this._carouselIndex - 1;
+        console.log(`[OverworldHud] Swipe right (prev) -> index ${this._carouselIndex}`);
+      } else {
+        // Swiped left (finger moved from right to left) -> show next card
+        if (this._carouselIndex >= this._carouselRelics.length - 1) {
+          console.log(`[OverworldHud] Already at last card, cannot swipe left`);
+          return;
+        }
+        this._carouselIndex = this._carouselIndex + 1;
+        console.log(`[OverworldHud] Swipe left (next) -> index ${this._carouselIndex}`);
+      }
+      this._computeCarouselTargets();
+      this._carouselAnimating = true;
+      this._updateCarouselDots();
     }
   }
 

@@ -67,6 +67,7 @@ done:
   - Overworld Relic Carousel -- button + fullscreen 3D card carousel with navigation
   - Overworld Open Node Breathing -- 1.0-1.18 scale pulse, 0.8s half-cycle
   - Fix Carousel Rightmost Card Flicker -- added RenderTransformOrigin center to card
+  - Fix Carousel Scroll Sensitivity -- 15-col grid, tap-to-navigate cards
   - Relic Carousel Layout Repositioning -- title lower, dots below cards, yellow X below dots
   - Hide BiomeSelect for First Playable -- auto-selects grass, skips to Overworld
 

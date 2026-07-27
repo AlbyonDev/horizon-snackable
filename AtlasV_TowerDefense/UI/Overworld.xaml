@@ -675,10 +675,11 @@
 
             </Grid>
 
-            <!-- Swipe detection grid (overlays the cards area only) -->
-            <Grid HorizontalAlignment="Center" VerticalAlignment="Top" Width="1800" Height="1800" Margin="0,80,0,0" Panel.ZIndex="50">
+            <!-- Swipe detection grid (overlays the full carousel area for reliable swipe detection) -->
+            <!-- 15 zones for highly responsive swipe detection -->
+            <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Panel.ZIndex="50">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" Background="Transparent">
                     <b:Interaction.Triggers>
@@ -708,6 +709,66 @@
                     <b:Interaction.Triggers>
                         <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d4"/></b:EventTrigger>
                         <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u4"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="5" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d5"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u5"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="6" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d6"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u6"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="7" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d7"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u7"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="8" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d8"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u8"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="9" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d9"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u9"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="10" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d10"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u10"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="11" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d11"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u11"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="12" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d12"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u12"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="13" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d13"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u13"/></b:EventTrigger>
+                    </b:Interaction.Triggers>
+                </Border>
+                <Border Grid.Column="14" Background="Transparent">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="d14"/></b:EventTrigger>
+                        <b:EventTrigger EventName="MouseLeftButtonUp"><b:InvokeCommandAction Command="{Binding events.relicCarouselSwipe}" CommandParameter="u14"/></b:EventTrigger>
                     </b:Interaction.Triggers>
                 </Border>
             </Grid>
