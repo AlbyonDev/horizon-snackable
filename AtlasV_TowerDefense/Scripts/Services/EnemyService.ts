@@ -79,6 +79,14 @@ export class EnemyService extends Service {
   getAll(): ReadonlyMap<number, IEnemyRecord> { return this._enemies; }
   get count(): number { return this._enemies.size; }
 
+  @subscribe(Events.LevelSelected)
+  onLevelSelected(_p: Events.LevelSelectedPayload): void {
+    // Destroy any leftover enemies from previous level
+    console.log(`[EnemyService] LevelSelected — destroying ${this._enemies.size} leftover enemies`);
+    for (const rec of this._enemies.values()) rec.entity.destroy();
+    this.clear();
+  }
+
   @subscribe(Events.RestartGame)
   onRestart(_p: Events.RestartGamePayload): void {
     for (const rec of this._enemies.values()) rec.entity.destroy();

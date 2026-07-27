@@ -163,6 +163,16 @@ export class TowerService extends Service {
 
   @subscribe(Events.RestartGame)
   onRestart(_p: Events.RestartGamePayload): void {
+    this._destroyAllTowers();
+  }
+
+  @subscribe(Events.LevelSelected)
+  onLevelSelected(_p: Events.LevelSelectedPayload): void {
+    // Destroy any leftover towers from previous level
+    this._destroyAllTowers();
+  }
+
+  private _destroyAllTowers(): void {
     for (const rec of this._towers.values()) rec.entity.destroy();
     this._towers.clear();
     this._nextId = 0;

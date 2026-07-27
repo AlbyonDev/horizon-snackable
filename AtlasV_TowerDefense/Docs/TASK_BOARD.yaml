@@ -71,6 +71,8 @@ done:
   - Hammer SFX on Enemy Hit -- sfx_hit_hammer_3.mp3 plays on TakeDamage, vol 0.25, pitch variation
   - Relic Carousel Layout Repositioning -- title lower, dots below cards, yellow X below dots
   - Hide BiomeSelect for First Playable -- auto-selects grass, skips to Overworld
+  - Fix Tower Cleanup on Level Start -- destroy all towers on LevelSelected event
+  - Fix Enemy Cleanup on Level Start -- destroy all enemies on LevelSelected event
 
 chopping_block:
   disabled_systems: []
