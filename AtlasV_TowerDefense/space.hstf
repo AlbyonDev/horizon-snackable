@@ -1129,6 +1129,48 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "801c4a77-cfb0-413f-ace1-77c82783010d",
+            "name": "EnemyDeathSfx",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::SoundPlatformComponent",
+                        "version": 15,
+                        "data": {
+                            "soundEmitterType": "NonSpatial",
+                            "soundAsset": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "8646230121210241242",
+                                "targetId": "1366267635"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "EnemyHitSfxService",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "4592972868197733322",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -1235,6 +1277,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "25cefedb-4815-4722-810e-53a922549b46",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "801c4a77-cfb0-413f-ace1-77c82783010d",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]
