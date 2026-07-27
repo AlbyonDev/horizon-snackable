@@ -49,7 +49,7 @@ done:
   - Minigame Overworld Node Assets -- 3 gold-themed sprites (default, locked, open)
   - Node Types System -- NodeDefs.ts + Overworld shows Combat/Boss/Minigame sprites
   - Card Shuffle Minigame -- shell game with gold bonus/malus/neutral, full UI + phase
-  - Debug Buttons -- renamed Skip to Kill, added Finish (complete level) button
+  - Debug Buttons -- Kill/Skip hidden by default via isDebug toggle
   - Beaten Levels Not Reclickable -- only Open nodes clickable now
   - Boss Level Modifiers -- shuffle-bag, no repeats until all 6 used
   - Boss Warning UI -- single random modifier per boss, overworld label, large badge

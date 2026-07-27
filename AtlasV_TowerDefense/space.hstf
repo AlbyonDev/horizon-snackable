@@ -330,7 +330,9 @@
                             "ingestionId": "17103954622872723756",
                             "targetId": "4237980480"
                         },
-                        "data": {}
+                        "data": {
+                            "isDebug": true
+                        }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 }

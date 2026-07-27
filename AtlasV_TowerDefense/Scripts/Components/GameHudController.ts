@@ -14,6 +14,7 @@ import {
   NetworkingService,
   ExecuteOn,
   component,
+  property,
   subscribe,
   uiViewModel,
   UiViewModel,
@@ -56,6 +57,10 @@ const CASINO_SPEED = 120; // gold units per second during roll
 
 @component()
 export class GameHudController extends Component {
+  /** When false, the Kill (Next Wave) and Finish Level debug buttons are hidden. */
+  @property()
+  isDebug: boolean = false;
+
   private viewModel: Maybe<GameHudViewModel> = null;
   private uiComponent: Maybe<CustomUiComponent> = null;
 
@@ -206,12 +211,13 @@ export class GameHudController extends Component {
       phase === GamePhase.Wave ||
       phase === GamePhase.WaveClear;
     // Show "Next Wave" debug button only during active Wave phase
-    this.viewModel.showNextWave = phase === GamePhase.Wave;
+    this.viewModel.showNextWave = this.isDebug && phase === GamePhase.Wave;
     // Show "Finish Level" debug button during gameplay phases
     this.viewModel.showFinishLevel =
-      phase === GamePhase.Build ||
+      this.isDebug &&
+      (phase === GamePhase.Build ||
       phase === GamePhase.Wave ||
-      phase === GamePhase.WaveClear;
+      phase === GamePhase.WaveClear);
   }
 
   @subscribe(UiEvents.nextWaveTap, { execution: ExecuteOn.Owner })
