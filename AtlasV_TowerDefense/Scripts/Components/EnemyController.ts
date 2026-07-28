@@ -18,11 +18,12 @@ import { OnEntityStartEvent, OnWorldUpdateEvent } from 'meta/worlds';
 import type { OnWorldUpdateEventPayload } from 'meta/worlds';
 import { NetworkingService } from 'meta/worlds';
 import { Events } from '../Types';
-import { HP_SCALE_PER_WAVE } from '../Constants';
+import { HP_SCALE_PER_WAVE, RUN_HP_SCALE, RUN_SPEED_SCALE, RUN_REWARD_SCALE } from '../Constants';
 import { PathService } from '../Services/PathService';
 import { EnemyService } from '../Services/EnemyService';
 import { ResourceService } from '../Services/ResourceService';
 import { BossModifierService } from '../Services/BossModifierService';
+import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 
 @component()
 export class EnemyController extends Component {
@@ -74,13 +75,17 @@ export class EnemyController extends Component {
 
     const hpMult = 1 + p.waveIndex * HP_SCALE_PER_WAVE;
     const bossMods = BossModifierService.get();
+    const runCount = LevelGeneratorService.get().runCount;
+    const runHpMult     = 1 + (runCount - 1) * RUN_HP_SCALE;
+    const runSpeedMult  = 1 + (runCount - 1) * RUN_SPEED_SCALE;
+    const runRewardMult = 1 + (runCount - 1) * RUN_REWARD_SCALE;
 
     this._defId       = p.defId;
-    this._hp          = Math.round(def.hp * hpMult * bossMods.hpMultiplier);
+    this._hp          = Math.round(def.hp * hpMult * bossMods.hpMultiplier * runHpMult);
     this._maxHp       = this._hp;
     this._regenPerSec = def.regenPerSec ?? 0;
-    this._speed       = def.speed * bossMods.speedMultiplier;
-    this._reward      = def.reward;
+    this._speed       = def.speed * bossMods.speedMultiplier * runSpeedMult;
+    this._reward      = Math.round(def.reward * runRewardMult);
     this._wpIndex = 0;
     this._subT    = 0;
     this._alive   = true;

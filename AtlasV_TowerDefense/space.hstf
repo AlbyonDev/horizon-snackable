@@ -127,7 +127,7 @@
                                 "ingestionId": "7277538467424364748",
                                 "targetId": "2768521373"
                             },
-                            "isVisibleSelf": true,
+                            "isVisibleSelf": false,
                             "lightingParams": {
                                 "class": "horizon::platform_api::LightingParams",
                                 "data": {
@@ -641,7 +641,7 @@
                                 "ingestionId": "7277538467424364748",
                                 "targetId": "2768521373"
                             },
-                            "isVisibleSelf": true
+                            "isVisibleSelf": false
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"

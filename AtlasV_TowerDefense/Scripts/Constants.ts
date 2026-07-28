@@ -40,6 +40,11 @@ export const INCOME_RATE = 0.15;   // 15% of gold on hand → bonus at wave end
 
 export const HP_SCALE_PER_WAVE = 0.15; // HP multiplier = 1 + waveIndex * HP_SCALE_PER_WAVE
 
+// Run-count scaling — applied per run beyond the first
+export const RUN_HP_SCALE     = 0.01; // +1% HP per run
+export const RUN_SPEED_SCALE  = 0.01; // +1% speed per run
+export const RUN_REWARD_SCALE = 0.01; // +1% gold reward per run
+
 // ─── Economy (continued) ──────────────────────────────────────────────────────
 
 export const SELL_RATIO = 0.6; // fraction of totalInvested refunded on sell

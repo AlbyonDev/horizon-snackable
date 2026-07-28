@@ -30,7 +30,7 @@ done:
   - Overworld Map Centering -- bottom-to-top order, middle level centered on screen
   - Overworld HD Visual Upgrade -- sprite-based painted nodes, path, and background
   - Overworld Curvy Snake Path -- volumic cobblestone stripes, 10-layer 90px thick
-  - Fix UI and Avatar on Start -- avatar hidden+teleported on spawn, boss UI hidden by default
+  - Fix UI and Avatar on Start -- avatar+floor killed at template level, no flash
   - Overworld Node Numbers Removed -- no text overlay on nodes
   - Random Level Generation -- N procedural levels with random waves and paths
   - Fix Stale Path Tiles on Abandon -- destroy tiles on RestartGame event
@@ -73,6 +73,7 @@ done:
   - Hide BiomeSelect for First Playable -- auto-selects grass, skips to Overworld
   - Fix Tower Cleanup on Level Start -- destroy all towers on LevelSelected event
   - Fix Enemy Cleanup on Level Start -- destroy all enemies on LevelSelected event
+  - Run-Based Difficulty Scaling -- +20% HP, +5% speed, +10% reward per run
 
 chopping_block:
   disabled_systems: []
