@@ -22,6 +22,7 @@ import { PathService } from './PathService';
 import { ResourceService } from './ResourceService';
 import { FloatingTextService } from './FloatingTextService';
 import { RelicService } from './RelicService';
+import { SkillTreeService } from './SkillTreeService';
 
 // ── Record ────────────────────────────────────────────────────────────────────
 
@@ -89,11 +90,15 @@ export class TowerService extends Service {
 
     // Apply relic multipliers (fire rate & range)
     const relics = RelicService.get();
-    const fireRateMult = relics.getFireRateMultiplier();
-    const rangeMult = relics.getRangeMultiplier();
-    if (fireRateMult !== 1 || rangeMult !== 1) {
+    const skills = SkillTreeService.get();
+    const fireRateMult = relics.getFireRateMultiplier() * skills.getFireRateMultiplier();
+    const rangeMult = relics.getRangeMultiplier() * skills.getRangeMultiplier();
+    const damageMult = skills.getDamageMultiplier();
+
+    if (fireRateMult !== 1 || rangeMult !== 1 || damageMult !== 1) {
       return {
         ...upgraded,
+        damage: Math.round(upgraded.damage * damageMult),
         fireRate: upgraded.fireRate * fireRateMult,
         range: upgraded.range * rangeMult,
       };
@@ -253,7 +258,9 @@ export class TowerService extends Service {
     const rec = this._unregister(this._selectedCol, this._selectedRow);
     if (!rec) return;
 
-    const refund = Math.floor(rec.totalInvested * SELL_RATIO);
+    const sellRefundBonus = SkillTreeService.get().getSellRefundBonus();
+    const effectiveSellRatio = Math.min(1.0, SELL_RATIO + sellRefundBonus);
+    const refund = Math.floor(rec.totalInvested * effectiveSellRatio);
     ResourceService.get().earn(refund);
     const towerPos = PathService.get().cellToWorld(rec.col, rec.row);
     FloatingTextService.get().show(towerPos.x, towerPos.z, refund);

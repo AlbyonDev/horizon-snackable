@@ -56,6 +56,7 @@ import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { TOTAL_LEVELS } from '../Constants';
 import { MinigameHud } from './MinigameHud';
 import { SaveService } from '../Services/SaveService';
+import { OpenSkillTreeEvent, OpenSkillTreePayload } from './SkillTreeHudController';
 
 // Pre-defined TextureAssets for each biome background (must be static string literals)
 const BG_GRASS = new TextureAsset('@sprites/overworld_background-grass.png');
@@ -163,6 +164,7 @@ export class OverworldViewModel extends UiViewModel {
     relicIconTap: UiEvents.overworldRelicIconTap,
     relicCarouselTap: UiEvents.relicCarouselTap,
     relicCarouselSwipe: UiEvents.relicCarouselSwipe,
+    skullSectionTap: UiEvents.skullSectionTap,
   };
 
   visible: boolean = false;
@@ -291,6 +293,11 @@ export class OverworldHud extends Component {
       this._refreshNodeStates();
       this._refreshRelicIcons();
       this._updateRunLabel();
+      // Refresh skull count on every overworld entry (covers skill tree purchases
+      // and any other path that changes the count mid-session)
+      if (this.viewModel) {
+        this.viewModel.skullCount = SaveService.get().getSkullCount();
+      }
     }
   }
 
@@ -456,6 +463,20 @@ export class OverworldHud extends Component {
     p.levelIndex = levelIndex;
     p.nodeType = nodeType;
     EventService.sendLocally(Events.LevelSelected, p);
+  }
+
+  @subscribe(UiEvents.skullSectionTap, { execution: ExecuteOn.Owner })
+  onSkullSectionTap(_payload: UiEvents.SkullSectionTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    if (!this.viewModel.visible) return;
+
+    // Dismiss relic carousel if open
+    this.viewModel.carouselVisible = false;
+
+    // Fire the OpenSkillTree event for SkillTreeHudController to pick up
+    EventService.sendLocally(OpenSkillTreeEvent, new OpenSkillTreePayload());
+    console.log('[OverworldHud] Skull section tapped, opening skill tree');
   }
 
   // -- Private --

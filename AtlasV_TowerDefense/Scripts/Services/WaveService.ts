@@ -22,6 +22,7 @@ import { ResourceService } from './ResourceService';
 import { BossModifierService } from './BossModifierService';
 import { TowerService } from './TowerService';
 import { TowerDestroyAnimService } from './TowerDestroyAnimService';
+import { SkillTreeService } from './SkillTreeService';
 
 @service()
 export class WaveService extends Service {
@@ -142,7 +143,8 @@ export class WaveService extends Service {
 
     const goldBeforeBonus = ResourceService.get().gold;
     const incomeMultiplier = BossModifierService.get().incomeMultiplier;
-    const waveBonus = Math.floor(WAVE_BONUS_GOLD * incomeMultiplier);
+    const skillWaveMult = SkillTreeService.get().getWaveBonusGoldMultiplier();
+    const waveBonus = Math.floor(WAVE_BONUS_GOLD * incomeMultiplier * skillWaveMult);
     const incomeBonus = Math.floor(goldBeforeBonus * INCOME_RATE * incomeMultiplier);
     if (waveBonus > 0) ResourceService.get().earn(waveBonus);
     if (incomeBonus > 0) ResourceService.get().earn(incomeBonus);

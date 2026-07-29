@@ -127,7 +127,7 @@ One resolution pipeline — a `reduce` over registered modifier closures:
 
 | Service | Pipeline | Current modifiers |
 |---------|----------|-------------------|
-| `HitService` | `IHitContext → IHitContext` | `SplashSystem` (AoE target expansion), `CritService` (crit damage × multiplier), `RelicService` (damage × relic multiplier, slow duration × relic multiplier) |
+| `HitService` | `IHitContext → IHitContext` | `SplashSystem` (AoE target expansion), `CritService` (crit damage × multiplier + skill tree crit bonus), `RelicService` (damage × relic multiplier, slow duration × relic multiplier) |
 
 Adding a new mechanic (chain, pierce, burn…) = one new `@service()` that calls `HitService.get().register(modifier)` in `onReady()`, then one import line in `GameManager`.
 
@@ -151,6 +151,7 @@ Scripts/
     RelicDefs.ts    — RELIC_DEFS: IRelicDef[] (6 relics: gold, damage, speed, range, lives, slow)
     NodeDefs.ts     — NODE_TYPE_DEFS: Record<OverworldNodeType, INodeTypeDef> (3 node types: combat, boss, minigame)
     NodeDefs.ts     — NODE_TYPE_DEFS: Record<OverworldNodeType, INodeTypeDef> (3 types: combat, boss, minigame with sprite paths)
+    SkillTreeDefs.ts — SKILL_BRANCHES: ISkillBranchDef[] (3 branches × 3 tiers of permanent bonuses)
 
   Services/
     PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
@@ -175,6 +176,8 @@ Scripts/
     RelicService        — relic activation/deactivation, HitService damage modifier, exposes multipliers for TowerService and ResourceService
     BossModifierService — activates on boss-node levels; applies a single modifier (one of 6: HP x1.2, Speed x1.5, Damage x0.9, 1 Life, No Income, Tower Destroyed /5 Waves); uses a shuffle-bag so all 6 modifiers appear exactly once before any repeats; bag resets on new game and new run
     TowerDestroyAnimService — animated tower destruction for boss modifier; spawns a red meteor projectile from above, flies it to the tower, shakes the tower on impact, scales it to 0, then removes it from the grid
+    SkillTreeService    — manages permanent skill tree unlocks; provides bonus getters consumed by TowerService, ResourceService, CritService, WaveService
+    SkillTreeService        — permanent skill tree unlocks; exposes bonus multipliers consumed by TowerService, ResourceService, CritService, WaveService; purchase/persistence logic via SaveService
 
   Components/
     GameManager         — onStart prewarm, onUpdate tick, game start/end/restart
@@ -198,6 +201,7 @@ Scripts/
     WaveBannerHud        — ViewModel for wave announcement banner (WAVE X, animated)
     BossWarningHudController — ViewModel for boss level warning banner + active modifiers strip
     MinigameHud          — ViewModel for card shuffle minigame (shell game: Reveal→FlipDown→Shuffle→Pick→Result state machine)
+    SkillTreeHudController — ViewModel for fullscreen skill tree overlay (3 branches × 3 tiers, purchase with skulls, opened from overworld skull header tap)
     LevelSaveComponent   — Persists level beaten state and active relics to PlayerVariablesService (key "td_level_sav"); restores on load via ProgressRestored event
 ```
 
@@ -270,6 +274,7 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 | Total levels per run | 5 (`TOTAL_LEVELS` in Constants.ts) |
 | Run counter | Starts at 1, increments when all levels beaten (boss included), resets on new game (`StartGame`). Tracked in `LevelGeneratorService.runCount`. |
 | Skull currency | Permanent metaprogression currency. +1 per combat level win, +5 per boss level win. Never resets. Persisted in `TdSaveData.sk`. Displayed in overworld header. |
+| Skill Tree | Permanent meta-progression purchased with skulls. 3 branches (War, Fortify, Fortune) × 3 tiers each. Unlocks persist in `TdSaveData.st`. Opens from the overworld skull header tap. Bonuses: +damage, +fire rate, +crit, +lives, +range, +starting gold, +wave bonus, +sell refund. |
 | Wave bonus | +15g flat (`WAVE_BONUS_GOLD`) + 15% of gold on hand (`INCOME_RATE`) at wave end |
 | Sell refund | 60% of total invested (`SELL_RATIO = 0.6`) |
 
@@ -360,6 +365,7 @@ Title Screen → [BiomeSelect bypassed, auto-selects "grass"] → Overworld (Lev
 | **Boss Warning** | UI/BossWarning.xaml | Boss level (Build phase) | ✅ — Dramatic "BOSS LEVEL" banner with skull icon and fiery gold text, auto-dismisses after 3s. Persistent modifier strip below HUD shows active boss modifiers (HP, SPD, DMG multipliers, income disabled, lives override, tower destruction). Hides on level end/restart. |
 | **Minigame** | UI/Minigame.xaml | Minigame | ✅ — Card shuffle (shell game). Three cards (Gold Bonus +50, Gold Malus -30 next level, Neutral) shown face up, flipped, shuffled with animated position swaps, player picks one. Medieval fantasy card style with gold accents. Gold malus deducted at next combat level start via ResourceService. |
 | **Save Indicator** | UI/SaveIndicator.xaml | On LevelCompleted | ✅ — Small "Saving..." pill in bottom-left corner. Fades in on level save, stays 2s, fades out. Non-interactive overlay. |
+| **Skill Tree** | UI/SkillTree.xaml | Overworld (skull tap) | ✅ — Fullscreen overlay with 3 branches × 3 tiers of permanent bonuses. Nodes show unlocked (gold), affordable (highlighted), or locked (grey) states. Purchase deducts skulls. Close button returns to overworld. |
 
 ---
 

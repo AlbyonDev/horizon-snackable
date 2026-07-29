@@ -496,13 +496,59 @@
                         </Grid>
                     </Border>
 
-                    <!-- RIGHT SECTION: Skull currency (metaprogression) -->
-                    <Grid Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- RIGHT SECTION: Skull currency (metaprogression) with pulsing glow -->
+                    <!-- CONVENTION: All clickable interactive elements in the overworld should have this
+                         pulsing glow animation (breathing scale + gold border opacity pulse) to signal interactivity. -->
+                    <Grid Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center"
+                          RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                        <Grid.RenderTransform><ScaleTransform x:Name="SkullScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                        <Grid.Resources>
+                            <Storyboard x:Key="SkullPulseAnim" RepeatBehavior="Forever">
+                                <!-- Breathing scale 1.0 → 1.06 → 1.0 over 1.8s -->
+                                <DoubleAnimation Storyboard.TargetName="SkullScaleTransform"
+                                                 Storyboard.TargetProperty="ScaleX"
+                                                 From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="SkullScaleTransform"
+                                                 Storyboard.TargetProperty="ScaleY"
+                                                 From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <!-- Glow opacity pulse 0.0 → 1.0 → 0.0 over 1.8s -->
+                                <DoubleAnimation Storyboard.TargetName="SkullGlowBorder"
+                                                 Storyboard.TargetProperty="Opacity"
+                                                 From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </Grid.Resources>
+                        <!-- Auto-play pulse animation on load (skulls are always tappable) -->
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger>
+                                <b:ControlStoryboardAction Storyboard="{StaticResource SkullPulseAnim}"/>
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+
+                        <!-- Outer glow border (pulsing golden shimmer behind the main border) -->
+                        <Border x:Name="SkullGlowBorder" Opacity="0"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                Background="Transparent"
+                                BorderBrush="#AAf5c518"
+                                BorderThickness="10"
+                                CornerRadius="24"
+                                Margin="-8,-8,-8,-8"/>
+
+                        <!-- Main SKULLS border -->
                         <Border Background="#CC1a1a2e"
                                 BorderBrush="{StaticResource GoldBrush}"
                                 BorderThickness="5"
-                                CornerRadius="18"
-                                IsHitTestVisible="False">
+                                CornerRadius="18">
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="MouseLeftButtonUp">
+                                    <b:InvokeCommandAction Command="{Binding events.skullSectionTap}" CommandParameter="open"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
                             <Grid>
                                 <!-- Corner Ornaments -->
                                 <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
@@ -620,23 +666,24 @@
 
                 <!-- Centered Next Level text with crossed swords icon -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <!-- Compass icon (next destination theme) -->
-                    <Viewbox Width="80" Height="80" Margin="0,0,20,0" VerticalAlignment="Center">
-                        <Grid Width="24" Height="24">
-                            <!-- Outer compass ring -->
-                            <Ellipse Width="22" Height="22" Stroke="#4ECDC4" StrokeThickness="2" Fill="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            <!-- Inner compass ring -->
-                            <Ellipse Width="16" Height="16" Stroke="#4ECDC4" StrokeThickness="1" Fill="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5"/>
-                            <!-- North needle (points up - teal) -->
-                            <Path Fill="#4ECDC4" Data="M12 3 L10.5 12 L12 11 L13.5 12 Z"/>
-                            <!-- South needle (darker) -->
-                            <Path Fill="#2A9D8F" Data="M12 21 L10.5 12 L12 13 L13.5 12 Z"/>
-                            <!-- East tick -->
-                            <Path Fill="#4ECDC4" Data="M20 11.5 L20 12.5 L22 12.5 L22 11.5 Z"/>
-                            <!-- West tick -->
-                            <Path Fill="#4ECDC4" Data="M2 11.5 L2 12.5 L4 12.5 L4 11.5 Z"/>
-                            <!-- Center dot -->
-                            <Ellipse Width="3" Height="3" Fill="#4ECDC4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <!-- Map icon (folded treasure map) -->
+                    <Viewbox Width="100" Height="100" Margin="0,0,20,0" VerticalAlignment="Center">
+                        <Grid Width="25" Height="25">
+                            <!-- Map body (folded parchment shape) -->
+                            <Path Data="M3 4 L3 20 C3 20.5 3.5 21 4 21 L20 21 C20.5 21 21 20.5 21 20 L21 4 C21 3.5 20.5 3 20 3 L4 3 C3.5 3 3 3.5 3 4 Z" Fill="#FFFF5B00"/>
+                            <!-- Fold lines (vertical creases) -->
+                            <Path StrokeThickness="0.8" Data="M9 3 L9 21">
+                                <Path.Stroke>
+                                    <SolidColorBrush Color="#FF660000" Opacity="0.383"/>
+                                </Path.Stroke>
+                            </Path>
+                            <Path Opacity="0.38" Stroke="#FF660000" StrokeThickness="0.8" Data="M15 3 L15 21"/>
+                            <!-- Dotted trail path (treasure route) -->
+                            <Path Stroke="#1A1A2E" StrokeThickness="1.2" StrokeDashArray="1.5 1" Data="M6 17 L8 14 L11 15 L13 11 L16 13 L18 9"/>
+                            <!-- X marks the spot -->
+                            <Path Stroke="#1A1A2E" StrokeThickness="1.5" Data="M17 7 L19 9 M19 7 L17 9"/>
+                            <!-- Small landmark dot -->
+                            <Ellipse Width="2" Height="2" Fill="#1A1A2E" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5,16,0,0"/>
                         </Grid>
                     </Viewbox>
                     <!-- Text with outline -->

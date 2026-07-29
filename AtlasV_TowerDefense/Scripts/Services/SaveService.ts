@@ -70,10 +70,12 @@ interface TdSaveData {
   relics: string[];
   /** Skull currency — permanent metaprogression, never resets. */
   sk: number;
+  /** Skill tree unlocked indices — permanent metaprogression, never resets. */
+  st: number[];
 }
 
 function defaultSave(): TdSaveData {
-  return { runCount: 0, seed: 0, beaten: [], relics: [], sk: 0 };
+  return { runCount: 0, seed: 0, beaten: [], relics: [], sk: 0, st: [] };
 }
 
 @service()
@@ -126,6 +128,24 @@ export class SaveService extends Service {
   getBeaten(): boolean[] { return this._data.beaten.slice(); }
   getRelics(): string[] { return this._data.relics.slice(); }
   getSkullCount(): number { return this._data.sk; }
+  getSkillTreeState(): number[] { return this._data.st.slice(); }
+
+  /** Deduct skulls for a skill tree purchase. Client-only. */
+  spendSkulls(amount: number): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (this._data.sk < amount) return;
+    this._data.sk -= amount;
+    console.log(`[SaveService] Skulls spent: -${amount} (remaining: ${this._data.sk})`);
+    this._requestSave();
+  }
+
+  /** Update the skill tree unlock state and persist. Client-only. */
+  setSkillTreeState(indices: number[]): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._data.st = indices.slice();
+    console.log(`[SaveService] Skill tree state saved: [${indices.join(',')}]`);
+    this._requestSave();
+  }
 
   /** True if every level of the current run has been beaten (run finished). */
   private _isRunComplete(): boolean {
@@ -244,6 +264,7 @@ export class SaveService extends Service {
     restored.beaten = this._data.beaten.slice();
     restored.relics = this._data.relics.slice();
     restored.skulls = this._data.sk;
+    restored.skillTree = this._data.st.slice();
     EventService.sendLocally(Events.SaveRestored, restored);
   }
 
@@ -376,6 +397,7 @@ export class SaveService extends Service {
         beaten: Array.isArray(raw.beaten) ? raw.beaten.map(Boolean) : [],
         relics: Array.isArray(raw.relics) ? raw.relics.filter((r): r is string => typeof r === 'string') : [],
         sk: typeof raw.sk === 'number' ? raw.sk : 0,
+        st: Array.isArray(raw.st) ? raw.st.filter((n): n is number => typeof n === 'number') : [],
       };
     } catch {
       console.log('[SaveService] Failed to parse save blob, starting fresh');

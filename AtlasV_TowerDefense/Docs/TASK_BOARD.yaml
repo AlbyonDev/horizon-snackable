@@ -76,6 +76,7 @@ done:
   - Run-Based Difficulty Scaling -- +20% HP, +5% speed, +10% reward per run
   - Play Again Restarts Level -- defeat re-fires LevelSelected, skips title/overworld
   - Skull Currency -- persistent metaprogression, +1 combat/+5 boss, header display
+  - Skull Skill Tree -- 3 branches x 3 tiers, persistent unlocks, gameplay bonuses
 
 chopping_block:
   disabled_systems: []

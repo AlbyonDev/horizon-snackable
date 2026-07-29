@@ -16,6 +16,7 @@ import { START_GOLD, START_LIVES } from '../Constants';
 import { LevelGeneratorService } from './LevelGeneratorService';
 import { RelicService } from './RelicService';
 import { BossModifierService } from './BossModifierService';
+import { SkillTreeService } from './SkillTreeService';
 
 @service()
 export class ResourceService extends Service {
@@ -94,7 +95,8 @@ export class ResourceService extends Service {
 
   reset(): void {
     const relics = RelicService.get();
-    this._gold = Math.floor(this._startGold * relics.getGoldMultiplier());
+    const skills = SkillTreeService.get();
+    this._gold = Math.floor(this._startGold * relics.getGoldMultiplier()) + skills.getStartingGoldBonus();
 
     // Boss level overrides starting lives to 1
     const bossLivesOverride = BossModifierService.get().startLivesOverride;
@@ -102,7 +104,7 @@ export class ResourceService extends Service {
       this._lives = bossLivesOverride;
       console.log(`[ResourceService] Boss level: starting lives overridden to ${bossLivesOverride}`);
     } else {
-      this._lives = this._startLives + relics.getBonusLives();
+      this._lives = this._startLives + relics.getBonusLives() + skills.getTotalBonusLives();
     }
 
     // Apply gold malus from minigame (if any)

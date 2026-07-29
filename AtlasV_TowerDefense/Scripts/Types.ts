@@ -269,6 +269,7 @@ export namespace Events {
     beaten: boolean[] = [];
     relics: string[] = [];
     skulls: number = 0;
+    skillTree: number[] = [];
   }
   export const SaveRestored = new LocalEvent<SaveRestoredPayload>('EvSaveRestored', SaveRestoredPayload);
 
@@ -349,6 +350,9 @@ export namespace UiEvents {
 
   @serializable() export class RelicCarouselSwipePayload { readonly parameter: string = ''; }
   export const relicCarouselSwipe = new UiEvent('OverworldViewModel-onRelicCarouselSwipe', RelicCarouselSwipePayload);
+
+  @serializable() export class SkullSectionTapPayload { readonly parameter: string = ''; }
+  export const skullSectionTap = new UiEvent('OverworldViewModel-onSkullSectionTap', SkullSectionTapPayload);
 
   @serializable() export class MinigameCardTapPayload { readonly parameter: string = ''; }
   export const minigameCardTap = new UiEvent('MinigameViewModel-onCardTap', MinigameCardTapPayload);

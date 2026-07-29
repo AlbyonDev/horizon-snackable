@@ -1,0 +1,389 @@
+<Page
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <SolidColorBrush x:Key="GoldBrush" Color="#FFf5c518"/>
+        <SolidColorBrush x:Key="DarkPanelBrush" Color="#FF1a1a2e"/>
+        <SolidColorBrush x:Key="TransparentBrush" Color="Transparent"/>
+    </Page.Resources>
+
+    <Grid Visibility="{Binding visible, Converter={StaticResource BoolToVisConverter}}">
+
+        <!-- Dark backdrop -->
+        <Border Background="#FF0a0a1a" CornerRadius="0"/>
+
+        <!-- Viewbox makes the entire layout scale proportionally to any resolution -->
+        <Viewbox Stretch="Uniform" Margin="20,20,20,20">
+        <Grid Width="1080" Height="1920" Margin="40,60,40,60">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- ═══ TITLE + SKULL BALANCE ═══ -->
+            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,10,0,20">
+                <Grid HorizontalAlignment="Center">
+                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="96" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0"/>
+                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="96" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0"/>
+                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0"/>
+                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0"/>
+                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="96" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                </Grid>
+                <!-- Skull balance -->
+                <Border Background="#44000000" BorderBrush="{StaticResource GoldBrush}" BorderThickness="3" CornerRadius="20" Padding="30,8,30,8" HorizontalAlignment="Center" Margin="0,12,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Viewbox Width="56" Height="56" Margin="0,0,12,0">
+                            <Grid Width="24" Height="24">
+                                <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                                <Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/>
+                            </Grid>
+                        </Viewbox>
+                        <Grid VerticalAlignment="Center">
+                            <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                            <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                            <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="White"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- ═══ BRANCH HEADERS ═══ -->
+            <Grid Grid.Row="1" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <!-- War header -->
+                <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                    <Viewbox Width="60" Height="60" HorizontalAlignment="Center">
+                        <Grid Width="24" Height="24">
+                            <Path Fill="#FF4444" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/>
+                        </Grid>
+                    </Viewbox>
+                    <Grid HorizontalAlignment="Center">
+                        <TextBlock Text="WAR" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                        <TextBlock Text="WAR" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                        <TextBlock Text="WAR" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="#FF4444"/>
+                    </Grid>
+                </StackPanel>
+                <!-- Fortify header -->
+                <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                    <Viewbox Width="60" Height="60" HorizontalAlignment="Center">
+                        <Grid Width="24" Height="24">
+                            <Path Fill="#4488FF" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/>
+                        </Grid>
+                    </Viewbox>
+                    <Grid HorizontalAlignment="Center">
+                        <TextBlock Text="FORTIFY" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                        <TextBlock Text="FORTIFY" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                        <TextBlock Text="FORTIFY" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="#4488FF"/>
+                    </Grid>
+                </StackPanel>
+                <!-- Fortune header -->
+                <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                    <Viewbox Width="60" Height="60" HorizontalAlignment="Center">
+                        <Grid Width="24" Height="24">
+                            <Path Fill="#44DD44" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/>
+                        </Grid>
+                    </Viewbox>
+                    <Grid HorizontalAlignment="Center">
+                        <TextBlock Text="FORTUNE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                        <TextBlock Text="FORTUNE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                        <TextBlock Text="FORTUNE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="#44DD44"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+
+            <!-- ═══ SKILL NODES GRID WITH CONNECTING LINES ═══ -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ─── WAR COLUMN ─── -->
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Continuous vertical line behind nodes (T1 center to T3 center) -->
+                    <Rectangle Grid.Row="0" Grid.RowSpan="3" Width="8" Fill="{Binding line01Color}" HorizontalAlignment="Center" VerticalAlignment="Stretch" RadiusX="4" RadiusY="4" Margin="0,56,0,56"/>
+
+                    <!-- War T1: Crossed Swords (+10% DMG) -->
+                    <Button Grid.Row="0" Command="{Binding Path=events.skillTap}" CommandParameter="0"
+                            Background="{StaticResource TransparentBrush}" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8">
+                        <Border Background="{Binding node0Bg}" BorderBrush="{Binding node0Border}" BorderThickness="4" CornerRadius="11" Padding="7" Width="280" Height="310">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Crossed Swords Icon -->
+                                <Viewbox Width="140" Height="140" HorizontalAlignment="Center" Margin="0,3,0,3">
+                                    <Grid Width="24" Height="24">
+                                        <Path Fill="{Binding node0Text}" Data="M3 3 L10 10 M14 10 L21 3 M10 10 L12 12 L14 10 M10 14 L3 21 M14 14 L21 21 M10 14 L12 12 L14 14 M6 3 L3 3 L3 6 M18 3 L21 3 L21 6 M6 21 L3 21 L3 18 M18 21 L21 21 L21 18" StrokeThickness="1.8" Stroke="{Binding node0Text}"/>
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock Text="+10% DMG" FontFamily="Anton" FontSize="38" Foreground="{Binding node0Text}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="80"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+                                    <Viewbox Width="20" Height="20" Margin="0,0,4,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node0Text}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding node0Cost}" FontFamily="Anton" FontSize="33" Foreground="{Binding node0Text}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Button>
+
+                    <!-- War T2: Rapid Fire (+15% Fire Rate) -->
+                    <Button Grid.Row="1" Command="{Binding Path=events.skillTap}" CommandParameter="1"
+                            Background="{StaticResource TransparentBrush}" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8">
+                        <Border Background="{Binding node1Bg}" BorderBrush="{Binding node1Border}" BorderThickness="4" CornerRadius="11" Padding="7" Width="280" Height="310">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Multiple Arrows Icon -->
+                                <Viewbox Width="140" Height="140" HorizontalAlignment="Center" Margin="0,3,0,3">
+                                    <Grid Width="24" Height="24">
+                                        <Path Stroke="{Binding node1Text}" StrokeThickness="1.6" Fill="Transparent" Data="M4 12 L18 12 M15 9 L18 12 L15 15 M4 7 L16 7 M13 4 L16 7 L13 10 M4 17 L16 17 M13 14 L16 17 L13 20"/>
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock Text="+15% FIRE RATE" FontFamily="Anton" FontSize="36" Foreground="{Binding node1Text}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxHeight="80"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+                                    <Viewbox Width="20" Height="20" Margin="0,0,4,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node1Text}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding node1Cost}" FontFamily="Anton" FontSize="33" Foreground="{Binding node1Text}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Button>
+
+                    <!-- War T3: Lightning Bolt (+25% Crit) -->
+                    <Button Grid.Row="2" Command="{Binding Path=events.skillTap}" CommandParameter="2"
+                            Background="{StaticResource TransparentBrush}" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8">
+                        <Border Background="{Binding node2Bg}" BorderBrush="{Binding node2Border}" BorderThickness="4" CornerRadius="11" Padding="7" Width="280" Height="310">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Lightning Bolt Icon -->
+                                <Viewbox Width="140" Height="140" HorizontalAlignment="Center" Margin="0,3,0,3">
+                                    <Grid Width="24" Height="24">
+                                        <Path Fill="{Binding node2Text}" Data="M13 2 L5 14 L11 14 L10 22 L19 10 L13 10 Z"/>
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock Text="+25% CRIT" FontFamily="Anton" FontSize="38" Foreground="{Binding node2Text}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="80"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+                                    <Viewbox Width="20" Height="20" Margin="0,0,4,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node2Text}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding node2Cost}" FontFamily="Anton" FontSize="33" Foreground="{Binding node2Text}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Button>
+                </Grid>
+
+                <!-- ─── FORTIFY COLUMN ─── -->
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Continuous vertical line behind nodes (T1 center to T3 center) -->
+                    <Rectangle Grid.Row="0" Grid.RowSpan="3" Width="8" Fill="{Binding line34Color}" HorizontalAlignment="Center" VerticalAlignment="Stretch" RadiusX="4" RadiusY="4" Margin="0,56,0,56"/>
+
+                    <!-- Fortify T1: Heart (+2 Lives) -->
+                    <Button Grid.Row="0" Command="{Binding Path=events.skillTap}" CommandParameter="3"
+                            Background="{StaticResource TransparentBrush}" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8">
+                        <Border Background="{Binding node3Bg}" BorderBrush="{Binding node3Border}" BorderThickness="4" CornerRadius="11" Padding="7" Width="280" Height="310">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Heart Icon -->
+                                <Viewbox Width="140" Height="140" HorizontalAlignment="Center" Margin="0,3,0,3">
+                                    <Grid Width="24" Height="24">
+                                        <Path Fill="{Binding node3Text}" Data="M12 21 C12 21 4 15 4 9 C4 6 6.5 4 9 4 C10.5 4 11.5 4.5 12 5.5 C12.5 4.5 13.5 4 15 4 C17.5 4 20 6 20 9 C20 15 12 21 12 21 Z"/>
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock Text="+2 LIVES" FontFamily="Anton" FontSize="38" Foreground="{Binding node3Text}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="80"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+                                    <Viewbox Width="20" Height="20" Margin="0,0,4,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node3Text}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding node3Cost}" FontFamily="Anton" FontSize="33" Foreground="{Binding node3Text}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Button>
+
+                    <!-- Fortify T2: Crosshair/Target (+20% Range) -->
+                    <Button Grid.Row="1" Command="{Binding Path=events.skillTap}" CommandParameter="4"
+                            Background="{StaticResource TransparentBrush}" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8">
+                        <Border Background="{Binding node4Bg}" BorderBrush="{Binding node4Border}" BorderThickness="4" CornerRadius="11" Padding="7" Width="280" Height="310">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Crosshair Icon -->
+                                <Viewbox Width="140" Height="140" HorizontalAlignment="Center" Margin="0,3,0,3">
+                                    <Grid Width="24" Height="24">
+                                        <Ellipse Width="16" Height="16" Stroke="{Binding node4Text}" StrokeThickness="1.8" Fill="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Ellipse Width="8" Height="8" Stroke="{Binding node4Text}" StrokeThickness="1.4" Fill="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Path Stroke="{Binding node4Text}" StrokeThickness="1.6" Data="M12 2 L12 6 M12 18 L12 22 M2 12 L6 12 M18 12 L22 12"/>
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock Text="+20% RANGE" FontFamily="Anton" FontSize="38" Foreground="{Binding node4Text}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="80"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+                                    <Viewbox Width="20" Height="20" Margin="0,0,4,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node4Text}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding node4Cost}" FontFamily="Anton" FontSize="33" Foreground="{Binding node4Text}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Button>
+
+                    <!-- Fortify T3: Shield with Heart (+5 Lives) -->
+                    <Button Grid.Row="2" Command="{Binding Path=events.skillTap}" CommandParameter="5"
+                            Background="{StaticResource TransparentBrush}" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8">
+                        <Border Background="{Binding node5Bg}" BorderBrush="{Binding node5Border}" BorderThickness="4" CornerRadius="11" Padding="7" Width="280" Height="310">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Shield with Heart Icon -->
+                                <Viewbox Width="140" Height="140" HorizontalAlignment="Center" Margin="0,3,0,3">
+                                    <Grid Width="24" Height="24">
+                                        <Path Fill="{Binding node5Text}" Data="M12 2 L4 6 L4 12 C4 17 8 21 12 22 C16 21 20 17 20 12 L20 6 Z"/>
+                                        <Path Fill="#1A1A2E" Data="M12 17 C12 17 8 14 8 11 C8 9.5 9.2 8.5 10.5 8.5 C11.2 8.5 11.7 8.8 12 9.3 C12.3 8.8 12.8 8.5 13.5 8.5 C14.8 8.5 16 9.5 16 11 C16 14 12 17 12 17 Z"/>
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock Text="+5 LIVES" FontFamily="Anton" FontSize="38" Foreground="{Binding node5Text}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="80"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+                                    <Viewbox Width="20" Height="20" Margin="0,0,4,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node5Text}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding node5Cost}" FontFamily="Anton" FontSize="33" Foreground="{Binding node5Text}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Button>
+                </Grid>
+
+                <!-- ─── FORTUNE COLUMN ─── -->
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Continuous vertical line behind nodes (T1 center to T3 center) -->
+                    <Rectangle Grid.Row="0" Grid.RowSpan="3" Width="8" Fill="{Binding line67Color}" HorizontalAlignment="Center" VerticalAlignment="Stretch" RadiusX="4" RadiusY="4" Margin="0,56,0,56"/>
+
+                    <!-- Fortune T1: Gold Coin (+30 Gold) -->
+                    <Button Grid.Row="0" Command="{Binding Path=events.skillTap}" CommandParameter="6"
+                            Background="{StaticResource TransparentBrush}" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8">
+                        <Border Background="{Binding node6Bg}" BorderBrush="{Binding node6Border}" BorderThickness="4" CornerRadius="11" Padding="7" Width="280" Height="310">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Gold Coin Icon -->
+                                <Viewbox Width="140" Height="140" HorizontalAlignment="Center" Margin="0,3,0,3">
+                                    <Grid Width="24" Height="24">
+                                        <Ellipse Width="20" Height="20" Fill="{Binding node6Text}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Ellipse Width="14" Height="14" Stroke="#1A1A2E" StrokeThickness="1.5" Fill="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="G" FontFamily="Anton" FontSize="10" Foreground="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock Text="+30 GOLD" FontFamily="Anton" FontSize="38" Foreground="{Binding node6Text}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="80"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+                                    <Viewbox Width="20" Height="20" Margin="0,0,4,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node6Text}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding node6Cost}" FontFamily="Anton" FontSize="33" Foreground="{Binding node6Text}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Button>
+
+                    <!-- Fortune T2: Treasure Chest (+25% Wave Gold) -->
+                    <Button Grid.Row="1" Command="{Binding Path=events.skillTap}" CommandParameter="7"
+                            Background="{StaticResource TransparentBrush}" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8">
+                        <Border Background="{Binding node7Bg}" BorderBrush="{Binding node7Border}" BorderThickness="4" CornerRadius="11" Padding="7" Width="280" Height="310">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Treasure Chest Icon -->
+                                <Viewbox Width="140" Height="140" HorizontalAlignment="Center" Margin="0,3,0,3">
+                                    <Grid Width="24" Height="24">
+                                        <Path Fill="{Binding node7Text}" Data="M4 10 L4 18 C4 19 5 20 6 20 L18 20 C19 20 20 19 20 18 L20 10 Z"/>
+                                        <Path Fill="{Binding node7Text}" Data="M3 8 C3 7 4 6 5 6 L19 6 C20 6 21 7 21 8 L21 10 L3 10 Z"/>
+                                        <Rectangle Width="4" Height="4" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,2,0,0"/>
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock Text="+25% WAVE GOLD" FontFamily="Anton" FontSize="34" Foreground="{Binding node7Text}" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxHeight="80"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+                                    <Viewbox Width="20" Height="20" Margin="0,0,4,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node7Text}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding node7Cost}" FontFamily="Anton" FontSize="33" Foreground="{Binding node7Text}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Button>
+
+                    <!-- Fortune T3: Money Bag (+50% Sell) -->
+                    <Button Grid.Row="2" Command="{Binding Path=events.skillTap}" CommandParameter="8"
+                            Background="{StaticResource TransparentBrush}" BorderThickness="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="8">
+                        <Border Background="{Binding node8Bg}" BorderBrush="{Binding node8Border}" BorderThickness="4" CornerRadius="11" Padding="7" Width="280" Height="310">
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!-- Money Bag Icon -->
+                                <Viewbox Width="140" Height="140" HorizontalAlignment="Center" Margin="0,3,0,3">
+                                    <Grid Width="24" Height="24">
+                                        <Path Fill="{Binding node8Text}" Data="M12 4 C9 4 7 6 7 6 L5 10 C5 10 4 12 5 14 C6 18 8 20 12 21 C16 20 18 18 19 14 C20 12 19 10 19 10 L17 6 C17 6 15 4 12 4 Z"/>
+                                        <Path Stroke="#1A1A2E" StrokeThickness="1.2" Fill="Transparent" Data="M10 12 C10 11 11 10 12 10 C13 10 14 11 14 12 C14 13 13 13 12 13 C11 13 10 14 10 15 C10 16 11 17 12 17 C13 17 14 16 14 15"/>
+                                        <Path Fill="{Binding node8Text}" Data="M10 2 C10 2 11 3 12 3 C13 3 14 2 14 2 L13 4 L11 4 Z"/>
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock Text="+50% SELL" FontFamily="Anton" FontSize="38" Foreground="{Binding node8Text}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="80"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,3,0,0">
+                                    <Viewbox Width="20" Height="20" Margin="0,0,4,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node8Text}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding node8Cost}" FontFamily="Anton" FontSize="33" Foreground="{Binding node8Text}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Button>
+                </Grid>
+            </Grid>
+
+            <!-- ═══ CLOSE BUTTON ═══ -->
+            <Button Grid.Row="3" Command="{Binding Path=events.closeTap}" CommandParameter="close"
+                    Background="{StaticResource TransparentBrush}" BorderThickness="0"
+                    HorizontalAlignment="Center" Margin="0,16,0,16">
+                <Border Background="#CC1a1a2e" BorderBrush="{StaticResource GoldBrush}" BorderThickness="5" CornerRadius="30" Padding="60,16,60,16">
+                    <Grid HorizontalAlignment="Center">
+                        <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                        <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                        <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                    </Grid>
+                </Border>
+            </Button>
+        </Grid>
+        </Viewbox>
+    </Grid>
+</Page>
