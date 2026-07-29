@@ -22,6 +22,7 @@ import {
   UiViewModel,
   UiEvent,
   CustomUiComponent,
+  TextureAsset,
   serializable,
 } from 'meta/worlds';
 import type { Maybe } from 'meta/worlds';
@@ -30,13 +31,14 @@ import { Events } from '../Types';
 import { SkillTreeService } from '../Services/SkillTreeService';
 import { SaveService } from '../Services/SaveService';
 import { SKILL_BRANCHES, TOTAL_SKILLS } from '../Defs/SkillTreeDefs';
+import type { ISkillBranchDef } from '../Defs/SkillTreeDefs';
 
-// ── Local Events ────────────────────────────────────────────────────────
+// ── Local Events ────────────────────────────────────────────────────
 
 export class OpenSkillTreePayload {}
 export const OpenSkillTreeEvent = new LocalEvent<OpenSkillTreePayload>('EvOpenSkillTree', OpenSkillTreePayload);
 
-// ── UiEvents ────────────────────────────────────────────────────────────
+// ── UiEvents ────────────────────────────────────────────────────────
 
 @serializable()
 export class SkillTreeTapPayload {
@@ -51,25 +53,37 @@ export class SkillTreeCloseTapPayload {
 const skillTapEvent = new UiEvent('SkillTreeViewModel-onSkillTap', SkillTreeTapPayload);
 const closeTapEvent = new UiEvent('SkillTreeViewModel-onCloseTap', SkillTreeCloseTapPayload);
 
-// ── Colors ──────────────────────────────────────────────────────────────
+// ── Sprite TextureAssets ────────────────────────────────────────────
 
-const COLOR_UNLOCKED_BG = '#FF1f2a1a';
-const COLOR_UNLOCKED_BORDER = '#FFf5c518';
+const SPRITE_BOUGHT = new TextureAsset('@sprites/skilltree_node_bought.png');
+const SPRITE_BUYABLE = new TextureAsset('@sprites/skilltree_node_buyable.png');
+const SPRITE_LOCKED = new TextureAsset('@sprites/skilltree_node_locked.png');
+
+// ── Colors ──────────────────────────────────────────────────────────
+
 const COLOR_UNLOCKED_TEXT = '#FFf5c518';
-
-const COLOR_AFFORDABLE_BG = '#FF1a1a2e';
-const COLOR_AFFORDABLE_BORDER = '#88f5c518';
 const COLOR_AFFORDABLE_TEXT = '#CCFFFFFF';
-
-const COLOR_LOCKED_BG = '#FF0d0d1a';
-const COLOR_LOCKED_BORDER = '#44FFFFFF';
 const COLOR_LOCKED_TEXT = '#66FFFFFF';
+
+// Cost overlay colors (gold when buyable, grey when locked/unaffordable)
+const COLOR_COST_BUYABLE = '#FFf5c518';
+const COLOR_COST_LOCKED = '#88888888';
 
 // Line colors
 const COLOR_LINE_UNLOCKED = '#FFf5c518';
 const COLOR_LINE_LOCKED = '#44FFFFFF';
 
-// ── ViewModel ───────────────────────────────────────────────────────────
+// ── Node labels (bonus descriptions from SkillTreeDefs) ─────────────
+
+const NODE_LABELS: readonly string[] = [
+  '+10% DMG', '+15% FIRE RATE', '+25% CRIT',
+  '+2 LIVES', '+20% RANGE', '+5 LIVES',
+  '+30 GOLD', '+25% WAVE GOLD', '+50% SELL',
+];
+
+const NODE_COSTS: readonly number[] = [3, 6, 10, 3, 6, 10, 3, 6, 10];
+
+// ── ViewModel ───────────────────────────────────────────────────────
 
 @uiViewModel()
 export class SkillTreeViewModel extends UiViewModel {
@@ -81,30 +95,82 @@ export class SkillTreeViewModel extends UiViewModel {
   visible: boolean = false;
   skullCount: number = 0;
 
-  // Per-node styling (node0 through node8)
-  node0Bg: string = COLOR_LOCKED_BG; node0Border: string = COLOR_LOCKED_BORDER; node0Text: string = COLOR_LOCKED_TEXT; node0Cost: string = '3';
-  node1Bg: string = COLOR_LOCKED_BG; node1Border: string = COLOR_LOCKED_BORDER; node1Text: string = COLOR_LOCKED_TEXT; node1Cost: string = '6';
-  node2Bg: string = COLOR_LOCKED_BG; node2Border: string = COLOR_LOCKED_BORDER; node2Text: string = COLOR_LOCKED_TEXT; node2Cost: string = '10';
-  node3Bg: string = COLOR_LOCKED_BG; node3Border: string = COLOR_LOCKED_BORDER; node3Text: string = COLOR_LOCKED_TEXT; node3Cost: string = '3';
-  node4Bg: string = COLOR_LOCKED_BG; node4Border: string = COLOR_LOCKED_BORDER; node4Text: string = COLOR_LOCKED_TEXT; node4Cost: string = '6';
-  node5Bg: string = COLOR_LOCKED_BG; node5Border: string = COLOR_LOCKED_BORDER; node5Text: string = COLOR_LOCKED_TEXT; node5Cost: string = '10';
-  node6Bg: string = COLOR_LOCKED_BG; node6Border: string = COLOR_LOCKED_BORDER; node6Text: string = COLOR_LOCKED_TEXT; node6Cost: string = '3';
-  node7Bg: string = COLOR_LOCKED_BG; node7Border: string = COLOR_LOCKED_BORDER; node7Text: string = COLOR_LOCKED_TEXT; node7Cost: string = '6';
-  node8Bg: string = COLOR_LOCKED_BG; node8Border: string = COLOR_LOCKED_BORDER; node8Text: string = COLOR_LOCKED_TEXT; node8Cost: string = '10';
+  // Per-node image source (TextureAsset for dynamic ImageBrush binding)
+  node0Img: Maybe<TextureAsset> = SPRITE_LOCKED;
+  node1Img: Maybe<TextureAsset> = SPRITE_LOCKED;
+  node2Img: Maybe<TextureAsset> = SPRITE_LOCKED;
+  node3Img: Maybe<TextureAsset> = SPRITE_LOCKED;
+  node4Img: Maybe<TextureAsset> = SPRITE_LOCKED;
+  node5Img: Maybe<TextureAsset> = SPRITE_LOCKED;
+  node6Img: Maybe<TextureAsset> = SPRITE_LOCKED;
+  node7Img: Maybe<TextureAsset> = SPRITE_LOCKED;
+  node8Img: Maybe<TextureAsset> = SPRITE_LOCKED;
+
+  // Per-node text color
+  node0Text: string = COLOR_LOCKED_TEXT;
+  node1Text: string = COLOR_LOCKED_TEXT;
+  node2Text: string = COLOR_LOCKED_TEXT;
+  node3Text: string = COLOR_LOCKED_TEXT;
+  node4Text: string = COLOR_LOCKED_TEXT;
+  node5Text: string = COLOR_LOCKED_TEXT;
+  node6Text: string = COLOR_LOCKED_TEXT;
+  node7Text: string = COLOR_LOCKED_TEXT;
+  node8Text: string = COLOR_LOCKED_TEXT;
+
+  // Per-node bonus label
+  node0Label: string = NODE_LABELS[0];
+  node1Label: string = NODE_LABELS[1];
+  node2Label: string = NODE_LABELS[2];
+  node3Label: string = NODE_LABELS[3];
+  node4Label: string = NODE_LABELS[4];
+  node5Label: string = NODE_LABELS[5];
+  node6Label: string = NODE_LABELS[6];
+  node7Label: string = NODE_LABELS[7];
+  node8Label: string = NODE_LABELS[8];
+
+  // Per-node cost display (number or "OWNED")
+  node0Cost: string = '3';
+  node1Cost: string = '6';
+  node2Cost: string = '10';
+  node3Cost: string = '3';
+  node4Cost: string = '6';
+  node5Cost: string = '10';
+  node6Cost: string = '3';
+  node7Cost: string = '6';
+  node8Cost: string = '10';
+
+  // Per-node cost visibility (hidden when bought)
+  node0CostVisible: boolean = true;
+  node1CostVisible: boolean = true;
+  node2CostVisible: boolean = true;
+  node3CostVisible: boolean = true;
+  node4CostVisible: boolean = true;
+  node5CostVisible: boolean = true;
+  node6CostVisible: boolean = true;
+  node7CostVisible: boolean = true;
+  node8CostVisible: boolean = true;
+
+  // Per-node cost color (gold when buyable, grey when locked)
+  node0CostColor: string = COLOR_COST_LOCKED;
+  node1CostColor: string = COLOR_COST_LOCKED;
+  node2CostColor: string = COLOR_COST_LOCKED;
+  node3CostColor: string = COLOR_COST_LOCKED;
+  node4CostColor: string = COLOR_COST_LOCKED;
+  node5CostColor: string = COLOR_COST_LOCKED;
+  node6CostColor: string = COLOR_COST_LOCKED;
+  node7CostColor: string = COLOR_COST_LOCKED;
+  node8CostColor: string = COLOR_COST_LOCKED;
 
   // Connecting line colors (between tiers in each branch)
-  // War branch: line between T1→T2, T2→T3
   line01Color: string = COLOR_LINE_LOCKED;
   line12Color: string = COLOR_LINE_LOCKED;
-  // Fortify branch: line between T1→T2, T2→T3
   line34Color: string = COLOR_LINE_LOCKED;
   line45Color: string = COLOR_LINE_LOCKED;
-  // Fortune branch: line between T1→T2, T2→T3
   line67Color: string = COLOR_LINE_LOCKED;
   line78Color: string = COLOR_LINE_LOCKED;
 }
 
-// ── Component ───────────────────────────────────────────────────────────
+// ── Component ───────────────────────────────────────────────────────
 
 @component()
 export class SkillTreeHudController extends Component {
@@ -166,32 +232,40 @@ export class SkillTreeHudController extends Component {
     console.log('[SkillTreeHud] Closed');
   }
 
-  /** Refresh all node colors, line colors, and skull count. */
+  /** Refresh all node images, labels, costs, line colors, and skull count. */
   private _refreshAllNodes(): void {
     if (!this.viewModel) return;
     const service = SkillTreeService.get();
     this.viewModel.skullCount = SaveService.get().getSkullCount();
 
     for (let i = 0; i < TOTAL_SKILLS; i++) {
-      let bg: string;
-      let border: string;
+      let img: TextureAsset;
       let text: string;
+      let cost: string;
+      let costVisible: boolean;
+      let costColor: string;
 
       if (service.isUnlocked(i)) {
-        bg = COLOR_UNLOCKED_BG;
-        border = COLOR_UNLOCKED_BORDER;
+        img = SPRITE_BOUGHT;
         text = COLOR_UNLOCKED_TEXT;
+        cost = 'OWNED';
+        costVisible = false;
+        costColor = COLOR_COST_BUYABLE;
       } else if (service.canPurchase(i)) {
-        bg = COLOR_AFFORDABLE_BG;
-        border = COLOR_AFFORDABLE_BORDER;
+        img = SPRITE_BUYABLE;
         text = COLOR_AFFORDABLE_TEXT;
+        cost = `${NODE_COSTS[i]}`;
+        costVisible = true;
+        costColor = COLOR_COST_BUYABLE;
       } else {
-        bg = COLOR_LOCKED_BG;
-        border = COLOR_LOCKED_BORDER;
+        img = SPRITE_LOCKED;
         text = COLOR_LOCKED_TEXT;
+        cost = `${NODE_COSTS[i]}`;
+        costVisible = true;
+        costColor = COLOR_COST_LOCKED;
       }
 
-      this._setNodeStyle(i, bg, border, text);
+      this._setNodeStyle(i, img, text, cost, costVisible, costColor);
     }
 
     // Update connecting line colors: gold if source node is unlocked, grey otherwise
@@ -204,11 +278,13 @@ export class SkillTreeHudController extends Component {
   }
 
   /** Set the style properties for a given node index on the ViewModel. */
-  private _setNodeStyle(index: number, bg: string, border: string, text: string): void {
+  private _setNodeStyle(index: number, img: TextureAsset, text: string, cost: string, costVisible: boolean, costColor: string): void {
     if (!this.viewModel) return;
     const vm = this.viewModel as unknown as Record<string, unknown>;
-    vm[`node${index}Bg`] = bg;
-    vm[`node${index}Border`] = border;
+    vm[`node${index}Img`] = img;
     vm[`node${index}Text`] = text;
+    vm[`node${index}Cost`] = cost;
+    vm[`node${index}CostVisible`] = costVisible;
+    vm[`node${index}CostColor`] = costColor;
   }
 }

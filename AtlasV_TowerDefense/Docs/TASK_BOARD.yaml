@@ -77,6 +77,8 @@ done:
   - Play Again Restarts Level -- defeat re-fires LevelSelected, skips title/overworld
   - Skull Currency -- persistent metaprogression, +1 combat/+5 boss, header display
   - Skull Skill Tree -- 3 branches x 3 tiers, persistent unlocks, gameplay bonuses
+  - Skill Tree Node Sprites -- 3 states (bought/buyable/locked) with bonus+price boxes
+  - Skill Tree Sprites Hooked into UI -- nodes show correct sprite per state + labels
 
 chopping_block:
   disabled_systems: []
