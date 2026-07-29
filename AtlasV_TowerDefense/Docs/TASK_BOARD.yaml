@@ -74,6 +74,7 @@ done:
   - Fix Tower Cleanup on Level Start -- destroy all towers on LevelSelected event
   - Fix Enemy Cleanup on Level Start -- destroy all enemies on LevelSelected event
   - Run-Based Difficulty Scaling -- +20% HP, +5% speed, +10% reward per run
+  - Play Again Restarts Level -- defeat re-fires LevelSelected, skips title/overworld
 
 chopping_block:
   disabled_systems: []

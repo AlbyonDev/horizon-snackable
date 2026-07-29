@@ -51,7 +51,7 @@ const ENEMY_IDS = ['basic', 'fast', 'tank', 'boss'] as const;
 // Tier progresses per-level (level 0 = easiest, last level = hardest)
 const DIFFICULTY_TIERS: Array<{ basic: number; fast: number; tank: number; boss: number }> = [
   { basic: 1.00, fast: 0.00, tank: 0.00, boss: 0.00 },
-  { basic: 0.70, fast: 0.29, tank: 0.00, boss: 0.00 },
+  { basic: 0.70, fast: 0.30, tank: 0.00, boss: 0.00 },
   { basic: 0.55, fast: 0.35, tank: 0.10, boss: 0.00 },
   { basic: 0.40, fast: 0.30, tank: 0.20, boss: 0.10 },
   { basic: 0.25, fast: 0.25, tank: 0.25, boss: 0.25 },

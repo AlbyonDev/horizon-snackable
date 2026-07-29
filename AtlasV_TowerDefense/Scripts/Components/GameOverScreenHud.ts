@@ -92,6 +92,10 @@ export class GameOverScreenHud extends Component {
   private _totalWaves: number = 0;
   private _ended: boolean = false;
 
+  // Track last level selection so "Play Again" can restart directly
+  private _lastLevelIndex: number = 0;
+  private _lastNodeType: string = 'combat';
+
   // -- Lifecycle --
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
@@ -111,6 +115,16 @@ export class GameOverScreenHud extends Component {
   }
 
   // -- Events --
+
+  /**
+   * Track level selection so Play Again can restart the same level
+   */
+  @subscribe(Events.LevelSelected, { execution: ExecuteOn.Owner })
+  onLevelSelected(payload: Events.LevelSelectedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._lastLevelIndex = payload.levelIndex;
+    this._lastNodeType = payload.nodeType;
+  }
 
   /**
    * Track enemy kills for stats
@@ -180,7 +194,7 @@ export class GameOverScreenHud extends Component {
   }
 
   /**
-   * When Play Again is tapped, fire ShowTitleScreen event and hide
+   * When Play Again is tapped, restart the same level directly (no title screen)
    */
   @subscribe(restartTapEvent, { execution: ExecuteOn.Owner })
   onRestartTap(_payload: RestartTapPayload): void {
@@ -189,8 +203,12 @@ export class GameOverScreenHud extends Component {
 
     this._resetAndHide();
 
-    // Return to title screen
-    EventService.sendLocally(Events.ShowTitleScreen, new Events.ShowTitleScreenPayload());
+    // Re-fire LevelSelected with the same parameters to restart directly into Build phase
+    console.log(`[GameOverScreenHud] Play Again tapped — restarting level ${this._lastLevelIndex} (nodeType=${this._lastNodeType})`);
+    const p = new Events.LevelSelectedPayload();
+    p.levelIndex = this._lastLevelIndex;
+    p.nodeType = this._lastNodeType;
+    EventService.sendLocally(Events.LevelSelected, p);
   }
 
   /**
