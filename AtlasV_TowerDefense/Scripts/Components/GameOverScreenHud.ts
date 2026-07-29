@@ -72,10 +72,12 @@ export class GameOverScreenViewModel extends UiViewModel {
   showDefeatButtons: boolean = false;
   showChooseRelic: boolean = false;
   showNextRun: boolean = false;
+  showSkullsEarned: boolean = false;
   enemiesKilled: number = 0;
   goldEarned: number = 0;
   wavesCompleted: number = 0;
   totalWaves: number = 0;
+  skullsEarned: number = 0;
 }
 
 // -- Component --
@@ -185,6 +187,10 @@ export class GameOverScreenHud extends Component {
     this.viewModel.showChooseRelic = payload.won && !payload.isBossVictory;
     this.viewModel.showNextRun = payload.won && payload.isBossVictory;
     this.viewModel.showDefeatButtons = !payload.won;
+
+    // Skulls earned: +5 for boss victories, +1 for regular combat victories
+    this.viewModel.showSkullsEarned = payload.won;
+    this.viewModel.skullsEarned = payload.won ? (payload.isBossVictory ? 5 : 1) : 0;
 
     // Show the overlay - enable native panel first, then set ViewModel
     if (this.uiComponent) {

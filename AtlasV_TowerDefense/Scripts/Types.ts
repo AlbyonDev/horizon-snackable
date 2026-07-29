@@ -268,6 +268,7 @@ export namespace Events {
     runCount: number = 0;
     beaten: boolean[] = [];
     relics: string[] = [];
+    skulls: number = 0;
   }
   export const SaveRestored = new LocalEvent<SaveRestoredPayload>('EvSaveRestored', SaveRestoredPayload);
 

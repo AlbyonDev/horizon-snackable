@@ -269,6 +269,7 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 | Start lives | 10 (`START_LIVES`) |
 | Total levels per run | 5 (`TOTAL_LEVELS` in Constants.ts) |
 | Run counter | Starts at 1, increments when all levels beaten (boss included), resets on new game (`StartGame`). Tracked in `LevelGeneratorService.runCount`. |
+| Skull currency | Permanent metaprogression currency. +1 per combat level win, +5 per boss level win. Never resets. Persisted in `TdSaveData.sk`. Displayed in overworld header. |
 | Wave bonus | +15g flat (`WAVE_BONUS_GOLD`) + 15% of gold on hand (`INCOME_RATE`) at wave end |
 | Sell refund | 60% of total invested (`SELL_RATIO = 0.6`) |
 

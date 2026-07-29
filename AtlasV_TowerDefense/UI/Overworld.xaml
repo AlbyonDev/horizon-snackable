@@ -339,7 +339,7 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="0.03*"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="0.04*"/>
+                <RowDefinition Height="0"/>
             </Grid.RowDefinitions>
 
             <!-- Header bar: Relics (left, clickable) | Run (center) | Levels Beaten (right) -->
@@ -496,51 +496,60 @@
                         </Grid>
                     </Border>
 
-                    <!-- RIGHT SECTION: Levels Beaten -->
-                    <Border Grid.Column="2"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            Background="#CC1a1a2e"
-                            BorderBrush="{StaticResource GoldBrush}"
-                            BorderThickness="5"
-                            CornerRadius="18"
-                            IsHitTestVisible="False">
-                        <Grid>
-                            <!-- Corner Ornaments (inside with 8px breathing room) -->
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
-                            <!-- Levels beaten content -->
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="44,22,72,22">
-                                <!-- Checkmark/shield icon -->
-                                <Viewbox Width="96" Height="96" Margin="0,0,16,0">
-                                    <Path Fill="#27ae60" Data="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
-                                </Viewbox>
-                                <!-- LEVELS label + count with outline (horizontal layout) -->
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Grid VerticalAlignment="Center">
-                                        <TextBlock Text="LEVELS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                        <TextBlock Text="LEVELS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                        <TextBlock Text="LEVELS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
-                                        <TextBlock Text="LEVELS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
-                                        <TextBlock Text="LEVELS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                    <!-- RIGHT SECTION: Skull currency (metaprogression) -->
+                    <Grid Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Border Background="#CC1a1a2e"
+                                BorderBrush="{StaticResource GoldBrush}"
+                                BorderThickness="5"
+                                CornerRadius="18"
+                                IsHitTestVisible="False">
+                            <Grid>
+                                <!-- Corner Ornaments -->
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
+                                <!-- Skull icon + count -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="44,22,44,22">
+                                    <!-- Skull icon (SVG-style paths) -->
+                                    <Viewbox Width="96" Height="96" Margin="0,0,16,0">
+                                        <Grid Width="24" Height="24">
+                                            <!-- Skull dome -->
+                                            <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                            <!-- Left eye socket -->
+                                            <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                                            <!-- Right eye socket -->
+                                            <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                                            <!-- Nose -->
+                                            <Path Fill="#1A1A2E" Data="M11 14 L12 16 L13 14 Z"/>
+                                            <!-- Teeth -->
+                                            <Path Fill="#1A1A2E" Data="M9 18 L9 20 M11 18 L11 20 M13 18 L13 20 M15 18 L15 20" StrokeThickness="0.8" Stroke="#1A1A2E"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <!-- SKULLS label with outline -->
+                                    <Grid VerticalAlignment="Center" Margin="0,0,16,0">
+                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
+                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
+                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
                                     </Grid>
-                                    <Grid VerticalAlignment="Center" Margin="16,0,0,0">
-                                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0"/>
-                                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0"/>
-                                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0"/>
-                                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0"/>
-                                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
+                                    <!-- Count with outline -->
+                                    <Grid VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0"/>
+                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0"/>
+                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0"/>
+                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0"/>
+                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
                                     </Grid>
                                 </StackPanel>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
                 </Grid>
             </Grid>
 
@@ -585,7 +594,61 @@
                 </Canvas>
             </ScrollViewer>
 
-            <!-- (SELECT LEVEL footer removed) -->
+            <!-- Bottom header bar: Next Level indicator (flush against bottom edge) -->
+            <Grid Grid.Row="5" VerticalAlignment="Bottom" Height="220">
+                <!-- Dark wood gradient background (flipped: darker at top) with top gold border -->
+                <Border CornerRadius="40,40,0,0">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop Color="#FF0a0500" Offset="0"/>
+                            <GradientStop Color="#F02a1a0e" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <!-- Gold top border line -->
+                    <Border BorderThickness="0,6,0,0" BorderBrush="#553B14" CornerRadius="40,40,0,0"/>
+                </Border>
+
+                <!-- Corner ornament dots -->
+                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="24,24,0,0"/>
+                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="27,27,0,0"/>
+                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,24,24,0"/>
+                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,27,27,0"/>
+                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="24,0,0,24"/>
+                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="27,0,0,27"/>
+                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,24"/>
+                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,27,27"/>
+
+                <!-- Centered Next Level text with crossed swords icon -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <!-- Compass icon (next destination theme) -->
+                    <Viewbox Width="80" Height="80" Margin="0,0,20,0" VerticalAlignment="Center">
+                        <Grid Width="24" Height="24">
+                            <!-- Outer compass ring -->
+                            <Ellipse Width="22" Height="22" Stroke="#4ECDC4" StrokeThickness="2" Fill="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <!-- Inner compass ring -->
+                            <Ellipse Width="16" Height="16" Stroke="#4ECDC4" StrokeThickness="1" Fill="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.5"/>
+                            <!-- North needle (points up - teal) -->
+                            <Path Fill="#4ECDC4" Data="M12 3 L10.5 12 L12 11 L13.5 12 Z"/>
+                            <!-- South needle (darker) -->
+                            <Path Fill="#2A9D8F" Data="M12 21 L10.5 12 L12 13 L13.5 12 Z"/>
+                            <!-- East tick -->
+                            <Path Fill="#4ECDC4" Data="M20 11.5 L20 12.5 L22 12.5 L22 11.5 Z"/>
+                            <!-- West tick -->
+                            <Path Fill="#4ECDC4" Data="M2 11.5 L2 12.5 L4 12.5 L4 11.5 Z"/>
+                            <!-- Center dot -->
+                            <Ellipse Width="3" Height="3" Fill="#4ECDC4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Viewbox>
+                    <!-- Text with outline -->
+                    <Grid VerticalAlignment="Center">
+                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="-3,0,0,0"/>
+                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="3,0,0,0"/>
+                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,-3,0,0"/>
+                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
         </Grid>
 
         <!-- Relic carousel overlay (fullscreen) -->

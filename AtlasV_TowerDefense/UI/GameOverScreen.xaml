@@ -168,6 +168,33 @@
                                        Margin="0,0,16,0"/>
                                 <TextBlock Text="{Binding Path=goldEarned, StringFormat=F0}" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
                             </StackPanel>
+
+                            <!-- Skulls Earned (victory only) -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,32,0,0">
+                                <StackPanel.Visibility>
+                                    <Binding Path="showSkullsEarned">
+                                        <Binding.Converter>
+                                            <BooleanToVisibilityConverter/>
+                                        </Binding.Converter>
+                                    </Binding>
+                                </StackPanel.Visibility>
+                                <TextBlock Text="Skulls earned: " FontSize="72" Foreground="{StaticResource TextDarkBrush}"/>
+                                <Viewbox Width="80" Height="80" VerticalAlignment="Center" Margin="0,0,16,0">
+                                    <Grid Width="24" Height="24">
+                                        <!-- Skull dome -->
+                                        <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                        <!-- Left eye socket -->
+                                        <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                                        <!-- Right eye socket -->
+                                        <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                                        <!-- Nose -->
+                                        <Path Fill="#1A1A2E" Data="M11 14 L12 16 L13 14 Z"/>
+                                        <!-- Teeth -->
+                                        <Path Fill="#1A1A2E" Data="M9 18 L9 20 M11 18 L11 20 M13 18 L13 20 M15 18 L15 20" StrokeThickness="0.8" Stroke="#1A1A2E"/>
+                                    </Grid>
+                                </Viewbox>
+                                <TextBlock Text="{Binding Path=skullsEarned, StringFormat=F0}" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                            </StackPanel>
                         </StackPanel>
 
                         <!-- Buttons Row (defeat only) -->

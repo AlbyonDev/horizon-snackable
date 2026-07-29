@@ -48,6 +48,7 @@ import { Events, NetworkEvents } from '../Types';
 // TOTAL_LEVELS is used only as the initial default for _levelCount;
 // at runtime the actual level count comes from LevelGeneratorService via setLevelCount().
 import { TOTAL_LEVELS } from '../Constants';
+import { OverworldNodeType } from '../Defs/NodeDefs';
 
 const SAVE_KEY = 'td_level_sav';
 
@@ -67,10 +68,12 @@ interface TdSaveData {
   beaten: boolean[];
   /** Active relic ids for the current run (cleared when a new run starts). */
   relics: string[];
+  /** Skull currency — permanent metaprogression, never resets. */
+  sk: number;
 }
 
 function defaultSave(): TdSaveData {
-  return { runCount: 0, seed: 0, beaten: [], relics: [] };
+  return { runCount: 0, seed: 0, beaten: [], relics: [], sk: 0 };
 }
 
 @service()
@@ -101,6 +104,9 @@ export class SaveService extends Service {
   // ── Level count (set by LevelGeneratorService after generation) ───────────────
   private _levelCount: number = TOTAL_LEVELS;
 
+  /** Node type of the currently-playing level (set on LevelSelected). */
+  private _currentNodeType: string = OverworldNodeType.Combat;
+
   /** Update the expected level count for this run (called by LevelGeneratorService). */
   setLevelCount(count: number): void {
     this._levelCount = count;
@@ -119,6 +125,7 @@ export class SaveService extends Service {
   getRunCount(): number { return this._data.runCount; }
   getBeaten(): boolean[] { return this._data.beaten.slice(); }
   getRelics(): string[] { return this._data.relics.slice(); }
+  getSkullCount(): number { return this._data.sk; }
 
   /** True if every level of the current run has been beaten (run finished). */
   private _isRunComplete(): boolean {
@@ -195,10 +202,22 @@ export class SaveService extends Service {
 
   // ── Client: level completed → record beaten ─────────────────────────────────
 
+  @subscribe(Events.LevelSelected, { execution: ExecuteOn.Owner })
+  onLevelSelected(p: Events.LevelSelectedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._currentNodeType = p.nodeType;
+  }
+
   @subscribe(Events.LevelCompleted, { execution: ExecuteOn.Owner })
   onLevelCompleted(p: Events.LevelCompletedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     this.markLevelBeaten(p.levelIndex);
+
+    // Award skulls: +5 for boss, +1 for combat (minigames don't fire LevelCompleted)
+    const skullsEarned = this._currentNodeType === OverworldNodeType.Boss ? 5 : 1;
+    this._data.sk += skullsEarned;
+    console.log(`[SaveService] Skulls earned: +${skullsEarned} (total: ${this._data.sk})`);
+    this._requestSave();
   }
 
   // ── Client: receive loaded blob from server ─────────────────────────────────
@@ -224,6 +243,7 @@ export class SaveService extends Service {
     restored.runCount = this._data.runCount;
     restored.beaten = this._data.beaten.slice();
     restored.relics = this._data.relics.slice();
+    restored.skulls = this._data.sk;
     EventService.sendLocally(Events.SaveRestored, restored);
   }
 
@@ -355,6 +375,7 @@ export class SaveService extends Service {
         seed: typeof raw.seed === 'number' ? raw.seed : 0,
         beaten: Array.isArray(raw.beaten) ? raw.beaten.map(Boolean) : [],
         relics: Array.isArray(raw.relics) ? raw.relics.filter((r): r is string => typeof r === 'string') : [],
+        sk: typeof raw.sk === 'number' ? raw.sk : 0,
       };
     } catch {
       console.log('[SaveService] Failed to parse save blob, starting fresh');

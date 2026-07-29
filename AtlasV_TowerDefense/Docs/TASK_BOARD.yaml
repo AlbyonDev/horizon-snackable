@@ -57,7 +57,7 @@ done:
   - Run Progression System -- beat boss → new overworld, RUN X increments, relics reset
   - Save Run Count Variable -- persists run count, loads on start, saves on advance
   - Save Boss Modifier Variable -- saves at generation time via BossModAssigned event, rewind fix
-  - Overworld SELECT LEVEL Footer -- bottom box, same style as RUN 1 header
+  - Overworld Bottom Header -- COMPLETED X/Y LEVELS centered in medieval footer bar
   - Boss Victory Skip Relic -- "NEXT RUN" button, skips relic choice on boss win
   - Save Owned Relics Variable -- persists relics per run, resets on boss advance
   - Fix Boss Modifier Save on Pick -- fixed save/load timing
@@ -75,6 +75,7 @@ done:
   - Fix Enemy Cleanup on Level Start -- destroy all enemies on LevelSelected event
   - Run-Based Difficulty Scaling -- +20% HP, +5% speed, +10% reward per run
   - Play Again Restarts Level -- defeat re-fires LevelSelected, skips title/overworld
+  - Skull Currency -- persistent metaprogression, +1 combat/+5 boss, header display
 
 chopping_block:
   disabled_systems: []

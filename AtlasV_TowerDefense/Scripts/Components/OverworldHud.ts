@@ -55,6 +55,7 @@ import { OverworldNodeType } from '../Defs/NodeDefs';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { TOTAL_LEVELS } from '../Constants';
 import { MinigameHud } from './MinigameHud';
+import { SaveService } from '../Services/SaveService';
 
 // Pre-defined TextureAssets for each biome background (must be static string literals)
 const BG_GRASS = new TextureAsset('@sprites/overworld_background-grass.png');
@@ -179,6 +180,8 @@ export class OverworldViewModel extends UiViewModel {
   relicIconsVisible: boolean = false;
   /** Whether the relic pulse/glow animation should be active (relicCount > 0) */
   relicPulseActive: boolean = false;
+  /** Skull metaprogression currency count */
+  skullCount: number = 0;
 
   // Carousel overlay state
   carouselVisible: boolean = false;
@@ -312,6 +315,11 @@ export class OverworldHud extends Component {
 
     // Refresh the ViewModel so sprites update
     this._refreshNodeStates();
+
+    // Update skull count immediately from SaveService (already incremented there)
+    if (this.viewModel) {
+      this.viewModel.skullCount = SaveService.get().getSkullCount();
+    }
   }
 
   @subscribe(Events.SaveRestored, { execution: ExecuteOn.Owner })
@@ -323,6 +331,11 @@ export class OverworldHud extends Component {
     const currentRun = payload.runCount + 1;
     LevelGeneratorService.get().setRunCount(currentRun);
     console.log(`[OverworldHud] Run count restored from save: completed=${payload.runCount}, currentRun=${currentRun}`);
+
+    // Restore skull count into the ViewModel
+    if (this.viewModel) {
+      this.viewModel.skullCount = payload.skulls;
+    }
 
     if (payload.beaten.length === 0) {
       // Fresh save — no beaten levels, but still update the run label
@@ -484,12 +497,15 @@ export class OverworldHud extends Component {
     const activeRelics = RelicService.get().getActiveRelicIds();
     this.viewModel.relicCount = activeRelics.length;
     this.viewModel.relicPulseActive = activeRelics.length > 0;
-    // Levels beaten count
-    let beatenCount = 0;
+    // Next level indicator
+    let nextLevel = this.levelStates.length + 1; // default: all beaten
     for (let i = 0; i < this.levelStates.length; i++) {
-      if (this.levelStates[i] === OverworldNodeState.Beaten) beatenCount++;
+      if (this.levelStates[i] !== OverworldNodeState.Beaten) {
+        nextLevel = i + 1;
+        break;
+      }
     }
-    this.viewModel.levelsBeatenText = `${beatenCount}/${this.levelStates.length}`;
+    this.viewModel.levelsBeatenText = `Next Level: ${nextLevel}/${this.levelStates.length}`;
   }
 
   /** Convert enum to string for XAML binding */
