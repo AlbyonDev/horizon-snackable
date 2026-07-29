@@ -41,26 +41,15 @@
                             "barrel": "0eb04765-7987-4577-b76b-eee27910f1fe",
                             "spawnPoint": "d72ecc80-95b4-48b3-8f74-70b4969df0de",
                             "shadow": "12275e9a-483c-4abb-92f2-5f831a8682d4",
-                            "icon1": "87335c9f-0afb-4c06-ac09-d82935876486/df2c9483-57a3-4f62-9b9b-4f9f19f0958f",
-                            "icon2": "87335c9f-0afb-4c06-ac09-d82935876486/36438361-f302-4e7a-abf1-b34ce45e71a2",
-                            "icon3": "87335c9f-0afb-4c06-ac09-d82935876486/96384f29-549f-4631-84f7-59bbe1c273f7",
+                            "modelTier1": "a3cfda57-1972-4363-89f0-87c70e9f539c/df2c9483-57a3-4f62-9b9b-4f9f19f0958f",
+                            "modelTier2": "a3cfda57-1972-4363-89f0-87c70e9f539c/36438361-f302-4e7a-abf1-b34ce45e71a2",
+                            "modelTier3": "a3cfda57-1972-4363-89f0-87c70e9f539c/96384f29-549f-4631-84f7-59bbe1c273f7",
                             "barrelForwardOffsetDeg": 180.0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 }
             ],
-            "attributes": []
-        },
-        {
-            "id": "87335c9f-0afb-4c06-ac09-d82935876486",
-            "name": "Icons",
-            "type": {
-                "packageOrRemoteId": "26631398616455768",
-                "ingestionId": "15393429881198269662",
-                "targetId": "2719744159"
-            },
-            "deltas": [],
             "attributes": []
         },
         {
@@ -362,14 +351,20 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "a3cfda57-1972-4363-89f0-87c70e9f539c",
+            "name": "Icons",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "15393429881198269662",
+                "targetId": "2719744159"
+            },
+            "deltas": [],
+            "attributes": []
         }
     ],
     "relationships": [
-        {
-            "relationshipType": "RelationChildOf",
-            "source": "87335c9f-0afb-4c06-ac09-d82935876486",
-            "destination": "6b3f0462-ba77-47cb-83c4-06aa7f2a8372"
-        },
         {
             "relationshipType": "RelationChildOf",
             "source": "37eefa65-a23c-4683-870f-eb6d821da074",
@@ -398,6 +393,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "12275e9a-483c-4abb-92f2-5f831a8682d4",
+            "destination": "6b3f0462-ba77-47cb-83c4-06aa7f2a8372"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "a3cfda57-1972-4363-89f0-87c70e9f539c",
             "destination": "6b3f0462-ba77-47cb-83c4-06aa7f2a8372"
         }
     ]
