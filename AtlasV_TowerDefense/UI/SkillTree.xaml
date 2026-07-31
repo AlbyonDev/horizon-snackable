@@ -8,23 +8,42 @@
 
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <!-- Palette -->
+        <SolidColorBrush x:Key="CreamPathBrush" Color="#FFF5E6D0"/>
+        <SolidColorBrush x:Key="CreamPathDimBrush" Color="#66F5E6D0"/>
         <SolidColorBrush x:Key="GoldBrush" Color="#FFf5c518"/>
-        <SolidColorBrush x:Key="DarkPanelBrush" Color="#FF1a1a2e"/>
+        <SolidColorBrush x:Key="DarkFillBrush" Color="#FF1A1420"/>
+        <SolidColorBrush x:Key="NodeLockedBorderBrush" Color="#44F5E6D0"/>
+        <SolidColorBrush x:Key="NodeBuyableBorderBrush" Color="#CCF5E6D0"/>
+        <SolidColorBrush x:Key="NodeBoughtBorderBrush" Color="#FFf5c518"/>
         <SolidColorBrush x:Key="TransparentBrush" Color="Transparent"/>
-        <SolidColorBrush x:Key="DarkWoodBrush" Color="#FF3A2A1A"/>
-        <SolidColorBrush x:Key="TrunkBrush" Color="#FF5C3D1A"/>
-        <SolidColorBrush x:Key="TrunkOuterBrush" Color="#FF3A2510"/>
-        <SolidColorBrush x:Key="WarBrush" Color="#FF4444"/>
-        <SolidColorBrush x:Key="FortifyBrush" Color="#4488FF"/>
-        <SolidColorBrush x:Key="FortuneBrush" Color="#44DD44"/>
+        <SolidColorBrush x:Key="WhiteGlowBrush" Color="#FFFFFFFF"/>
     </Page.Resources>
 
     <Grid Visibility="{Binding visible, Converter={StaticResource BoolToVisConverter}}">
 
-        <!-- Dark backdrop -->
-        <Border Background="#FF0a0a1a" CornerRadius="0"/>
+        <!-- Hazy gradient background: dark muted purple top → warm reddish-brown bottom -->
+        <Rectangle>
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <GradientStop Color="#FF2A1B3D" Offset="0"/>
+                    <GradientStop Color="#FF3D2235" Offset="0.4"/>
+                    <GradientStop Color="#FF4A2C2A" Offset="0.8"/>
+                    <GradientStop Color="#FF3D2218" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
 
-        <!-- Viewbox makes the entire layout scale proportionally -->
+        <!-- Subtle haze overlay for depth -->
+        <Rectangle Opacity="0.15">
+            <Rectangle.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#FF8866AA" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </RadialGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
         <Viewbox Stretch="Uniform" Margin="20,20,20,20">
         <Grid Width="1080" Height="1920">
             <Grid.RowDefinitions>
@@ -36,16 +55,14 @@
             <!-- ═══ TITLE + SKULL BALANCE ═══ -->
             <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,30,0,10">
                 <Grid HorizontalAlignment="Center">
-                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="96" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0"/>
-                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="96" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0"/>
-                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0"/>
-                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="96" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0"/>
-                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="96" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="#22000000" Margin="-3,0,0,0"/>
+                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="#22000000" Margin="3,0,0,0"/>
+                    <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="#FFF5E6D0"/>
                 </Grid>
                 <!-- Skull balance -->
-                <Border Background="#44000000" BorderBrush="{StaticResource GoldBrush}" BorderThickness="3" CornerRadius="20" Padding="30,8,30,8" HorizontalAlignment="Center" Margin="0,12,0,0">
+                <Border Background="#33000000" BorderBrush="{StaticResource CreamPathBrush}" BorderThickness="2" CornerRadius="24" Padding="30,10,30,10" HorizontalAlignment="Center" Margin="0,12,0,0">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Viewbox Width="56" Height="56" Margin="0,0,12,0">
+                        <Viewbox Width="52" Height="52" Margin="0,0,12,0">
                             <Grid Width="24" Height="24">
                                 <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
                                 <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
@@ -54,9 +71,8 @@
                             </Grid>
                         </Viewbox>
                         <Grid VerticalAlignment="Center">
-                            <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                            <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                            <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="White"/>
+                            <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="#22000000" Margin="-2,0,0,0"/>
+                            <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="#FFF5E6D0"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -71,328 +87,408 @@
                           VerticalAlignment="Stretch">
                 <Canvas Width="1080" Height="{Binding canvasHeight}">
 
-                    <!-- ─── BRANCH 0: WAR (left) ─── -->
-                    <Path Data="{Binding branch0PathData}" Stroke="{StaticResource TrunkOuterBrush}" StrokeThickness="40" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                    <Path Data="{Binding branch0PathData}" Stroke="{Binding branch0Color}" StrokeThickness="30" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                    <Path Data="{Binding branch0PathData}" Stroke="#44FFE8B0" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Opacity="0.2"/>
+                    <!-- ─── CONNECTION PATHS (dynamic from SKILL_CONNECTIONS graph) ─── -->
+                    <Path Data="{Binding conn0Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn0Data}" Stroke="{Binding conn0Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn1Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn1Data}" Stroke="{Binding conn1Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn2Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn2Data}" Stroke="{Binding conn2Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn3Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn3Data}" Stroke="{Binding conn3Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn4Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn4Data}" Stroke="{Binding conn4Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn5Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn5Data}" Stroke="{Binding conn5Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn6Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn6Data}" Stroke="{Binding conn6Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn7Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn7Data}" Stroke="{Binding conn7Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn8Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn8Data}" Stroke="{Binding conn8Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn9Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn9Data}" Stroke="{Binding conn9Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn10Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn10Data}" Stroke="{Binding conn10Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn11Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn11Data}" Stroke="{Binding conn11Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn12Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn12Data}" Stroke="{Binding conn12Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn13Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn13Data}" Stroke="{Binding conn13Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn14Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn14Data}" Stroke="{Binding conn14Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn15Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn15Data}" Stroke="{Binding conn15Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn16Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn16Data}" Stroke="{Binding conn16Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn17Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn17Data}" Stroke="{Binding conn17Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn18Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn18Data}" Stroke="{Binding conn18Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn19Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn19Data}" Stroke="{Binding conn19Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn20Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn20Data}" Stroke="{Binding conn20Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn21Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn21Data}" Stroke="{Binding conn21Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn22Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn22Data}" Stroke="{Binding conn22Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn23Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn23Data}" Stroke="{Binding conn23Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn24Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn24Data}" Stroke="{Binding conn24Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn25Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn25Data}" Stroke="{Binding conn25Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn26Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn26Data}" Stroke="{Binding conn26Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn27Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn27Data}" Stroke="{Binding conn27Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn28Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn28Data}" Stroke="{Binding conn28Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn29Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn29Data}" Stroke="{Binding conn29Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn30Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn30Data}" Stroke="{Binding conn30Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn31Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn31Data}" Stroke="{Binding conn31Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn32Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn32Data}" Stroke="{Binding conn32Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn33Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn33Data}" Stroke="{Binding conn33Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn34Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn34Data}" Stroke="{Binding conn34Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn35Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn35Data}" Stroke="{Binding conn35Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn36Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn36Data}" Stroke="{Binding conn36Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn37Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn37Data}" Stroke="{Binding conn37Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn38Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn38Data}" Stroke="{Binding conn38Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn39Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn39Data}" Stroke="{Binding conn39Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn40Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn40Data}" Stroke="{Binding conn40Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn41Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn41Data}" Stroke="{Binding conn41Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn42Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn42Data}" Stroke="{Binding conn42Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn43Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn43Data}" Stroke="{Binding conn43Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn44Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn44Data}" Stroke="{Binding conn44Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn45Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn45Data}" Stroke="{Binding conn45Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn46Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn46Data}" Stroke="{Binding conn46Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn47Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn47Data}" Stroke="{Binding conn47Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn48Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn48Data}" Stroke="{Binding conn48Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn49Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn49Data}" Stroke="{Binding conn49Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn50Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn50Data}" Stroke="{Binding conn50Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn51Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn51Data}" Stroke="{Binding conn51Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn52Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn52Data}" Stroke="{Binding conn52Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn53Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn53Data}" Stroke="{Binding conn53Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn54Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn54Data}" Stroke="{Binding conn54Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn55Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn55Data}" Stroke="{Binding conn55Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn56Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn56Data}" Stroke="{Binding conn56Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn57Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn57Data}" Stroke="{Binding conn57Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn58Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn58Data}" Stroke="{Binding conn58Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn59Data}" Stroke="#33F5E6D0" StrokeThickness="24" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                    <Path Data="{Binding conn59Data}" Stroke="{Binding conn59Color}" StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
 
-                    <!-- ─── BRANCH 1: FORTIFY (center) ─── -->
-                    <Path Data="{Binding branch1PathData}" Stroke="{StaticResource TrunkOuterBrush}" StrokeThickness="40" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                    <Path Data="{Binding branch1PathData}" Stroke="{Binding branch1Color}" StrokeThickness="30" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                    <Path Data="{Binding branch1PathData}" Stroke="#44FFE8B0" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Opacity="0.2"/>
-
-                    <!-- ─── BRANCH 2: FORTUNE (right) ─── -->
-                    <Path Data="{Binding branch2PathData}" Stroke="{StaticResource TrunkOuterBrush}" StrokeThickness="40" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                    <Path Data="{Binding branch2PathData}" Stroke="{Binding branch2Color}" StrokeThickness="30" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                    <Path Data="{Binding branch2PathData}" Stroke="#44FFE8B0" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Opacity="0.2"/>
-
-                    <!-- ─── BRANCH HEADERS (positioned at top of each branch) ─── -->
-                    <!-- War header -->
-                    <Grid Canvas.Left="{Binding warHeaderX}" Canvas.Top="{Binding warHeaderY}" Width="200">
-                        <StackPanel HorizontalAlignment="Center">
-                            <Viewbox Width="60" Height="60" HorizontalAlignment="Center">
-                                <Grid Width="24" Height="24">
-                                    <Path Fill="#FF4444" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/>
-                                </Grid>
-                            </Viewbox>
-                            <Grid HorizontalAlignment="Center">
-                                <TextBlock Text="WAR" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                <TextBlock Text="WAR" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                <TextBlock Text="WAR" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="#FF4444"/>
-                            </Grid>
-                        </StackPanel>
-                    </Grid>
-                    <!-- Fortify header -->
-                    <Grid Canvas.Left="{Binding fortifyHeaderX}" Canvas.Top="{Binding fortifyHeaderY}" Width="200">
-                        <StackPanel HorizontalAlignment="Center">
-                            <Viewbox Width="60" Height="60" HorizontalAlignment="Center">
-                                <Grid Width="24" Height="24">
-                                    <Path Fill="#4488FF" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/>
-                                </Grid>
-                            </Viewbox>
-                            <Grid HorizontalAlignment="Center">
-                                <TextBlock Text="FORTIFY" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                <TextBlock Text="FORTIFY" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                <TextBlock Text="FORTIFY" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="#4488FF"/>
-                            </Grid>
-                        </StackPanel>
-                    </Grid>
-                    <!-- Fortune header -->
-                    <Grid Canvas.Left="{Binding fortuneHeaderX}" Canvas.Top="{Binding fortuneHeaderY}" Width="200">
-                        <StackPanel HorizontalAlignment="Center">
-                            <Viewbox Width="60" Height="60" HorizontalAlignment="Center">
-                                <Grid Width="24" Height="24">
-                                    <Path Fill="#44DD44" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/>
-                                </Grid>
-                            </Viewbox>
-                            <Grid HorizontalAlignment="Center">
-                                <TextBlock Text="FORTUNE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                <TextBlock Text="FORTUNE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                <TextBlock Text="FORTUNE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="#44DD44"/>
-                            </Grid>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- ─── SKILL NODES (absolutely positioned on Canvas) ─── -->
-
-                    <!-- Node 0: War T1 -->
+                    <!-- ─── ROOT NODE (top, prominent) — index 0 ─── -->
                     <Button Canvas.Left="{Binding node0X}" Canvas.Top="{Binding node0Y}"
                             Command="{Binding Path=events.skillTap}" CommandParameter="0"
                             Background="{StaticResource TransparentBrush}" BorderThickness="0">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="240">
-                            <Grid Width="140" Height="140" HorizontalAlignment="Center">
-                                <Border Width="140" Height="140"><Border.Background><ImageBrush ImageSource="{Binding Path=node0Img}" Stretch="Uniform"/></Border.Background></Border>
-                                <Border Background="#CC000000" CornerRadius="10" Padding="8,4,8,4" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding node0CostVisible, Converter={StaticResource BoolToVisConverter}}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="28" Margin="0,0,4,0">
-                                            <Grid Width="24" Height="24">
-                                                <Path Fill="{Binding node0CostColor}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            </Grid>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding node0Cost}" FontFamily="Anton" FontSize="36" FontWeight="Bold" Foreground="{Binding node0CostColor}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                        <Grid Width="260" HorizontalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <!-- Outer glow ring -->
+                                <Grid Width="180" Height="180" HorizontalAlignment="Center">
+                                    <Ellipse Width="180" Height="180" Fill="#22FFFFFF"/>
+                                    <Ellipse Width="170" Height="170" Stroke="{Binding node0BorderColor}" StrokeThickness="6" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <!-- Yellow rune icon -->
+                                    <Viewbox Width="80" Height="80" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node0RuneColor}" Data="M12 2 L14 8 L12 6 L10 8 Z M12 6 L12 22 M8 10 L12 14 L16 10 M6 16 L12 20 L18 16 M9 12 L6 14 M15 12 L18 14"/>
+                                        </Grid>
+                                    </Viewbox>
+
+                                </Grid>
+                                <Border Background="#CC1A1420" CornerRadius="8" Padding="14,6,14,6" HorizontalAlignment="Center" Margin="0,8,0,0" Visibility="{Binding node0CostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="28" Height="28" Margin="0,0,8,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node0Cost}" FontFamily="Anton" FontSize="48" Foreground="{Binding node0Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel>
                                 </Border>
-                            </Grid>
-                            <Border Background="{StaticResource DarkWoodBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="8" Padding="8,4,8,4" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding node0Label}" FontFamily="Anton" FontSize="30" Foreground="{Binding node0Text}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Button>
 
-                    <!-- Node 1: War T2 -->
+
+
+                    <!-- ─── SKILL NODES (circular style) ─── -->
+
+                    <!-- Node 1: War T1 -->
                     <Button Canvas.Left="{Binding node1X}" Canvas.Top="{Binding node1Y}"
                             Command="{Binding Path=events.skillTap}" CommandParameter="1"
                             Background="{StaticResource TransparentBrush}" BorderThickness="0">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="240">
-                            <Grid Width="140" Height="140" HorizontalAlignment="Center">
-                                <Border Width="140" Height="140"><Border.Background><ImageBrush ImageSource="{Binding Path=node1Img}" Stretch="Uniform"/></Border.Background></Border>
-                                <Border Background="#CC000000" CornerRadius="10" Padding="8,4,8,4" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding node1CostVisible, Converter={StaticResource BoolToVisConverter}}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="28" Margin="0,0,4,0">
-                                            <Grid Width="24" Height="24">
-                                                <Path Fill="{Binding node1CostColor}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            </Grid>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding node1Cost}" FontFamily="Anton" FontSize="36" FontWeight="Bold" Foreground="{Binding node1CostColor}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                        <Grid Width="270" HorizontalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid Width="130" Height="130" HorizontalAlignment="Center">
+                                    <Ellipse Width="130" Height="130" Fill="#221A1420"/>
+                                    <Ellipse Width="120" Height="120" Stroke="{Binding node1BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node1IconColor}" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+
+                                </Grid>
+                                <Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node1CostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node1Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node1Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel>
                                 </Border>
-                            </Grid>
-                            <Border Background="{StaticResource DarkWoodBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="8" Padding="8,4,8,4" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding node1Label}" FontFamily="Anton" FontSize="30" Foreground="{Binding node1Text}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Button>
 
-                    <!-- Node 2: War T3 -->
+                    <!-- Node 2: Fortify T1 -->
                     <Button Canvas.Left="{Binding node2X}" Canvas.Top="{Binding node2Y}"
                             Command="{Binding Path=events.skillTap}" CommandParameter="2"
                             Background="{StaticResource TransparentBrush}" BorderThickness="0">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="240">
-                            <Grid Width="140" Height="140" HorizontalAlignment="Center">
-                                <Border Width="140" Height="140"><Border.Background><ImageBrush ImageSource="{Binding Path=node2Img}" Stretch="Uniform"/></Border.Background></Border>
-                                <Border Background="#CC000000" CornerRadius="10" Padding="8,4,8,4" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding node2CostVisible, Converter={StaticResource BoolToVisConverter}}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="28" Margin="0,0,4,0">
-                                            <Grid Width="24" Height="24">
-                                                <Path Fill="{Binding node2CostColor}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            </Grid>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding node2Cost}" FontFamily="Anton" FontSize="36" FontWeight="Bold" Foreground="{Binding node2CostColor}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                        <Grid Width="270" HorizontalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid Width="130" Height="130" HorizontalAlignment="Center">
+                                    <Ellipse Width="130" Height="130" Fill="#221A1420"/>
+                                    <Ellipse Width="120" Height="120" Stroke="{Binding node2BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node2IconColor}" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+
+                                </Grid>
+                                <Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node2CostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node2Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node2Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel>
                                 </Border>
-                            </Grid>
-                            <Border Background="{StaticResource DarkWoodBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="8" Padding="8,4,8,4" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding node2Label}" FontFamily="Anton" FontSize="30" Foreground="{Binding node2Text}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Button>
 
-                    <!-- Node 3: Fortify T1 -->
+                    <!-- Node 3: Fortune T1 -->
                     <Button Canvas.Left="{Binding node3X}" Canvas.Top="{Binding node3Y}"
                             Command="{Binding Path=events.skillTap}" CommandParameter="3"
                             Background="{StaticResource TransparentBrush}" BorderThickness="0">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="240">
-                            <Grid Width="140" Height="140" HorizontalAlignment="Center">
-                                <Border Width="140" Height="140"><Border.Background><ImageBrush ImageSource="{Binding Path=node3Img}" Stretch="Uniform"/></Border.Background></Border>
-                                <Border Background="#CC000000" CornerRadius="10" Padding="8,4,8,4" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding node3CostVisible, Converter={StaticResource BoolToVisConverter}}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="28" Margin="0,0,4,0">
-                                            <Grid Width="24" Height="24">
-                                                <Path Fill="{Binding node3CostColor}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            </Grid>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding node3Cost}" FontFamily="Anton" FontSize="36" FontWeight="Bold" Foreground="{Binding node3CostColor}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                        <Grid Width="270" HorizontalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid Width="130" Height="130" HorizontalAlignment="Center">
+                                    <Ellipse Width="130" Height="130" Fill="#221A1420"/>
+                                    <Ellipse Width="120" Height="120" Stroke="{Binding node3BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node3IconColor}" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+
+                                </Grid>
+                                <Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node3CostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node3Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node3Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel>
                                 </Border>
-                            </Grid>
-                            <Border Background="{StaticResource DarkWoodBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="8" Padding="8,4,8,4" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding node3Label}" FontFamily="Anton" FontSize="30" Foreground="{Binding node3Text}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Button>
 
-                    <!-- Node 4: Fortify T2 -->
+                    <!-- Node 4: War T2 -->
                     <Button Canvas.Left="{Binding node4X}" Canvas.Top="{Binding node4Y}"
                             Command="{Binding Path=events.skillTap}" CommandParameter="4"
                             Background="{StaticResource TransparentBrush}" BorderThickness="0">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="240">
-                            <Grid Width="140" Height="140" HorizontalAlignment="Center">
-                                <Border Width="140" Height="140"><Border.Background><ImageBrush ImageSource="{Binding Path=node4Img}" Stretch="Uniform"/></Border.Background></Border>
-                                <Border Background="#CC000000" CornerRadius="10" Padding="8,4,8,4" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding node4CostVisible, Converter={StaticResource BoolToVisConverter}}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="28" Margin="0,0,4,0">
-                                            <Grid Width="24" Height="24">
-                                                <Path Fill="{Binding node4CostColor}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            </Grid>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding node4Cost}" FontFamily="Anton" FontSize="36" FontWeight="Bold" Foreground="{Binding node4CostColor}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                        <Grid Width="270" HorizontalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid Width="130" Height="130" HorizontalAlignment="Center">
+                                    <Ellipse Width="130" Height="130" Fill="#221A1420"/>
+                                    <Ellipse Width="120" Height="120" Stroke="{Binding node4BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node4IconColor}" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+
+                                </Grid>
+                                <Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node4CostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node4Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node4Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel>
                                 </Border>
-                            </Grid>
-                            <Border Background="{StaticResource DarkWoodBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="8" Padding="8,4,8,4" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding node4Label}" FontFamily="Anton" FontSize="30" Foreground="{Binding node4Text}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Button>
 
-                    <!-- Node 5: Fortify T3 -->
+                    <!-- Node 5: Fortify T2 -->
                     <Button Canvas.Left="{Binding node5X}" Canvas.Top="{Binding node5Y}"
                             Command="{Binding Path=events.skillTap}" CommandParameter="5"
                             Background="{StaticResource TransparentBrush}" BorderThickness="0">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="240">
-                            <Grid Width="140" Height="140" HorizontalAlignment="Center">
-                                <Border Width="140" Height="140"><Border.Background><ImageBrush ImageSource="{Binding Path=node5Img}" Stretch="Uniform"/></Border.Background></Border>
-                                <Border Background="#CC000000" CornerRadius="10" Padding="8,4,8,4" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding node5CostVisible, Converter={StaticResource BoolToVisConverter}}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="28" Margin="0,0,4,0">
-                                            <Grid Width="24" Height="24">
-                                                <Path Fill="{Binding node5CostColor}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            </Grid>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding node5Cost}" FontFamily="Anton" FontSize="36" FontWeight="Bold" Foreground="{Binding node5CostColor}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                        <Grid Width="270" HorizontalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid Width="130" Height="130" HorizontalAlignment="Center">
+                                    <Ellipse Width="130" Height="130" Fill="#221A1420"/>
+                                    <Ellipse Width="120" Height="120" Stroke="{Binding node5BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node5IconColor}" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+
+                                </Grid>
+                                <Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node5CostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node5Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node5Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel>
                                 </Border>
-                            </Grid>
-                            <Border Background="{StaticResource DarkWoodBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="8" Padding="8,4,8,4" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding node5Label}" FontFamily="Anton" FontSize="30" Foreground="{Binding node5Text}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Button>
 
-                    <!-- Node 6: Fortune T1 -->
+                    <!-- Node 6: Fortune T2 -->
                     <Button Canvas.Left="{Binding node6X}" Canvas.Top="{Binding node6Y}"
                             Command="{Binding Path=events.skillTap}" CommandParameter="6"
                             Background="{StaticResource TransparentBrush}" BorderThickness="0">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="240">
-                            <Grid Width="140" Height="140" HorizontalAlignment="Center">
-                                <Border Width="140" Height="140"><Border.Background><ImageBrush ImageSource="{Binding Path=node6Img}" Stretch="Uniform"/></Border.Background></Border>
-                                <Border Background="#CC000000" CornerRadius="10" Padding="8,4,8,4" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding node6CostVisible, Converter={StaticResource BoolToVisConverter}}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="28" Margin="0,0,4,0">
-                                            <Grid Width="24" Height="24">
-                                                <Path Fill="{Binding node6CostColor}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            </Grid>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding node6Cost}" FontFamily="Anton" FontSize="36" FontWeight="Bold" Foreground="{Binding node6CostColor}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                        <Grid Width="270" HorizontalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid Width="130" Height="130" HorizontalAlignment="Center">
+                                    <Ellipse Width="130" Height="130" Fill="#221A1420"/>
+                                    <Ellipse Width="120" Height="120" Stroke="{Binding node6BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node6IconColor}" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+
+                                </Grid>
+                                <Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node6CostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node6Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node6Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel>
                                 </Border>
-                            </Grid>
-                            <Border Background="{StaticResource DarkWoodBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="8" Padding="8,4,8,4" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding node6Label}" FontFamily="Anton" FontSize="30" Foreground="{Binding node6Text}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Button>
 
-                    <!-- Node 7: Fortune T2 -->
+                    <!-- Node 7: War T3 -->
                     <Button Canvas.Left="{Binding node7X}" Canvas.Top="{Binding node7Y}"
                             Command="{Binding Path=events.skillTap}" CommandParameter="7"
                             Background="{StaticResource TransparentBrush}" BorderThickness="0">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="240">
-                            <Grid Width="140" Height="140" HorizontalAlignment="Center">
-                                <Border Width="140" Height="140"><Border.Background><ImageBrush ImageSource="{Binding Path=node7Img}" Stretch="Uniform"/></Border.Background></Border>
-                                <Border Background="#CC000000" CornerRadius="10" Padding="8,4,8,4" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding node7CostVisible, Converter={StaticResource BoolToVisConverter}}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="28" Margin="0,0,4,0">
-                                            <Grid Width="24" Height="24">
-                                                <Path Fill="{Binding node7CostColor}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            </Grid>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding node7Cost}" FontFamily="Anton" FontSize="36" FontWeight="Bold" Foreground="{Binding node7CostColor}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                        <Grid Width="270" HorizontalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid Width="130" Height="130" HorizontalAlignment="Center">
+                                    <Ellipse Width="130" Height="130" Fill="#221A1420"/>
+                                    <Ellipse Width="120" Height="120" Stroke="{Binding node7BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node7IconColor}" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+
+                                </Grid>
+                                <Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node7CostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node7Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node7Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel>
                                 </Border>
-                            </Grid>
-                            <Border Background="{StaticResource DarkWoodBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="8" Padding="8,4,8,4" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding node7Label}" FontFamily="Anton" FontSize="30" Foreground="{Binding node7Text}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Button>
 
-                    <!-- Node 8: Fortune T3 -->
+                    <!-- Node 8: Fortify T3 -->
                     <Button Canvas.Left="{Binding node8X}" Canvas.Top="{Binding node8Y}"
                             Command="{Binding Path=events.skillTap}" CommandParameter="8"
                             Background="{StaticResource TransparentBrush}" BorderThickness="0">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="240">
-                            <Grid Width="140" Height="140" HorizontalAlignment="Center">
-                                <Border Width="140" Height="140"><Border.Background><ImageBrush ImageSource="{Binding Path=node8Img}" Stretch="Uniform"/></Border.Background></Border>
-                                <Border Background="#CC000000" CornerRadius="10" Padding="8,4,8,4" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding node8CostVisible, Converter={StaticResource BoolToVisConverter}}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="28" Margin="0,0,4,0">
-                                            <Grid Width="24" Height="24">
-                                                <Path Fill="{Binding node8CostColor}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            </Grid>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding node8Cost}" FontFamily="Anton" FontSize="36" FontWeight="Bold" Foreground="{Binding node8CostColor}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                        <Grid Width="270" HorizontalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid Width="130" Height="130" HorizontalAlignment="Center">
+                                    <Ellipse Width="130" Height="130" Fill="#221A1420"/>
+                                    <Ellipse Width="120" Height="120" Stroke="{Binding node8BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node8IconColor}" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+
+                                </Grid>
+                                <Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node8CostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node8Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node8Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel>
                                 </Border>
-                            </Grid>
-                            <Border Background="{StaticResource DarkWoodBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="8" Padding="8,4,8,4" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding node8Label}" FontFamily="Anton" FontSize="30" Foreground="{Binding node8Text}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Button>
 
-                    <!-- Node 9: Root (UNLOCK TREE) -->
+                    <!-- Node 19: War T7 -->
+                    <Button Canvas.Left="{Binding node19X}" Canvas.Top="{Binding node19Y}" Command="{Binding Path=events.skillTap}" CommandParameter="19" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node19BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node19IconColor}" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node19CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node19Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node19Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 20: Fortify T7 -->
+                    <Button Canvas.Left="{Binding node20X}" Canvas.Top="{Binding node20Y}" Command="{Binding Path=events.skillTap}" CommandParameter="20" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node20BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node20IconColor}" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node20CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node20Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node20Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 21: Fortune T7 -->
+                    <Button Canvas.Left="{Binding node21X}" Canvas.Top="{Binding node21Y}" Command="{Binding Path=events.skillTap}" CommandParameter="21" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node21BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node21IconColor}" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node21CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node21Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node21Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 22: War T8 -->
+                    <Button Canvas.Left="{Binding node22X}" Canvas.Top="{Binding node22Y}" Command="{Binding Path=events.skillTap}" CommandParameter="22" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node22BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node22IconColor}" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node22CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node22Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node22Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 23: Fortify T8 -->
+                    <Button Canvas.Left="{Binding node23X}" Canvas.Top="{Binding node23Y}" Command="{Binding Path=events.skillTap}" CommandParameter="23" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node23BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node23IconColor}" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node23CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node23Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node23Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 24: Fortune T8 -->
+                    <Button Canvas.Left="{Binding node24X}" Canvas.Top="{Binding node24Y}" Command="{Binding Path=events.skillTap}" CommandParameter="24" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node24BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node24IconColor}" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node24CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node24Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node24Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 25: War T9 -->
+                    <Button Canvas.Left="{Binding node25X}" Canvas.Top="{Binding node25Y}" Command="{Binding Path=events.skillTap}" CommandParameter="25" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node25BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node25IconColor}" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node25CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node25Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node25Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 26: Fortify T9 -->
+                    <Button Canvas.Left="{Binding node26X}" Canvas.Top="{Binding node26Y}" Command="{Binding Path=events.skillTap}" CommandParameter="26" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node26BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node26IconColor}" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node26CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node26Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node26Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 27: Fortune T9 -->
+                    <Button Canvas.Left="{Binding node27X}" Canvas.Top="{Binding node27Y}" Command="{Binding Path=events.skillTap}" CommandParameter="27" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node27BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node27IconColor}" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node27CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node27Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node27Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 28: War T10 -->
+                    <Button Canvas.Left="{Binding node28X}" Canvas.Top="{Binding node28Y}" Command="{Binding Path=events.skillTap}" CommandParameter="28" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node28BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node28IconColor}" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node28CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node28Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node28Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 29: Fortify T10 -->
+                    <Button Canvas.Left="{Binding node29X}" Canvas.Top="{Binding node29Y}" Command="{Binding Path=events.skillTap}" CommandParameter="29" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node29BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node29IconColor}" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node29CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node29Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node29Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 30: Fortune T10 -->
+                    <Button Canvas.Left="{Binding node30X}" Canvas.Top="{Binding node30Y}" Command="{Binding Path=events.skillTap}" CommandParameter="30" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node30BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node30IconColor}" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node30CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node30Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node30Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+
+
+                    <!-- Nodes 10-39: Tiers 4-13 -->
+                    <!-- Node 10: War T4 -->
+                    <Button Canvas.Left="{Binding node10X}" Canvas.Top="{Binding node10Y}" Command="{Binding Path=events.skillTap}" CommandParameter="10" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node10BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node10IconColor}" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node10CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node10Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node10Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 11: Fortify T4 -->
+                    <Button Canvas.Left="{Binding node11X}" Canvas.Top="{Binding node11Y}" Command="{Binding Path=events.skillTap}" CommandParameter="11" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node11BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node11IconColor}" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node11CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node11Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node11Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 12: Fortune T4 -->
+                    <Button Canvas.Left="{Binding node12X}" Canvas.Top="{Binding node12Y}" Command="{Binding Path=events.skillTap}" CommandParameter="12" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node12BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node12IconColor}" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node12CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node12Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node12Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 13: War T5 -->
+                    <Button Canvas.Left="{Binding node13X}" Canvas.Top="{Binding node13Y}" Command="{Binding Path=events.skillTap}" CommandParameter="13" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node13BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node13IconColor}" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node13CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node13Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node13Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 14: Fortify T5 -->
+                    <Button Canvas.Left="{Binding node14X}" Canvas.Top="{Binding node14Y}" Command="{Binding Path=events.skillTap}" CommandParameter="14" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node14BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node14IconColor}" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node14CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node14Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node14Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 15: Fortune T5 -->
+                    <Button Canvas.Left="{Binding node15X}" Canvas.Top="{Binding node15Y}" Command="{Binding Path=events.skillTap}" CommandParameter="15" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node15BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node15IconColor}" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node15CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node15Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node15Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 16: War T6 -->
+                    <Button Canvas.Left="{Binding node16X}" Canvas.Top="{Binding node16Y}" Command="{Binding Path=events.skillTap}" CommandParameter="16" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node16BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node16IconColor}" Data="M4 2 L12 10 L20 2 L18 12 L22 14 L14 14 L12 22 L10 14 L2 14 L6 12 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node16CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node16Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node16Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 17: Fortify T6 -->
+                    <Button Canvas.Left="{Binding node17X}" Canvas.Top="{Binding node17Y}" Command="{Binding Path=events.skillTap}" CommandParameter="17" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node17BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node17IconColor}" Data="M12 2 L4 7 L4 17 L12 22 L20 17 L20 7 Z M12 5 L17 8 L17 16 L12 19 L7 16 L7 8 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node17CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node17Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node17Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+                    <!-- Node 18: Fortune T6 -->
+                    <Button Canvas.Left="{Binding node18X}" Canvas.Top="{Binding node18Y}" Command="{Binding Path=events.skillTap}" CommandParameter="18" Background="{StaticResource TransparentBrush}" BorderThickness="0"><Grid Width="270"><StackPanel HorizontalAlignment="Center"><Grid Width="130" Height="130" HorizontalAlignment="Center"><Ellipse Width="120" Height="120" Stroke="{Binding node18BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/><Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center"><Grid Width="24" Height="24"><Path Fill="{Binding node18IconColor}" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/></Grid></Viewbox></Grid><Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node18CostVisible, Converter={StaticResource BoolToVisConverter}}"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node18Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node18Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel></Border></StackPanel></Grid></Button>
+
+                    <!-- Node 9: Fortune T3 -->
                     <Button Canvas.Left="{Binding node9X}" Canvas.Top="{Binding node9Y}"
                             Command="{Binding Path=events.skillTap}" CommandParameter="9"
                             Background="{StaticResource TransparentBrush}" BorderThickness="0">
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="240">
-                            <Grid Width="140" Height="140" HorizontalAlignment="Center">
-                                <Border Width="140" Height="140"><Border.Background><ImageBrush ImageSource="{Binding Path=node9Img}" Stretch="Uniform"/></Border.Background></Border>
-                                <Border Background="#CC000000" CornerRadius="10" Padding="8,4,8,4" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding node9CostVisible, Converter={StaticResource BoolToVisConverter}}">
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Viewbox Width="28" Height="28" Margin="0,0,4,0">
-                                            <Grid Width="24" Height="24">
-                                                <Path Fill="{Binding node9CostColor}" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            </Grid>
-                                        </Viewbox>
-                                        <TextBlock Text="{Binding node9Cost}" FontFamily="Anton" FontSize="36" FontWeight="Bold" Foreground="{Binding node9CostColor}" VerticalAlignment="Center"/>
-                                    </StackPanel>
+                        <Grid Width="270" HorizontalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Grid Width="130" Height="130" HorizontalAlignment="Center">
+                                    <Ellipse Width="130" Height="130" Fill="#221A1420"/>
+                                    <Ellipse Width="120" Height="120" Stroke="{Binding node9BorderColor}" StrokeThickness="4" Fill="{StaticResource DarkFillBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Viewbox Width="50" Height="50" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="{Binding node9IconColor}" Data="M12 2 C8 2 5 5 5 8 C5 11 7 13 10 14 L10 16 L14 16 L14 14 C17 13 19 11 19 8 C19 5 16 2 12 2 Z M10 18 L14 18 L14 20 L10 20 Z M11 21 L13 21 L13 22 L11 22 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+
+                                </Grid>
+                                <Border Background="#CC1A1420" CornerRadius="8" Padding="11,6,11,6" HorizontalAlignment="Center" Margin="0,6,0,0" Visibility="{Binding node9CostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Viewbox Width="25" Height="25" Margin="0,0,6,0"><Grid Width="24" Height="24"><Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/><Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/><Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/></Grid></Viewbox><TextBlock Text="{Binding node9Cost}" FontFamily="Anton" FontSize="43" Foreground="{Binding node9Text}" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel>
                                 </Border>
-                            </Grid>
-                            <Border Background="{StaticResource DarkWoodBrush}" BorderBrush="{StaticResource GoldBrush}" BorderThickness="2" CornerRadius="8" Padding="8,4,8,4" HorizontalAlignment="Center" Margin="0,6,0,0">
-                                <TextBlock Text="{Binding node9Label}" FontFamily="Anton" FontSize="30" Foreground="{Binding node9Text}" HorizontalAlignment="Center" TextAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </Button>
 
                 </Canvas>
@@ -402,15 +498,71 @@
             <Button Grid.Row="2" Command="{Binding Path=events.closeTap}" CommandParameter="close"
                     Background="{StaticResource TransparentBrush}" BorderThickness="0"
                     HorizontalAlignment="Center" Margin="0,10,0,20">
-                <Border Background="#CC1a1a2e" BorderBrush="{StaticResource GoldBrush}" BorderThickness="5" CornerRadius="30" Padding="60,16,60,16">
-                    <Grid HorizontalAlignment="Center">
-                        <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                        <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                        <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
-                    </Grid>
+                <Border Background="#CC1A1420" BorderBrush="{StaticResource CreamPathBrush}" BorderThickness="3" CornerRadius="30" Padding="60,16,60,16">
+                    <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="52" FontWeight="Bold" Foreground="#FFF5E6D0" HorizontalAlignment="Center"/>
                 </Border>
             </Button>
         </Grid>
         </Viewbox>
+
+        <!-- ═══ POPUP OVERLAY ═══ -->
+        <Grid Visibility="{Binding popupVisible, Converter={StaticResource BoolToVisConverter}}">
+            <!-- Semi-transparent dark backdrop -->
+            <Border Background="#CC000000"/>
+
+            <!-- Centered popup panel -->
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="#F01A1420" BorderBrush="{StaticResource GoldBrush}" BorderThickness="8"
+                    CornerRadius="40" Padding="100,70,100,70" Width="1600">
+                <StackPanel HorizontalAlignment="Center">
+                    <!-- Node description -->
+                    <TextBlock Text="{Binding popupDescription}" FontFamily="Anton" FontSize="110" FontWeight="Bold"
+                               Foreground="#FFF5E6D0" HorizontalAlignment="Center" TextAlignment="Center"
+                               TextWrapping="Wrap" Margin="0,0,0,44"/>
+
+                    <!-- Cost row (hidden if already bought) -->
+                    <Border Background="#33000000" CornerRadius="28" Padding="40,20,40,20"
+                            HorizontalAlignment="Center" Margin="0,0,0,56"
+                            Visibility="{Binding popupCostVisible, Converter={StaticResource BoolToVisConverter}}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Viewbox Width="76" Height="76" Margin="0,0,16,0">
+                                <Grid Width="24" Height="24">
+                                    <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                    <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                                    <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                                    <Path Fill="#1A1A2E" Data="M10 15 L10 14 M12 16 L12 14 M14 15 L14 14" StrokeThickness="0.8" Stroke="#1A1A2E"/>
+                                </Grid>
+                            </Viewbox>
+                            <TextBlock Text="{Binding popupCost}" FontFamily="Anton" FontSize="88" FontWeight="Bold"
+                                       Foreground="{StaticResource GoldBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Buttons row -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <!-- RETURN button -->
+                        <Button Command="{Binding Path=events.returnTap}" CommandParameter="return"
+                                Background="{StaticResource TransparentBrush}" BorderThickness="0" Margin="0,0,40,0">
+                            <Border Background="#CC1A1420" BorderBrush="{StaticResource CreamPathBrush}" BorderThickness="7"
+                                    CornerRadius="30" Padding="70,28,70,28">
+                                <TextBlock Text="RETURN" FontFamily="Anton" FontSize="82" FontWeight="Bold"
+                                           Foreground="#FFF5E6D0" HorizontalAlignment="Center"/>
+                            </Border>
+                        </Button>
+
+                        <!-- BUY button (hidden if already bought or cannot buy) -->
+                        <Button Command="{Binding Path=events.buyTap}" CommandParameter="buy"
+                                Background="{StaticResource TransparentBrush}" BorderThickness="0"
+                                Visibility="{Binding popupBuyVisible, Converter={StaticResource BoolToVisConverter}}">
+                            <Border Background="#CC1A1420" BorderBrush="{StaticResource GoldBrush}" BorderThickness="7"
+                                    CornerRadius="30" Padding="70,28,70,28">
+                                <TextBlock Text="BUY" FontFamily="Anton" FontSize="82" FontWeight="Bold"
+                                           Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                            </Border>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

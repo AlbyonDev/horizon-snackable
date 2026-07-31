@@ -5,10 +5,9 @@
  * Component Networking: Local (client-only UI)
  * Component Ownership: Server-owned scene entity, UI logic runs on client via ExecuteOn.Owner
  *
- * Displays an organic tree layout with a root node at the fork point splitting into 3 curving
- * branches (War, Fortify, Fortune). The root node must be purchased first to unlock all branches.
- * Skill nodes are positioned along each branch bezier curve.
- * Uses the same Path Data binding approach as the Overworld map.
+ * Data-driven approach: 31 nodes (1 root + 10 tiers × 3 branches).
+ * All node positions, labels, costs, and connections are derived from SKILL_NODES/SKILL_CONNECTIONS.
+ * The ViewModel exposes indexed properties (node0X..node39X) for XAML binding.
  */
 import {
   Component,
@@ -23,7 +22,6 @@ import {
   UiViewModel,
   UiEvent,
   CustomUiComponent,
-  TextureAsset,
   serializable,
 } from 'meta/worlds';
 import type { Maybe } from 'meta/worlds';
@@ -31,14 +29,19 @@ import type { Maybe } from 'meta/worlds';
 import { Events } from '../Types';
 import { SkillTreeService } from '../Services/SkillTreeService';
 import { SaveService } from '../Services/SaveService';
-import { SKILL_BRANCHES, TOTAL_SKILLS, ROOT_SKILL_INDEX } from '../Defs/SkillTreeDefs';
+import {
+  SKILL_NODES,
+  SKILL_CONNECTIONS,
+  TOTAL_SKILLS,
+  ROOT_SKILL_INDEX,
+} from '../Defs/SkillTreeDefs';
 
-// ── Local Events ──────────────────────────────────────────────────────
+// ── Local Events ─────────────────────────────────────────────────────────────
 
 export class OpenSkillTreePayload {}
 export const OpenSkillTreeEvent = new LocalEvent<OpenSkillTreePayload>('EvOpenSkillTree', OpenSkillTreePayload);
 
-// ── UiEvents ──────────────────────────────────────────────────────────
+// ── UiEvents ─────────────────────────────────────────────────────────────────
 
 @serializable()
 export class SkillTreeTapPayload {
@@ -53,152 +56,200 @@ export class SkillTreeCloseTapPayload {
 const skillTapEvent = new UiEvent('SkillTreeViewModel-onSkillTap', SkillTreeTapPayload);
 const closeTapEvent = new UiEvent('SkillTreeViewModel-onCloseTap', SkillTreeCloseTapPayload);
 
-// ── Sprite TextureAssets ──────────────────────────────────────────────
-
-const SPRITE_BOUGHT = new TextureAsset('@sprites/skilltree_node_bought.png');
-const SPRITE_BUYABLE = new TextureAsset('@sprites/skilltree_node_buyable.png');
-const SPRITE_LOCKED = new TextureAsset('@sprites/skilltree_node_locked.png');
-
-// ── Colors ────────────────────────────────────────────────────────────
-
-const COLOR_UNLOCKED_TEXT = '#FFf5c518';
-const COLOR_AFFORDABLE_TEXT = '#CCFFFFFF';
-const COLOR_LOCKED_TEXT = '#66FFFFFF';
-const COLOR_COST_BUYABLE = '#FFf5c518';
-const COLOR_COST_LOCKED = '#88888888';
-
-// Branch colors
-const COLOR_BRANCH_WAR_ACTIVE = '#FFAA3333';
-const COLOR_BRANCH_WAR_LOCKED = '#44AA3333';
-const COLOR_BRANCH_FORTIFY_ACTIVE = '#FF3366AA';
-const COLOR_BRANCH_FORTIFY_LOCKED = '#443366AA';
-const COLOR_BRANCH_FORTUNE_ACTIVE = '#FF33AA33';
-const COLOR_BRANCH_FORTUNE_LOCKED = '#4433AA33';
-
-// ── Node labels ──────────────────────────────────────────────────────
-
-const NODE_LABELS: readonly string[] = [
-  '+10% DMG', '+15% FIRE RATE', '+25% CRIT',
-  '+2 LIVES', '+20% RANGE', '+5 LIVES',
-  '+30 GOLD', '+25% WAVE GOLD', '+50% SELL',
-  'UNLOCK TREE',
-];
-
-const NODE_COSTS: readonly number[] = [3, 6, 10, 3, 6, 10, 3, 6, 10, 1];
-
-// ── Layout constants ──────────────────────────────────────────────────
-// Canvas is 1080 wide. Tree grows from TOP downward (root node at top, branches below).
-
-const CANVAS_WIDTH = 1080;
-const CANVAS_HEIGHT = 1800;
-
-// Root node position (the fork point where branches diverge)
-const ROOT_NODE_X = 420; // Canvas.Left (centered: 420 + 120 = 540)
-const ROOT_NODE_Y = 280; // Canvas.Top
-
-// Fork point (where branches start — center of root node)
-const FORK_X = 540;
-const FORK_Y = 380;
-
-// Node positions for each branch (x, y) — tree grows DOWNWARD so T1 is highest (lowest Y)
-// Offset node X by -120 so the 240px-wide node StackPanel is visually centered
-const NODE_HALF_W = 120;
-
-// War branch (curves left-downward) — spreads toward left edge
-const WAR_NODES: readonly [number, number][] = [
-  [120, 620],   // T1 — centered at 240
-  [70, 980],    // T2 — centered at 190
-  [40, 1360],   // T3 — centered at 160, ~40px from left edge
-];
-
-// Fortify branch (center-downward with gentle curve) — centered at X ~540
-const FORTIFY_NODES: readonly [number, number][] = [
-  [420, 660],   // T1
-  [400, 1020],  // T2
-  [410, 1400],  // T3
-];
-
-// Fortune branch (curves right-downward) — spreads toward right edge
-const FORTUNE_NODES: readonly [number, number][] = [
-  [720, 620],   // T1 — centered at 840
-  [770, 980],   // T2 — centered at 890
-  [800, 1360],  // T3 — centered at 920, ~40px from right edge
-];
-
-// Branch header positions (above root node, indicating which branch is below)
-const WAR_HEADER: [number, number] = [140, 100];
-const FORTIFY_HEADER: [number, number] = [440, 100];
-const FORTUNE_HEADER: [number, number] = [740, 100];
-
-// ── Path computation helpers ──────────────────────────────────────────
-
-/** Build a smooth bezier path through branch nodes (growing downward from fork/root node). */
-function buildBranchPath(nodes: readonly [number, number][]): string {
-  // Start at fork point (center of root node), curve downward through each node center
-  const startX = FORK_X;
-  const startY = FORK_Y;
-
-  // Node centers (offset by half width and half height)
-  const [n0x, n0y] = [nodes[0][0] + NODE_HALF_W, nodes[0][1] + 70];
-  const [n1x, n1y] = [nodes[1][0] + NODE_HALF_W, nodes[1][1] + 70];
-  const [n2x, n2y] = [nodes[2][0] + NODE_HALF_W, nodes[2][1] + 70];
-
-  // Control points for smooth organic curves (growing downward)
-  // Fork -> node 0
-  const cp0_1x = startX + (n0x - startX) * 0.3;
-  const cp0_1y = startY + 80;
-  const cp0_2x = n0x - (n0x - startX) * 0.2;
-  const cp0_2y = n0y - 120;
-
-  // Node 0 -> node 1
-  const cp1_1x = n0x + (n1x - n0x) * 0.1;
-  const cp1_1y = n0y + 120;
-  const cp1_2x = n1x - (n1x - n0x) * 0.1;
-  const cp1_2y = n1y - 120;
-
-  // Node 1 -> node 2
-  const cp2_1x = n1x + (n2x - n1x) * 0.1;
-  const cp2_1y = n1y + 120;
-  const cp2_2x = n2x - (n2x - n1x) * 0.1;
-  const cp2_2y = n2y - 120;
-
-  return [
-    `M ${startX} ${startY}`,
-    `C ${cp0_1x} ${cp0_1y} ${cp0_2x} ${cp0_2y} ${n0x} ${n0y}`,
-    `C ${cp1_1x} ${cp1_1y} ${cp1_2x} ${cp1_2y} ${n1x} ${n1y}`,
-    `C ${cp2_1x} ${cp2_1y} ${cp2_2x} ${cp2_2y} ${n2x} ${n2y}`,
-  ].join(' ');
+@serializable()
+export class SkillTreeReturnTapPayload {
+  readonly parameter: string = '';
 }
 
-// Pre-compute static path data (no trunk — branches start directly from root node)
-const BRANCH_0_PATH_DATA = buildBranchPath(WAR_NODES);
-const BRANCH_1_PATH_DATA = buildBranchPath(FORTIFY_NODES);
-const BRANCH_2_PATH_DATA = buildBranchPath(FORTUNE_NODES);
+@serializable()
+export class SkillTreeBuyTapPayload {
+  readonly parameter: string = '';
+}
 
-// ── ViewModel ────────────────────────────────────────────────────────
+const returnTapEvent = new UiEvent('SkillTreeViewModel-onReturnTap', SkillTreeReturnTapPayload);
+const buyTapEvent = new UiEvent('SkillTreeViewModel-onBuyTap', SkillTreeBuyTapPayload);
+
+// ── Colors ───────────────────────────────────────────────────────────────────
+
+const COLOR_BORDER_BOUGHT = '#FFf5c518';
+const COLOR_BORDER_BUYABLE = '#FFF5E6D0';
+const COLOR_BORDER_LOCKED = '#44F5E6D0';
+
+const COLOR_TEXT_BOUGHT = '#FFf5c518';
+const COLOR_TEXT_BUYABLE = '#DDFFE8D0';
+const COLOR_TEXT_LOCKED = '#55F5E6D0';
+
+const COLOR_ICON_BOUGHT = '#FFf5c518';
+const COLOR_ICON_BUYABLE = '#CCF5E6D0';
+const COLOR_ICON_LOCKED = '#44F5E6D0';
+
+const COLOR_COST_BUYABLE = '#FFf5c518';
+const COLOR_COST_LOCKED = '#66F5E6D0';
+
+const COLOR_CONNECTION_ACTIVE = '#CCF5E6D0';
+const COLOR_CONNECTION_LOCKED = '#44F5E6D0';
+
+const COLOR_ROOT_BORDER_BOUGHT = '#FFf5c518';
+const COLOR_ROOT_BORDER_BUYABLE = '#FFFFFFFF';
+const COLOR_ROOT_BORDER_LOCKED = '#88FFFFFF';
+const COLOR_ROOT_RUNE_BOUGHT = '#FFf5c518';
+const COLOR_ROOT_RUNE_BUYABLE = '#FFf5c518';
+const COLOR_ROOT_RUNE_LOCKED = '#66f5c518';
+
+// ── Layout constants ─────────────────────────────────────────────────────────
+
+const CANVAS_WIDTH = 1080;
+const CANVAS_HEIGHT = 3090; // 10 tiers at 270px spacing + root/header/padding
+
+const NODE_HALF_W = 110;
+const NODE_HALF_H = 65;
+
+// Tier vertical spacing
+const ROOT_Y = 30;
+const TIER_START_Y = 410;
+const TIER_SPACING = 270;
+
+// Branch X positions (War=left, Fortify=center, Fortune=right)
+const WAR_X = 100;
+const FORTIFY_X = 430;
+const FORTUNE_X = 730;
+
+/**
+ * Compute node positions dynamically based on branch and tier.
+ * Returns [canvasLeft, canvasTop] for each node index 0-39.
+ * Always produces 40 entries so ViewModel field initializers are safe
+ * even if TOTAL_SKILLS < 40.
+ */
+function computeNodePositions(): [number, number][] {
+  const VM_NODE_COUNT = 40; // ViewModel exposes node0..node39
+  const positions: [number, number][] = new Array(VM_NODE_COUNT);
+
+  // Initialize all slots to a safe default
+  for (let k = 0; k < VM_NODE_COUNT; k++) {
+    positions[k] = [0, 0];
+  }
+
+  // Root node
+  positions[0] = [410, ROOT_Y];
+
+  // Branch nodes: indices 1..(TOTAL_SKILLS-1)
+  for (let i = 1; i < TOTAL_SKILLS; i++) {
+    const tier = Math.ceil(i / 3); // 1-based tier (1..13)
+    const branchMod = i % 3; // 1=war, 2=fortify, 0=fortune
+
+    let x: number;
+    if (branchMod === 1) x = WAR_X;
+    else if (branchMod === 2) x = FORTIFY_X;
+    else x = FORTUNE_X;
+
+    // Add slight horizontal wave for visual interest
+    const waveOffset = (tier % 2 === 0) ? 20 : -10;
+    x += waveOffset;
+
+    const y = TIER_START_Y + (tier - 1) * TIER_SPACING;
+    positions[i] = [x, y];
+  }
+
+  return positions;
+}
+
+const NODE_POSITIONS: readonly [number, number][] = computeNodePositions();
+
+// Branch header positions
+const WAR_HEADER: [number, number] = [120, 270];
+const FORTIFY_HEADER: [number, number] = [440, 300];
+const FORTUNE_HEADER: [number, number] = [760, 270];
+
+// ── Connection rendering ─────────────────────────────────────────────────────
+
+const MAX_CONNECTIONS = 60;
+
+function getNodeCenter(index: number): [number, number] {
+  const pos = NODE_POSITIONS[index];
+  return [pos[0] + NODE_HALF_W, pos[1] + NODE_HALF_H];
+}
+
+function buildConnectionPath(fromIndex: number, toIndex: number): string {
+  const [fx, fy] = getNodeCenter(fromIndex);
+  const [tx, ty] = getNodeCenter(toIndex);
+
+  const dx = tx - fx;
+  const dy = ty - fy;
+
+  const isVertical = Math.abs(dy) > Math.abs(dx);
+
+  let cp1x: number, cp1y: number, cp2x: number, cp2y: number;
+
+  if (isVertical) {
+    cp1x = fx + dx * 0.2;
+    cp1y = fy + dy * 0.35;
+    cp2x = tx - dx * 0.2;
+    cp2y = ty - dy * 0.35;
+  } else {
+    const midY = (fy + ty) * 0.5;
+    cp1x = fx + dx * 0.3;
+    cp1y = midY - 30;
+    cp2x = fx + dx * 0.7;
+    cp2y = midY + 30;
+  }
+
+  return `M ${fx} ${fy} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${tx} ${ty}`;
+}
+
+function buildAllConnectionPaths(): string[] {
+  const paths: string[] = [];
+  const seen = new Set<string>();
+
+  for (const [from, to] of SKILL_CONNECTIONS) {
+    const lo = Math.min(from, to);
+    const hi = Math.max(from, to);
+    const key = `${lo}-${hi}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    paths.push(buildConnectionPath(from, to));
+  }
+
+  return paths;
+}
+
+const ALL_CONNECTION_PATHS = buildAllConnectionPaths();
+
+// ── Short labels for UI ─────────────────────────────────────────────────────
+
+function getNodeLabel(index: number): string {
+  const node = SKILL_NODES.find(n => n.index === index);
+  if (!node) return '';
+  // Show cost with skull emoji for unpurchased nodes
+  return `\u{1F480} ${node.cost}`;
+}
+
+function getNodeCost(index: number): number {
+  const node = SKILL_NODES.find(n => n.index === index);
+  return node ? node.cost : 0;
+}
+
+// ── ViewModel ────────────────────────────────────────────────────────────────
 
 @uiViewModel()
 export class SkillTreeViewModel extends UiViewModel {
   override readonly events = {
     skillTap: skillTapEvent,
     closeTap: closeTapEvent,
+    returnTap: returnTapEvent,
+    buyTap: buyTapEvent,
   };
 
   visible: boolean = false;
   skullCount: number = 0;
-
-  // Canvas dimensions
   canvasHeight: number = CANVAS_HEIGHT;
 
-  // Branch path data (SVG path strings for XAML Path.Data binding) — no trunk
-  branch0PathData: string = BRANCH_0_PATH_DATA;
-  branch1PathData: string = BRANCH_1_PATH_DATA;
-  branch2PathData: string = BRANCH_2_PATH_DATA;
-
-  // Branch colors (active/locked based on unlock state)
-  branch0Color: string = COLOR_BRANCH_WAR_LOCKED;
-  branch1Color: string = COLOR_BRANCH_FORTIFY_LOCKED;
-  branch2Color: string = COLOR_BRANCH_FORTUNE_LOCKED;
+  // Popup state
+  popupVisible: boolean = false;
+  popupDescription: string = '';
+  popupCost: string = '';
+  popupCostVisible: boolean = false;
+  popupBuyVisible: boolean = true;
 
   // Branch header positions
   warHeaderX: number = WAR_HEADER[0];
@@ -208,107 +259,284 @@ export class SkillTreeViewModel extends UiViewModel {
   fortuneHeaderX: number = FORTUNE_HEADER[0];
   fortuneHeaderY: number = FORTUNE_HEADER[1];
 
-  // Per-node canvas positions (top-left of the 240-wide node panel)
-  node0X: number = WAR_NODES[0][0];
-  node0Y: number = WAR_NODES[0][1];
-  node1X: number = WAR_NODES[1][0];
-  node1Y: number = WAR_NODES[1][1];
-  node2X: number = WAR_NODES[2][0];
-  node2Y: number = WAR_NODES[2][1];
-  node3X: number = FORTIFY_NODES[0][0];
-  node3Y: number = FORTIFY_NODES[0][1];
-  node4X: number = FORTIFY_NODES[1][0];
-  node4Y: number = FORTIFY_NODES[1][1];
-  node5X: number = FORTIFY_NODES[2][0];
-  node5Y: number = FORTIFY_NODES[2][1];
-  node6X: number = FORTUNE_NODES[0][0];
-  node6Y: number = FORTUNE_NODES[0][1];
-  node7X: number = FORTUNE_NODES[1][0];
-  node7Y: number = FORTUNE_NODES[1][1];
-  node8X: number = FORTUNE_NODES[2][0];
-  node8Y: number = FORTUNE_NODES[2][1];
-  node9X: number = ROOT_NODE_X;
-  node9Y: number = ROOT_NODE_Y;
+  // Connection paths (up to MAX_CONNECTIONS)
+  conn0Data: string = ''; conn0Color: string = COLOR_CONNECTION_LOCKED;
+  conn1Data: string = ''; conn1Color: string = COLOR_CONNECTION_LOCKED;
+  conn2Data: string = ''; conn2Color: string = COLOR_CONNECTION_LOCKED;
+  conn3Data: string = ''; conn3Color: string = COLOR_CONNECTION_LOCKED;
+  conn4Data: string = ''; conn4Color: string = COLOR_CONNECTION_LOCKED;
+  conn5Data: string = ''; conn5Color: string = COLOR_CONNECTION_LOCKED;
+  conn6Data: string = ''; conn6Color: string = COLOR_CONNECTION_LOCKED;
+  conn7Data: string = ''; conn7Color: string = COLOR_CONNECTION_LOCKED;
+  conn8Data: string = ''; conn8Color: string = COLOR_CONNECTION_LOCKED;
+  conn9Data: string = ''; conn9Color: string = COLOR_CONNECTION_LOCKED;
+  conn10Data: string = ''; conn10Color: string = COLOR_CONNECTION_LOCKED;
+  conn11Data: string = ''; conn11Color: string = COLOR_CONNECTION_LOCKED;
+  conn12Data: string = ''; conn12Color: string = COLOR_CONNECTION_LOCKED;
+  conn13Data: string = ''; conn13Color: string = COLOR_CONNECTION_LOCKED;
+  conn14Data: string = ''; conn14Color: string = COLOR_CONNECTION_LOCKED;
+  conn15Data: string = ''; conn15Color: string = COLOR_CONNECTION_LOCKED;
+  conn16Data: string = ''; conn16Color: string = COLOR_CONNECTION_LOCKED;
+  conn17Data: string = ''; conn17Color: string = COLOR_CONNECTION_LOCKED;
+  conn18Data: string = ''; conn18Color: string = COLOR_CONNECTION_LOCKED;
+  conn19Data: string = ''; conn19Color: string = COLOR_CONNECTION_LOCKED;
+  conn20Data: string = ''; conn20Color: string = COLOR_CONNECTION_LOCKED;
+  conn21Data: string = ''; conn21Color: string = COLOR_CONNECTION_LOCKED;
+  conn22Data: string = ''; conn22Color: string = COLOR_CONNECTION_LOCKED;
+  conn23Data: string = ''; conn23Color: string = COLOR_CONNECTION_LOCKED;
+  conn24Data: string = ''; conn24Color: string = COLOR_CONNECTION_LOCKED;
+  conn25Data: string = ''; conn25Color: string = COLOR_CONNECTION_LOCKED;
+  conn26Data: string = ''; conn26Color: string = COLOR_CONNECTION_LOCKED;
+  conn27Data: string = ''; conn27Color: string = COLOR_CONNECTION_LOCKED;
+  conn28Data: string = ''; conn28Color: string = COLOR_CONNECTION_LOCKED;
+  conn29Data: string = ''; conn29Color: string = COLOR_CONNECTION_LOCKED;
+  conn30Data: string = ''; conn30Color: string = COLOR_CONNECTION_LOCKED;
+  conn31Data: string = ''; conn31Color: string = COLOR_CONNECTION_LOCKED;
+  conn32Data: string = ''; conn32Color: string = COLOR_CONNECTION_LOCKED;
+  conn33Data: string = ''; conn33Color: string = COLOR_CONNECTION_LOCKED;
+  conn34Data: string = ''; conn34Color: string = COLOR_CONNECTION_LOCKED;
+  conn35Data: string = ''; conn35Color: string = COLOR_CONNECTION_LOCKED;
+  conn36Data: string = ''; conn36Color: string = COLOR_CONNECTION_LOCKED;
+  conn37Data: string = ''; conn37Color: string = COLOR_CONNECTION_LOCKED;
+  conn38Data: string = ''; conn38Color: string = COLOR_CONNECTION_LOCKED;
+  conn39Data: string = ''; conn39Color: string = COLOR_CONNECTION_LOCKED;
+  conn40Data: string = ''; conn40Color: string = COLOR_CONNECTION_LOCKED;
+  conn41Data: string = ''; conn41Color: string = COLOR_CONNECTION_LOCKED;
+  conn42Data: string = ''; conn42Color: string = COLOR_CONNECTION_LOCKED;
+  conn43Data: string = ''; conn43Color: string = COLOR_CONNECTION_LOCKED;
+  conn44Data: string = ''; conn44Color: string = COLOR_CONNECTION_LOCKED;
+  conn45Data: string = ''; conn45Color: string = COLOR_CONNECTION_LOCKED;
+  conn46Data: string = ''; conn46Color: string = COLOR_CONNECTION_LOCKED;
+  conn47Data: string = ''; conn47Color: string = COLOR_CONNECTION_LOCKED;
+  conn48Data: string = ''; conn48Color: string = COLOR_CONNECTION_LOCKED;
+  conn49Data: string = ''; conn49Color: string = COLOR_CONNECTION_LOCKED;
+  conn50Data: string = ''; conn50Color: string = COLOR_CONNECTION_LOCKED;
+  conn51Data: string = ''; conn51Color: string = COLOR_CONNECTION_LOCKED;
+  conn52Data: string = ''; conn52Color: string = COLOR_CONNECTION_LOCKED;
+  conn53Data: string = ''; conn53Color: string = COLOR_CONNECTION_LOCKED;
+  conn54Data: string = ''; conn54Color: string = COLOR_CONNECTION_LOCKED;
+  conn55Data: string = ''; conn55Color: string = COLOR_CONNECTION_LOCKED;
+  conn56Data: string = ''; conn56Color: string = COLOR_CONNECTION_LOCKED;
+  conn57Data: string = ''; conn57Color: string = COLOR_CONNECTION_LOCKED;
+  conn58Data: string = ''; conn58Color: string = COLOR_CONNECTION_LOCKED;
+  conn59Data: string = ''; conn59Color: string = COLOR_CONNECTION_LOCKED;
+  connectionCount: number = 0;
 
-  // Per-node image source
-  node0Img: Maybe<TextureAsset> = SPRITE_LOCKED;
-  node1Img: Maybe<TextureAsset> = SPRITE_LOCKED;
-  node2Img: Maybe<TextureAsset> = SPRITE_LOCKED;
-  node3Img: Maybe<TextureAsset> = SPRITE_LOCKED;
-  node4Img: Maybe<TextureAsset> = SPRITE_LOCKED;
-  node5Img: Maybe<TextureAsset> = SPRITE_LOCKED;
-  node6Img: Maybe<TextureAsset> = SPRITE_LOCKED;
-  node7Img: Maybe<TextureAsset> = SPRITE_LOCKED;
-  node8Img: Maybe<TextureAsset> = SPRITE_LOCKED;
-  node9Img: Maybe<TextureAsset> = SPRITE_BUYABLE;
+  // Per-node properties (40 nodes: positions, colors, labels, costs)
+  // Node 0 (root - special)
+  node0X: number = NODE_POSITIONS[0][0]; node0Y: number = NODE_POSITIONS[0][1];
+  node0BorderColor: string = COLOR_ROOT_BORDER_BUYABLE;
+  node0RuneColor: string = COLOR_ROOT_RUNE_BUYABLE;
+  node0Text: string = COLOR_TEXT_BUYABLE;
+  node0Label: string = '\u{1F480} 1';
+  node0Cost: string = '1';
+  node0CostVisible: boolean = false;
+  node0CostColor: string = COLOR_COST_BUYABLE;
 
-  // Per-node text color
-  node0Text: string = COLOR_LOCKED_TEXT;
-  node1Text: string = COLOR_LOCKED_TEXT;
-  node2Text: string = COLOR_LOCKED_TEXT;
-  node3Text: string = COLOR_LOCKED_TEXT;
-  node4Text: string = COLOR_LOCKED_TEXT;
-  node5Text: string = COLOR_LOCKED_TEXT;
-  node6Text: string = COLOR_LOCKED_TEXT;
-  node7Text: string = COLOR_LOCKED_TEXT;
-  node8Text: string = COLOR_LOCKED_TEXT;
-  node9Text: string = COLOR_AFFORDABLE_TEXT;
+  // Nodes 1-39 (branch nodes)
+  node1X: number = NODE_POSITIONS[1][0]; node1Y: number = NODE_POSITIONS[1][1];
+  node1BorderColor: string = COLOR_BORDER_LOCKED; node1IconColor: string = COLOR_ICON_LOCKED;
+  node1Text: string = COLOR_TEXT_LOCKED; node1Label: string = getNodeLabel(1);
+  node1Cost: string = `${getNodeCost(1)}`; node1CostVisible: boolean = false; node1CostColor: string = COLOR_COST_LOCKED;
 
-  // Per-node bonus label
-  node0Label: string = NODE_LABELS[0];
-  node1Label: string = NODE_LABELS[1];
-  node2Label: string = NODE_LABELS[2];
-  node3Label: string = NODE_LABELS[3];
-  node4Label: string = NODE_LABELS[4];
-  node5Label: string = NODE_LABELS[5];
-  node6Label: string = NODE_LABELS[6];
-  node7Label: string = NODE_LABELS[7];
-  node8Label: string = NODE_LABELS[8];
-  node9Label: string = NODE_LABELS[9];
+  node2X: number = NODE_POSITIONS[2][0]; node2Y: number = NODE_POSITIONS[2][1];
+  node2BorderColor: string = COLOR_BORDER_LOCKED; node2IconColor: string = COLOR_ICON_LOCKED;
+  node2Text: string = COLOR_TEXT_LOCKED; node2Label: string = getNodeLabel(2);
+  node2Cost: string = `${getNodeCost(2)}`; node2CostVisible: boolean = false; node2CostColor: string = COLOR_COST_LOCKED;
 
-  // Per-node cost display
-  node0Cost: string = '3';
-  node1Cost: string = '6';
-  node2Cost: string = '10';
-  node3Cost: string = '3';
-  node4Cost: string = '6';
-  node5Cost: string = '10';
-  node6Cost: string = '3';
-  node7Cost: string = '6';
-  node8Cost: string = '10';
-  node9Cost: string = '1';
+  node3X: number = NODE_POSITIONS[3][0]; node3Y: number = NODE_POSITIONS[3][1];
+  node3BorderColor: string = COLOR_BORDER_LOCKED; node3IconColor: string = COLOR_ICON_LOCKED;
+  node3Text: string = COLOR_TEXT_LOCKED; node3Label: string = getNodeLabel(3);
+  node3Cost: string = `${getNodeCost(3)}`; node3CostVisible: boolean = false; node3CostColor: string = COLOR_COST_LOCKED;
 
-  // Per-node cost visibility
-  node0CostVisible: boolean = true;
-  node1CostVisible: boolean = true;
-  node2CostVisible: boolean = true;
-  node3CostVisible: boolean = true;
-  node4CostVisible: boolean = true;
-  node5CostVisible: boolean = true;
-  node6CostVisible: boolean = true;
-  node7CostVisible: boolean = true;
-  node8CostVisible: boolean = true;
-  node9CostVisible: boolean = true;
+  node4X: number = NODE_POSITIONS[4][0]; node4Y: number = NODE_POSITIONS[4][1];
+  node4BorderColor: string = COLOR_BORDER_LOCKED; node4IconColor: string = COLOR_ICON_LOCKED;
+  node4Text: string = COLOR_TEXT_LOCKED; node4Label: string = getNodeLabel(4);
+  node4Cost: string = `${getNodeCost(4)}`; node4CostVisible: boolean = false; node4CostColor: string = COLOR_COST_LOCKED;
 
-  // Per-node cost color
-  node0CostColor: string = COLOR_COST_LOCKED;
-  node1CostColor: string = COLOR_COST_LOCKED;
-  node2CostColor: string = COLOR_COST_LOCKED;
-  node3CostColor: string = COLOR_COST_LOCKED;
-  node4CostColor: string = COLOR_COST_LOCKED;
-  node5CostColor: string = COLOR_COST_LOCKED;
-  node6CostColor: string = COLOR_COST_LOCKED;
-  node7CostColor: string = COLOR_COST_LOCKED;
-  node8CostColor: string = COLOR_COST_LOCKED;
-  node9CostColor: string = COLOR_COST_BUYABLE;
+  node5X: number = NODE_POSITIONS[5][0]; node5Y: number = NODE_POSITIONS[5][1];
+  node5BorderColor: string = COLOR_BORDER_LOCKED; node5IconColor: string = COLOR_ICON_LOCKED;
+  node5Text: string = COLOR_TEXT_LOCKED; node5Label: string = getNodeLabel(5);
+  node5Cost: string = `${getNodeCost(5)}`; node5CostVisible: boolean = false; node5CostColor: string = COLOR_COST_LOCKED;
+
+  node6X: number = NODE_POSITIONS[6][0]; node6Y: number = NODE_POSITIONS[6][1];
+  node6BorderColor: string = COLOR_BORDER_LOCKED; node6IconColor: string = COLOR_ICON_LOCKED;
+  node6Text: string = COLOR_TEXT_LOCKED; node6Label: string = getNodeLabel(6);
+  node6Cost: string = `${getNodeCost(6)}`; node6CostVisible: boolean = false; node6CostColor: string = COLOR_COST_LOCKED;
+
+  node7X: number = NODE_POSITIONS[7][0]; node7Y: number = NODE_POSITIONS[7][1];
+  node7BorderColor: string = COLOR_BORDER_LOCKED; node7IconColor: string = COLOR_ICON_LOCKED;
+  node7Text: string = COLOR_TEXT_LOCKED; node7Label: string = getNodeLabel(7);
+  node7Cost: string = `${getNodeCost(7)}`; node7CostVisible: boolean = false; node7CostColor: string = COLOR_COST_LOCKED;
+
+  node8X: number = NODE_POSITIONS[8][0]; node8Y: number = NODE_POSITIONS[8][1];
+  node8BorderColor: string = COLOR_BORDER_LOCKED; node8IconColor: string = COLOR_ICON_LOCKED;
+  node8Text: string = COLOR_TEXT_LOCKED; node8Label: string = getNodeLabel(8);
+  node8Cost: string = `${getNodeCost(8)}`; node8CostVisible: boolean = false; node8CostColor: string = COLOR_COST_LOCKED;
+
+  node9X: number = NODE_POSITIONS[9][0]; node9Y: number = NODE_POSITIONS[9][1];
+  node9BorderColor: string = COLOR_BORDER_LOCKED; node9IconColor: string = COLOR_ICON_LOCKED;
+  node9Text: string = COLOR_TEXT_LOCKED; node9Label: string = getNodeLabel(9);
+  node9Cost: string = `${getNodeCost(9)}`; node9CostVisible: boolean = false; node9CostColor: string = COLOR_COST_LOCKED;
+
+  node10X: number = NODE_POSITIONS[10][0]; node10Y: number = NODE_POSITIONS[10][1];
+  node10BorderColor: string = COLOR_BORDER_LOCKED; node10IconColor: string = COLOR_ICON_LOCKED;
+  node10Text: string = COLOR_TEXT_LOCKED; node10Label: string = getNodeLabel(10);
+  node10Cost: string = `${getNodeCost(10)}`; node10CostVisible: boolean = false; node10CostColor: string = COLOR_COST_LOCKED;
+
+  node11X: number = NODE_POSITIONS[11][0]; node11Y: number = NODE_POSITIONS[11][1];
+  node11BorderColor: string = COLOR_BORDER_LOCKED; node11IconColor: string = COLOR_ICON_LOCKED;
+  node11Text: string = COLOR_TEXT_LOCKED; node11Label: string = getNodeLabel(11);
+  node11Cost: string = `${getNodeCost(11)}`; node11CostVisible: boolean = false; node11CostColor: string = COLOR_COST_LOCKED;
+
+  node12X: number = NODE_POSITIONS[12][0]; node12Y: number = NODE_POSITIONS[12][1];
+  node12BorderColor: string = COLOR_BORDER_LOCKED; node12IconColor: string = COLOR_ICON_LOCKED;
+  node12Text: string = COLOR_TEXT_LOCKED; node12Label: string = getNodeLabel(12);
+  node12Cost: string = `${getNodeCost(12)}`; node12CostVisible: boolean = false; node12CostColor: string = COLOR_COST_LOCKED;
+
+  node13X: number = NODE_POSITIONS[13][0]; node13Y: number = NODE_POSITIONS[13][1];
+  node13BorderColor: string = COLOR_BORDER_LOCKED; node13IconColor: string = COLOR_ICON_LOCKED;
+  node13Text: string = COLOR_TEXT_LOCKED; node13Label: string = getNodeLabel(13);
+  node13Cost: string = `${getNodeCost(13)}`; node13CostVisible: boolean = false; node13CostColor: string = COLOR_COST_LOCKED;
+
+  node14X: number = NODE_POSITIONS[14][0]; node14Y: number = NODE_POSITIONS[14][1];
+  node14BorderColor: string = COLOR_BORDER_LOCKED; node14IconColor: string = COLOR_ICON_LOCKED;
+  node14Text: string = COLOR_TEXT_LOCKED; node14Label: string = getNodeLabel(14);
+  node14Cost: string = `${getNodeCost(14)}`; node14CostVisible: boolean = false; node14CostColor: string = COLOR_COST_LOCKED;
+
+  node15X: number = NODE_POSITIONS[15][0]; node15Y: number = NODE_POSITIONS[15][1];
+  node15BorderColor: string = COLOR_BORDER_LOCKED; node15IconColor: string = COLOR_ICON_LOCKED;
+  node15Text: string = COLOR_TEXT_LOCKED; node15Label: string = getNodeLabel(15);
+  node15Cost: string = `${getNodeCost(15)}`; node15CostVisible: boolean = false; node15CostColor: string = COLOR_COST_LOCKED;
+
+  node16X: number = NODE_POSITIONS[16][0]; node16Y: number = NODE_POSITIONS[16][1];
+  node16BorderColor: string = COLOR_BORDER_LOCKED; node16IconColor: string = COLOR_ICON_LOCKED;
+  node16Text: string = COLOR_TEXT_LOCKED; node16Label: string = getNodeLabel(16);
+  node16Cost: string = `${getNodeCost(16)}`; node16CostVisible: boolean = false; node16CostColor: string = COLOR_COST_LOCKED;
+
+  node17X: number = NODE_POSITIONS[17][0]; node17Y: number = NODE_POSITIONS[17][1];
+  node17BorderColor: string = COLOR_BORDER_LOCKED; node17IconColor: string = COLOR_ICON_LOCKED;
+  node17Text: string = COLOR_TEXT_LOCKED; node17Label: string = getNodeLabel(17);
+  node17Cost: string = `${getNodeCost(17)}`; node17CostVisible: boolean = false; node17CostColor: string = COLOR_COST_LOCKED;
+
+  node18X: number = NODE_POSITIONS[18][0]; node18Y: number = NODE_POSITIONS[18][1];
+  node18BorderColor: string = COLOR_BORDER_LOCKED; node18IconColor: string = COLOR_ICON_LOCKED;
+  node18Text: string = COLOR_TEXT_LOCKED; node18Label: string = getNodeLabel(18);
+  node18Cost: string = `${getNodeCost(18)}`; node18CostVisible: boolean = false; node18CostColor: string = COLOR_COST_LOCKED;
+
+  node19X: number = NODE_POSITIONS[19][0]; node19Y: number = NODE_POSITIONS[19][1];
+  node19BorderColor: string = COLOR_BORDER_LOCKED; node19IconColor: string = COLOR_ICON_LOCKED;
+  node19Text: string = COLOR_TEXT_LOCKED; node19Label: string = getNodeLabel(19);
+  node19Cost: string = `${getNodeCost(19)}`; node19CostVisible: boolean = false; node19CostColor: string = COLOR_COST_LOCKED;
+
+  node20X: number = NODE_POSITIONS[20][0]; node20Y: number = NODE_POSITIONS[20][1];
+  node20BorderColor: string = COLOR_BORDER_LOCKED; node20IconColor: string = COLOR_ICON_LOCKED;
+  node20Text: string = COLOR_TEXT_LOCKED; node20Label: string = getNodeLabel(20);
+  node20Cost: string = `${getNodeCost(20)}`; node20CostVisible: boolean = false; node20CostColor: string = COLOR_COST_LOCKED;
+
+  node21X: number = NODE_POSITIONS[21][0]; node21Y: number = NODE_POSITIONS[21][1];
+  node21BorderColor: string = COLOR_BORDER_LOCKED; node21IconColor: string = COLOR_ICON_LOCKED;
+  node21Text: string = COLOR_TEXT_LOCKED; node21Label: string = getNodeLabel(21);
+  node21Cost: string = `${getNodeCost(21)}`; node21CostVisible: boolean = false; node21CostColor: string = COLOR_COST_LOCKED;
+
+  node22X: number = NODE_POSITIONS[22][0]; node22Y: number = NODE_POSITIONS[22][1];
+  node22BorderColor: string = COLOR_BORDER_LOCKED; node22IconColor: string = COLOR_ICON_LOCKED;
+  node22Text: string = COLOR_TEXT_LOCKED; node22Label: string = getNodeLabel(22);
+  node22Cost: string = `${getNodeCost(22)}`; node22CostVisible: boolean = false; node22CostColor: string = COLOR_COST_LOCKED;
+
+  node23X: number = NODE_POSITIONS[23][0]; node23Y: number = NODE_POSITIONS[23][1];
+  node23BorderColor: string = COLOR_BORDER_LOCKED; node23IconColor: string = COLOR_ICON_LOCKED;
+  node23Text: string = COLOR_TEXT_LOCKED; node23Label: string = getNodeLabel(23);
+  node23Cost: string = `${getNodeCost(23)}`; node23CostVisible: boolean = false; node23CostColor: string = COLOR_COST_LOCKED;
+
+  node24X: number = NODE_POSITIONS[24][0]; node24Y: number = NODE_POSITIONS[24][1];
+  node24BorderColor: string = COLOR_BORDER_LOCKED; node24IconColor: string = COLOR_ICON_LOCKED;
+  node24Text: string = COLOR_TEXT_LOCKED; node24Label: string = getNodeLabel(24);
+  node24Cost: string = `${getNodeCost(24)}`; node24CostVisible: boolean = false; node24CostColor: string = COLOR_COST_LOCKED;
+
+  node25X: number = NODE_POSITIONS[25][0]; node25Y: number = NODE_POSITIONS[25][1];
+  node25BorderColor: string = COLOR_BORDER_LOCKED; node25IconColor: string = COLOR_ICON_LOCKED;
+  node25Text: string = COLOR_TEXT_LOCKED; node25Label: string = getNodeLabel(25);
+  node25Cost: string = `${getNodeCost(25)}`; node25CostVisible: boolean = false; node25CostColor: string = COLOR_COST_LOCKED;
+
+  node26X: number = NODE_POSITIONS[26][0]; node26Y: number = NODE_POSITIONS[26][1];
+  node26BorderColor: string = COLOR_BORDER_LOCKED; node26IconColor: string = COLOR_ICON_LOCKED;
+  node26Text: string = COLOR_TEXT_LOCKED; node26Label: string = getNodeLabel(26);
+  node26Cost: string = `${getNodeCost(26)}`; node26CostVisible: boolean = false; node26CostColor: string = COLOR_COST_LOCKED;
+
+  node27X: number = NODE_POSITIONS[27][0]; node27Y: number = NODE_POSITIONS[27][1];
+  node27BorderColor: string = COLOR_BORDER_LOCKED; node27IconColor: string = COLOR_ICON_LOCKED;
+  node27Text: string = COLOR_TEXT_LOCKED; node27Label: string = getNodeLabel(27);
+  node27Cost: string = `${getNodeCost(27)}`; node27CostVisible: boolean = false; node27CostColor: string = COLOR_COST_LOCKED;
+
+  node28X: number = NODE_POSITIONS[28][0]; node28Y: number = NODE_POSITIONS[28][1];
+  node28BorderColor: string = COLOR_BORDER_LOCKED; node28IconColor: string = COLOR_ICON_LOCKED;
+  node28Text: string = COLOR_TEXT_LOCKED; node28Label: string = getNodeLabel(28);
+  node28Cost: string = `${getNodeCost(28)}`; node28CostVisible: boolean = false; node28CostColor: string = COLOR_COST_LOCKED;
+
+  node29X: number = NODE_POSITIONS[29][0]; node29Y: number = NODE_POSITIONS[29][1];
+  node29BorderColor: string = COLOR_BORDER_LOCKED; node29IconColor: string = COLOR_ICON_LOCKED;
+  node29Text: string = COLOR_TEXT_LOCKED; node29Label: string = getNodeLabel(29);
+  node29Cost: string = `${getNodeCost(29)}`; node29CostVisible: boolean = false; node29CostColor: string = COLOR_COST_LOCKED;
+
+  node30X: number = NODE_POSITIONS[30][0]; node30Y: number = NODE_POSITIONS[30][1];
+  node30BorderColor: string = COLOR_BORDER_LOCKED; node30IconColor: string = COLOR_ICON_LOCKED;
+  node30Text: string = COLOR_TEXT_LOCKED; node30Label: string = getNodeLabel(30);
+  node30Cost: string = `${getNodeCost(30)}`; node30CostVisible: boolean = false; node30CostColor: string = COLOR_COST_LOCKED;
+
+  node31X: number = NODE_POSITIONS[31][0]; node31Y: number = NODE_POSITIONS[31][1];
+  node31BorderColor: string = COLOR_BORDER_LOCKED; node31IconColor: string = COLOR_ICON_LOCKED;
+  node31Text: string = COLOR_TEXT_LOCKED; node31Label: string = getNodeLabel(31);
+  node31Cost: string = `${getNodeCost(31)}`; node31CostVisible: boolean = false; node31CostColor: string = COLOR_COST_LOCKED;
+
+  node32X: number = NODE_POSITIONS[32][0]; node32Y: number = NODE_POSITIONS[32][1];
+  node32BorderColor: string = COLOR_BORDER_LOCKED; node32IconColor: string = COLOR_ICON_LOCKED;
+  node32Text: string = COLOR_TEXT_LOCKED; node32Label: string = getNodeLabel(32);
+  node32Cost: string = `${getNodeCost(32)}`; node32CostVisible: boolean = false; node32CostColor: string = COLOR_COST_LOCKED;
+
+  node33X: number = NODE_POSITIONS[33][0]; node33Y: number = NODE_POSITIONS[33][1];
+  node33BorderColor: string = COLOR_BORDER_LOCKED; node33IconColor: string = COLOR_ICON_LOCKED;
+  node33Text: string = COLOR_TEXT_LOCKED; node33Label: string = getNodeLabel(33);
+  node33Cost: string = `${getNodeCost(33)}`; node33CostVisible: boolean = false; node33CostColor: string = COLOR_COST_LOCKED;
+
+  node34X: number = NODE_POSITIONS[34][0]; node34Y: number = NODE_POSITIONS[34][1];
+  node34BorderColor: string = COLOR_BORDER_LOCKED; node34IconColor: string = COLOR_ICON_LOCKED;
+  node34Text: string = COLOR_TEXT_LOCKED; node34Label: string = getNodeLabel(34);
+  node34Cost: string = `${getNodeCost(34)}`; node34CostVisible: boolean = false; node34CostColor: string = COLOR_COST_LOCKED;
+
+  node35X: number = NODE_POSITIONS[35][0]; node35Y: number = NODE_POSITIONS[35][1];
+  node35BorderColor: string = COLOR_BORDER_LOCKED; node35IconColor: string = COLOR_ICON_LOCKED;
+  node35Text: string = COLOR_TEXT_LOCKED; node35Label: string = getNodeLabel(35);
+  node35Cost: string = `${getNodeCost(35)}`; node35CostVisible: boolean = false; node35CostColor: string = COLOR_COST_LOCKED;
+
+  node36X: number = NODE_POSITIONS[36][0]; node36Y: number = NODE_POSITIONS[36][1];
+  node36BorderColor: string = COLOR_BORDER_LOCKED; node36IconColor: string = COLOR_ICON_LOCKED;
+  node36Text: string = COLOR_TEXT_LOCKED; node36Label: string = getNodeLabel(36);
+  node36Cost: string = `${getNodeCost(36)}`; node36CostVisible: boolean = false; node36CostColor: string = COLOR_COST_LOCKED;
+
+  node37X: number = NODE_POSITIONS[37][0]; node37Y: number = NODE_POSITIONS[37][1];
+  node37BorderColor: string = COLOR_BORDER_LOCKED; node37IconColor: string = COLOR_ICON_LOCKED;
+  node37Text: string = COLOR_TEXT_LOCKED; node37Label: string = getNodeLabel(37);
+  node37Cost: string = `${getNodeCost(37)}`; node37CostVisible: boolean = false; node37CostColor: string = COLOR_COST_LOCKED;
+
+  node38X: number = NODE_POSITIONS[38][0]; node38Y: number = NODE_POSITIONS[38][1];
+  node38BorderColor: string = COLOR_BORDER_LOCKED; node38IconColor: string = COLOR_ICON_LOCKED;
+  node38Text: string = COLOR_TEXT_LOCKED; node38Label: string = getNodeLabel(38);
+  node38Cost: string = `${getNodeCost(38)}`; node38CostVisible: boolean = false; node38CostColor: string = COLOR_COST_LOCKED;
+
+  node39X: number = NODE_POSITIONS[39][0]; node39Y: number = NODE_POSITIONS[39][1];
+  node39BorderColor: string = COLOR_BORDER_LOCKED; node39IconColor: string = COLOR_ICON_LOCKED;
+  node39Text: string = COLOR_TEXT_LOCKED; node39Label: string = getNodeLabel(39);
+  node39Cost: string = `${getNodeCost(39)}`; node39CostVisible: boolean = false; node39CostColor: string = COLOR_COST_LOCKED;
 }
 
-// ── Component ────────────────────────────────────────────────────────
+// ── Component ────────────────────────────────────────────────────────────────
 
 @component()
 export class SkillTreeHudController extends Component {
   private viewModel: Maybe<SkillTreeViewModel> = null;
   private uiComponent: Maybe<CustomUiComponent> = null;
+  private pendingNodeIndex: number = -1;
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
   onStart(): void {
@@ -324,7 +552,6 @@ export class SkillTreeHudController extends Component {
     this.viewModel.visible = false;
   }
 
-  /** Open the skill tree overlay (called via local event from OverworldHud). */
   @subscribe(OpenSkillTreeEvent, { execution: ExecuteOn.Owner })
   onOpenSkillTree(_p: OpenSkillTreePayload): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -336,7 +563,6 @@ export class SkillTreeHudController extends Component {
     console.log('[SkillTreeHud] Opened');
   }
 
-  /** Handle skill node tap. */
   @subscribe(skillTapEvent, { execution: ExecuteOn.Owner })
   onSkillTap(payload: SkillTreeTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -346,15 +572,50 @@ export class SkillTreeHudController extends Component {
     if (isNaN(skillIndex) || skillIndex < 0 || skillIndex >= TOTAL_SKILLS) return;
 
     const service = SkillTreeService.get();
-    if (service.purchase(skillIndex)) {
-      console.log(`[SkillTreeHud] Purchased skill ${skillIndex}`);
-      this._refreshAllNodes();
-    } else {
-      console.log(`[SkillTreeHud] Cannot purchase skill ${skillIndex}`);
-    }
+    const node = SKILL_NODES.find(n => n.index === skillIndex);
+    if (!node) return;
+
+    this.pendingNodeIndex = skillIndex;
+    const isBought = service.isUnlocked(skillIndex);
+
+    this.viewModel.popupDescription = node.label.toUpperCase();
+    this.viewModel.popupCost = isBought ? 'OWNED' : `${node.cost}`;
+    this.viewModel.popupCostVisible = !isBought;
+    this.viewModel.popupBuyVisible = !isBought && service.canPurchase(skillIndex);
+    this.viewModel.popupVisible = true;
+
+    console.log(`[SkillTreeHud] Popup opened for node ${skillIndex}`);
   }
 
-  /** Handle close button tap. */
+  @subscribe(returnTapEvent, { execution: ExecuteOn.Owner })
+  onReturnTap(_payload: SkillTreeReturnTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    this.viewModel.popupVisible = false;
+    this.pendingNodeIndex = -1;
+    console.log('[SkillTreeHud] Popup closed (Return)');
+  }
+
+  @subscribe(buyTapEvent, { execution: ExecuteOn.Owner })
+  onBuyTap(_payload: SkillTreeBuyTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    if (this.pendingNodeIndex < 0 || this.pendingNodeIndex >= TOTAL_SKILLS) return;
+
+    const service = SkillTreeService.get();
+    if (service.purchase(this.pendingNodeIndex)) {
+      console.log(`[SkillTreeHud] Purchased skill ${this.pendingNodeIndex}`);
+      this._refreshAllNodes();
+    } else {
+      console.log(`[SkillTreeHud] Cannot purchase skill ${this.pendingNodeIndex}`);
+    }
+
+    this.viewModel.popupVisible = false;
+    this.pendingNodeIndex = -1;
+  }
+
   @subscribe(closeTapEvent, { execution: ExecuteOn.Owner })
   onCloseTap(_payload: SkillTreeCloseTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -365,59 +626,127 @@ export class SkillTreeHudController extends Component {
     console.log('[SkillTreeHud] Closed');
   }
 
-  /** Refresh all node images, labels, costs, branch colors, and skull count. */
   private _refreshAllNodes(): void {
     if (!this.viewModel) return;
     const service = SkillTreeService.get();
     this.viewModel.skullCount = SaveService.get().getSkullCount();
 
     for (let i = 0; i < TOTAL_SKILLS; i++) {
-      let img: TextureAsset;
-      let text: string;
-      let cost: string;
-      let costVisible: boolean;
-      let costColor: string;
-
-      if (service.isUnlocked(i)) {
-        img = SPRITE_BOUGHT;
-        text = COLOR_UNLOCKED_TEXT;
-        cost = 'OWNED';
-        costVisible = false;
-        costColor = COLOR_COST_BUYABLE;
-      } else if (service.canPurchase(i)) {
-        img = SPRITE_BUYABLE;
-        text = COLOR_AFFORDABLE_TEXT;
-        cost = `${NODE_COSTS[i]}`;
-        costVisible = true;
-        costColor = COLOR_COST_BUYABLE;
+      if (i === ROOT_SKILL_INDEX) {
+        this._setRootNodeStyle(service);
       } else {
-        img = SPRITE_LOCKED;
-        text = COLOR_LOCKED_TEXT;
-        cost = `${NODE_COSTS[i]}`;
-        costVisible = true;
-        costColor = COLOR_COST_LOCKED;
+        this._setNodeStyle(i, service);
       }
-
-      this._setNodeStyle(i, img, text, cost, costVisible, costColor);
     }
 
-    // Update branch colors: active if root is unlocked AND any node in that branch is unlocked
-    const rootUnlocked = service.isRootUnlocked();
-    const hasWar = rootUnlocked && (service.isUnlocked(0) || service.isUnlocked(1) || service.isUnlocked(2));
-    const hasFortify = rootUnlocked && (service.isUnlocked(3) || service.isUnlocked(4) || service.isUnlocked(5));
-    const hasFortune = rootUnlocked && (service.isUnlocked(6) || service.isUnlocked(7) || service.isUnlocked(8));
-
-    this.viewModel.branch0Color = hasWar ? COLOR_BRANCH_WAR_ACTIVE : COLOR_BRANCH_WAR_LOCKED;
-    this.viewModel.branch1Color = hasFortify ? COLOR_BRANCH_FORTIFY_ACTIVE : COLOR_BRANCH_FORTIFY_LOCKED;
-    this.viewModel.branch2Color = hasFortune ? COLOR_BRANCH_FORTUNE_ACTIVE : COLOR_BRANCH_FORTUNE_LOCKED;
+    this._refreshConnections(service);
   }
 
-  /** Set the style properties for a given node index on the ViewModel. */
-  private _setNodeStyle(index: number, img: TextureAsset, text: string, cost: string, costVisible: boolean, costColor: string): void {
+  private _refreshConnections(service: SkillTreeService): void {
     if (!this.viewModel) return;
     const vm = this.viewModel as unknown as Record<string, unknown>;
-    vm[`node${index}Img`] = img;
+
+    const seen = new Set<string>();
+    let connIdx = 0;
+
+    for (const [from, to] of SKILL_CONNECTIONS) {
+      if (connIdx >= MAX_CONNECTIONS) break;
+
+      const lo = Math.min(from, to);
+      const hi = Math.max(from, to);
+      const key = `${lo}-${hi}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      const isActive = service.isUnlocked(from) || service.isUnlocked(to);
+      const color = isActive ? COLOR_CONNECTION_ACTIVE : COLOR_CONNECTION_LOCKED;
+
+      vm[`conn${connIdx}Data`] = ALL_CONNECTION_PATHS[connIdx] ?? '';
+      vm[`conn${connIdx}Color`] = color;
+      connIdx++;
+    }
+
+    for (let i = connIdx; i < MAX_CONNECTIONS; i++) {
+      vm[`conn${i}Data`] = '';
+      vm[`conn${i}Color`] = COLOR_CONNECTION_LOCKED;
+    }
+
+    vm['connectionCount'] = connIdx;
+  }
+
+  private _setRootNodeStyle(service: SkillTreeService): void {
+    if (!this.viewModel) return;
+
+    if (service.isUnlocked(ROOT_SKILL_INDEX)) {
+      this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_BOUGHT;
+      this.viewModel.node0RuneColor = COLOR_ROOT_RUNE_BOUGHT;
+      this.viewModel.node0Text = COLOR_TEXT_BOUGHT;
+      this.viewModel.node0Label = '';
+      this.viewModel.node0Cost = 'OWNED';
+      this.viewModel.node0CostVisible = false;
+      this.viewModel.node0CostColor = COLOR_COST_BUYABLE;
+    } else if (service.canPurchase(ROOT_SKILL_INDEX)) {
+      this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_BUYABLE;
+      this.viewModel.node0RuneColor = COLOR_ROOT_RUNE_BUYABLE;
+      this.viewModel.node0Text = COLOR_TEXT_BUYABLE;
+      this.viewModel.node0Label = `\u{1F480} ${getNodeCost(ROOT_SKILL_INDEX)}`;
+      this.viewModel.node0Cost = `${getNodeCost(ROOT_SKILL_INDEX)}`;
+      this.viewModel.node0CostVisible = true;
+      this.viewModel.node0CostColor = COLOR_COST_BUYABLE;
+    } else {
+      this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_LOCKED;
+      this.viewModel.node0RuneColor = COLOR_ROOT_RUNE_LOCKED;
+      this.viewModel.node0Text = COLOR_TEXT_LOCKED;
+      this.viewModel.node0Label = `\u{1F480} ${getNodeCost(ROOT_SKILL_INDEX)}`;
+      this.viewModel.node0Cost = `${getNodeCost(ROOT_SKILL_INDEX)}`;
+      this.viewModel.node0CostVisible = true;
+      this.viewModel.node0CostColor = COLOR_COST_LOCKED;
+    }
+  }
+
+  private _setNodeStyle(index: number, service: SkillTreeService): void {
+    if (!this.viewModel) return;
+    const vm = this.viewModel as unknown as Record<string, unknown>;
+
+    let borderColor: string;
+    let iconColor: string;
+    let text: string;
+    let cost: string;
+    let costVisible: boolean;
+    let costColor: string;
+
+    let label: string;
+
+    if (service.isUnlocked(index)) {
+      borderColor = COLOR_BORDER_BOUGHT;
+      iconColor = COLOR_ICON_BOUGHT;
+      text = COLOR_TEXT_BOUGHT;
+      cost = 'OWNED';
+      costVisible = false;
+      costColor = COLOR_COST_BUYABLE;
+      label = '';
+    } else if (service.canPurchase(index)) {
+      borderColor = COLOR_BORDER_BUYABLE;
+      iconColor = COLOR_ICON_BUYABLE;
+      text = COLOR_TEXT_BUYABLE;
+      cost = `${getNodeCost(index)}`;
+      costVisible = true;
+      costColor = COLOR_COST_BUYABLE;
+      label = `\u{1F480} ${getNodeCost(index)}`;
+    } else {
+      borderColor = COLOR_BORDER_LOCKED;
+      iconColor = COLOR_ICON_LOCKED;
+      text = COLOR_TEXT_LOCKED;
+      cost = `${getNodeCost(index)}`;
+      costVisible = true;
+      costColor = COLOR_COST_LOCKED;
+      label = `\u{1F480} ${getNodeCost(index)}`;
+    }
+
+    vm[`node${index}BorderColor`] = borderColor;
+    vm[`node${index}IconColor`] = iconColor;
     vm[`node${index}Text`] = text;
+    vm[`node${index}Label`] = label;
     vm[`node${index}Cost`] = cost;
     vm[`node${index}CostVisible`] = costVisible;
     vm[`node${index}CostColor`] = costColor;

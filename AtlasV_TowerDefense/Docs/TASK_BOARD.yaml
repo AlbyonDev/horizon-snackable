@@ -2,6 +2,7 @@ tasks: []
 
 done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
+  - Skill Tree Defs Graph Refactor -- explicit edge list, graph-based prereqs + UI
   - Grass Ground Plane -- Bloons TD style cartoon grass, UV tiling (6,4)
   - Spawn Tunnel Mesh -- low poly stone tunnel at enemy spawn point
   - Title Screen GoblinClash Logo -- logo, 3D Play button, StartGame event flow
@@ -79,7 +80,8 @@ done:
   - Skull Skill Tree -- 3 branches x 3 tiers, persistent unlocks, gameplay bonuses
   - Skill Tree Node Sprites -- 3 states (bought/buyable/locked) with bonus+price boxes
   - Skill Tree Sprites Hooked into UI -- nodes show correct sprite per state + labels
-  - Organic Skill Tree Layout -- bezier trunk+3 branches, scrollable canvas
+  - Skill Tree UI Refactor -- hazy gradient, circular nodes, wavy cross-links
+  - Skill Tree 40 Nodes Expansion -- 13 tiers x 3 branches, graph defs, full UI
 
 chopping_block:
   disabled_systems: []

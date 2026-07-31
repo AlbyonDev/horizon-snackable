@@ -7,21 +7,28 @@
  *
  * Stores which skill indices are unlocked (persisted via SaveService `st` field).
  * Provides getters consumed by TowerService, ResourceService, CritService, WaveService.
- * Purchase logic deducts skulls from SaveService and persists immediately.
  *
- * Root node (index 9) is the prerequisite for ALL other skills.
+ * Purchase prerequisite logic uses the explicit graph connections in SkillTreeDefs:
+ * a node is purchasable when at least one of its incoming-connected nodes is already unlocked.
+ * The root node (index 0) has no incoming edges and is always purchasable if affordable.
  */
 import { Service, EventService } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
 import { OnServiceReadyEvent } from 'meta/worlds';
-import { SKILL_BRANCHES, TOTAL_SKILLS, ROOT_SKILL, ROOT_SKILL_INDEX } from '../Defs/SkillTreeDefs';
-import type { ISkillBranchDef, ISkillTierDef } from '../Defs/SkillTreeDefs';
+import {
+  SKILL_NODES,
+  TOTAL_SKILLS,
+  ROOT_SKILL_INDEX,
+  getNodeDef,
+  getPrerequisites,
+} from '../Defs/SkillTreeDefs';
+import type { ISkillNodeDef } from '../Defs/SkillTreeDefs';
 import { Events } from '../Types';
 import { SaveService } from './SaveService';
 
 @service()
 export class SkillTreeService extends Service {
-  /** Set of unlocked skill indices (0-9). */
+  /** Set of unlocked skill indices (0-39). */
   private _unlocked: Set<number> = new Set();
 
   @subscribe(OnServiceReadyEvent)
@@ -43,7 +50,7 @@ export class SkillTreeService extends Service {
     console.log(`[SkillTreeService] Restored ${this._unlocked.size} unlocked skills: [${[...this._unlocked].join(',')}]`);
   }
 
-  // ── Public API ────────────────────────────────────────────────────────
+  // ── Public API ────────────────────────────────────────────────────────────
 
   /** Check if a specific skill index is unlocked. */
   isUnlocked(skillIndex: number): boolean {
@@ -60,14 +67,13 @@ export class SkillTreeService extends Service {
     return this._unlocked.size;
   }
 
-  /** Check if the root skill (index 9) is unlocked. */
+  /** Check if the root skill (index 0) is unlocked. */
   isRootUnlocked(): boolean {
     return this._unlocked.has(ROOT_SKILL_INDEX);
   }
 
   /**
-   * Attempt to purchase a skill tier. Returns true if successful.
-   * Validates: root prerequisite, sequential unlock within branch, sufficient skulls, not already unlocked.
+   * Attempt to purchase a skill node. Returns true if successful.
    */
   purchase(skillIndex: number): boolean {
     if (this._unlocked.has(skillIndex)) {
@@ -75,55 +81,27 @@ export class SkillTreeService extends Service {
       return false;
     }
 
-    // Root node (index 9) — no prerequisite, just needs skulls
-    if (skillIndex === ROOT_SKILL_INDEX) {
-      const save = SaveService.get();
-      if (save.getSkullCount() < ROOT_SKILL.cost) {
-        console.log(`[SkillTreeService] Not enough skulls for root: have ${save.getSkullCount()}, need ${ROOT_SKILL.cost}`);
-        return false;
-      }
-      save.spendSkulls(ROOT_SKILL.cost);
-      this._unlocked.add(ROOT_SKILL_INDEX);
-      console.log(`[SkillTreeService] Purchased root skill (UNLOCK TREE) for ${ROOT_SKILL.cost} skull`);
-      save.setSkillTreeState(this.getUnlockedIndices());
-      return true;
-    }
-
-    // All other skills require the root to be unlocked first
-    if (!this.isRootUnlocked()) {
-      console.log(`[SkillTreeService] Cannot unlock skill ${skillIndex} — root node not yet unlocked`);
-      return false;
-    }
-
-    // Find which branch and tier this skill belongs to
-    const { branch, tierIdx } = this._findSkill(skillIndex);
-    if (!branch) {
+    const nodeDef = getNodeDef(skillIndex);
+    if (!nodeDef) {
       console.log(`[SkillTreeService] Unknown skill index ${skillIndex}`);
       return false;
     }
 
-    // Validate sequential unlock: all previous tiers in this branch must be unlocked
-    for (let i = 0; i < tierIdx; i++) {
-      if (!this._unlocked.has(branch.tiers[i].index)) {
-        console.log(`[SkillTreeService] Cannot unlock tier ${tierIdx} without prior tiers in branch ${branch.id}`);
-        return false;
-      }
-    }
-
-    // Check skull cost
-    const tier = branch.tiers[tierIdx];
-    const save = SaveService.get();
-    if (save.getSkullCount() < tier.cost) {
-      console.log(`[SkillTreeService] Not enough skulls: have ${save.getSkullCount()}, need ${tier.cost}`);
+    if (!this._meetsPrerequisites(skillIndex)) {
+      console.log(`[SkillTreeService] Prerequisites not met for skill ${skillIndex}`);
       return false;
     }
 
-    // Deduct skulls and mark unlocked
-    save.spendSkulls(tier.cost);
-    this._unlocked.add(skillIndex);
-    console.log(`[SkillTreeService] Purchased skill ${skillIndex} (${tier.label}) for ${tier.cost} skulls`);
+    const save = SaveService.get();
+    if (save.getSkullCount() < nodeDef.cost) {
+      console.log(`[SkillTreeService] Not enough skulls for skill ${skillIndex}: have ${save.getSkullCount()}, need ${nodeDef.cost}`);
+      return false;
+    }
 
-    // Persist the skill tree state
+    save.spendSkulls(nodeDef.cost);
+    this._unlocked.add(skillIndex);
+    console.log(`[SkillTreeService] Purchased skill ${skillIndex} (${nodeDef.label}) for ${nodeDef.cost} skulls`);
+
     save.setSkillTreeState(this.getUnlockedIndices());
 
     return true;
@@ -133,103 +111,212 @@ export class SkillTreeService extends Service {
   canPurchase(skillIndex: number): boolean {
     if (this._unlocked.has(skillIndex)) return false;
 
-    // Root node — just check skull cost
-    if (skillIndex === ROOT_SKILL_INDEX) {
-      return SaveService.get().getSkullCount() >= ROOT_SKILL.cost;
-    }
+    const nodeDef = getNodeDef(skillIndex);
+    if (!nodeDef) return false;
 
-    // All other skills require root unlocked
-    if (!this.isRootUnlocked()) return false;
+    if (!this._meetsPrerequisites(skillIndex)) return false;
 
-    const { branch, tierIdx } = this._findSkill(skillIndex);
-    if (!branch) return false;
-    // Check previous tiers
-    for (let i = 0; i < tierIdx; i++) {
-      if (!this._unlocked.has(branch.tiers[i].index)) return false;
-    }
-    return SaveService.get().getSkullCount() >= branch.tiers[tierIdx].cost;
+    return SaveService.get().getSkullCount() >= nodeDef.cost;
   }
 
-  /** Is this skill the next unlockable in its branch (previous tiers done + root unlocked)? */
-  isNextInBranch(skillIndex: number): boolean {
-    if (this._unlocked.has(skillIndex)) return false;
+  // ── Bonus Getters (consumed by gameplay services) ─────────────────────────
+  // Each getter accumulates bonuses from ALL relevant unlocked nodes in a branch.
+  // Multiple tiers of the same bonus type stack additively.
 
-    // Root node is always "next" if not unlocked
-    if (skillIndex === ROOT_SKILL_INDEX) return true;
-
-    // All other skills require root
-    if (!this.isRootUnlocked()) return false;
-
-    const { branch, tierIdx } = this._findSkill(skillIndex);
-    if (!branch) return false;
-    for (let i = 0; i < tierIdx; i++) {
-      if (!this._unlocked.has(branch.tiers[i].index)) return false;
-    }
-    return true;
-  }
-
-  // ── Bonus Getters (consumed by gameplay services) ─────────────────────
-
-  /** War T1: +10% tower damage → multiplier 1.1 */
+  /** War branch: total bonus damage multiplier (stacks: T1 +10%, T5 +20%, T9 +30%). */
   getDamageMultiplier(): number {
-    return this._unlocked.has(0) ? 1.10 : 1.0;
+    let bonus = 0;
+    if (this._unlocked.has(1)) bonus += 0.10;
+    if (this._unlocked.has(13)) bonus += 0.20;
+    if (this._unlocked.has(25)) bonus += 0.30;
+    return 1.0 + bonus;
   }
 
-  /** War T2: +15% fire rate → multiplier 1.15 */
+  /** War branch: total fire rate multiplier (stacks: T2 +15%, T6 +25%, T10 +35%). */
   getFireRateMultiplier(): number {
-    return this._unlocked.has(1) ? 1.15 : 1.0;
+    let bonus = 0;
+    if (this._unlocked.has(4)) bonus += 0.15;
+    if (this._unlocked.has(16)) bonus += 0.25;
+    if (this._unlocked.has(28)) bonus += 0.35;
+    return 1.0 + bonus;
   }
 
-  /** War T3: +25% crit chance → flat bonus 0.25 */
+  /** War branch: total crit chance bonus (stacks: T3 +25%). */
   getCritChanceBonus(): number {
-    return this._unlocked.has(2) ? 0.25 : 0;
+    let bonus = 0;
+    if (this._unlocked.has(7)) bonus += 0.25;
+    return bonus;
+  }
+
+  /** War branch: crit damage multiplier (T7 +15%). */
+  getCritDamageMultiplier(): number {
+    let bonus = 0;
+    if (this._unlocked.has(19)) bonus += 0.15;
+    return 1.0 + bonus;
+  }
+
+  /** War branch: total splash radius bonus (stacks: T4 +20%, T8 +30%). */
+  getSplashRadiusMultiplier(): number {
+    let bonus = 0;
+    if (this._unlocked.has(10)) bonus += 0.20;
+    if (this._unlocked.has(22)) bonus += 0.30;
+    return 1.0 + bonus;
   }
 
   /** Fortify T1: +2 starting lives */
   getBonusLivesTier1(): number {
-    return this._unlocked.has(3) ? 2 : 0;
+    return this._unlocked.has(2) ? 2 : 0;
   }
 
-  /** Fortify T2: +20% tower range → multiplier 1.2 */
+  /** Fortify branch: tower range multiplier (stacks: T2 +20%, T6 +30%, T10 +40%). */
   getRangeMultiplier(): number {
-    return this._unlocked.has(4) ? 1.20 : 1.0;
+    let bonus = 0;
+    if (this._unlocked.has(5)) bonus += 0.20;
+    if (this._unlocked.has(17)) bonus += 0.30;
+    if (this._unlocked.has(29)) bonus += 0.40;
+    return 1.0 + bonus;
   }
 
   /** Fortify T3: +5 starting lives */
   getBonusLivesTier3(): number {
-    return this._unlocked.has(5) ? 5 : 0;
+    return this._unlocked.has(8) ? 5 : 0;
   }
 
-  /** Total bonus lives from skill tree (T1 + T3). */
+  /** Total bonus lives from skill tree (all fortify life nodes). */
   getTotalBonusLives(): number {
-    return this.getBonusLivesTier1() + this.getBonusLivesTier3();
+    let lives = 0;
+    if (this._unlocked.has(2)) lives += 2;   // T1
+    if (this._unlocked.has(8)) lives += 5;   // T3
+    if (this._unlocked.has(20)) lives += 8;  // T7
+    return lives;
   }
 
-  /** Fortune T1: +30 starting gold → flat bonus */
+  /** Fortify branch: slow duration bonus (stacks: T4 +15%, T8 +25%). */
+  getSlowDurationMultiplier(): number {
+    let bonus = 0;
+    if (this._unlocked.has(11)) bonus += 0.15;
+    if (this._unlocked.has(23)) bonus += 0.25;
+    return 1.0 + bonus;
+  }
+
+  /** Fortify branch: tower HP bonus (stacks: T5 +30%, T9 +40%). */
+  getTowerHpMultiplier(): number {
+    let bonus = 0;
+    if (this._unlocked.has(14)) bonus += 0.30;
+    if (this._unlocked.has(26)) bonus += 0.40;
+    return 1.0 + bonus;
+  }
+
+  /** Fortune T1: +30 starting gold → flat bonus. */
   getStartingGoldBonus(): number {
-    return this._unlocked.has(6) ? 30 : 0;
+    let bonus = 0;
+    if (this._unlocked.has(3)) bonus += 30;
+    if (this._unlocked.has(15)) bonus += 50;
+    if (this._unlocked.has(27)) bonus += 80;
+    return bonus;
   }
 
-  /** Fortune T2: +25% wave bonus gold → multiplier 1.25 */
+  /** Fortune branch: wave bonus gold multiplier (stacks: T2 +25%, T6 +40%, T10 +60%). */
   getWaveBonusGoldMultiplier(): number {
-    return this._unlocked.has(7) ? 1.25 : 1.0;
+    let bonus = 0;
+    if (this._unlocked.has(6)) bonus += 0.25;
+    if (this._unlocked.has(18)) bonus += 0.40;
+    if (this._unlocked.has(30)) bonus += 0.60;
+    return 1.0 + bonus;
   }
 
-  /** Fortune T3: +50% sell refund → flat addition to sell ratio (0.5) */
+  /** Fortune branch: sell refund bonus (stacks: T3 +50%, T7 +75%). */
   getSellRefundBonus(): number {
-    return this._unlocked.has(8) ? 0.5 : 0;
+    let bonus = 0;
+    if (this._unlocked.has(9)) bonus += 0.50;
+    if (this._unlocked.has(21)) bonus += 0.75;
+    return bonus;
   }
 
-  // ── Private ───────────────────────────────────────────────────────────
+  /** Fortune branch: interest rate bonus (stacks: T4 +20%, T8 +35%). */
+  getInterestRateBonus(): number {
+    let bonus = 0;
+    if (this._unlocked.has(12)) bonus += 0.20;
+    if (this._unlocked.has(24)) bonus += 0.35;
+    return bonus;
+  }
 
-  private _findSkill(skillIndex: number): { branch: ISkillBranchDef | null; tierIdx: number } {
-    for (const branch of SKILL_BRANCHES) {
-      for (let i = 0; i < branch.tiers.length; i++) {
-        if (branch.tiers[i].index === skillIndex) {
-          return { branch, tierIdx: i };
-        }
-      }
+  // ── NEW Bonus Getters (higher-tier secondary effects) ─────────────────────
+
+  /** War branch: projectile speed multiplier (secondary on fire rate nodes). */
+  getProjectileSpeedMultiplier(): number {
+    let bonus = 0;
+    if (this._unlocked.has(4)) bonus += 0.10;   // T2 fire rate node
+    if (this._unlocked.has(16)) bonus += 0.15;  // T6 fire rate node
+    if (this._unlocked.has(28)) bonus += 0.20;  // T10 fire rate node
+    return 1.0 + bonus;
+  }
+
+  /** War branch: crit multiplier escalation (secondary on crit & damage nodes). */
+  getCritMultiplierBonus(): number {
+    let bonus = 0;
+    if (this._unlocked.has(19)) bonus += 0.15;  // T7 crit damage node (primary)
+    if (this._unlocked.has(25)) bonus += 0.25;  // T9 damage node
+    return 1.0 + bonus;
+  }
+
+  /** Fortify branch: slow factor bonus — increases the magnitude of slow applied. */
+  getSlowFactorBonus(): number {
+    let bonus = 0;
+    if (this._unlocked.has(11)) bonus += 0.05;  // T4 slow duration node
+    if (this._unlocked.has(23)) bonus += 0.10;  // T8 slow duration node
+    if (this._unlocked.has(29)) bonus += 0.15;  // T10 range node
+    return bonus;
+  }
+
+  /** Fortify branch: armor bonus — flat damage reduction per hit. */
+  getArmorBonus(): number {
+    let bonus = 0;
+    if (this._unlocked.has(14)) bonus += 1;   // T5 tower HP node
+    if (this._unlocked.has(26)) bonus += 2;   // T9 tower HP node
+    if (this._unlocked.has(29)) bonus += 3;   // T10 range node
+    return bonus;
+  }
+
+  /** Fortune branch: skull earn rate multiplier — bonus skulls earned per run. */
+  getSkullEarnRateMultiplier(): number {
+    let bonus = 0;
+    if (this._unlocked.has(12)) bonus += 0.10;  // T4 interest node
+    if (this._unlocked.has(24)) bonus += 0.20;  // T8 interest node
+    if (this._unlocked.has(30)) bonus += 0.30;  // T10 wave bonus node
+    return 1.0 + bonus;
+  }
+
+  /** Fortune branch: flat gold per kill bonus. */
+  getGoldPerKillBonus(): number {
+    let bonus = 0;
+    if (this._unlocked.has(6)) bonus += 1;    // T2 wave bonus node
+    if (this._unlocked.has(18)) bonus += 2;   // T6 wave bonus node
+    if (this._unlocked.has(30)) bonus += 3;   // T10 wave bonus node
+    return bonus;
+  }
+
+  /** Fortune branch: income rate multiplier — passive gold per wave multiplier. */
+  getIncomeRateMultiplier(): number {
+    let bonus = 0;
+    if (this._unlocked.has(9)) bonus += 0.10;   // T3 sell refund node
+    if (this._unlocked.has(15)) bonus += 0.15;  // T5 starting gold node
+    if (this._unlocked.has(21)) bonus += 0.20;  // T7 sell refund node
+    if (this._unlocked.has(27)) bonus += 0.25;  // T9 starting gold node
+    return 1.0 + bonus;
+  }
+
+  // ── Private ───────────────────────────────────────────────────────────────
+
+  private _meetsPrerequisites(skillIndex: number): boolean {
+    if (skillIndex === ROOT_SKILL_INDEX) return true;
+
+    const prereqs = getPrerequisites(skillIndex);
+    if (prereqs.length === 0) return false;
+
+    for (const prereq of prereqs) {
+      if (this._unlocked.has(prereq)) return true;
     }
-    return { branch: null, tierIdx: -1 };
+    return false;
   }
 }

@@ -151,7 +151,7 @@ Scripts/
     RelicDefs.ts    — RELIC_DEFS: IRelicDef[] (6 relics: gold, damage, speed, range, lives, slow)
     NodeDefs.ts     — NODE_TYPE_DEFS: Record<OverworldNodeType, INodeTypeDef> (3 node types: combat, boss, minigame)
     NodeDefs.ts     — NODE_TYPE_DEFS: Record<OverworldNodeType, INodeTypeDef> (3 types: combat, boss, minigame with sprite paths)
-    SkillTreeDefs.ts — ROOT_SKILL + SKILL_BRANCHES: ISkillBranchDef[] (1 root node + 3 branches × 3 tiers of permanent bonuses)
+    SkillTreeDefs.ts — SKILL_NODES + SKILL_CONNECTIONS: explicit graph-based skill tree (1 root node + 9 branch nodes with directed edge connections defining prerequisites; supports lateral cross-branch links)
 
   Services/
     PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
@@ -177,7 +177,7 @@ Scripts/
     BossModifierService — activates on boss-node levels; applies a single modifier (one of 6: HP x1.2, Speed x1.5, Damage x0.9, 1 Life, No Income, Tower Destroyed /5 Waves); uses a shuffle-bag so all 6 modifiers appear exactly once before any repeats; bag resets on new game and new run
     TowerDestroyAnimService — animated tower destruction for boss modifier; spawns a red meteor projectile from above, flies it to the tower, shakes the tower on impact, scales it to 0, then removes it from the grid
     SkillTreeService    — manages permanent skill tree unlocks; provides bonus getters consumed by TowerService, ResourceService, CritService, WaveService
-    SkillTreeService        — permanent skill tree unlocks; exposes bonus multipliers consumed by TowerService, ResourceService, CritService, WaveService; purchase/persistence logic via SaveService
+    SkillTreeService        — permanent skill tree unlocks with graph-based prerequisites; exposes bonus multipliers consumed by TowerService, ResourceService, CritService, WaveService; purchase/persistence logic via SaveService
 
   Components/
     GameManager         — onStart prewarm, onUpdate tick, game start/end/restart
@@ -201,7 +201,7 @@ Scripts/
     WaveBannerHud        — ViewModel for wave announcement banner (WAVE X, animated)
     BossWarningHudController — ViewModel for boss level warning banner + active modifiers strip
     MinigameHud          — ViewModel for card shuffle minigame (shell game: Reveal→FlipDown→Shuffle→Pick→Result state machine)
-    SkillTreeHudController — ViewModel for fullscreen skill tree overlay (3 branches × 3 tiers, purchase with skulls, opened from overworld skull header tap)
+    SkillTreeHudController — ViewModel for fullscreen skill tree overlay (graph-derived bezier connection paths, purchase with skulls, opened from overworld skull header tap)
     LevelSaveComponent   — Persists level beaten state and active relics to PlayerVariablesService (key "td_level_sav"); restores on load via ProgressRestored event
 ```
 
@@ -274,7 +274,7 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 | Total levels per run | 5 (`TOTAL_LEVELS` in Constants.ts) |
 | Run counter | Starts at 1, increments when all levels beaten (boss included), resets on new game (`StartGame`). Tracked in `LevelGeneratorService.runCount`. |
 | Skull currency | Permanent metaprogression currency. +1 per combat level win, +5 per boss level win. Never resets. Persisted in `TdSaveData.sk`. Displayed in overworld header. |
-| Skill Tree | Permanent meta-progression purchased with skulls. 1 root node ("UNLOCK TREE", cost 1 skull, prerequisite for all others) + 3 branches (War, Fortify, Fortune) × 3 tiers each. Unlocks persist in `TdSaveData.st`. Opens from the overworld skull header tap. Bonuses: +damage, +fire rate, +crit, +lives, +range, +starting gold, +wave bonus, +sell refund. |
+| Skill Tree | Permanent meta-progression purchased with skulls. 1 root node ("UNLOCK TREE", cost 1 skull, prerequisite for all others) + 3 branches (War, Fortify, Fortune) × 3 tiers each. Connections between nodes are explicitly defined as a directed graph (SKILL_CONNECTIONS edges), allowing lateral cross-branch links and flexible prerequisite paths. A node is purchasable when at least one incoming-connected node is unlocked. Unlocks persist in `TdSaveData.st`. Opens from the overworld skull header tap. Bonuses: +damage, +fire rate, +crit, +lives, +range, +starting gold, +wave bonus, +sell refund. |
 | Wave bonus | +15g flat (`WAVE_BONUS_GOLD`) + 15% of gold on hand (`INCOME_RATE`) at wave end |
 | Sell refund | 60% of total invested (`SELL_RATIO = 0.6`) |
 
@@ -365,7 +365,7 @@ Title Screen → [BiomeSelect bypassed, auto-selects "grass"] → Overworld (Lev
 | **Boss Warning** | UI/BossWarning.xaml | Boss level (Build phase) | ✅ — Dramatic "BOSS LEVEL" banner with skull icon and fiery gold text, auto-dismisses after 3s. Persistent modifier strip below HUD shows active boss modifiers (HP, SPD, DMG multipliers, income disabled, lives override, tower destruction). Hides on level end/restart. |
 | **Minigame** | UI/Minigame.xaml | Minigame | ✅ — Card shuffle (shell game). Three cards (Gold Bonus +50, Gold Malus -30 next level, Neutral) shown face up, flipped, shuffled with animated position swaps, player picks one. Medieval fantasy card style with gold accents. Gold malus deducted at next combat level start via ResourceService. |
 | **Save Indicator** | UI/SaveIndicator.xaml | On LevelCompleted | ✅ — Small "Saving..." pill in bottom-left corner. Fades in on level save, stays 2s, fades out. Non-interactive overlay. |
-| **Skill Tree** | UI/SkillTree.xaml | Overworld (skull tap) | ✅ — Fullscreen overlay with a root node ("UNLOCK TREE", 1 skull) at the fork point plus 3 branches × 3 tiers of permanent bonuses. Root must be unlocked before any branch skill. Nodes show unlocked (gold), affordable (highlighted), or locked (grey) states. Purchase deducts skulls. Close button returns to overworld. |
+| **Skill Tree** | UI/SkillTree.xaml | Overworld (skull tap) | ✅ — Fullscreen overlay with hazy gradient background (dark muted purple → warm reddish-brown). Prominent root node at top with thick glowing white border, dark inner fill, and yellow stylized rune icon. 3 branches × 3 tiers of circular nodes with pale cream wavy bezier connecting lines. Cross-link dashed paths between branches at each tier create a web-like interconnected feel. Nodes show unlocked (gold border/icon), affordable (cream border), or locked (dim) states. Purchase deducts skulls. Fantasy font (Almendra). Close button returns to overworld. |
 
 ---
 
