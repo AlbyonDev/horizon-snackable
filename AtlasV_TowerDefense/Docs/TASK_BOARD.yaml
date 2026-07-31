@@ -79,6 +79,7 @@ done:
   - Skull Skill Tree -- 3 branches x 3 tiers, persistent unlocks, gameplay bonuses
   - Skill Tree Node Sprites -- 3 states (bought/buyable/locked) with bonus+price boxes
   - Skill Tree Sprites Hooked into UI -- nodes show correct sprite per state + labels
+  - Organic Skill Tree Layout -- bezier trunk+3 branches, scrollable canvas
 
 chopping_block:
   disabled_systems: []

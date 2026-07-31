@@ -8,18 +8,20 @@
  * Stores which skill indices are unlocked (persisted via SaveService `st` field).
  * Provides getters consumed by TowerService, ResourceService, CritService, WaveService.
  * Purchase logic deducts skulls from SaveService and persists immediately.
+ *
+ * Root node (index 9) is the prerequisite for ALL other skills.
  */
 import { Service, EventService } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
 import { OnServiceReadyEvent } from 'meta/worlds';
-import { SKILL_BRANCHES, TOTAL_SKILLS } from '../Defs/SkillTreeDefs';
+import { SKILL_BRANCHES, TOTAL_SKILLS, ROOT_SKILL, ROOT_SKILL_INDEX } from '../Defs/SkillTreeDefs';
 import type { ISkillBranchDef, ISkillTierDef } from '../Defs/SkillTreeDefs';
 import { Events } from '../Types';
 import { SaveService } from './SaveService';
 
 @service()
 export class SkillTreeService extends Service {
-  /** Set of unlocked skill indices (0-8). */
+  /** Set of unlocked skill indices (0-9). */
   private _unlocked: Set<number> = new Set();
 
   @subscribe(OnServiceReadyEvent)
@@ -41,7 +43,7 @@ export class SkillTreeService extends Service {
     console.log(`[SkillTreeService] Restored ${this._unlocked.size} unlocked skills: [${[...this._unlocked].join(',')}]`);
   }
 
-  // ── Public API ────────────────────────────────────────────────────────────
+  // ── Public API ────────────────────────────────────────────────────────
 
   /** Check if a specific skill index is unlocked. */
   isUnlocked(skillIndex: number): boolean {
@@ -58,13 +60,38 @@ export class SkillTreeService extends Service {
     return this._unlocked.size;
   }
 
+  /** Check if the root skill (index 9) is unlocked. */
+  isRootUnlocked(): boolean {
+    return this._unlocked.has(ROOT_SKILL_INDEX);
+  }
+
   /**
    * Attempt to purchase a skill tier. Returns true if successful.
-   * Validates: sequential unlock within branch, sufficient skulls, not already unlocked.
+   * Validates: root prerequisite, sequential unlock within branch, sufficient skulls, not already unlocked.
    */
   purchase(skillIndex: number): boolean {
     if (this._unlocked.has(skillIndex)) {
       console.log(`[SkillTreeService] Skill ${skillIndex} already unlocked`);
+      return false;
+    }
+
+    // Root node (index 9) — no prerequisite, just needs skulls
+    if (skillIndex === ROOT_SKILL_INDEX) {
+      const save = SaveService.get();
+      if (save.getSkullCount() < ROOT_SKILL.cost) {
+        console.log(`[SkillTreeService] Not enough skulls for root: have ${save.getSkullCount()}, need ${ROOT_SKILL.cost}`);
+        return false;
+      }
+      save.spendSkulls(ROOT_SKILL.cost);
+      this._unlocked.add(ROOT_SKILL_INDEX);
+      console.log(`[SkillTreeService] Purchased root skill (UNLOCK TREE) for ${ROOT_SKILL.cost} skull`);
+      save.setSkillTreeState(this.getUnlockedIndices());
+      return true;
+    }
+
+    // All other skills require the root to be unlocked first
+    if (!this.isRootUnlocked()) {
+      console.log(`[SkillTreeService] Cannot unlock skill ${skillIndex} — root node not yet unlocked`);
       return false;
     }
 
@@ -105,6 +132,15 @@ export class SkillTreeService extends Service {
   /** Can the player afford and unlock this skill? */
   canPurchase(skillIndex: number): boolean {
     if (this._unlocked.has(skillIndex)) return false;
+
+    // Root node — just check skull cost
+    if (skillIndex === ROOT_SKILL_INDEX) {
+      return SaveService.get().getSkullCount() >= ROOT_SKILL.cost;
+    }
+
+    // All other skills require root unlocked
+    if (!this.isRootUnlocked()) return false;
+
     const { branch, tierIdx } = this._findSkill(skillIndex);
     if (!branch) return false;
     // Check previous tiers
@@ -114,9 +150,16 @@ export class SkillTreeService extends Service {
     return SaveService.get().getSkullCount() >= branch.tiers[tierIdx].cost;
   }
 
-  /** Is this skill the next unlockable in its branch (previous tiers done)? */
+  /** Is this skill the next unlockable in its branch (previous tiers done + root unlocked)? */
   isNextInBranch(skillIndex: number): boolean {
     if (this._unlocked.has(skillIndex)) return false;
+
+    // Root node is always "next" if not unlocked
+    if (skillIndex === ROOT_SKILL_INDEX) return true;
+
+    // All other skills require root
+    if (!this.isRootUnlocked()) return false;
+
     const { branch, tierIdx } = this._findSkill(skillIndex);
     if (!branch) return false;
     for (let i = 0; i < tierIdx; i++) {
@@ -125,7 +168,7 @@ export class SkillTreeService extends Service {
     return true;
   }
 
-  // ── Bonus Getters (consumed by gameplay services) ─────────────────────────
+  // ── Bonus Getters (consumed by gameplay services) ─────────────────────
 
   /** War T1: +10% tower damage → multiplier 1.1 */
   getDamageMultiplier(): number {
@@ -177,7 +220,7 @@ export class SkillTreeService extends Service {
     return this._unlocked.has(8) ? 0.5 : 0;
   }
 
-  // ── Private ───────────────────────────────────────────────────────────────
+  // ── Private ───────────────────────────────────────────────────────────
 
   private _findSkill(skillIndex: number): { branch: ISkillBranchDef | null; tierIdx: number } {
     for (const branch of SKILL_BRANCHES) {

@@ -1,13 +1,14 @@
 /**
  * SkillTreeDefs.ts — Skill tree branch and tier definitions.
  *
- * 3 branches × 3 tiers of permanent meta-progression bonuses purchased with skulls.
- * Each tier must be unlocked sequentially (tier 0 before tier 1, etc.).
- * Skill indices: War 0-2, Fortify 3-5, Fortune 6-8.
+ * 1 root node + 3 branches × 3 tiers of permanent meta-progression bonuses purchased with skulls.
+ * The root node (index 9) must be unlocked before any branch skill can be purchased.
+ * Each tier within a branch must be unlocked sequentially (tier 0 before tier 1, etc.).
+ * Skill indices: War 0-2, Fortify 3-5, Fortune 6-8, Root 9.
  */
 
 export interface ISkillTierDef {
-  /** Unique index (0-8) used in the saved unlock array. */
+  /** Unique index used in the saved unlock array. */
   index: number;
   /** Human-readable label shown in UI. */
   label: string;
@@ -60,5 +61,11 @@ const FORTUNE_BRANCH: ISkillBranchDef = {
 
 export const SKILL_BRANCHES: readonly ISkillBranchDef[] = [WAR_BRANCH, FORTIFY_BRANCH, FORTUNE_BRANCH];
 
-/** Total number of skills across all branches. */
-export const TOTAL_SKILLS = 9;
+/** The root skill that must be unlocked to access any branch. */
+export const ROOT_SKILL: ISkillTierDef = { index: 9, label: 'UNLOCK TREE', cost: 1 };
+
+/** Index of the root skill. */
+export const ROOT_SKILL_INDEX = 9;
+
+/** Total number of skills across all branches + root. */
+export const TOTAL_SKILLS = 10;
