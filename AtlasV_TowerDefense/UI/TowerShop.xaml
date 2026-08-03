@@ -19,10 +19,10 @@
 
         <!-- Horizontal Panel Template -->
         <ItemsPanelTemplate x:Key="HorizontalPanel">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" ClipToBounds="False"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" ClipToBounds="False"/>
         </ItemsPanelTemplate>
 
-        <!-- Item Container Style -->
+        <!-- Item Container Style - margins between cards -->
         <Style x:Key="TowerItemContainerStyle" TargetType="ContentPresenter">
             <Setter Property="Margin" Value="20,0,20,0"/>
         </Style>
@@ -32,7 +32,7 @@
             <DataTemplate.Resources>
                 <!-- Select Animation Storyboard -->
                 <Storyboard x:Key="SelectAnimation">
-                    <!-- TranslateTransform.Y to -150 -->
+                    <!-- TranslateTransform.Y to -50 -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardTranslate"
                                                     Storyboard.TargetProperty="Y">
                         <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="-50">
@@ -41,7 +41,7 @@
                             </EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
-                    <!-- ScaleTransform.ScaleX to 1.05 -->
+                    <!-- ScaleTransform.ScaleX to 1.2 -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
                                                     Storyboard.TargetProperty="ScaleX">
                         <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.2">
@@ -50,7 +50,7 @@
                             </EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
-                    <!-- ScaleTransform.ScaleY to 1.05 -->
+                    <!-- ScaleTransform.ScaleY to 1.2 -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
                                                     Storyboard.TargetProperty="ScaleY">
                         <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.2">
@@ -59,7 +59,6 @@
                             </EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
-                    <!-- GlowBorder.Opacity to 0.9 -->
                 </Storyboard>
 
                 <!-- Deselect Animation Storyboard -->
@@ -91,7 +90,6 @@
                             </EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
-                    <!-- GlowBorder.Opacity back to 0 -->
                 </Storyboard>
             </DataTemplate.Resources>
 
@@ -112,8 +110,6 @@
                                                    CommandParameter="{Binding towerId}"/>
                         </b:EventTrigger>
                     </b:Interaction.Triggers>
-
-                    <!-- Drop Shadow Layer (simulated with offset dark border) -->
 
                     <!-- Second Shadow Layer for depth -->
                     <Border Margin="5,5,5,5"
@@ -195,11 +191,6 @@
                                                  Fill="{StaticResource GoldDarkBrush}"
                                                  HorizontalAlignment="Right" VerticalAlignment="Bottom"
                                                  Margin="0,0,10,10"/>
-
-                                        <!-- Row 0: Price Bar at TOP -->
-
-                                        <!-- Row 1: Empty space showing background image -->
-                                        <!-- No content needed - the ImageBrush background shows through -->
                                     </Grid>
                                     </Border>
                                 </Border>
@@ -212,14 +203,11 @@
                 <Border x:Name="Disabled" CornerRadius="50,50,50,50" BorderThickness="10,10,10,10" Background="#AF000000" Visibility="Collapsed" IsEnabled="False"/>
 
                 <!-- Ribbon Banner - OUTSIDE the border chain to avoid CornerRadius clipping -->
-                <!-- Positioned as sibling of CardGrid, overlays at correct Y position -->
                 <Grid VerticalAlignment="Top" 
                       IsHitTestVisible="False"
                       ClipToBounds="False" Width="400" IsEnabled="False" Height="147" Margin="0,130,0,0">
                     <Image Source="/Root;component/Textures/WoodPlank.png" HorizontalAlignment="Center" Stretch="Fill" Width="303" VerticalAlignment="Center"/>
-                    <!-- Ribbon shadow with rounded corners -->
 
-                    <!-- Main ribbon body with rounded corners -->
                     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" Margin="-3,0,0,0" IsHitTestVisible="False" FontSize="60" Text="{Binding Path=name, FallbackValue=test}"/>
                         <TextBlock Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" IsHitTestVisible="False" FontSize="60" Text="{Binding Path=name, FallbackValue=test}" Margin="2,0,-1,0"/>
@@ -227,8 +215,6 @@
                         <TextBlock Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" Margin="0,3,0,0" IsHitTestVisible="False" FontSize="60" Text="{Binding Path=name, FallbackValue=test}"/>
                         <TextBlock FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" Text="{Binding Path=name, FallbackValue=test}" FontSize="60" Foreground="#FFF5E6C8"/>
                     </Grid>
-
-                    <!-- Tower Name Text with outline -->
                 </Grid>
                 <Border Grid.Row="0" CornerRadius="12,12,0,0" VerticalAlignment="Top" IsEnabled="False" Margin="0,40,0,0">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -297,12 +283,62 @@
             <Border BorderThickness="0,6,0,0" BorderBrush="#FF553B14" CornerRadius="40,40,0,0"/>
         </Border>
 
-        <!-- Tower Items List - FREE from CornerRadius clipping, sibling of background -->
+        <!-- Tower Items List - Horizontally scrollable with smooth animated offset -->
+        <!-- Uses Canvas+Canvas.Left pattern instead of TranslateTransform to avoid
+             MHS XAML render-culling of items laid out beyond the clip bounds -->
         <ItemsControl ItemsSource="{Binding items}"
                       ItemsPanel="{StaticResource HorizontalPanel}"
                       ItemTemplate="{StaticResource TowerCardTemplate}"
                       ItemContainerStyle="{StaticResource TowerItemContainerStyle}"
-                      HorizontalAlignment="Center"
-                      ClipToBounds="False" Margin="0,0,0,-650"/>
+                      Margin="0,0,0,-650">
+            <ItemsControl.Template>
+                <ControlTemplate TargetType="ItemsControl">
+                    <Grid ClipToBounds="True">
+                        <Canvas Width="1080" Height="800">
+                            <ItemsPresenter Width="{Binding contentWidth}" Height="800"
+                                            Canvas.Left="{Binding contentOffsetX}"/>
+                        </Canvas>
+                        <!-- Transparent Slider overlay for touch/drag scrolling input.
+                             IsMoveToPointEnabled makes the thumb jump to the touch point immediately.
+                             Value (0-1 normalized) tracks horizontal finger position. -->
+                        <Slider x:Name="DragSlider" Orientation="Horizontal"
+                                Minimum="0" Maximum="1"
+                                Value="{Binding dragNormalized, Mode=TwoWay}"
+                                IsMoveToPointEnabled="True"
+                                Width="1080" Height="800"
+                                VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                Opacity="0" Focusable="False">
+                            <Slider.Template>
+                                <ControlTemplate TargetType="Slider">
+                                    <Track x:Name="PART_Track">
+                                        <Track.DecreaseRepeatButton>
+                                            <RepeatButton>
+                                                <RepeatButton.Template>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Border Background="#00FFFFFF"/>
+                                                    </ControlTemplate>
+                                                </RepeatButton.Template>
+                                            </RepeatButton>
+                                        </Track.DecreaseRepeatButton>
+                                        <Track.IncreaseRepeatButton>
+                                            <RepeatButton>
+                                                <RepeatButton.Template>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Border Background="#00FFFFFF"/>
+                                                    </ControlTemplate>
+                                                </RepeatButton.Template>
+                                            </RepeatButton>
+                                        </Track.IncreaseRepeatButton>
+                                        <Track.Thumb>
+                                            <Thumb Width="0" Height="0"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </ControlTemplate>
+                            </Slider.Template>
+                        </Slider>
+                    </Grid>
+                </ControlTemplate>
+            </ItemsControl.Template>
+        </ItemsControl>
     </Grid>
 </Page>

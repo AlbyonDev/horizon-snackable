@@ -82,6 +82,7 @@ done:
   - Skill Tree Sprites Hooked into UI -- nodes show correct sprite per state + labels
   - Skill Tree UI Refactor -- hazy gradient, circular nodes, wavy cross-links
   - Skill Tree 40 Nodes Expansion -- 13 tiers x 3 branches, graph defs, full UI
+  - Scrollable Tower Shop -- smooth finger drag + tap-to-center, clamped edges
 
 chopping_block:
   disabled_systems: []
