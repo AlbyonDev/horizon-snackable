@@ -52,7 +52,7 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
   { index: 3, label: '+30 Starting Gold',   cost: 3, branch: 'fortune' },
 
   // Tier 2 (indices 4, 5, 6)
-  { index: 4, label: '+15% Fire Rate',      cost: 6, branch: 'war' },
+  { index: 4, label: 'Unlock Laser Canon',  cost: 6, branch: 'war' },
   { index: 5, label: '+20% Tower Range',    cost: 6, branch: 'fortify' },
   { index: 6, label: '+25% Wave Bonus Gold', cost: 6, branch: 'fortune' },
 
@@ -200,7 +200,7 @@ const WAR_BRANCH: ISkillBranchDef = {
   icon: '⚔️',
   tiers: [
     { index: 1, label: '+10% Damage',      cost: 3 },
-    { index: 4, label: '+15% Fire Rate',   cost: 6 },
+    { index: 4, label: 'Unlock Laser Canon',   cost: 6 },
     { index: 7, label: '+25% Crit Chance', cost: 10 },
   ],
 };

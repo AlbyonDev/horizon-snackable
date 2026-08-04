@@ -698,6 +698,262 @@
             </Grid>
         </Grid>
 
+        <!-- Biome Navigation Arrow - LEFT (previous biome, vertically centered) -->
+        <Grid HorizontalAlignment="Left" VerticalAlignment="Center" Margin="40,0,0,0"
+              RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+            <Grid.Visibility>
+                <Binding Path="biomeArrowLeftVisible">
+                    <Binding.Converter>
+                        <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                </Binding>
+            </Grid.Visibility>
+            <Grid.RenderTransform><ScaleTransform x:Name="BiomeArrowLeftScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+            <Grid.Resources>
+                <Storyboard x:Key="BiomeArrowLeftPulseAnim" RepeatBehavior="Forever">
+                    <DoubleAnimation Storyboard.TargetName="BiomeArrowLeftScaleTransform"
+                                     Storyboard.TargetProperty="ScaleX"
+                                     From="1.0" To="1.08" Duration="0:0:0.9" AutoReverse="True">
+                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="BiomeArrowLeftScaleTransform"
+                                     Storyboard.TargetProperty="ScaleY"
+                                     From="1.0" To="1.08" Duration="0:0:0.9" AutoReverse="True">
+                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="BiomeArrowLeftGlowBorder"
+                                     Storyboard.TargetProperty="Opacity"
+                                     From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </Grid.Resources>
+            <b:Interaction.Triggers>
+                <b:EventTrigger>
+                    <b:ControlStoryboardAction Storyboard="{StaticResource BiomeArrowLeftPulseAnim}"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
+
+            <!-- Outer glow border (color bound to destination biome) -->
+            <Border x:Name="BiomeArrowLeftGlowBorder" Opacity="0"
+                    Background="Transparent"
+                    BorderBrush="{Binding biomeArrowLeftGlowColor}"
+                    BorderThickness="10"
+                    CornerRadius="24"
+                    Margin="-8,-8,-8,-8"/>
+
+            <!-- Main arrow button (border color bound to destination biome) -->
+            <Border Background="#FF1a1a2e"
+                    BorderBrush="{Binding biomeArrowLeftColor}"
+                    BorderThickness="5"
+                    CornerRadius="18"
+                    Padding="24,40,24,40">
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                        <b:InvokeCommandAction Command="{Binding events.biomeArrowTap}" CommandParameter="prev"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <!-- GRASS icon (leaf) -->
+                    <Viewbox Width="96" Height="96" Margin="0,0,0,12" HorizontalAlignment="Center">
+                        <Viewbox.Style>
+                            <Style TargetType="Viewbox">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding biomeArrowLeftType}" Value="grass">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Viewbox.Style>
+                        <Grid Width="24" Height="24">
+                            <Path Fill="{Binding biomeArrowLeftColor}"
+                                  Data="M17 8 C8 10 5.9 16.09 3.82 21.15 L5.1 22 C6.1 19.5 7.5 17 9 15 C9 18.5 10 22 12 22 C14 22 15 19.5 15 17 C15 14.5 14 13 12 12 C14 12 17 10 18 8 C19 6 19.5 4 20 2 C18 4 16 6 15 7 C15 7 17 6 17 8 Z"/>
+                        </Grid>
+                    </Viewbox>
+                    <!-- SNOW icon (snowflake) -->
+                    <Viewbox Width="96" Height="96" Margin="0,0,0,12" HorizontalAlignment="Center">
+                        <Viewbox.Style>
+                            <Style TargetType="Viewbox">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding biomeArrowLeftType}" Value="snow">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Viewbox.Style>
+                        <Grid Width="24" Height="24">
+                            <Path Stroke="{Binding biomeArrowLeftColor}" StrokeThickness="1.8"
+                                  Data="M12 2 L12 22 M2 12 L22 12 M5 5 L19 19 M19 5 L5 19"/>
+                            <Path Stroke="{Binding biomeArrowLeftColor}" StrokeThickness="1.2"
+                                  Data="M12 4 L10 6 M12 4 L14 6 M12 20 L10 18 M12 20 L14 18 M4 12 L6 10 M4 12 L6 14 M20 12 L18 10 M20 12 L18 14"/>
+                        </Grid>
+                    </Viewbox>
+                    <!-- VOLCANO icon (flame) -->
+                    <Viewbox Width="96" Height="96" Margin="0,0,0,12" HorizontalAlignment="Center">
+                        <Viewbox.Style>
+                            <Style TargetType="Viewbox">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding biomeArrowLeftType}" Value="volcano">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Viewbox.Style>
+                        <Grid Width="24" Height="24">
+                            <Path Fill="{Binding biomeArrowLeftColor}"
+                                  Data="M12 2 C12 2 8 7 8 12 C8 14 9 16 10 17 C9 15 9 13 10 11 C10 11 11 14 12 15 C13 14 14 11 14 11 C15 13 15 15 14 17 C15 16 16 14 16 12 C16 7 12 2 12 2 Z"/>
+                        </Grid>
+                    </Viewbox>
+                    <!-- Biome label with outline (text color bound to destination biome) -->
+                    <Grid HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding biomeArrowLeftLabel}" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="-2,0,0,0"/>
+                        <TextBlock Text="{Binding biomeArrowLeftLabel}" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="2,0,0,0"/>
+                        <TextBlock Text="{Binding biomeArrowLeftLabel}" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,-2,0,0"/>
+                        <TextBlock Text="{Binding biomeArrowLeftLabel}" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                        <TextBlock Text="{Binding biomeArrowLeftLabel}" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="{Binding biomeArrowLeftColor}" HorizontalAlignment="Center"/>
+                    </Grid>
+                    <!-- Arrow pointing left (stroke color bound to destination biome) -->
+                    <Viewbox Width="72" Height="72" Margin="0,8,0,0" HorizontalAlignment="Center">
+                        <Grid Width="24" Height="24">
+                            <Path Stroke="{Binding biomeArrowLeftColor}" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Data="M16 12 L8 12 M12 8 L8 12 L12 16"/>
+                        </Grid>
+                    </Viewbox>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Biome Navigation Arrow - RIGHT (next biome, vertically centered) -->
+        <Grid HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,40,0"
+              RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+            <Grid.Visibility>
+                <Binding Path="biomeArrowVisible">
+                    <Binding.Converter>
+                        <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                </Binding>
+            </Grid.Visibility>
+            <Grid.RenderTransform><ScaleTransform x:Name="BiomeArrowScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+            <Grid.Resources>
+                <Storyboard x:Key="BiomeArrowPulseAnim" RepeatBehavior="Forever">
+                    <DoubleAnimation Storyboard.TargetName="BiomeArrowScaleTransform"
+                                     Storyboard.TargetProperty="ScaleX"
+                                     From="1.0" To="1.08" Duration="0:0:0.9" AutoReverse="True">
+                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="BiomeArrowScaleTransform"
+                                     Storyboard.TargetProperty="ScaleY"
+                                     From="1.0" To="1.08" Duration="0:0:0.9" AutoReverse="True">
+                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="BiomeArrowGlowBorder"
+                                     Storyboard.TargetProperty="Opacity"
+                                     From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </Grid.Resources>
+            <b:Interaction.Triggers>
+                <b:EventTrigger>
+                    <b:ControlStoryboardAction Storyboard="{StaticResource BiomeArrowPulseAnim}"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
+
+            <!-- Outer glow border (color bound to destination biome) -->
+            <Border x:Name="BiomeArrowGlowBorder" Opacity="0"
+                    Background="Transparent"
+                    BorderBrush="{Binding biomeArrowRightGlowColor}"
+                    BorderThickness="10"
+                    CornerRadius="24"
+                    Margin="-8,-8,-8,-8"/>
+
+            <!-- Main arrow button (border color bound to destination biome) -->
+            <Border Background="#FF1a1a2e"
+                    BorderBrush="{Binding biomeArrowRightColor}"
+                    BorderThickness="5"
+                    CornerRadius="18"
+                    Padding="24,40,24,40">
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                        <b:InvokeCommandAction Command="{Binding events.biomeArrowTap}" CommandParameter="next"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <!-- GRASS icon (leaf) -->
+                    <Viewbox Width="96" Height="96" Margin="0,0,0,12" HorizontalAlignment="Center">
+                        <Viewbox.Style>
+                            <Style TargetType="Viewbox">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding biomeArrowRightType}" Value="grass">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Viewbox.Style>
+                        <Grid Width="24" Height="24">
+                            <Path Fill="{Binding biomeArrowRightColor}"
+                                  Data="M17 8 C8 10 5.9 16.09 3.82 21.15 L5.1 22 C6.1 19.5 7.5 17 9 15 C9 18.5 10 22 12 22 C14 22 15 19.5 15 17 C15 14.5 14 13 12 12 C14 12 17 10 18 8 C19 6 19.5 4 20 2 C18 4 16 6 15 7 C15 7 17 6 17 8 Z"/>
+                        </Grid>
+                    </Viewbox>
+                    <!-- SNOW icon (snowflake) -->
+                    <Viewbox Width="96" Height="96" Margin="0,0,0,12" HorizontalAlignment="Center">
+                        <Viewbox.Style>
+                            <Style TargetType="Viewbox">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding biomeArrowRightType}" Value="snow">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Viewbox.Style>
+                        <Grid Width="24" Height="24">
+                            <Path Stroke="{Binding biomeArrowRightColor}" StrokeThickness="1.8"
+                                  Data="M12 2 L12 22 M2 12 L22 12 M5 5 L19 19 M19 5 L5 19"/>
+                            <Path Stroke="{Binding biomeArrowRightColor}" StrokeThickness="1.2"
+                                  Data="M12 4 L10 6 M12 4 L14 6 M12 20 L10 18 M12 20 L14 18 M4 12 L6 10 M4 12 L6 14 M20 12 L18 10 M20 12 L18 14"/>
+                        </Grid>
+                    </Viewbox>
+                    <!-- VOLCANO icon (flame) -->
+                    <Viewbox Width="96" Height="96" Margin="0,0,0,12" HorizontalAlignment="Center">
+                        <Viewbox.Style>
+                            <Style TargetType="Viewbox">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding biomeArrowRightType}" Value="volcano">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Viewbox.Style>
+                        <Grid Width="24" Height="24">
+                            <Path Fill="{Binding biomeArrowRightColor}"
+                                  Data="M12 2 C12 2 8 7 8 12 C8 14 9 16 10 17 C9 15 9 13 10 11 C10 11 11 14 12 15 C13 14 14 11 14 11 C15 13 15 15 14 17 C15 16 16 14 16 12 C16 7 12 2 12 2 Z"/>
+                        </Grid>
+                    </Viewbox>
+                    <!-- Biome label with outline (text color bound to destination biome) -->
+                    <Grid HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding biomeArrowLabel}" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="-2,0,0,0"/>
+                        <TextBlock Text="{Binding biomeArrowLabel}" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="2,0,0,0"/>
+                        <TextBlock Text="{Binding biomeArrowLabel}" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,-2,0,0"/>
+                        <TextBlock Text="{Binding biomeArrowLabel}" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                        <TextBlock Text="{Binding biomeArrowLabel}" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="{Binding biomeArrowRightColor}" HorizontalAlignment="Center"/>
+                    </Grid>
+                    <!-- Arrow pointing right (stroke color bound to destination biome) -->
+                    <Viewbox Width="72" Height="72" Margin="0,8,0,0" HorizontalAlignment="Center">
+                        <Grid Width="24" Height="24">
+                            <Path Stroke="{Binding biomeArrowRightColor}" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                  Data="M8 12 L16 12 M12 8 L16 12 L12 16"/>
+                        </Grid>
+                    </Viewbox>
+                </StackPanel>
+            </Border>
+        </Grid>
+
         <!-- Relic carousel overlay (fullscreen) -->
         <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <Grid.Visibility>

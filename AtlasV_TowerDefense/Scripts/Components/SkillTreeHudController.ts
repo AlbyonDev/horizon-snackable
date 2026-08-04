@@ -101,7 +101,7 @@ const COLOR_ROOT_RUNE_LOCKED = '#66f5c518';
 const CANVAS_WIDTH = 1080;
 const CANVAS_HEIGHT = 3090; // 10 tiers at 270px spacing + root/header/padding
 
-const NODE_HALF_W = 110;
+const NODE_HALF_W = 150;
 const NODE_HALF_H = 65;
 
 // Tier vertical spacing
@@ -110,9 +110,9 @@ const TIER_START_Y = 410;
 const TIER_SPACING = 270;
 
 // Branch X positions (War=left, Fortify=center, Fortune=right)
-const WAR_X = 100;
-const FORTIFY_X = 430;
-const FORTUNE_X = 730;
+const WAR_X = 50;
+const FORTIFY_X = 450;
+const FORTUNE_X = 750;
 
 /**
  * Compute node positions dynamically based on branch and tier.

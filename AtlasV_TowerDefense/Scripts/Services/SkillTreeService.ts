@@ -22,6 +22,9 @@ import {
   getNodeDef,
   getPrerequisites,
 } from '../Defs/SkillTreeDefs';
+
+/** Skill node index that unlocks the Laser tower in the shop. */
+export const LASER_UNLOCK_NODE_INDEX = 4;
 import type { ISkillNodeDef } from '../Defs/SkillTreeDefs';
 import { Events } from '../Types';
 import { SaveService } from './SaveService';
@@ -70,6 +73,11 @@ export class SkillTreeService extends Service {
   /** Check if the root skill (index 0) is unlocked. */
   isRootUnlocked(): boolean {
     return this._unlocked.has(ROOT_SKILL_INDEX);
+  }
+
+  /** Check if the Laser tower has been unlocked via the skill tree (node index 4). */
+  isLaserUnlocked(): boolean {
+    return this._unlocked.has(LASER_UNLOCK_NODE_INDEX);
   }
 
   /**

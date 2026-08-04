@@ -30,6 +30,9 @@ export interface IBiomeDef {
   tower: Record<string, IModel>;
 }
 
+/** Ordered biome IDs for navigation (arrow cycles through these). */
+export const BIOME_ORDER: readonly string[] = ['grass', 'snow', 'volcano'];
+
 export const BIOME_DEFS: readonly IBiomeDef[] = [
   {
     id: 'grass',

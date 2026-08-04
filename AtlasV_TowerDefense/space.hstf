@@ -234,7 +234,7 @@
                         },
                         "data": {
                             "cameraAnchor": "93b43a13-fc53-44a2-b053-4cdee96349e9",
-                            "cameraFov": 20.0,
+                            "cameraFov": 60.0,
                             "initDelay": 0.0
                         }
                     },
@@ -593,7 +593,7 @@
                         "data": {
                             "cameraMode": "Custom",
                             "fieldOfView": 60.0,
-                            "farClippingPlane": 20.0,
+                            "farClippingPlane": 100.0,
                             "projection": "Perspective",
                             "orthographicSize": 9.0
                         }

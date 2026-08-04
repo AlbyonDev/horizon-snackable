@@ -17,6 +17,8 @@ import { OnEntityStartEvent, OnWorldUpdateEvent } from 'meta/worlds';
 import type { OnWorldUpdateEventPayload, Maybe, Entity } from 'meta/worlds';
 import { NetworkingService } from 'meta/worlds';
 import { Events, GamePhase } from '../Types';
+import { OverworldNodeType } from '../Defs/NodeDefs';
+
 import { GROUND_COLOR, hexColor } from '../Constants';
 import { WaveService } from '../Services/WaveService';
 import { ResourceService } from '../Services/ResourceService';
@@ -69,14 +71,12 @@ export class GameManager extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (this._running) return;
 
-    // Bypass BiomeSelect screen for release — default to "grass" biome.
-    // To re-enable BiomeSelect, replace the block below with:
-    //   const phase = new Events.GamePhaseChangedPayload();
-    //   phase.phase = GamePhase.BiomeSelect;
-    //   EventService.sendLocally(Events.GamePhaseChanged, phase);
-    console.log('[GameManager] StartGame received, bypassing BiomeSelect (defaulting to grass)');
+    // Use the active biome from SaveService (persisted across sessions).
+    // Default is 'grass' for new players / first session.
+    const activeBiome = SaveService.get().activeBiome;
+    console.log(`[GameManager] StartGame received, using active biome: ${activeBiome}`);
     const bp = new Events.BiomeChangedPayload();
-    bp.biomeId = 'grass';
+    bp.biomeId = activeBiome;
     EventService.sendLocally(Events.BiomeChanged, bp);
 
     const phase = new Events.GamePhaseChangedPayload();
@@ -153,9 +153,13 @@ export class GameManager extends Component {
     this._running = false;
     const p = new Events.GameOverPayload();
     p.won = won;
-    // Boss victory = winning the last level (triggers run advancement)
-    const lastLevelIndex = LevelGeneratorService.get().levelCount - 1;
-    p.isBossVictory = won && this._currentLevelIndex === lastLevelIndex;
+    // Boss victory = winning a Boss node type (more robust than index comparison,
+    // which can fail if levelCount returns 0 after advanceRun() clears _levels).
+    // getNodeType() calls _ensureGenerated() as a safety net and defaults to
+    // Combat if anything is wrong, ensuring relics always show for non-boss levels.
+    const nodeType = LevelGeneratorService.get().getNodeType(this._currentLevelIndex);
+    p.isBossVictory = won && nodeType === OverworldNodeType.Boss;
+    console.log(`[GameManager] _endGame: won=${won}, levelIdx=${this._currentLevelIndex}, nodeType=${nodeType}, isBossVictory=${p.isBossVictory}`);
     EventService.sendLocally(Events.GameOver, p);
 
     // If the player won, fire LevelCompleted to unlock next level in overworld
@@ -165,11 +169,11 @@ export class GameManager extends Component {
       EventService.sendLocally(Events.LevelCompleted, lcp);
       console.log(`[GameManager] Level ${this._currentLevelIndex + 1} completed, firing LevelCompleted (isBoss=${p.isBossVictory})`);
 
-      // Winning the final (boss) level completes the whole run → bump runCount.
+      // Winning the boss level completes the whole run → bump runCount.
       // SaveService then mints a fresh seed on the next StartGame.
-      if (this._currentLevelIndex >= lastLevelIndex) {
+      if (p.isBossVictory) {
         SaveService.get().markRunComplete();
-        console.log('[GameManager] Final level won — run complete');
+        console.log('[GameManager] Boss level won — run complete');
       }
     }
   }

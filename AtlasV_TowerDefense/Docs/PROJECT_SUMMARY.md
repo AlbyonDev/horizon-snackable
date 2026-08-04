@@ -305,7 +305,21 @@ Relics are persistent modifiers that buff gameplay systems when activated. After
 
 ## Biome System
 
-Each level randomly selects one of three biomes when starting, changing the ground material, overworld background, path tile texture, and flag mesh.
+The game features **independent per-biome progression** with a shared meta-currency layer. Each biome has its own run count, seed, beaten levels, and relics. Skulls and skill tree unlocks are shared globally across all biomes.
+
+### Save Format (V2)
+
+Save data is stored in `PlayerVariablesService` under key `td_level_sav` as a V2 blob: `{ v: 2, global: { sk, st }, biomes: { grass: {...}, snow: {...}, volcano: {...} }, activeBiome }`. Each biome slice (`TdBiomeSave`) contains: `runCount`, `seed`, `beaten` (level indices), `relics` (active relic IDs). V1 saves (no `v` field) are auto-migrated under the `grass` biome.
+
+### Biome Navigation
+
+Players switch biomes via **two navigation arrows** on the Overworld screen:
+- **Right arrow** (ice-blue themed, snowflake icon): navigates to the next biome. Hidden when on the last biome (volcano).
+- **Left arrow** (green themed, leaf icon): navigates to the previous biome. Hidden when on the first biome (grass).
+
+Both arrows cycle through `BIOME_ORDER = ['grass', 'snow', 'volcano']`. The switch calls `LevelGeneratorService.resetGeneration()` then `SaveService.switchBiome(targetBiomeId)`, which fires `BiomeChanged`, `RunReset`, and `SaveRestored` events.
+
+### Biome Assets
 
 | Biome | Ground Material | Overworld Background | Path Texture | Flag Mesh |
 |-------|----------------|---------------------|--------------|-----------|
@@ -313,12 +327,14 @@ Each level randomly selects one of three biomes when starting, changing the grou
 | Snow | `Models/Environment/Snow.material` | `sprites/overworld_background-snow.png` | `Textures/path_tiles_ice.png` | `Models/GameplayObjects/SnowFlag/SnowFlag.fbx` (icy/frost war banner) |
 | Volcano | `Models/Environment/Volcano.material` | `sprites/overworld_background-volcano.png` | `Textures/path_tiles_lava.png` | `Models/GameplayObjects/VolcanoFlag/VolcanoFlag.fbx` (charred/fiery war banner) |
 
-- Biome selection happens via the BiomeSelect debug screen (user picks manually before entering Overworld)
+### Runtime Integration
+
 - `BiomeChanged` event broadcasts the chosen biome ID
 - `GroundBiomeController` (on the ground Plane entity) swaps the MaterialComponent at runtime
 - `OrcishFlagController` (on the OrcishFlag entity) swaps both the MeshComponent and MaterialComponent on the Visuals child to the biome-specific flag variant
-- `OverworldHud` updates its background image via data-bound ViewModel property
-- `PathTileService` subscribes to `BiomeChanged` and swaps the `pathTex` parameter on the shared `TileStraight.material` and `TileCorner.material` materials (world-space texture sampling means all spawned tiles update instantly)
+- `OverworldHud` updates its background image via data-bound ViewModel property and manages the biome navigation arrow visibility/label
+- `PathTileService` subscribes to `BiomeChanged` and swaps the `pathTex` parameter on the shared materials
+- `GameManager.onStartGame()` reads `SaveService.get().activeBiome` to fire the correct initial `BiomeChanged`
 
 ---
 

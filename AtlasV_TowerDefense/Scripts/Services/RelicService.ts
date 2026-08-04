@@ -42,19 +42,25 @@ export class RelicService extends Service {
     this.restore(p.relics);
   }
 
-  /** Clear active relics when a new run starts. Fired by SaveService. */
+  /** Clear active relics when a new run starts in the current biome.
+   *  Fired by SaveService.ensureRunSeed() — only when the active biome
+   *  needs a fresh run. Other biomes' relics are untouched (stored in SaveService). */
   @subscribe(Events.RunReset)
   onRunReset(_p: Events.RunResetPayload): void {
+    console.log(`[RelicService] RunReset received — clearing active biome relics (count: ${this._activeRelicIds.size})`);
     this.reset();
   }
 
-  /** Replace the active relic set with the given ids (unknown ids skipped). */
+  /** Replace the active relic set with the given ids (unknown ids skipped).
+   *  Called on biome switch or session load — only the active biome's relics
+   *  are loaded here; other biomes' relics stay safely in SaveService. */
   restore(relicIds: string[]): void {
+    const prevCount = this._activeRelicIds.size;
     this._activeRelicIds.clear();
     for (const id of relicIds) {
       if (this._relicMap.has(id)) this._activeRelicIds.add(id);
     }
-    console.log(`[RelicService] Restored ${this._activeRelicIds.size} relics from save`);
+    console.log(`[RelicService] Restored ${this._activeRelicIds.size} relics (was ${prevCount}): [${[...this._activeRelicIds].join(', ')}]`);
   }
 
   /** Clear all active relics. Called when a new run begins. */

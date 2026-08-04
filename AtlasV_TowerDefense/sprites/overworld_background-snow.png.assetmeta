@@ -1,8 +1,8 @@
 {
     "class": "horizon::AssetMetadata",
-    "version": 1,
+    "version": 2,
     "data": {
-        "id": "16547148233317151026",
+        "id": "14921126315252443053",
         "pipelineVersion": 1,
         "assetBuilderSettings": [
             {
@@ -10,16 +10,17 @@
                 "version": 10003,
                 "data": {
                     "target": "tex",
-                    "streamable": true,
-                    "streamCount": 2,
+                    "streamable": false,
+                    "streamCount": 0,
                     "cpuReadable": false,
                     "textureSettings": {
                         "class": "horizon::renderer::tool::TextureAssetBuilderTextureSettings",
-                        "version": 6,
+                        "version": 7,
                         "data": {
                             "equirectangularToCube": false,
+                            "fixEquirectSeam": "fix-if-needed",
                             "enableRoughnessConvolution": false,
-                            "premultiplyAlpha": false,
+                            "premultiplyAlpha": true,
                             "preserveAlphaCoverage": false,
                             "alphaCutoff": 0.5,
                             "renormalizeNormals": false,

@@ -10,8 +10,8 @@
                 "version": 10003,
                 "data": {
                     "target": "tex",
-                    "streamable": true,
-                    "streamCount": 2,
+                    "streamable": false,
+                    "streamCount": 0,
                     "cpuReadable": false,
                     "textureSettings": {
                         "class": "horizon::renderer::tool::TextureAssetBuilderTextureSettings",
@@ -19,7 +19,7 @@
                         "data": {
                             "equirectangularToCube": false,
                             "enableRoughnessConvolution": false,
-                            "premultiplyAlpha": false,
+                            "premultiplyAlpha": true,
                             "preserveAlphaCoverage": false,
                             "alphaCutoff": 0.5,
                             "renormalizeNormals": false,

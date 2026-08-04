@@ -30,6 +30,7 @@ import type { Maybe } from 'meta/worlds';
 import { Events, UiEvents } from '../Types';
 import { TowerService } from '../Services/TowerService';
 import { ResourceService } from '../Services/ResourceService';
+import { SkillTreeService } from '../Services/SkillTreeService';
 import { TowerIcons } from '../Assets';
 
 const TOWER_COLORS: Record<string, string> = {
@@ -244,6 +245,9 @@ export class TowerShopHud extends Component {
   onLevelSelected(_payload: Events.LevelSelectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    // Re-populate towers in case skill tree unlock state changed since onStart
+    this._populateTowers();
+    this._updateAffordability(ResourceService.get().gold);
     if (this.uiComponent) this.uiComponent.isVisible = true;
     this.viewModel.visible = true;
   }
@@ -288,6 +292,8 @@ export class TowerShopHud extends Component {
   @subscribe(Events.RestartGame, { execution: ExecuteOn.Owner })
   onRestart(_payload: Events.RestartGamePayload): void {
     if (!this.viewModel) return;
+    // Re-populate towers in case skill tree unlock state changed
+    this._populateTowers();
     // Don't show yet — will show again on LevelSelected
     this.viewModel.visible = false;
     if (this.uiComponent) this.uiComponent.isVisible = false;
@@ -354,7 +360,11 @@ export class TowerShopHud extends Component {
   }
 
   private _populateTowers(): void {
-    const defs = TowerService.get().all();
+    const allDefs = TowerService.get().all();
+    // Filter out the laser tower if the skill tree node hasn't been unlocked
+    const isLaserUnlocked = SkillTreeService.get().isLaserUnlocked();
+    const defs = allDefs.filter(def => def.id !== 'laser' || isLaserUnlocked);
+
     this.itemVMs = defs.map((def) => {
       const item = new TowerShopItemViewModel();
       item.towerId    = def.id;

@@ -71,7 +71,6 @@ export class LevelGeneratorService extends Service {
   private _runCount: number = 1;
   private _modifierBag: number[] = [];
   private _modifierBagIndex: number = 0;
-  private _bagRestoredFromSave: boolean = false;
 
   /** Seeded RNG for the current run. Reset by generate(); never use Math.random. */
   private _rng: () => number = mulberry32(1);
@@ -94,6 +93,18 @@ export class LevelGeneratorService extends Service {
     console.log(`[LevelGeneratorService] Advanced to run ${this._runCount}`);
   }
 
+  /** Reset generation state without advancing the run count.
+   *  Used when switching biomes to force regeneration with the new biome's seed.
+   *  NOTE: The modifier bag is intentionally NOT cleared here. It must persist
+   *  across biome switches so each boss draws the NEXT modifier from the bag
+   *  rather than re-shuffling to the same order (the PRNG reseeds identically). */
+  resetGeneration(): void {
+    this._generated = false;
+    this._levels = [];
+    this._nodeTypes = [];
+    console.log(`[LevelGeneratorService] Generation state reset (biome switch), bag preserved idx=${this._modifierBagIndex}/${this._modifierBag.length}`);
+  }
+
   /** Get current shuffle-bag state for persistence. */
   getBagState(): { bag: number[]; idx: number } {
     return { bag: [...this._modifierBag], idx: this._modifierBagIndex };
@@ -108,8 +119,14 @@ export class LevelGeneratorService extends Service {
   restoreBagState(state: { bag: number[]; idx: number }): void {
     this._modifierBag = [...state.bag];
     this._modifierBagIndex = state.idx;
-    this._bagRestoredFromSave = true;
     console.log(`[LevelGeneratorService] Boss modifier bag restored: [${this._modifierBag.map((m: number) => BossModifier[m]).join(', ')}] idx=${this._modifierBagIndex}`);
+  }
+
+  /** Clear the in-memory bag state (used when switching to a biome with no saved bag). */
+  clearBagState(): void {
+    this._modifierBag = [];
+    this._modifierBagIndex = 0;
+    console.log(`[LevelGeneratorService] Boss modifier bag cleared (new biome, no saved state)`);
   }
 
   @subscribe(Events.StartGame)
@@ -119,6 +136,18 @@ export class LevelGeneratorService extends Service {
     this.generate(TOTAL_LEVELS, seed);
   }
 
+  /** When a boss level is beaten, advance the bag so the NEXT boss gets a
+   *  different modifier. Non-boss completions are ignored. */
+  @subscribe(Events.LevelCompleted)
+  onLevelCompleted(p: Events.LevelCompletedPayload): void {
+    if (!this._generated) return;
+    if (p.levelIndex < 0 || p.levelIndex >= this._nodeTypes.length) return;
+    if (this._nodeTypes[p.levelIndex] === OverworldNodeType.Boss) {
+      console.log(`[LevelGeneratorService] Boss node ${p.levelIndex} beaten, consuming modifier`);
+      this.consumeBossModifier();
+    }
+  }
+
   /** Generate N levels deterministically from a seed. Called on StartGame. */
   generate(count: number, seed: number): void {
     this._seed = seed || 1;
@@ -126,6 +155,14 @@ export class LevelGeneratorService extends Service {
     console.log(`[LevelGeneratorService] Generating ${count} levels from seed ${this._seed}`);
     this._levels = [];
     this._assignNodeTypes(count);
+
+    // Initialize the shuffle bag only if it's completely empty (first-ever run
+    // for this biome). Once populated, the bag persists across generate() calls
+    // and only reshuffles when exhausted (handled inside _peekBag / consumeBossModifier).
+    if (this._modifierBag.length === 0) {
+      this._initShuffleBag();
+    }
+
     for (let i = 0; i < count; i++) {
       this._levels.push(this._generateLevel(i, count));
     }
@@ -136,12 +173,6 @@ export class LevelGeneratorService extends Service {
     this._saveService.setLevelCount(this._levels.length);
 
     console.log(`[LevelGeneratorService] Generation complete`);
-
-    // Persist boss modifier bag state immediately after generation
-    const bagState = this.getBagState();
-    const bossModState = JSON.stringify(bagState);
-    console.log(`[LevelGeneratorService] Firing BossModAssigned with state: ${bossModState}`);
-    EventService.sendLocally(Events.BossModAssigned, { bossModState });
   }
 
   /** Retrieve the generated level def for a given index. */
@@ -194,7 +225,7 @@ export class LevelGeneratorService extends Service {
     const pathWaypoints = this._generatePath();
     const isBoss = this._nodeTypes[levelIndex] === OverworldNodeType.Boss;
     const bossModifier = isBoss
-      ? Math.floor(this._rng() * 6) as BossModifier
+      ? this._peekBag()
       : undefined;
     if (isBoss) {
       console.log(`[LevelGeneratorService] Boss level ${levelIndex} assigned modifier: ${BossModifier[bossModifier!]} (bag ${this._modifierBagIndex}/${this._modifierBag.length})`);
@@ -277,6 +308,55 @@ export class LevelGeneratorService extends Service {
     }
 
     return { groups };
+  }
+
+  // ─── Shuffle bag helpers ──────────────────────────────────────────────────────
+
+  /** Initialize a shuffled bag with all 6 boss modifiers using the seeded PRNG. */
+  private _initShuffleBag(): void {
+    this._modifierBag = [0, 1, 2, 3, 4, 5]; // All BossModifier enum values
+    // Fisher-Yates shuffle using the seeded PRNG
+    for (let i = this._modifierBag.length - 1; i > 0; i--) {
+      const j = Math.floor(this._rng() * (i + 1));
+      const tmp = this._modifierBag[i];
+      this._modifierBag[i] = this._modifierBag[j];
+      this._modifierBag[j] = tmp;
+    }
+    this._modifierBagIndex = 0;
+    console.log(`[LevelGeneratorService] Shuffle bag initialized: [${this._modifierBag.map((m: number) => BossModifier[m]).join(', ')}]`);
+
+    // Persist the freshly-shuffled bag so returning to this biome later
+    // restores the same order (before any boss is beaten).
+    const bagState = this.getBagState();
+    const bossModState = JSON.stringify(bagState);
+    EventService.sendLocally(Events.BossModAssigned, { bossModState });
+  }
+
+  /** Peek at the current bag position WITHOUT advancing the index.
+   *  Used during level generation so the same modifier is produced every
+   *  time a biome is regenerated (deterministic per seed + bag state). */
+  private _peekBag(): BossModifier {
+    if (this._modifierBagIndex >= this._modifierBag.length) {
+      this._initShuffleBag();
+    }
+    return this._modifierBag[this._modifierBagIndex] as BossModifier;
+  }
+
+  /** Advance the bag index after a boss level is actually beaten.
+   *  This is the ONLY place the bag index moves forward, ensuring the
+   *  modifier stays stable across biome switches / regenerations. */
+  consumeBossModifier(): void {
+    if (this._modifierBagIndex >= this._modifierBag.length) {
+      this._initShuffleBag();
+    }
+    const consumed = this._modifierBag[this._modifierBagIndex] as BossModifier;
+    this._modifierBagIndex++;
+    console.log(`[LevelGeneratorService] Boss modifier consumed: ${BossModifier[consumed]} (bag now at ${this._modifierBagIndex}/${this._modifierBag.length})`);
+
+    // Persist the updated bag state
+    const bagState = this.getBagState();
+    const bossModState = JSON.stringify(bagState);
+    EventService.sendLocally(Events.BossModAssigned, { bossModState });
   }
 
   // ─── Path generation ──────────────────────────────────────────────────────────

@@ -47,7 +47,7 @@ import {
 import type { Maybe } from 'meta/worlds';
 
 import { Events, GamePhase, OverworldNodeState, UiEvents, BOSS_MODIFIER_LABELS } from '../Types';
-import { BIOME_DEFS } from '../Defs/BiomeDefs';
+import { BIOME_DEFS, BIOME_ORDER } from '../Defs/BiomeDefs';
 import { RelicService } from '../Services/RelicService';
 import { RELIC_DEFS } from '../Defs/RelicDefs';
 import type { IRelicDef } from '../Defs/RelicDefs';
@@ -165,6 +165,7 @@ export class OverworldViewModel extends UiViewModel {
     relicCarouselTap: UiEvents.relicCarouselTap,
     relicCarouselSwipe: UiEvents.relicCarouselSwipe,
     skullSectionTap: UiEvents.skullSectionTap,
+    biomeArrowTap: UiEvents.biomeArrowTap,
   };
 
   visible: boolean = false;
@@ -184,6 +185,28 @@ export class OverworldViewModel extends UiViewModel {
   relicPulseActive: boolean = false;
   /** Skull metaprogression currency count */
   skullCount: number = 0;
+
+  // Biome navigation arrows
+  /** Whether the right (next) biome arrow is visible */
+  biomeArrowVisible: boolean = false;
+  /** Label for the right arrow (e.g. "SNOW") */
+  biomeArrowLabel: string = '';
+  /** Main color for the right arrow (hex string, e.g. "#2196F3") */
+  biomeArrowRightColor: string = '#81D4FA';
+  /** Glow color for the right arrow (hex with alpha) */
+  biomeArrowRightGlowColor: string = '#AA81D4FA';
+  /** Destination biome type for the right arrow (for icon switching: 'grass'|'snow'|'volcano') */
+  biomeArrowRightType: string = 'snow';
+  /** Whether the left (prev) biome arrow is visible */
+  biomeArrowLeftVisible: boolean = false;
+  /** Label for the left arrow (e.g. "GRASS") */
+  biomeArrowLeftLabel: string = '';
+  /** Main color for the left arrow (hex string) */
+  biomeArrowLeftColor: string = '#4CAF50';
+  /** Glow color for the left arrow (hex with alpha) */
+  biomeArrowLeftGlowColor: string = '#AA4CAF50';
+  /** Destination biome type for the left arrow (for icon switching) */
+  biomeArrowLeftType: string = 'grass';
 
   // Carousel overlay state
   carouselVisible: boolean = false;
@@ -265,6 +288,7 @@ export class OverworldHud extends Component {
     this._populateLevels();
     this._refreshRelicIcons();
     this._updateRunLabel();
+    this._updateBiomeArrow();
 
     // Apply any buffered progress that arrived before initialization
     if (this.pendingBeatenLevels) {
@@ -293,6 +317,7 @@ export class OverworldHud extends Component {
       this._refreshNodeStates();
       this._refreshRelicIcons();
       this._updateRunLabel();
+      this._updateBiomeArrow();
       // Refresh skull count on every overworld entry (covers skill tree purchases
       // and any other path that changes the count mid-session)
       if (this.viewModel) {
@@ -339,14 +364,22 @@ export class OverworldHud extends Component {
     LevelGeneratorService.get().setRunCount(currentRun);
     console.log(`[OverworldHud] Run count restored from save: completed=${payload.runCount}, currentRun=${currentRun}`);
 
+    // Restore boss modifier shuffle-bag state for this biome
+    const bossBag = SaveService.get().getBossBagState();
+    if (bossBag.bag.length > 0) {
+      LevelGeneratorService.get().restoreBagState(bossBag);
+      console.log(`[OverworldHud] Boss mod bag restored on load: [${bossBag.bag.join(',')}] idx=${bossBag.idx}`);
+    }
+
     // Restore skull count into the ViewModel
     if (this.viewModel) {
       this.viewModel.skullCount = payload.skulls;
     }
 
     if (payload.beaten.length === 0) {
-      // Fresh save — no beaten levels, but still update the run label
+      // Fresh save — no beaten levels, but still update the run label and arrows
       this._updateRunLabel();
+      this._updateBiomeArrow();
       return;
     }
 
@@ -358,6 +391,7 @@ export class OverworldHud extends Component {
     }
 
     this._applyRestoredProgress(payload.beaten);
+    this._updateBiomeArrow();
   }
 
   /** Apply restored progress data to levelStates and refresh the UI */
@@ -393,6 +427,7 @@ export class OverworldHud extends Component {
     // Refresh the ViewModel
     this._refreshNodeStates();
     this._updateRunLabel();
+    this._updateBiomeArrow();
     console.log(`[OverworldHud] Progress restored successfully`);
   }
 
@@ -479,6 +514,86 @@ export class OverworldHud extends Component {
     console.log('[OverworldHud] Skull section tapped, opening skill tree');
   }
 
+  @subscribe(UiEvents.biomeArrowTap, { execution: ExecuteOn.Owner })
+  onBiomeArrowTap(_payload: UiEvents.BiomeArrowTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    if (!this.viewModel.visible) return;
+
+    // Dismiss relic carousel if open
+    this.viewModel.carouselVisible = false;
+
+    // Determine direction from CommandParameter ('next' or 'prev')
+    const direction = _payload.parameter;
+    const currentBiome = SaveService.get().activeBiome;
+    const currentIdx = BIOME_ORDER.indexOf(currentBiome);
+
+    let targetIdx: number;
+    if (direction === 'prev') {
+      targetIdx = currentIdx - 1;
+      if (targetIdx < 0) return; // already on first biome
+    } else {
+      targetIdx = currentIdx + 1;
+      if (targetIdx >= BIOME_ORDER.length) return; // already on last biome
+    }
+    const nextBiomeId = BIOME_ORDER[targetIdx];
+
+    console.log(`[OverworldHud] Biome arrow tapped (${direction}): ${currentBiome} → ${nextBiomeId}`);
+
+    // Reset generation state so the new biome's levels regenerate (without incrementing run count)
+    LevelGeneratorService.get().resetGeneration();
+
+    // Switch biome in save service (fires BiomeChanged, SaveRestored internally)
+    SaveService.get().switchBiome(nextBiomeId);
+
+    // Directly set the background image — don't rely solely on event-driven onBiomeChanged
+    // (event delivery from a service singleton may not reach this component synchronously)
+    const bgTexture = BIOME_BACKGROUNDS[nextBiomeId];
+    if (bgTexture) {
+      this.viewModel.backgroundImage = bgTexture;
+      console.log(`[OverworldHud] Background set directly to ${nextBiomeId}`);
+    }
+
+    // Restore the run count from the new biome's save so the run label is correct
+    const restoredRunCount = SaveService.get().getRunCount() + 1;
+    LevelGeneratorService.get().setRunCount(restoredRunCount);
+
+    // Restore the boss modifier shuffle-bag state for the new biome
+    const bossBag = SaveService.get().getBossBagState();
+    if (bossBag.bag.length > 0) {
+      LevelGeneratorService.get().restoreBagState(bossBag);
+      console.log(`[OverworldHud] Boss mod bag restored on biome switch: [${bossBag.bag.join(',')}] idx=${bossBag.idx}`);
+    } else {
+      // New biome has never been played — keep current bag state so the next boss
+      // draws a DIFFERENT modifier. Clearing and re-initing would produce the same
+      // shuffle (same PRNG seed), which is the "same modifier every biome" bug.
+      console.log(`[OverworldHud] New biome has no saved bag state, preserving current bag idx=${LevelGeneratorService.get().getBagState().idx}`);
+    }
+
+    // Re-initialize level states and layout for the new biome
+    this._initLevelStates();
+    this._populateLevels();
+
+    // Now apply the new biome's saved progress ON TOP of the fresh init
+    // (this must come AFTER _initLevelStates + _populateLevels so nodes exist)
+    const beaten = SaveService.get().getBeaten();
+    if (beaten.length > 0 && beaten.some(b => b)) {
+      console.log(`[OverworldHud] Applying biome progress after switch: ${JSON.stringify(beaten)}`);
+      this._applyRestoredProgress(beaten);
+    }
+
+    // Explicitly restore relics from the new biome's save data. Event delivery
+    // (SaveRestored → RelicService.onSaveRestored) may be deferred, so we must
+    // update RelicService directly before reading from it below.
+    const newBiomeRelics = SaveService.get().getRelics();
+    RelicService.get().restore(newBiomeRelics);
+    console.log(`[OverworldHud] Explicitly restored relics for ${nextBiomeId}: [${newBiomeRelics.join(', ')}]`);
+
+    this._refreshRelicIcons();
+    this._updateRunLabel();
+    this._updateBiomeArrow();
+  }
+
   // -- Private --
 
   /** Initialize level states: first level open, rest locked */
@@ -501,6 +616,8 @@ export class OverworldHud extends Component {
     console.log('[OverworldHud] All levels beaten! Advancing to next run');
     LevelGeneratorService.get().advanceRun();
     RelicService.get().reset();
+    SaveService.get().clearRelics();
+    SaveService.get().clearBeaten();
     this._initLevelStates();
     this._populateLevels();
 
@@ -1103,6 +1220,54 @@ export class OverworldHud extends Component {
       dots.push(dot);
     }
     this.viewModel.carouselDots = dots;
+  }
+
+  /** Biome-specific arrow colors: main color and glow (with alpha). */
+  private static readonly BIOME_ARROW_COLORS: Record<string, { main: string; glow: string }> = {
+    grass: { main: '#4CAF50', glow: '#AA4CAF50' },
+    snow: { main: '#81D4FA', glow: '#AA81D4FA' },
+    volcano: { main: '#F44336', glow: '#AAF44336' },
+  };
+
+  /** Update biome arrow visibility, label, color, and icon type based on destination biome.
+   *  @param biomeOverride If provided, use this biome ID instead of reading from SaveService.
+   *                       Eliminates timing dependency on switchBiome() having committed the state.
+   */
+  private _updateBiomeArrow(biomeOverride?: string): void {
+    if (!this.viewModel) return;
+    const currentBiome = biomeOverride ?? SaveService.get().activeBiome;
+    const currentIdx = BIOME_ORDER.indexOf(currentBiome);
+    console.log(`[OverworldHud] _updateBiomeArrow: biome=${currentBiome}, idx=${currentIdx}, order=${BIOME_ORDER.length}`);
+
+    // Right arrow (next biome): hidden on the last biome
+    const isLast = currentIdx >= BIOME_ORDER.length - 1;
+    this.viewModel.biomeArrowVisible = !isLast && BIOME_ORDER.length > 1;
+    if (!isLast) {
+      const nextBiomeId = BIOME_ORDER[currentIdx + 1];
+      const nextBiomeDef = BIOME_DEFS.find(b => b.id === nextBiomeId);
+      this.viewModel.biomeArrowLabel = nextBiomeDef ? nextBiomeDef.name.toUpperCase() : '';
+      // Set color and icon type based on destination biome
+      const colors = OverworldHud.BIOME_ARROW_COLORS[nextBiomeId] || OverworldHud.BIOME_ARROW_COLORS['grass'];
+      this.viewModel.biomeArrowRightColor = colors.main;
+      this.viewModel.biomeArrowRightGlowColor = colors.glow;
+      this.viewModel.biomeArrowRightType = nextBiomeId;
+    }
+
+    // Left arrow (prev biome): hidden on the first biome
+    const isFirst = currentIdx <= 0;
+    this.viewModel.biomeArrowLeftVisible = !isFirst && BIOME_ORDER.length > 1;
+    if (!isFirst) {
+      const prevBiomeId = BIOME_ORDER[currentIdx - 1];
+      const prevBiomeDef = BIOME_DEFS.find(b => b.id === prevBiomeId);
+      this.viewModel.biomeArrowLeftLabel = prevBiomeDef ? prevBiomeDef.name.toUpperCase() : '';
+      // Set color and icon type based on destination biome
+      const colors = OverworldHud.BIOME_ARROW_COLORS[prevBiomeId] || OverworldHud.BIOME_ARROW_COLORS['grass'];
+      this.viewModel.biomeArrowLeftColor = colors.main;
+      this.viewModel.biomeArrowLeftGlowColor = colors.glow;
+      this.viewModel.biomeArrowLeftType = prevBiomeId;
+    }
+
+    console.log(`[OverworldHud] Arrow states: rightVisible=${this.viewModel.biomeArrowVisible} (label=${this.viewModel.biomeArrowLabel}, type=${this.viewModel.biomeArrowRightType}), leftVisible=${this.viewModel.biomeArrowLeftVisible} (label=${this.viewModel.biomeArrowLeftLabel}, type=${this.viewModel.biomeArrowLeftType})`);
   }
 
   /** Refresh the relic button visibility from RelicService active relics. */
