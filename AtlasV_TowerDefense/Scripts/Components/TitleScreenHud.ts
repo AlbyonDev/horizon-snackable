@@ -75,6 +75,9 @@ export class TitleScreenHud extends Component {
   /** True once ProgressRestored fires (or timeout expires). Blocks Play until set. */
   private _progressLoaded: boolean = false;
 
+  /** Safety timeout handle — cleared when save arrives normally. */
+  private _timeoutId: ReturnType<typeof setTimeout> | null = null;
+
   // ── Lifecycle ─────────────────────────────────────────────────────────────────
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
@@ -95,6 +98,17 @@ export class TitleScreenHud extends Component {
     // this panel bound), then keep it in sync via SaveRestored below.
     this._setLoading(!SaveService.get().isLoaded);
 
+    // Safety timeout: if save never arrives, unblock Play after PROGRESS_LOAD_TIMEOUT_MS
+    if (!SaveService.get().isLoaded) {
+      this._timeoutId = setTimeout(() => {
+        this._timeoutId = null;
+        if (!SaveService.get().isLoaded) {
+          console.log('[TitleScreenHud] Timeout — enabling Play without save data');
+          this._setLoading(false);
+        }
+      }, PROGRESS_LOAD_TIMEOUT_MS);
+    }
+
     // Show panel now that binding is complete
     this.uiComponent.isVisible = true;
     console.log('[TitleScreenHud] Panel bound and shown');
@@ -110,6 +124,11 @@ export class TitleScreenHud extends Component {
   @subscribe(Events.SaveRestored, { execution: ExecuteOn.Owner })
   onSaveRestored(_p: Events.SaveRestoredPayload): void {
     if (NetworkingService.get().isServerContext()) return;
+    // Clear safety timeout — save arrived normally
+    if (this._timeoutId !== null) {
+      clearTimeout(this._timeoutId);
+      this._timeoutId = null;
+    }
     // Cloud save received — enable the Play button.
     this._setLoading(false);
     console.log('[TitleScreenHud] Save loaded — Play enabled');
@@ -130,11 +149,10 @@ export class TitleScreenHud extends Component {
     if (!this.viewModel) return;
     if (!this.viewModel.visible) return;
 
-    // Block until the cloud save has been received. Tapping "Play" before the
-    // load arrives would mint a new run and overwrite the real save. The load
-    // completes within a network round-trip of join, so this is momentary.
-    if (!SaveService.get().isLoaded) {
-      console.log('[TitleScreenHud] Play tapped before save loaded — ignored');
+    // Block if still in loading state (button shows LOADING and is visually disabled).
+    // Once the timeout or SaveRestored fires, isLoading becomes false and play is allowed.
+    if (this.viewModel.isLoading) {
+      console.log('[TitleScreenHud] Play tapped while still loading — ignored');
       return;
     }
 
