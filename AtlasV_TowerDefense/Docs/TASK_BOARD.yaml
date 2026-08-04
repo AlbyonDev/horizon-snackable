@@ -83,6 +83,7 @@ done:
   - Skill Tree UI Refactor -- hazy gradient, circular nodes, wavy cross-links
   - Skill Tree 40 Nodes Expansion -- 13 tiers x 3 branches, graph defs, full UI
   - Scrollable Tower Shop -- smooth finger drag + tap-to-center, clamped edges
+  - Fire Canon Tower -- 120g AoE fire tower with mesh, template, shop icon
 
 chopping_block:
   disabled_systems: []

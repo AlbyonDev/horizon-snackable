@@ -70,4 +70,18 @@ export const TOWER_DEFS: ITowerDef[] = [
       [[Upg.damage(250), Upg.range(250)],    [Upg.rate(250),    Upg.range(250)]],
     ),
   },
+  // ── Fire Cannon ───────────────────────────────────────────────────────────────
+  // Heavy AoE with burn flavor. Bigger explosions OR rapid bombardment.
+  // Splash path → massive fire zone, then faster salvos or longer reach
+  // Damage path → devastating blasts, then rapid fire or extended range
+  {
+    id: 'fire_cannon', name: 'Fire Cannon', cost: 120,
+    stats: { damage: 35, range: 2.20, fireRate: 0.7, projectileSpeed: 4.5,
+      props: { splashRadius: 0.6, projectileScale: 0.15, projectileColor: { r: 0.95, g: 0.35, b: 0.05 }, arcHeight: 1.5 } },
+    template: Assets.FireCannon,
+    upgrades: tree(
+      [Upg.splash(100),  Upg.damage(100)],
+      [[Upg.rate(150),   Upg.range(150)],    [Upg.rate(150),    Upg.splash(150)]],
+    ),
+  },
 ];

@@ -37,6 +37,7 @@ const TOWER_COLORS: Record<string, string> = {
   cannon: '#55e67e22',
   frost:  '#5500bcd4',
   laser:  '#559b59b6',
+  fire_cannon: '#55ff4500',
   test:   '#55ff6b00',
 };
 
@@ -45,6 +46,7 @@ const TOWER_SECONDARY_COLORS: Record<string, string> = {
   cannon: '#a85a18',
   frost:  '#007a8a',
   laser:  '#6a3a7d',
+  fire_cannon: '#b33000',
   test:   '#b34700',
 };
 
@@ -368,6 +370,7 @@ export class TowerShopHud extends Component {
         cannon: TowerIcons.CanonTower,
         frost: TowerIcons.FrostTower,
         laser: TowerIcons.LaserTower,
+        fire_cannon: TowerIcons.FireCanonTower,
       };
       if (TOWER_ICON_MAP[def.id]) {
         item.icon = TOWER_ICON_MAP[def.id];

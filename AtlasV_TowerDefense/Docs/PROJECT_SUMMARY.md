@@ -142,7 +142,7 @@ Scripts/
   Assets.ts         — ALL TemplateAsset declarations (single source of truth)
 
   Defs/
-    TowerDefs.ts    — TOWER_DEFS: ITowerDef[] (4 towers + upgrade trees)
+    TowerDefs.ts    — TOWER_DEFS: ITowerDef[] (5 towers + upgrade trees)
     EnemyDefs.ts    — ENEMY_DEFS: IEnemyDef[] (4 enemy types)
     LevelDefs.ts    — LEVEL_DEFS: ILevelDef[] (20 waves, 1 level, includes path waypoints); WAVES_LEVEL_0 exported but unused by runtime
     PathDefs.ts     — PATH_WAYPOINTS_LEVEL_0 exported but unused by runtime (legacy reference data)
@@ -215,6 +215,7 @@ Scripts/
 | `cannon` | Cannon | 100g | 40 | 2.10 | 0.6/s | r=0.75 | Arc projectile |
 | `frost` | Frost | 80g | 5 | 2.28 | 1.0/s | — | Slow 50% / 1.5s |
 | `laser` | Laser | 200g | 8 | 3.60 | 5.0/s | — | Highest base DPS |
+| `fire_cannon` | Fire Cannon | 120g | 35 | 2.20 | 0.7/s | r=0.6 | Arc AoE, fiery orange projectile |
 
 ---
 
