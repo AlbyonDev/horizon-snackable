@@ -50,6 +50,8 @@ export class AchievementRewardTierViewModel extends UiViewModel {
   rowOpacity: number = 0.5;
   /** Parameter for claim button: "groupId:tierIndex" */
   claimParam: string = '';
+  /** Dynamic claim button text: "Claim X" where X is the skull reward */
+  claimButtonText: string = 'Claim';
   /** Tier background color (shifted tier coloring) */
   tierBgColor: string = '#00000000';
 }
@@ -73,6 +75,10 @@ export class AchievementGaugeViewModel extends UiViewModel {
   groupIndex: string = '0';
   /** Tier background color hex (ARGB) based on completed tiers */
   tierBgColor: string = '#00000000';
+  /** Whether the skull button should show the pulse animation (unclaimed rewards exist) */
+  skullAnimVisible: boolean = false;
+  /** Whether the skull button should be static (no unclaimed rewards) */
+  skullStaticVisible: boolean = true;
 }
 
 // --- Reward popup ViewModel ---
@@ -237,6 +243,7 @@ export class AchievementHudController extends Component {
       const reward = i < TIER_REWARDS.length ? TIER_REWARDS[i] : TIER_REWARDS[TIER_REWARDS.length - 1];
       tier.skullReward = `${reward}`;
       tier.claimParam = `${group.id}:${i}`;
+      tier.claimButtonText = `Claim ${reward}`;
 
       // Tier background color in popup: only completed tiers get color; current/in-progress = transparent
       const tierCompleted = completed || isClaimed;
@@ -336,6 +343,8 @@ export class AchievementHudController extends Component {
       const hasUnclaimedRewards = claimed < completedTierCount;
       row.rewardButtonText = hasUnclaimedRewards ? 'Claim' : 'Rewards';
       row.rewardButtonColor = hasUnclaimedRewards ? '#FFf5c518' : '#FF888888';
+      row.skullAnimVisible = hasUnclaimedRewards;
+      row.skullStaticVisible = !hasUnclaimedRewards;
       row.groupIndex = `${gi}`;
 
       // Tier background color based on how many tiers completed (subtle ~25% opacity)

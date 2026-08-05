@@ -506,7 +506,36 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- LEFT SECTION: Achievements (trophy button) -->
+                    <!-- LEFT SECTION: Achievements (trophy button)
+                         STANDARD BUTTON ANIMATION: All clickable buttons in this project should
+                         reuse the same animation style as this Trophies button. Copy this pattern
+                         for any new button: wrapper Grid with ScaleTransform + named glow Border,
+                         Storyboard (RepeatBehavior="Forever") animating ScaleX/ScaleY 1.0→1.06
+                         and glow Opacity 0.0→1.0, Duration 0:0:0.9, SineEase EaseInOut,
+                         AutoReverse="True". Auto-play via b:EventTrigger > ControlStoryboardAction. -->
+                    <!--
+                        STANDARD BUTTON ANIMATION: All clickable buttons in this project
+                        should reuse the same animation style as this Trophies button.
+                        Copy this pattern for any new button:
+                        - Wrapper Grid with RenderTransformOrigin="0.5,0.5", ClipToBounds="False"
+                        - Named ScaleTransform on Grid.RenderTransform
+                        - Storyboard: ScaleX/Y 1.0→1.06, Duration 0:0:0.9, SineEase EaseInOut, AutoReverse
+                        - Gold glow Border: Opacity 0→1, BorderBrush="#AAf5c518", BorderThickness="10"
+                        - Auto-play via b:EventTrigger > b:ControlStoryboardAction
+                    -->
+                    <!--
+                        STANDARD BUTTON ANIMATION: All clickable buttons in this project
+                        should reuse the same animation style as this Trophies button.
+                        Copy this pattern for any new button:
+                          - Grid wrapper with RenderTransformOrigin="0.5,0.5", ClipToBounds="False"
+                          - Named ScaleTransform on Grid.RenderTransform
+                          - Storyboard (RepeatBehavior="Forever") with DoubleAnimation:
+                              ScaleX/ScaleY 1.0→1.06, Duration 0:0:0.9, AutoReverse=True, SineEase EaseInOut
+                              Glow Border Opacity 0.0→1.0, same timing
+                          - Outer glow Border (Opacity="0", BorderBrush="#AAf5c518",
+                            BorderThickness="10", CornerRadius="24", Margin="-8,-8,-8,-8")
+                          - Auto-play via b:EventTrigger + b:ControlStoryboardAction
+                    -->
                     <Grid Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"
                           RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
                         <Grid.RenderTransform><ScaleTransform x:Name="AchievementScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
