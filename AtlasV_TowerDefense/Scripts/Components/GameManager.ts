@@ -166,6 +166,9 @@ export class GameManager extends Component {
     if (won) {
       const lcp = new Events.LevelCompletedPayload();
       lcp.levelIndex = this._currentLevelIndex;
+      // Pass the boss skull reward from the level def so SaveService doesn't need to import LevelGeneratorService
+      const levelDef = LevelGeneratorService.get().getLevelDef(this._currentLevelIndex);
+      lcp.bossSkullReward = levelDef.bossSkullReward ?? 3;
       EventService.sendLocally(Events.LevelCompleted, lcp);
       console.log(`[GameManager] Level ${this._currentLevelIndex + 1} completed, firing LevelCompleted (isBoss=${p.isBossVictory})`);
 

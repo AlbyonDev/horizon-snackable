@@ -227,8 +227,12 @@ export class LevelGeneratorService extends Service {
     const bossModifier = isBoss
       ? this._peekBag()
       : undefined;
+    // Randomize boss skull reward: 3, 4, or 5 (deterministic from seeded PRNG)
+    const bossSkullReward = isBoss
+      ? 3 + Math.floor(this._rng() * 3)
+      : undefined;
     if (isBoss) {
-      console.log(`[LevelGeneratorService] Boss level ${levelIndex} assigned modifier: ${BossModifier[bossModifier!]} (bag ${this._modifierBagIndex}/${this._modifierBag.length})`);
+      console.log(`[LevelGeneratorService] Boss level ${levelIndex} assigned modifier: ${BossModifier[bossModifier!]} (bag ${this._modifierBagIndex}/${this._modifierBag.length}), skullReward: ${bossSkullReward}`);
     }
     return {
       startGold: START_GOLD,
@@ -236,6 +240,7 @@ export class LevelGeneratorService extends Service {
       pathWaypoints,
       waves,
       bossModifier,
+      bossSkullReward,
     };
   }
 

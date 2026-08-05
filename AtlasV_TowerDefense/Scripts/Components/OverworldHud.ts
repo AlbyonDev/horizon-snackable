@@ -46,7 +46,7 @@ import {
 } from 'meta/worlds';
 import type { Maybe } from 'meta/worlds';
 
-import { Events, GamePhase, OverworldNodeState, UiEvents, BOSS_MODIFIER_LABELS } from '../Types';
+import { Events, GamePhase, OverworldNodeState, UiEvents, BOSS_MODIFIER_LABELS, BOSS_MODIFIER_DESCRIPTIONS } from '../Types';
 import { BIOME_DEFS, BIOME_ORDER } from '../Defs/BiomeDefs';
 import { RelicService } from '../Services/RelicService';
 import { RELIC_DEFS } from '../Defs/RelicDefs';
@@ -57,6 +57,7 @@ import { TOTAL_LEVELS } from '../Constants';
 import { MinigameHud } from './MinigameHud';
 import { SaveService } from '../Services/SaveService';
 import { OpenSkillTreeEvent, OpenSkillTreePayload } from './SkillTreeHudController';
+import { OpenAchievementsEvent, OpenAchievementsPayload } from './AchievementHudController';
 
 // Pre-defined TextureAssets for each biome background (must be static string literals)
 const BG_GRASS = new TextureAsset('@sprites/overworld_background-grass.png');
@@ -116,6 +117,10 @@ export class OverworldPathNodeViewModel extends UiViewModel {
   modifierMargin: string = '230,0,0,0';
   /** X offset for boss modifier badge RenderTransform (nodeSize + extra gap) */
   modifierOffsetX: number = 230;
+  /** Whether to show the skull reward badge (boss nodes that aren't beaten) */
+  showSkullReward: boolean = false;
+  /** Text for the skull reward badge (e.g. "+3") */
+  skullRewardText: string = '+3';
 }
 
 // -- Relic Icon sub-ViewModel --
@@ -166,6 +171,9 @@ export class OverworldViewModel extends UiViewModel {
     relicCarouselSwipe: UiEvents.relicCarouselSwipe,
     skullSectionTap: UiEvents.skullSectionTap,
     biomeArrowTap: UiEvents.biomeArrowTap,
+    achievementTap: UiEvents.achievementTap,
+    bossInfoTap: UiEvents.bossInfoTap,
+    bossInfoCloseTap: UiEvents.bossInfoCloseTap,
   };
 
   visible: boolean = false;
@@ -212,6 +220,12 @@ export class OverworldViewModel extends UiViewModel {
   carouselVisible: boolean = false;
   carouselCards: readonly RelicCarouselCardViewModel[] = [];
   carouselDots: readonly RelicCarouselDotViewModel[] = [];
+
+  // Boss info popup state
+  bossPopupVisible: boolean = false;
+  bossPopupModifierName: string = '';
+  bossPopupModifierDescription: string = '';
+  bossPopupRewardText: string = '+3';
 }
 
 // -- Component --
@@ -514,6 +528,53 @@ export class OverworldHud extends Component {
     console.log('[OverworldHud] Skull section tapped, opening skill tree');
   }
 
+  @subscribe(UiEvents.achievementTap, { execution: ExecuteOn.Owner })
+  onAchievementTap(_payload: UiEvents.AchievementTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    if (!this.viewModel.visible) return;
+
+    // Dismiss relic carousel if open
+    this.viewModel.carouselVisible = false;
+
+    // Fire the OpenAchievements event for AchievementHudController
+    EventService.sendLocally(OpenAchievementsEvent, new OpenAchievementsPayload());
+    console.log('[OverworldHud] Achievement button tapped, opening achievements');
+  }
+
+  @subscribe(UiEvents.bossInfoTap, { execution: ExecuteOn.Owner })
+  onBossInfoTap(payload: UiEvents.BossInfoTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    if (!this.viewModel.visible) return;
+
+    // Dismiss relic carousel if open
+    this.viewModel.carouselVisible = false;
+
+    // The parameter is the levelIndex string
+    const levelIndex = parseInt(payload.parameter, 10);
+    if (isNaN(levelIndex)) return;
+
+    const levelDef = LevelGeneratorService.get().getLevelDef(levelIndex);
+    if (levelDef.bossModifier === undefined) return;
+
+    // Populate popup
+    this.viewModel.bossPopupModifierName = BOSS_MODIFIER_LABELS[levelDef.bossModifier];
+    this.viewModel.bossPopupModifierDescription = BOSS_MODIFIER_DESCRIPTIONS[levelDef.bossModifier];
+    const reward = levelDef.bossSkullReward ?? 3;
+    this.viewModel.bossPopupRewardText = `+${reward}`;
+    this.viewModel.bossPopupVisible = true;
+    console.log(`[OverworldHud] Boss info popup opened for level ${levelIndex}: ${BOSS_MODIFIER_LABELS[levelDef.bossModifier]}, reward=${reward}`);
+  }
+
+  @subscribe(UiEvents.bossInfoCloseTap, { execution: ExecuteOn.Owner })
+  onBossInfoCloseTap(_payload: UiEvents.BossInfoCloseTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    this.viewModel.bossPopupVisible = false;
+    console.log('[OverworldHud] Boss info popup closed');
+  }
+
   @subscribe(UiEvents.biomeArrowTap, { execution: ExecuteOn.Owner })
   onBiomeArrowTap(_payload: UiEvents.BiomeArrowTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -688,6 +749,13 @@ export class OverworldHud extends Component {
       const state = i < this.levelStates.length ? this.levelStates[i] : OverworldNodeState.Locked;
       node.nodeState = this._stateToString(state);
       node.isInteractable = state === OverworldNodeState.Open;
+      // Show skull reward badge on boss nodes that aren't beaten
+      if (src.nodeType === OverworldNodeType.Boss) {
+        node.showSkullReward = state !== OverworldNodeState.Beaten;
+        const levelDef = LevelGeneratorService.get().getLevelDef(i);
+        const reward = levelDef.bossSkullReward ?? 3;
+        node.skullRewardText = `+${reward}`;
+      }
       updatedNodes.push(node);
     }
 
@@ -908,6 +976,10 @@ export class OverworldHud extends Component {
         }
         node.modifierMargin = `${size + 50},0,0,0`;
         node.modifierOffsetX = size + 50;
+        // Show skull reward badge on boss nodes that aren't beaten
+        node.showSkullReward = state !== OverworldNodeState.Beaten;
+        const reward = levelDef.bossSkullReward ?? 3;
+        node.skullRewardText = `+${reward}`;
       } else {
         node.modifierMargin = `${size + 50},0,0,0`;
         node.modifierOffsetX = size + 50;

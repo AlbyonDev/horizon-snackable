@@ -62,7 +62,7 @@ interface TdBiomeSave {
 // ── V2 save format (biome-aware) ────────────────────────────────────────────────
 interface TdSaveDataV2 {
   v: 2;
-  global: { sk: number; st: number[] };
+  global: { sk: number; st: number[]; ek: number; rg: number; ri: number; rv: number; tb: number; ts: number; pr: number; ge: number; ar: Record<string, number> };
   biomes: Record<string, TdBiomeSave>;
   activeBiome: string;
 }
@@ -82,7 +82,7 @@ function defaultBiomeSave(): TdBiomeSave {
 }
 
 function defaultSaveV2(): TdSaveDataV2 {
-  return { v: 2, global: { sk: 0, st: [] }, biomes: {}, activeBiome: 'grass' };
+  return { v: 2, global: { sk: 0, st: [], ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {} }, biomes: {}, activeBiome: 'grass' };
 }
 
 @service()
@@ -106,6 +106,9 @@ export class SaveService extends Service {
 
   /** Node type of the currently-playing level (set on LevelSelected). */
   private _currentNodeType: string = OverworldNodeType.Combat;
+
+  /** Tracks whether any life was lost during the current level (for perfect run detection). */
+  private _livesLostThisLevel: boolean = false;
 
   // ── Active biome ────────────────────────────────────────────────────────────
   private _activeBiome: string = 'grass';
@@ -140,6 +143,47 @@ export class SaveService extends Service {
   getRelics(): string[] { return this._biome().relics.slice(); }
   getSkullCount(): number { return this._data.global.sk; }
   getSkillTreeState(): number[] { return this._data.global.st.slice(); }
+
+  // Achievement stat accessors
+  getEnemiesKilled(): number { return this._data.global.ek ?? 0; }
+  getGrassRuns(): number { return this._data.global.rg ?? 0; }
+  getIceRuns(): number { return this._data.global.ri ?? 0; }
+  getVolcanoRuns(): number { return this._data.global.rv ?? 0; }
+  getTowersBought(): number { return this._data.global.tb ?? 0; }
+  getTowersSold(): number { return this._data.global.ts ?? 0; }
+  getPerfectRuns(): number { return this._data.global.pr ?? 0; }
+  getGoldEarned(): number { return this._data.global.ge ?? 0; }
+
+  /** Get how many tier rewards have been claimed for a given achievement group. */
+  getClaimedTiers(groupId: string): number {
+    return this._data.global.ar[groupId] ?? 0;
+  }
+
+  /** Claim the next tier reward for an achievement group. Awards skulls and persists. Client-only. */
+  claimTierReward(groupId: string, skullAmount: number): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    if (!this._data.global.ar) this._data.global.ar = {};
+    this._data.global.ar[groupId] = (this._data.global.ar[groupId] ?? 0) + 1;
+    this._data.global.sk += skullAmount;
+    console.log(`[SaveService] Claimed tier reward for ${groupId}: +${skullAmount} skulls (total: ${this._data.global.sk}, claimed: ${this._data.global.ar[groupId]})`);
+    this._requestSave();
+  }
+
+  /** Get a stat value by key ('ek' | 'rg' | 'ri' | 'rv' | 'tb' | 'ts' | 'pr' | 'ge'). */
+  getAchievementStat(key: string): number {
+    switch (key) {
+      case 'ek': return this._data.global.ek ?? 0;
+      case 'rg': return this._data.global.rg ?? 0;
+      case 'ri': return this._data.global.ri ?? 0;
+      case 'rv': return this._data.global.rv ?? 0;
+      case 'tb': return this._data.global.tb ?? 0;
+      case 'ts': return this._data.global.ts ?? 0;
+      case 'pr': return this._data.global.pr ?? 0;
+      case 'ge': return this._data.global.ge ?? 0;
+      default: return 0;
+    }
+  }
 
   /** Get the boss modifier shuffle-bag state for the active biome. */
   getBossBagState(): { bag: number[]; idx: number } {
@@ -327,6 +371,7 @@ export class SaveService extends Service {
   onLevelSelected(p: Events.LevelSelectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     this._currentNodeType = p.nodeType;
+    this._livesLostThisLevel = false; // Reset perfect run tracking for new level
   }
 
   @subscribe(Events.LevelCompleted, { execution: ExecuteOn.Owner })
@@ -334,10 +379,42 @@ export class SaveService extends Service {
     if (NetworkingService.get().isServerContext()) return;
     this.markLevelBeaten(p.levelIndex);
 
-    // Award skulls: +5 for boss, +1 for combat
-    const skullsEarned = this._currentNodeType === OverworldNodeType.Boss ? 5 : 1;
-    this._data.global.sk += skullsEarned;
-    console.log(`[SaveService] Skulls earned: +${skullsEarned} (total: ${this._data.global.sk})`);
+    // Award skulls: randomized reward for boss victories (3-5), regular combat levels give no skulls
+    if (this._currentNodeType === OverworldNodeType.Boss) {
+      const reward = p.bossSkullReward || 3;
+      this._data.global.sk += reward;
+      console.log(`[SaveService] Skulls earned: +${reward} (total: ${this._data.global.sk})`);
+    }
+
+    // Perfect run check: no lives lost during this level
+    if (!this._livesLostThisLevel) {
+      this._data.global.pr = (this._data.global.pr ?? 0) + 1;
+      console.log(`[SaveService] Perfect run! Total: ${this._data.global.pr}`);
+    }
+
+    this._requestSave();
+  }
+
+  @subscribe(Events.EnemyDied, { execution: ExecuteOn.Owner })
+  onEnemyDiedForStats(_p: Events.EnemyDiedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    this._data.global.ek = (this._data.global.ek ?? 0) + 1;
+    // Debounce: don't persist on every single kill, rely on next save trigger
+  }
+
+  @subscribe(Events.RunAdvanced, { execution: ExecuteOn.Owner })
+  onRunAdvancedForStats(p: Events.RunAdvancedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    // Increment the run counter for the active biome
+    const biomeKey = this._activeBiome === 'snow' ? 'ri' : this._activeBiome === 'volcano' ? 'rv' : 'rg';
+    switch (biomeKey) {
+      case 'rg': this._data.global.rg = (this._data.global.rg ?? 0) + 1; break;
+      case 'ri': this._data.global.ri = (this._data.global.ri ?? 0) + 1; break;
+      case 'rv': this._data.global.rv = (this._data.global.rv ?? 0) + 1; break;
+    }
+    console.log(`[SaveService] Achievement stat ${biomeKey} incremented to ${this._data.global[biomeKey as 'rg' | 'ri' | 'rv']}`);
     this._requestSave();
   }
 
@@ -350,6 +427,60 @@ export class SaveService extends Service {
       this.setBossBagState(state);
     } catch {
       console.log('[SaveService] Failed to parse BossModAssigned payload');
+    }
+  }
+
+  // ── Achievement stat tracking: Towers Bought ──────────────────────────────────
+
+  @subscribe(Events.TowerPlaced, { execution: ExecuteOn.Owner })
+  onTowerPlacedForStats(_p: Events.TowerPlacedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    this._data.global.tb = (this._data.global.tb ?? 0) + 1;
+    console.log(`[SaveService] Towers bought stat: ${this._data.global.tb}`);
+    this._requestSave();
+  }
+
+  // ── Achievement stat tracking: Towers Sold ────────────────────────────────────
+
+  @subscribe(Events.TowerSold, { execution: ExecuteOn.Owner })
+  onTowerSoldForStats(_p: Events.TowerSoldPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    this._data.global.ts = (this._data.global.ts ?? 0) + 1;
+    console.log(`[SaveService] Towers sold stat: ${this._data.global.ts}`);
+    this._requestSave();
+  }
+
+  // ── Achievement stat tracking: Perfect Runs ───────────────────────────────────
+  // Reset flag on level start (onLevelSelected), set flag on enemy reaching end,
+  // check on level complete.
+
+  @subscribe(Events.EnemyReachedEnd, { execution: ExecuteOn.Owner })
+  onEnemyReachedEndForPerfect(_p: Events.EnemyReachedEndPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    // An enemy reaching the end means a life was lost
+    this._livesLostThisLevel = true;
+  }
+
+  // ── Achievement stat tracking: Gold Earned ────────────────────────────────────
+
+  @subscribe(Events.CoinCollected, { execution: ExecuteOn.Owner })
+  onCoinCollectedForStats(p: Events.CoinCollectedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    this._data.global.ge = (this._data.global.ge ?? 0) + p.amount;
+    // Don't persist on every coin; rely on next save trigger to batch
+  }
+
+  @subscribe(Events.WaveCompleted, { execution: ExecuteOn.Owner })
+  onWaveCompletedForStats(p: Events.WaveCompletedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    if (p.bonusGold > 0) {
+      this._data.global.ge = (this._data.global.ge ?? 0) + p.bonusGold;
+      console.log(`[SaveService] Gold earned stat: ${this._data.global.ge}`);
+      this._requestSave();
     }
   }
 
@@ -510,7 +641,7 @@ export class SaveService extends Service {
   }
 
   private _parseV2(raw: Record<string, unknown>): TdSaveDataV2 {
-    const global = raw['global'] as { sk?: number; st?: number[] } | undefined;
+    const global = raw['global'] as { sk?: number; st?: number[]; ek?: number; rg?: number; ri?: number; rv?: number; tb?: number; ts?: number; pr?: number; ge?: number; ar?: Record<string, number> } | undefined;
     const biomes = raw['biomes'] as Record<string, Partial<TdBiomeSave>> | undefined;
     const activeBiome = typeof raw['activeBiome'] === 'string' ? raw['activeBiome'] : 'grass';
 
@@ -519,6 +650,15 @@ export class SaveService extends Service {
       global: {
         sk: typeof global?.sk === 'number' ? global.sk : 0,
         st: Array.isArray(global?.st) ? global.st.filter((n): n is number => typeof n === 'number') : [],
+        ek: typeof global?.ek === 'number' ? global.ek : 0,
+        rg: typeof global?.rg === 'number' ? global.rg : 0,
+        ri: typeof global?.ri === 'number' ? global.ri : 0,
+        rv: typeof global?.rv === 'number' ? global.rv : 0,
+        tb: typeof global?.tb === 'number' ? global.tb : 0,
+        ts: typeof global?.ts === 'number' ? global.ts : 0,
+        pr: typeof global?.pr === 'number' ? global.pr : 0,
+        ge: typeof global?.ge === 'number' ? global.ge : 0,
+        ar: (global?.ar && typeof global.ar === 'object') ? global.ar : {},
       },
       biomes: {},
       activeBiome,
@@ -556,6 +696,15 @@ export class SaveService extends Service {
       global: {
         sk: typeof raw.sk === 'number' ? raw.sk : 0,
         st: Array.isArray(raw.st) ? raw.st.filter((n): n is number => typeof n === 'number') : [],
+        ek: 0,
+        rg: 0,
+        ri: 0,
+        rv: 0,
+        tb: 0,
+        ts: 0,
+        pr: 0,
+        ge: 0,
+        ar: {},
       },
       biomes: { grass: grassBiome },
       activeBiome: 'grass',

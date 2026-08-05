@@ -29,6 +29,16 @@ export const BOSS_MODIFIER_LABELS: Record<BossModifier, string> = {
   [BossModifier.TowerDestroy]: 'Destroy towers',
 };
 
+/** Longer descriptions for the boss info popup. */
+export const BOSS_MODIFIER_DESCRIPTIONS: Record<BossModifier, string> = {
+  [BossModifier.HpUp]: 'All enemies have 20% more health',
+  [BossModifier.SpeedUp]: 'All enemies move 20% faster',
+  [BossModifier.DmgDown]: 'Your towers deal 10% less damage',
+  [BossModifier.OneLife]: 'You only have 1 life to survive',
+  [BossModifier.NoIncome]: 'Gold income reduced by 10%',
+  [BossModifier.TowerDestroy]: 'A random tower is destroyed every 5 waves',
+};
+
 export enum OverworldNodeState {
   Locked  = 0,
   Open    = 1,
@@ -220,7 +230,7 @@ export namespace Events {
   export const LevelSelected = new LocalEvent<LevelSelectedPayload>('EvLevelSelected', LevelSelectedPayload);
 
   // Level completed (fired when player wins a level, transitions back to overworld)
-  export class LevelCompletedPayload { levelIndex: number = 0; }
+  export class LevelCompletedPayload { levelIndex: number = 0; bossSkullReward: number = 0; }
   export const LevelCompleted = new LocalEvent<LevelCompletedPayload>('EvLevelCompleted', LevelCompletedPayload);
 
   // Biome changed (fired when a biome is randomly selected for a level)
@@ -359,4 +369,22 @@ export namespace UiEvents {
 
   @serializable() export class BiomeArrowTapPayload { readonly parameter: string = ''; }
   export const biomeArrowTap = new UiEvent('OverworldViewModel-onBiomeArrowTap', BiomeArrowTapPayload);
+
+  @serializable() export class AchievementTapPayload { readonly parameter: string = ''; }
+  export const achievementTap = new UiEvent('OverworldViewModel-onAchievementTap', AchievementTapPayload);
+
+  @serializable() export class AchievementCloseTapPayload { readonly parameter: string = ''; }
+  export const achievementCloseTap = new UiEvent('AchievementViewModel-onCloseTap', AchievementCloseTapPayload);
+
+  @serializable() export class AchievementSkullTapPayload { readonly parameter: string = ''; }
+  export const achievementSkullTap = new UiEvent('AchievementViewModel-onSkullTap', AchievementSkullTapPayload);
+
+  @serializable() export class AchievementClaimTapPayload { readonly parameter: string = ''; }
+  export const achievementClaimTap = new UiEvent('AchievementViewModel-onClaimTap', AchievementClaimTapPayload);
+
+  @serializable() export class BossInfoTapPayload { readonly parameter: string = ''; }
+  export const bossInfoTap = new UiEvent('OverworldViewModel-onBossInfoTap', BossInfoTapPayload);
+
+  @serializable() export class BossInfoCloseTapPayload { readonly parameter: string = ''; }
+  export const bossInfoCloseTap = new UiEvent('OverworldViewModel-onBossInfoCloseTap', BossInfoCloseTapPayload);
 }

@@ -1219,6 +1219,52 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "d8aa6f9d-4625-4309-8a13-b899ac4a82a8",
+            "name": "AchievementUI",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "8229384838102975992",
+                                "targetId": "2149638574"
+                            },
+                            "panelVisibility": false,
+                            "isInteractable": true,
+                            "isBlocking": true,
+                            "renderOrderOffset": 25
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "AchievementHudController",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "6320039029889663952",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -1335,6 +1381,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "be0be26e-ada3-4762-bfb7-d0765d195566",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "d8aa6f9d-4625-4309-8a13-b899ac4a82a8",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

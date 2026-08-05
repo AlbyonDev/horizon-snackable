@@ -19,6 +19,8 @@ export interface ILevelDef {
   waves: IWaveDef[];
   /** If this is a boss level, which single modifier applies. */
   bossModifier?: BossModifier;
+  /** Randomized skull reward for boss levels (3-5). */
+  bossSkullReward?: number;
 }
 
 // ── Act 1 (W1–5): Apprentissage — une mécanique introduite par vague ───────────

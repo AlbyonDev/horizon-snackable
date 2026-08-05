@@ -188,9 +188,9 @@ export class GameOverScreenHud extends Component {
     this.viewModel.showNextRun = payload.won && payload.isBossVictory;
     this.viewModel.showDefeatButtons = !payload.won;
 
-    // Skulls earned: +5 for boss victories, +1 for regular combat victories
-    this.viewModel.showSkullsEarned = payload.won;
-    this.viewModel.skullsEarned = payload.won ? (payload.isBossVictory ? 5 : 1) : 0;
+    // Skulls earned: +5 for boss victories only (regular combat wins give no skulls)
+    this.viewModel.showSkullsEarned = payload.won && payload.isBossVictory;
+    this.viewModel.skullsEarned = (payload.won && payload.isBossVictory) ? 5 : 0;
 
     // Show the overlay - enable native panel first, then set ViewModel
     if (this.uiComponent) {

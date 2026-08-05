@@ -252,15 +252,16 @@
                 </Grid>
 
                 <!-- Boss modifier label (shown to the right of the node for boss type only) -->
-                <Border HorizontalAlignment="Left" VerticalAlignment="Center"
-                        CornerRadius="12" Padding="28,16" BorderThickness="4"
-                        Width="420"
-                        BorderBrush="{StaticResource GoldBrush}" Background="#F00d0d1a">
-                    <Border.RenderTransform>
-                        <TranslateTransform X="{Binding modifierOffsetX}"/>
-                    </Border.RenderTransform>
-                    <Border.Style>
-                        <Style TargetType="Border">
+                <Grid HorizontalAlignment="Left" VerticalAlignment="Center"
+                      RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                    <Grid.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="BossModScale" ScaleX="1" ScaleY="1"/>
+                            <TranslateTransform X="{Binding modifierOffsetX}" Y="0"/>
+                        </TransformGroup>
+                    </Grid.RenderTransform>
+                    <Grid.Style>
+                        <Style TargetType="Grid">
                             <Setter Property="Visibility" Value="Collapsed"/>
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding nodeType}" Value="boss">
@@ -268,44 +269,185 @@
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </Border.Style>
-                    <StackPanel>
-                        <Grid HorizontalAlignment="Center" Margin="0,0,0,8">
-                            <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
-                                       FontFamily="Anton" Foreground="#FF1A1A0A"
-                                       HorizontalAlignment="Center" Margin="-2,0,0,0"/>
-                            <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
-                                       FontFamily="Anton" Foreground="#FF1A1A0A"
-                                       HorizontalAlignment="Center" Margin="2,0,0,0"/>
-                            <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
-                                       FontFamily="Anton" Foreground="#FF1A1A0A"
-                                       HorizontalAlignment="Center" Margin="0,-2,0,0"/>
-                            <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
-                                       FontFamily="Anton" Foreground="#FF1A1A0A"
-                                       HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                            <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
-                                       FontFamily="Anton" Foreground="{StaticResource GoldBrush}"
-                                       HorizontalAlignment="Center"/>
-                        </Grid>
-                        <Grid HorizontalAlignment="Center" MaxWidth="360">
-                            <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
-                                       FontFamily="Anton" Foreground="#FF1A1A0A"
-                                       HorizontalAlignment="Center" TextWrapping="Wrap" Margin="-2,0,0,0"/>
-                            <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
-                                       FontFamily="Anton" Foreground="#FF1A1A0A"
-                                       HorizontalAlignment="Center" TextWrapping="Wrap" Margin="2,0,0,0"/>
-                            <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
-                                       FontFamily="Anton" Foreground="#FF1A1A0A"
-                                       HorizontalAlignment="Center" TextWrapping="Wrap" Margin="0,-2,0,0"/>
-                            <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
-                                       FontFamily="Anton" Foreground="#FF1A1A0A"
-                                       HorizontalAlignment="Center" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                            <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
-                                       FontFamily="Anton" Foreground="{StaticResource GoldBrush}"
-                                       HorizontalAlignment="Center" TextWrapping="Wrap"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
+                    </Grid.Style>
+                    <Grid.Resources>
+                        <!-- Pulsing animation matching SkullRewardPulseAnim -->
+                        <Storyboard x:Key="BossModPulseAnim" RepeatBehavior="Forever">
+                            <DoubleAnimation Storyboard.TargetName="BossModScale"
+                                             Storyboard.TargetProperty="ScaleX"
+                                             From="1.0" To="1.08" Duration="0:0:0.8" AutoReverse="True">
+                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="BossModScale"
+                                             Storyboard.TargetProperty="ScaleY"
+                                             From="1.0" To="1.08" Duration="0:0:0.8" AutoReverse="True">
+                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="BossModGlow"
+                                             Storyboard.TargetProperty="Opacity"
+                                             From="0.2" To="1.0" Duration="0:0:0.8" AutoReverse="True">
+                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </Grid.Resources>
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger>
+                            <b:ControlStoryboardAction Storyboard="{DynamicResource BossModPulseAnim}"/>
+                        </b:EventTrigger>
+                    </b:Interaction.Triggers>
+
+                    <!-- Outer glow (pulsing gold shimmer) -->
+                    <Border x:Name="BossModGlow" Opacity="0.2"
+                            Background="Transparent"
+                            BorderBrush="#CCf5c518"
+                            BorderThickness="6"
+                            CornerRadius="16"
+                            Margin="-4,-4,-4,-4"/>
+
+                    <Border CornerRadius="12" Padding="28,16" BorderThickness="4"
+                            Width="420"
+                            BorderBrush="{StaticResource GoldBrush}" Background="#F00d0d1a">
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger EventName="MouseLeftButtonUp">
+                                <b:InvokeCommandAction Command="{Binding DataContext.events.bossInfoTap, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                       CommandParameter="{Binding levelIndex}"/>
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+                        <StackPanel>
+                            <Grid HorizontalAlignment="Center" Margin="0,0,0,8">
+                                <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
+                                           FontFamily="Anton" Foreground="#FF1A1A0A"
+                                           HorizontalAlignment="Center" Margin="-2,0,0,0"/>
+                                <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
+                                           FontFamily="Anton" Foreground="#FF1A1A0A"
+                                           HorizontalAlignment="Center" Margin="2,0,0,0"/>
+                                <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
+                                           FontFamily="Anton" Foreground="#FF1A1A0A"
+                                           HorizontalAlignment="Center" Margin="0,-2,0,0"/>
+                                <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
+                                           FontFamily="Anton" Foreground="#FF1A1A0A"
+                                           HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                <TextBlock Text="BOSS MODIFIER" FontSize="38" FontWeight="Bold"
+                                           FontFamily="Anton" Foreground="{StaticResource GoldBrush}"
+                                           HorizontalAlignment="Center"/>
+                            </Grid>
+                            <Grid HorizontalAlignment="Center" MaxWidth="360">
+                                <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
+                                           FontFamily="Anton" Foreground="#FF1A1A0A"
+                                           HorizontalAlignment="Center" TextWrapping="Wrap" Margin="-2,0,0,0"/>
+                                <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
+                                           FontFamily="Anton" Foreground="#FF1A1A0A"
+                                           HorizontalAlignment="Center" TextWrapping="Wrap" Margin="2,0,0,0"/>
+                                <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
+                                           FontFamily="Anton" Foreground="#FF1A1A0A"
+                                           HorizontalAlignment="Center" TextWrapping="Wrap" Margin="0,-2,0,0"/>
+                                <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
+                                           FontFamily="Anton" Foreground="#FF1A1A0A"
+                                           HorizontalAlignment="Center" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding modifierLabel}" FontSize="50" FontWeight="Bold"
+                                           FontFamily="Anton" Foreground="{StaticResource GoldBrush}"
+                                           HorizontalAlignment="Center" TextWrapping="Wrap"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Skull reward badge (animated, shown on boss nodes not yet beaten) -->
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                      RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                    <Grid.Style>
+                        <Style TargetType="Grid">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding showSkullReward}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Style>
+                    <Grid.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="SkullRewardScale" ScaleX="1" ScaleY="1"/>
+                            <TranslateTransform x:Name="SkullRewardTranslate" Y="100"/>
+                        </TransformGroup>
+                    </Grid.RenderTransform>
+                    <Grid.Resources>
+                        <!-- Floating + pulsing animation: scale breathe + vertical bob -->
+                        <Storyboard x:Key="SkullRewardPulseAnim" RepeatBehavior="Forever">
+                            <!-- Scale pulse 1.0 -> 1.15 -> 1.0 -->
+                            <DoubleAnimation Storyboard.TargetName="SkullRewardScale"
+                                             Storyboard.TargetProperty="ScaleX"
+                                             From="1.0" To="1.15" Duration="0:0:0.7" AutoReverse="True">
+                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="SkullRewardScale"
+                                             Storyboard.TargetProperty="ScaleY"
+                                             From="1.0" To="1.15" Duration="0:0:0.7" AutoReverse="True">
+                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <!-- Vertical bob: float up and down -->
+                            <DoubleAnimation Storyboard.TargetName="SkullRewardTranslate"
+                                             Storyboard.TargetProperty="Y"
+                                             From="100" To="88" Duration="0:0:0.9" AutoReverse="True">
+                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <!-- Glow border opacity pulse -->
+                            <DoubleAnimation Storyboard.TargetName="SkullRewardGlow"
+                                             Storyboard.TargetProperty="Opacity"
+                                             From="0.3" To="1.0" Duration="0:0:0.7" AutoReverse="True">
+                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </Grid.Resources>
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger>
+                            <b:ControlStoryboardAction Storyboard="{DynamicResource SkullRewardPulseAnim}"/>
+                        </b:EventTrigger>
+                        <!-- Tap handler to open boss info popup -->
+                        <b:EventTrigger EventName="MouseLeftButtonUp">
+                            <b:InvokeCommandAction Command="{Binding DataContext.events.bossInfoTap, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                   CommandParameter="{Binding levelIndex}"/>
+                        </b:EventTrigger>
+                    </b:Interaction.Triggers>
+
+                    <!-- Outer glow (pulsing gold shimmer) -->
+                    <Border x:Name="SkullRewardGlow" Opacity="0.3"
+                            Background="Transparent"
+                            BorderBrush="#CCf5c518"
+                            BorderThickness="8"
+                            CornerRadius="32"
+                            Margin="-6,-6,-6,-6"/>
+
+                    <!-- Badge body -->
+                    <Border Background="#F01a0a2e"
+                            BorderBrush="#FFf5c518"
+                            BorderThickness="5"
+                            CornerRadius="26"
+                            Padding="24,14,28,14">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- Skull icon (inline SVG) -->
+                            <Viewbox Width="64" Height="64" Margin="0,0,10,0">
+                                <Grid Width="24" Height="24">
+                                    <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                    <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                                    <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                                    <Path Fill="#1A1A2E" Data="M11 14 L12 16 L13 14 Z"/>
+                                    <Path Fill="#1A1A2E" Data="M9 18 L9 20 M11 18 L11 20 M13 18 L13 20 M15 18 L15 20" StrokeThickness="0.8" Stroke="#1A1A2E"/>
+                                </Grid>
+                            </Viewbox>
+                            <!-- Reward text with outline -->
+                            <Grid VerticalAlignment="Center">
+                                <TextBlock Text="{Binding skullRewardText}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                <TextBlock Text="{Binding skullRewardText}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                <TextBlock Text="{Binding skullRewardText}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
+                                <TextBlock Text="{Binding skullRewardText}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding skullRewardText}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="#FFf5c518"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -364,43 +506,37 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- LEFT SECTION: Relics (clickable) with pulsing glow -->
+                    <!-- LEFT SECTION: Achievements (trophy button) -->
                     <Grid Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"
                           RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
-                        <Grid.RenderTransform><ScaleTransform x:Name="RelicsScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                        <Grid.RenderTransform><ScaleTransform x:Name="AchievementScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
                         <Grid.Resources>
-                            <Storyboard x:Key="RelicsPulseAnim" RepeatBehavior="Forever">
-                                <!-- Breathing scale 1.0 → 1.06 → 1.0 over 1.8s -->
-                                <DoubleAnimation Storyboard.TargetName="RelicsScaleTransform"
+                            <Storyboard x:Key="AchievementPulseAnim" RepeatBehavior="Forever">
+                                <DoubleAnimation Storyboard.TargetName="AchievementScaleTransform"
                                                  Storyboard.TargetProperty="ScaleX"
                                                  From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
                                     <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
-                                <DoubleAnimation Storyboard.TargetName="RelicsScaleTransform"
+                                <DoubleAnimation Storyboard.TargetName="AchievementScaleTransform"
                                                  Storyboard.TargetProperty="ScaleY"
                                                  From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
                                     <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
-                                <!-- Glow opacity pulse 0.0 → 1.0 → 0.0 over 1.8s -->
-                                <DoubleAnimation Storyboard.TargetName="RelicsGlowBorder"
+                                <DoubleAnimation Storyboard.TargetName="AchievementGlowBorder"
                                                  Storyboard.TargetProperty="Opacity"
                                                  From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
                                     <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
                             </Storyboard>
                         </Grid.Resources>
-                        <!-- Conditionally play pulse animation only when relicPulseActive is true -->
                         <b:Interaction.Triggers>
-                            <b:DataTrigger Binding="{Binding relicPulseActive}" Value="True">
-                                <b:ControlStoryboardAction Storyboard="{StaticResource RelicsPulseAnim}" ControlStoryboardOption="Play"/>
-                            </b:DataTrigger>
-                            <b:DataTrigger Binding="{Binding relicPulseActive}" Value="False">
-                                <b:ControlStoryboardAction Storyboard="{StaticResource RelicsPulseAnim}" ControlStoryboardOption="Stop"/>
-                            </b:DataTrigger>
+                            <b:EventTrigger>
+                                <b:ControlStoryboardAction Storyboard="{StaticResource AchievementPulseAnim}"/>
+                            </b:EventTrigger>
                         </b:Interaction.Triggers>
 
-                        <!-- Outer glow border (pulsing golden shimmer behind the main border) -->
-                        <Border x:Name="RelicsGlowBorder" Opacity="0"
+                        <!-- Outer glow border -->
+                        <Border x:Name="AchievementGlowBorder" Opacity="0"
                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                 Background="Transparent"
                                 BorderBrush="#AAf5c518"
@@ -408,18 +544,18 @@
                                 CornerRadius="24"
                                 Margin="-8,-8,-8,-8"/>
 
-                        <!-- Main RELICS border -->
+                        <!-- Main ACHIEVEMENTS border -->
                         <Border Background="#CC1a1a2e"
                                 BorderBrush="{StaticResource GoldBrush}"
                                 BorderThickness="5"
                                 CornerRadius="18">
                         <b:Interaction.Triggers>
                             <b:EventTrigger EventName="MouseLeftButtonUp">
-                                <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="open"/>
+                                <b:InvokeCommandAction Command="{Binding events.achievementTap}" CommandParameter="open"/>
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
                         <Grid>
-                            <!-- Corner Ornaments (inside with 8px breathing room) -->
+                            <!-- Corner Ornaments -->
                             <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
                             <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
                             <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
@@ -428,39 +564,25 @@
                             <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
                             <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
                             <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
-                            <!-- Relics content -->
+                            <!-- Trophy icon + TROPHIES label -->
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="44,22,72,22">
-                                <!-- Relic gem icon (faceted crystal artifact) -->
+                                <!-- Trophy icon -->
                                 <Viewbox Width="96" Height="96" Margin="0,0,16,0">
                                     <Grid Width="24" Height="24">
-                                        <!-- Crystal body (hexagonal gem shape) -->
-                                        <Path Fill="#9b59b6" Data="M12 1 L7 4 L5 10 L7 18 L12 23 L17 18 L19 10 L17 4 Z"/>
-                                        <!-- Inner facet highlights -->
-                                        <Path Fill="#c39bd3" Data="M12 3 L9 5 L8 10 L12 14 L16 10 L15 5 Z" Opacity="0.7"/>
-                                        <!-- Top sparkle/glow -->
-                                        <Path Fill="#e8daef" Data="M12 2 L10 5 L12 6 L14 5 Z" Opacity="0.9"/>
-                                        <!-- Bottom facet -->
-                                        <Path Fill="#7d3c98" Data="M9 14 L12 22 L15 14 L12 16 Z" Opacity="0.6"/>
-
+                                        <Path Fill="#f5c518" Data="M5 3 L5 8 C5 11 8 14 12 14 C16 14 19 11 19 8 L19 3 Z"/>
+                                        <Path Fill="#c9a000" Data="M3 3 L3 7 C3 8 4 8 5 8 L5 3 Z M19 3 L19 8 C20 8 21 8 21 7 L21 3 Z"/>
+                                        <Path Fill="#f5c518" Data="M10 14 L10 17 L8 18 L8 20 L16 20 L16 18 L14 17 L14 14 Z"/>
+                                        <Path Fill="#c9a000" Data="M7 20 L17 20 L17 22 L7 22 Z"/>
                                     </Grid>
                                 </Viewbox>
-                                <!-- RELICS label + count with outline (horizontal layout) -->
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Grid VerticalAlignment="Center">
-                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
-                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
-                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
-                                    </Grid>
-                                    <Grid VerticalAlignment="Center" Margin="16,0,0,0">
-                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0"/>
-                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0"/>
-                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0"/>
-                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0"/>
-                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
-                                    </Grid>
-                                </StackPanel>
+                                <!-- TROPHIES label with outline -->
+                                <Grid VerticalAlignment="Center">
+                                    <TextBlock Text="TROPHIES" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                    <TextBlock Text="TROPHIES" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                    <TextBlock Text="TROPHIES" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
+                                    <TextBlock Text="TROPHIES" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
+                                    <TextBlock Text="TROPHIES" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                                </Grid>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -665,36 +787,162 @@
                 <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,27,27"/>
 
                 <!-- Centered Next Level text with crossed swords icon -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <!-- Map icon (folded treasure map) -->
-                    <Viewbox Width="100" Height="100" Margin="0,0,20,0" VerticalAlignment="Center">
-                        <Grid Width="25" Height="25">
-                            <!-- Map body (folded parchment shape) -->
-                            <Path Data="M3 4 L3 20 C3 20.5 3.5 21 4 21 L20 21 C20.5 21 21 20.5 21 20 L21 4 C21 3.5 20.5 3 20 3 L4 3 C3.5 3 3 3.5 3 4 Z" Fill="#FFFF5B00"/>
-                            <!-- Fold lines (vertical creases) -->
-                            <Path StrokeThickness="0.8" Data="M9 3 L9 21">
-                                <Path.Stroke>
-                                    <SolidColorBrush Color="#FF660000" Opacity="0.383"/>
-                                </Path.Stroke>
-                            </Path>
-                            <Path Opacity="0.38" Stroke="#FF660000" StrokeThickness="0.8" Data="M15 3 L15 21"/>
-                            <!-- Dotted trail path (treasure route) -->
-                            <Path Stroke="#1A1A2E" StrokeThickness="1.2" StrokeDashArray="1.5 1" Data="M6 17 L8 14 L11 15 L13 11 L16 13 L18 9"/>
-                            <!-- X marks the spot -->
-                            <Path Stroke="#1A1A2E" StrokeThickness="1.5" Data="M17 7 L19 9 M19 7 L17 9"/>
-                            <!-- Small landmark dot -->
-                            <Ellipse Width="2" Height="2" Fill="#1A1A2E" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5,16,0,0"/>
-                        </Grid>
-                    </Viewbox>
-                    <!-- Text with outline -->
-                    <Grid VerticalAlignment="Center">
-                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="-3,0,0,0"/>
-                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="3,0,0,0"/>
-                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,-3,0,0"/>
-                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,3,0,0"/>
-                        <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="60,0,60,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Relics button: ANIMATED version (visible when relicPulseActive=True) -->
+                    <!-- Uses the same b:EventTrigger auto-play pattern as Trophies/Skulls -->
+                    <Grid Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                          RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding relicPulseActive}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.RenderTransform><ScaleTransform x:Name="RelicScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                        <Grid.Resources>
+                            <Storyboard x:Key="RelicPulseAnim" RepeatBehavior="Forever">
+                                <DoubleAnimation Storyboard.TargetName="RelicScaleTransform"
+                                                 Storyboard.TargetProperty="ScaleX"
+                                                 From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="RelicScaleTransform"
+                                                 Storyboard.TargetProperty="ScaleY"
+                                                 From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="RelicGlowBorder"
+                                                 Storyboard.TargetProperty="Opacity"
+                                                 From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </Grid.Resources>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger>
+                                <b:ControlStoryboardAction Storyboard="{StaticResource RelicPulseAnim}"/>
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+
+                        <!-- Outer glow border (pulsing golden shimmer) -->
+                        <Border x:Name="RelicGlowBorder" Opacity="0"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                Background="Transparent"
+                                BorderBrush="#AAf5c518"
+                                BorderThickness="10"
+                                CornerRadius="24"
+                                Margin="-8,-8,-8,-8"/>
+
+                        <!-- Main RELICS border -->
+                        <Border Background="#CC1a1a2e"
+                                BorderBrush="{StaticResource GoldBrush}"
+                                BorderThickness="4" CornerRadius="16" Padding="20,10,20,10">
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="MouseLeftButtonUp">
+                                    <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="open"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Viewbox Width="72" Height="72" Margin="0,0,12,0">
+                                    <Grid Width="24" Height="24">
+                                        <Path Fill="#9b59b6" Data="M12 1 L7 4 L5 10 L7 18 L12 23 L17 18 L19 10 L17 4 Z"/>
+                                        <Path Fill="#c39bd3" Data="M12 3 L9 5 L8 10 L12 14 L16 10 L15 5 Z" Opacity="0.7"/>
+                                    </Grid>
+                                </Viewbox>
+                                <Grid VerticalAlignment="Center">
+                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                                </Grid>
+                                <Grid VerticalAlignment="Center" Margin="12,0,0,0">
+                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
                     </Grid>
-                </StackPanel>
+
+                    <!-- Relics button: STATIC version (visible when relicPulseActive=False) -->
+                    <Grid Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                          ClipToBounds="False">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding relicPulseActive}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+
+                        <!-- Main RELICS border (no animation, no glow) -->
+                        <Border Background="#CC1a1a2e"
+                                BorderBrush="{StaticResource GoldBrush}"
+                                BorderThickness="4" CornerRadius="16" Padding="20,10,20,10">
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="MouseLeftButtonUp">
+                                    <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="open"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Viewbox Width="72" Height="72" Margin="0,0,12,0">
+                                    <Grid Width="24" Height="24">
+                                        <Path Fill="#9b59b6" Data="M12 1 L7 4 L5 10 L7 18 L12 23 L17 18 L19 10 L17 4 Z"/>
+                                        <Path Fill="#c39bd3" Data="M12 3 L9 5 L8 10 L12 14 L16 10 L15 5 Z" Opacity="0.7"/>
+                                    </Grid>
+                                </Viewbox>
+                                <Grid VerticalAlignment="Center">
+                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                                </Grid>
+                                <Grid VerticalAlignment="Center" Margin="12,0,0,0">
+                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Next Level text (centered in remaining space) -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Map icon -->
+                        <Viewbox Width="100" Height="100" Margin="0,0,20,0" VerticalAlignment="Center">
+                            <Grid Width="25" Height="25">
+                                <Path Data="M3 4 L3 20 C3 20.5 3.5 21 4 21 L20 21 C20.5 21 21 20.5 21 20 L21 4 C21 3.5 20.5 3 20 3 L4 3 C3.5 3 3 3.5 3 4 Z" Fill="#FFFF5B00"/>
+                                <Path StrokeThickness="0.8" Data="M9 3 L9 21">
+                                    <Path.Stroke>
+                                        <SolidColorBrush Color="#FF660000" Opacity="0.383"/>
+                                    </Path.Stroke>
+                                </Path>
+                                <Path Opacity="0.38" Stroke="#FF660000" StrokeThickness="0.8" Data="M15 3 L15 21"/>
+                                <Path Stroke="#1A1A2E" StrokeThickness="1.2" StrokeDashArray="1.5 1" Data="M6 17 L8 14 L11 15 L13 11 L16 13 L18 9"/>
+                                <Path Stroke="#1A1A2E" StrokeThickness="1.5" Data="M17 7 L19 9 M19 7 L17 9"/>
+                                <Ellipse Width="2" Height="2" Fill="#1A1A2E" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5,16,0,0"/>
+                            </Grid>
+                        </Viewbox>
+                        <!-- Text with outline -->
+                        <Grid VerticalAlignment="Center">
+                            <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="-3,0,0,0"/>
+                            <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="3,0,0,0"/>
+                            <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,-3,0,0"/>
+                            <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Grid>
             </Grid>
         </Grid>
 
@@ -1175,6 +1423,123 @@
                     </b:EventTrigger>
                 </b:Interaction.Triggers>
                 <TextBlock Text="X" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </Grid>
+
+        <!-- Boss Info Popup Overlay (fullscreen) -->
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid.Visibility>
+                <Binding Path="bossPopupVisible">
+                    <Binding.Converter>
+                        <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                </Binding>
+            </Grid.Visibility>
+
+            <!-- Dimmed background (tap to close) -->
+            <Border Background="#CC000000">
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                        <b:InvokeCommandAction Command="{Binding events.bossInfoCloseTap}" CommandParameter="close"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+            </Border>
+
+            <!-- Centered panel -->
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Width="900" CornerRadius="28" BorderThickness="6"
+                    BorderBrush="{StaticResource GoldBrush}" Padding="48,40">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FF2A1A0A" Offset="0"/>
+                        <GradientStop Color="#FF1A1008" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel HorizontalAlignment="Center">
+                    <!-- Skull icon -->
+                    <Viewbox Width="120" Height="120" HorizontalAlignment="Center" Margin="0,0,0,24">
+                        <Grid Width="24" Height="24">
+                            <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                            <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                            <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                            <Path Fill="#1A1A2E" Data="M11 14 L12 16 L13 14 Z"/>
+                            <Path Fill="#1A1A2E" Data="M9 18 L9 20 M11 18 L11 20 M13 18 L13 20 M15 18 L15 20" StrokeThickness="0.8" Stroke="#1A1A2E"/>
+                        </Grid>
+                    </Viewbox>
+
+                    <!-- BOSS MODIFIER title -->
+                    <Grid HorizontalAlignment="Center" Margin="0,0,0,16">
+                        <TextBlock Text="BOSS MODIFIER" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="-3,0,0,0"/>
+                        <TextBlock Text="BOSS MODIFIER" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="3,0,0,0"/>
+                        <TextBlock Text="BOSS MODIFIER" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,-3,0,0"/>
+                        <TextBlock Text="BOSS MODIFIER" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        <TextBlock Text="BOSS MODIFIER" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Modifier name -->
+                    <Grid HorizontalAlignment="Center" Margin="0,0,0,12">
+                        <TextBlock Text="{Binding bossPopupModifierName}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="-3,0,0,0"/>
+                        <TextBlock Text="{Binding bossPopupModifierName}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="3,0,0,0"/>
+                        <TextBlock Text="{Binding bossPopupModifierName}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,-3,0,0"/>
+                        <TextBlock Text="{Binding bossPopupModifierName}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        <TextBlock Text="{Binding bossPopupModifierName}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="#FFFF6B35" HorizontalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Modifier description -->
+                    <TextBlock Text="{Binding bossPopupModifierDescription}" FontFamily="Almendra" FontSize="56"
+                               Foreground="{StaticResource ParchmentBrush}" HorizontalAlignment="Center"
+                               TextWrapping="Wrap" TextAlignment="Center" Margin="24,0,24,32"/>
+
+                    <!-- Separator -->
+                    <Border Height="3" Background="{StaticResource GoldBrush}" Margin="40,0,40,28" Opacity="0.5"/>
+
+                    <!-- Skull reward section -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,24">
+                        <!-- Skull icon small -->
+                        <Viewbox Width="80" Height="80" Margin="0,0,16,0">
+                            <Grid Width="24" Height="24">
+                                <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                                <Path Fill="#1A1A2E" Data="M11 14 L12 16 L13 14 Z"/>
+                            </Grid>
+                        </Viewbox>
+                        <!-- REWARD label -->
+                        <Grid VerticalAlignment="Center" Margin="0,0,20,0">
+                            <TextBlock Text="REWARD:" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                            <TextBlock Text="REWARD:" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                            <TextBlock Text="REWARD:" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                        </Grid>
+                        <!-- Reward amount -->
+                        <Grid VerticalAlignment="Center">
+                            <TextBlock Text="{Binding bossPopupRewardText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0"/>
+                            <TextBlock Text="{Binding bossPopupRewardText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0"/>
+                            <TextBlock Text="{Binding bossPopupRewardText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0"/>
+                            <TextBlock Text="{Binding bossPopupRewardText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0"/>
+                            <TextBlock Text="{Binding bossPopupRewardText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                        </Grid>
+                        <!-- Skulls label -->
+                        <Grid VerticalAlignment="Center" Margin="12,0,0,0">
+                            <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                            <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                            <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Close button -->
+                    <Border HorizontalAlignment="Center" CornerRadius="42"
+                            Background="#FF1a1a2e" BorderBrush="{StaticResource GoldBrush}"
+                            BorderThickness="5" Width="100" Height="100">
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger EventName="MouseLeftButtonUp">
+                                <b:InvokeCommandAction Command="{Binding events.bossInfoCloseTap}" CommandParameter="close"/>
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+                        <TextBlock Text="X" FontFamily="Anton" FontSize="52" FontWeight="Bold"
+                                   Foreground="{StaticResource GoldBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </StackPanel>
             </Border>
         </Grid>
     </Grid>

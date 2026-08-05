@@ -1,0 +1,320 @@
+<Page xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      mc:Ignorable="d">
+
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <SolidColorBrush x:Key="GoldBrush" Color="#FFf5c518"/>
+        <SolidColorBrush x:Key="ParchmentBrush" Color="#FFF5E6D0"/>
+        <SolidColorBrush x:Key="DimGrey" Color="#FF666666"/>
+    </Page.Resources>
+
+    <Grid Visibility="{Binding visible, Converter={StaticResource BoolToVisConverter}}">
+
+        <!-- Hazy gradient background: dark muted purple to warm reddish-brown -->
+        <Rectangle>
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <GradientStop Color="#FF2A1B3D" Offset="0"/>
+                    <GradientStop Color="#FF3D2235" Offset="0.4"/>
+                    <GradientStop Color="#FF4A2C2A" Offset="0.8"/>
+                    <GradientStop Color="#FF3D2218" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <!-- Subtle haze overlay for depth -->
+        <Rectangle Opacity="0.15">
+            <Rectangle.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#FF8866AA" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </RadialGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <Viewbox Stretch="Uniform" Margin="20,20,20,20">
+        <Grid Width="1080" Height="1920">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Title -->
+            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,40,0,20">
+                <Grid HorizontalAlignment="Center">
+                    <TextBlock Text="ACHIEVEMENTS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="#22000000" Margin="-3,0,0,0"/>
+                    <TextBlock Text="ACHIEVEMENTS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="#22000000" Margin="3,0,0,0"/>
+                    <TextBlock Text="ACHIEVEMENTS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="#FFF5E6D0"/>
+                </Grid>
+            </StackPanel>
+
+            <!-- Scrollable achievement gauge list -->
+            <ScrollViewer Grid.Row="1"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto"
+                          PanningMode="VerticalOnly"
+                          Margin="40,0,40,0">
+                <ItemsControl ItemsSource="{Binding achievements}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <!-- Each achievement gauge row -->
+                            <Border Margin="0,16,0,16" Padding="0" CornerRadius="20"
+                                    BorderThickness="3" BorderBrush="#55f5c518">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#44201008" Offset="0"/>
+                                        <GradientStop Color="#44302010" Offset="0.5"/>
+                                        <GradientStop Color="#44201008" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Grid>
+                                    <!-- Tier-based background color overlay -->
+                                    <Border CornerRadius="17" Background="{Binding tierBgColor}"/>
+                                    <!-- Content with padding -->
+                                    <Grid Margin="36,24,36,28">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Left: gauge content -->
+                                    <Grid Grid.Column="0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Row 0: Achievement name -->
+                                        <TextBlock Grid.Row="0"
+                                                   Text="{Binding name}" FontFamily="Anton"
+                                                   FontSize="56" FontWeight="Bold"
+                                                   Foreground="{Binding nameColor}"
+                                                   Margin="0,0,0,4"/>
+
+                                        <!-- Row 1: Description + progress text on same line -->
+                                        <Grid Grid.Row="1" Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding description}" FontFamily="Anton"
+                                                       FontSize="36" Foreground="#AAF5E6D0"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding progressText}" FontFamily="Anton"
+                                                       FontSize="44" FontWeight="Bold"
+                                                       Foreground="#FFF5E6D0"
+                                                       VerticalAlignment="Center"/>
+                                        </Grid>
+
+                                        <!-- Row 2: Gauge bar -->
+                                        <Grid Grid.Row="2" Height="36" Margin="0,4,0,0">
+                                            <Border CornerRadius="18">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                        <GradientStop Color="#FF2A2018" Offset="0"/>
+                                                        <GradientStop Color="#FF3D2E1A" Offset="0.5"/>
+                                                        <GradientStop Color="#FF2A2018" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                            </Border>
+                                            <Border CornerRadius="18" BorderThickness="2" BorderBrush="#33F5E6D0"/>
+                                            <Border CornerRadius="18" HorizontalAlignment="Left"
+                                                    Width="{Binding barWidth}">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                        <GradientStop Color="#DDf5c518" Offset="0"/>
+                                                        <GradientStop Color="#CCc49a10" Offset="0.6"/>
+                                                        <GradientStop Color="#BB8a6d0c" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                            </Border>
+                                        </Grid>
+                                    </Grid>
+
+                                    <!-- Right: Skull reward button -->
+                                    <Button Grid.Column="1" Command="{Binding Path=DataContext.events.skullTap, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding groupIndex}"
+                                            Background="Transparent" BorderThickness="0"
+                                            VerticalAlignment="Stretch" Margin="20,0,0,0" MinWidth="200">
+                                        <!-- Visible box/border: dark wood background with gold/bronze outline -->
+                                        <Border CornerRadius="16" BorderThickness="3" BorderBrush="#CCc49a10" Padding="18,14,18,14" Width="180" Height="180">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                    <GradientStop Color="#FF1E1410" Offset="0"/>
+                                                    <GradientStop Color="#FF2A1B12" Offset="0.4"/>
+                                                    <GradientStop Color="#FF33221A" Offset="0.7"/>
+                                                    <GradientStop Color="#FF1E1410" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                            <Grid HorizontalAlignment="Center">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                <!-- Skull icon (matches overworld header) -->
+                                                <Viewbox Grid.Row="0" Width="80" Height="80" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <Grid Width="24" Height="24">
+                                                        <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                                        <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                                                        <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                                                        <Path Fill="#1A1A2E" Data="M11 14 L12 16 L13 14 Z"/>
+                                                        <Path Fill="#1A1A2E" Data="M9 18 L9 20 M11 18 L11 20 M13 18 L13 20 M15 18 L15 20" StrokeThickness="0.8" Stroke="#1A1A2E"/>
+                                                    </Grid>
+                                                </Viewbox>
+                                                <!-- Reward text aligned with gauge bar (bottom) -->
+                                                <TextBlock Grid.Row="1" Text="{Binding rewardButtonText}" FontFamily="Anton"
+                                                           FontSize="28" FontWeight="Bold"
+                                                           Foreground="{Binding rewardButtonColor}"
+                                                           HorizontalAlignment="Center" Margin="0,6,0,0"
+                                                           VerticalAlignment="Bottom"
+                                                           TextWrapping="NoWrap" TextAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </Button>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Close button -->
+            <Button Grid.Row="2" Command="{Binding Path=events.closeTap}" CommandParameter="close"
+                    Background="Transparent" BorderThickness="0"
+                    HorizontalAlignment="Center" Margin="0,10,0,30">
+                <Border Background="#CC1A1420" BorderBrush="{StaticResource ParchmentBrush}" BorderThickness="3" CornerRadius="30" Padding="60,16,60,16">
+                    <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="52" FontWeight="Bold" Foreground="#FFF5E6D0" HorizontalAlignment="Center"/>
+                </Border>
+            </Button>
+
+            <!-- ========== REWARD POPUP OVERLAY (Modal Card) ========== -->
+            <Grid Grid.Row="0" Grid.RowSpan="3"
+                  Visibility="{Binding rewardPopup.visible, Converter={StaticResource BoolToVisConverter}}">
+
+                <!-- Semi-transparent dark backdrop so achievements are dimmed but visible -->
+                <Rectangle Fill="#CC000000"/>
+
+                <!-- Centered card panel (~75% width, auto height, vertically centered) -->
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Width="810" MaxHeight="1600" Margin="0,60,0,60">
+
+                    <!-- Card background: dark wood with gold border -->
+                    <Border CornerRadius="24" BorderThickness="4" BorderBrush="#DDf5c518">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="#FF1E1410" Offset="0"/>
+                                <GradientStop Color="#FF2A1B12" Offset="0.3"/>
+                                <GradientStop Color="#FF33221A" Offset="0.7"/>
+                                <GradientStop Color="#FF1E1410" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+
+                        <Grid Margin="40,36,40,36">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Header: Title + Close X button -->
+                            <Grid Grid.Row="0" Margin="0,0,0,20">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding rewardPopup.groupName}" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="#FFF5E6D0" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="REWARDS" FontFamily="Anton" FontSize="42" FontWeight="Bold" Foreground="#AAF5E6D0" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <!-- Close/X button (top-right corner) -->
+                                <Button Command="{Binding Path=events.closeTap}" CommandParameter="close"
+                                        Background="Transparent" BorderThickness="0"
+                                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-8,-8,0">
+                                    <Border Background="#661A1420" BorderBrush="#88F5E6D0" BorderThickness="2" CornerRadius="20" Width="56" Height="56">
+                                        <TextBlock Text="X" FontFamily="Anton" FontSize="36" FontWeight="Bold"
+                                                   Foreground="#FFF5E6D0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Button>
+                            </Grid>
+
+                            <!-- Tier list -->
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PanningMode="VerticalOnly">
+                                <ItemsControl ItemsSource="{Binding rewardPopup.tiers}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0,8,0,8" Padding="0" CornerRadius="14"
+                                                    BorderThickness="2" BorderBrush="#33f5c518"
+                                                    Opacity="{Binding rowOpacity}">
+                                                <Border.Background>
+                                                    <SolidColorBrush Color="#44201008"/>
+                                                </Border.Background>
+                                                <Grid>
+                                                    <!-- Tier-based background color overlay -->
+                                                    <Border CornerRadius="12" Background="{Binding tierBgColor}"/>
+                                                    <!-- Content with padding -->
+                                                    <Grid Margin="28,18,28,18">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- Tier info -->
+                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding tierName}" FontFamily="Anton" FontSize="40" FontWeight="Bold" Foreground="{Binding textColor}"/>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="Target: " FontFamily="Anton" FontSize="30" Foreground="#AAF5E6D0"/>
+                                                            <TextBlock Text="{Binding tierTarget}" FontFamily="Anton" FontSize="30" Foreground="#AAF5E6D0"/>
+                                                            <TextBlock Text="  |  " FontFamily="Anton" FontSize="30" Foreground="#55F5E6D0"/>
+                                                            <TextBlock Text="Skulls: " FontFamily="Anton" FontSize="30" Foreground="#FFF5E6D0"/>
+                                                            <TextBlock Text="{Binding skullReward}" FontFamily="Anton" FontSize="30" FontWeight="Bold" Foreground="{Binding textColor}"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+
+                                                    <!-- Claim button (visible when claimable) -->
+                                                    <Button Grid.Column="1"
+                                                            Command="{Binding Path=DataContext.rewardPopup.events.claimTap, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                            CommandParameter="{Binding claimParam}"
+                                                            Background="Transparent" BorderThickness="0"
+                                                            VerticalAlignment="Center" Margin="12,0,0,0"
+                                                            Visibility="{Binding claimVisible, Converter={StaticResource BoolToVisConverter}}">
+                                                        <Border Background="#CCf5c518" CornerRadius="16" Padding="24,10,24,10">
+                                                            <TextBlock Text="CLAIM" FontFamily="Anton" FontSize="32" FontWeight="Bold" Foreground="#FF1A1420"/>
+                                                        </Border>
+                                                    </Button>
+
+                                                    <!-- Claimed text (visible when already claimed) -->
+                                                    <TextBlock Grid.Column="2" Text="Claimed" FontFamily="Anton" FontSize="32"
+                                                               Foreground="#FF88AA88" VerticalAlignment="Center" Margin="12,0,0,0"
+                                                               Visibility="{Binding claimedVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                                    </Grid>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- Back button at bottom of card -->
+                            <Button Grid.Row="2" Command="{Binding Path=events.closeTap}" CommandParameter="close"
+                                    Background="Transparent" BorderThickness="0"
+                                    HorizontalAlignment="Center" Margin="0,20,0,8">
+                                <Border Background="#CC1A1420" BorderBrush="{StaticResource ParchmentBrush}" BorderThickness="3" CornerRadius="30" Padding="50,14,50,14">
+                                    <TextBlock Text="BACK" FontFamily="Anton" FontSize="44" FontWeight="Bold" Foreground="#FFF5E6D0" HorizontalAlignment="Center"/>
+                                </Border>
+                            </Button>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+
+        </Grid>
+        </Viewbox>
+    </Grid>
+</Page>
