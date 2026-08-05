@@ -85,6 +85,8 @@ done:
   - Scrollable Tower Shop -- smooth finger drag + tap-to-center, clamped edges
   - Fire Canon Tower -- 120g AoE fire tower with mesh, template, shop icon
   - Laser Canon Skill Tree Unlock -- hidden from shop until 5th skill node purchased
+  - Minigame FTUE Tutorial -- pauses reveal phase on first play, shows memorize hint, persists
+  - Minigame FTUE Tutorial -- pauses reveal, explains Gold card, persists once
 
 chopping_block:
   disabled_systems: []

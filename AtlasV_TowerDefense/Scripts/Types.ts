@@ -367,6 +367,9 @@ export namespace UiEvents {
   @serializable() export class MinigameCardTapPayload { readonly parameter: string = ''; }
   export const minigameCardTap = new UiEvent('MinigameViewModel-onCardTap', MinigameCardTapPayload);
 
+  @serializable() export class MinigameFtueGotItPayload { readonly parameter: string = ''; }
+  export const minigameFtueGotIt = new UiEvent('MinigameViewModel-onFtueGotIt', MinigameFtueGotItPayload);
+
   @serializable() export class BiomeArrowTapPayload { readonly parameter: string = ''; }
   export const biomeArrowTap = new UiEvent('OverworldViewModel-onBiomeArrowTap', BiomeArrowTapPayload);
 

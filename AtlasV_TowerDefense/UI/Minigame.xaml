@@ -68,19 +68,19 @@
             <!-- Title text with outline -->
             <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
               <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
-                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
-                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
-                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
-                         FontSize="77" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"
                          HorizontalAlignment="Center"/>
               <TextBlock Text="{Binding Path=titleText}" FontFamily="Anton"
-                         FontSize="77" FontWeight="Bold" Foreground="#f5c518"
+                         FontSize="60" FontWeight="Bold" Foreground="#f5c518"
                          HorizontalAlignment="Center"/>
             </Grid>
           </Grid>
@@ -275,6 +275,55 @@
             </Grid>
           </Grid>
         </Border>
+
+        <!-- FTUE Tutorial Overlay (always shown during Reveal, rendered last = topmost) -->
+        <Grid VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,1050,0,0">
+          <Grid.Visibility>
+            <Binding Path="ftueVisible">
+              <Binding.Converter>
+                <BooleanToVisibilityConverter/>
+              </Binding.Converter>
+            </Binding>
+          </Grid.Visibility>
+          <Border Background="#EE1a1a2e"
+                  BorderBrush="#4eff7a"
+                  BorderThickness="6"
+                  CornerRadius="24"
+                  Padding="36,20,36,20"
+                  MaxWidth="900">
+            <StackPanel HorizontalAlignment="Center">
+              <!-- Instruction text -->
+              <TextBlock Text="Memorize the desired card!"
+                         FontFamily="Almendra" FontSize="52" FontWeight="Bold"
+                         Foreground="#f5c518"
+                         HorizontalAlignment="Center"
+                         TextWrapping="Wrap" TextAlignment="Center"
+                         Margin="0,0,0,6"/>
+              <TextBlock Text="It will be shuffled. Pick it to win!"
+                         FontFamily="Almendra" FontSize="42"
+                         Foreground="#dddddd"
+                         HorizontalAlignment="Center"
+                         TextWrapping="Wrap" TextAlignment="Center"
+                         Margin="0,0,0,16"/>
+              <!-- Got it! button -->
+              <Button Command="{Binding events.ftueGotIt}"
+                      HorizontalAlignment="Center"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      Padding="0"
+                      Margin="0,4,0,0">
+                <Border Background="#4eff7a"
+                        CornerRadius="16"
+                        Padding="48,14,48,14">
+                  <TextBlock Text="Got it!" FontFamily="Anton"
+                             FontSize="52" FontWeight="Bold"
+                             Foreground="#1a1a2e"
+                             HorizontalAlignment="Center"/>
+                </Border>
+              </Button>
+            </StackPanel>
+          </Border>
+        </Grid>
 
       </Grid>
     </Grid>

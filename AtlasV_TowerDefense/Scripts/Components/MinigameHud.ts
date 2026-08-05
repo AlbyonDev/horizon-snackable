@@ -36,6 +36,9 @@ const SWAP_COUNT_MAX = 8;
 const SWAP_DURATION_START = 0.45;  // seconds for first swap
 const SWAP_DURATION_END = 0.18;    // seconds for last swap
 const REVEAL_OTHERS_DELAY = 0.6;   // seconds before revealing remaining cards
+const PICK_PULSE_MIN = 1.0;        // min scale during pick pulse
+const PICK_PULSE_MAX = 1.08;       // max scale during pick pulse (~breathing effect)
+const PICK_PULSE_HALF_CYCLE = 0.8; // seconds per half-cycle (match overworld node style)
 const RESULT_DURATION = 2.5;       // seconds to show result (after all cards revealed)
 const GOLD_BONUS = 50;
 const GOLD_MALUS = 30;
@@ -112,14 +115,17 @@ export class MinigameCardViewModel extends UiViewModel {
 export class MinigameViewModel extends UiViewModel {
   override readonly events = {
     cardTap: UiEvents.minigameCardTap,
+    ftueGotIt: UiEvents.minigameFtueGotIt,
   };
 
   visible: boolean = false;
   cards: readonly MinigameCardViewModel[] = [];
   feedbackText: string = '';
   feedbackVisible: boolean = false;
-  titleText: string = 'Memorize the cards!';
+  titleText: string = 'Watch closely';
   titleVisible: boolean = true;
+  /** Whether the FTUE tutorial overlay is shown during the Reveal phase. */
+  ftueVisible: boolean = false;
 }
 
 // --- Component ---
@@ -163,6 +169,12 @@ export class MinigameHud extends Component {
   private chosenResult: string = CARD_NEUTRAL;
   private chosenIndex: number = 0;
 
+  // Pick phase pulse animation timer (accumulated time, not reset per frame)
+  private _pickPulseTimer: number = 0;
+
+  // FTUE tutorial pause state
+  private _ftuePaused: boolean = false;
+
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -198,19 +210,43 @@ export class MinigameHud extends Component {
     this._resolveChoice(idx);
   }
 
+  @subscribe(UiEvents.minigameFtueGotIt, { execution: ExecuteOn.Owner })
+  onFtueGotIt(): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._ftuePaused || !this.viewModel) return;
+
+    console.log('[MinigameHud] FTUE dismissed, resuming reveal timer');
+    this._ftuePaused = false;
+    this.viewModel.ftueVisible = false;
+    this.viewModel.titleText = 'Watch closely';
+    this.viewModel.titleVisible = true;
+
+    // Resume the reveal timer from its current value
+    // (stateTimer was frozen, now it will continue counting in onUpdate)
+  }
+
   @subscribe(OnWorldUpdateEvent, { execution: ExecuteOn.Owner })
   onUpdate(payload: OnWorldUpdateEventPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (this.state === MinigameState.Inactive) return;
 
     const dt = payload.deltaTime;
-    this.stateTimer += dt;
+
+    // Only advance the state timer when not paused by the FTUE tutorial overlay.
+    // If we always increment here, stateTimer can exceed REVEAL_DURATION while the
+    // FTUE is still on screen, causing the cards to flip down the instant the player
+    // taps "Got it!" with no chance to memorise them.
+    if (!this._ftuePaused) {
+      this.stateTimer += dt;
+    }
 
     // Always tick flip animations
     this._tickFlipAnimations(dt);
 
     switch (this.state) {
       case MinigameState.Reveal:
+        // If FTUE tutorial is paused, don't advance the timer
+        if (this._ftuePaused) break;
         if (this.stateTimer >= REVEAL_DURATION) {
           this._enterFlipDown();
         }
@@ -225,6 +261,10 @@ export class MinigameHud extends Component {
 
       case MinigameState.Shuffle:
         this._tickShuffle(dt);
+        break;
+
+      case MinigameState.Pick:
+        this._tickPickPulse(dt);
         break;
 
       case MinigameState.RevealChosen:
@@ -317,6 +357,25 @@ export class MinigameHud extends Component {
     }
   }
 
+  /** Animate a gentle breathing pulse on all cards during Pick phase. */
+  private _tickPickPulse(dt: number): void {
+    this._pickPulseTimer += dt;
+    // Sine wave: goes 0..1..0 over a full cycle (2 * HALF_CYCLE)
+    const fullCycle = PICK_PULSE_HALF_CYCLE * 2;
+    const t = (this._pickPulseTimer % fullCycle) / fullCycle; // 0..1 over full cycle
+    // Sine ease in-out: smooth 0->1->0 via sin
+    const sinVal = Math.sin(t * Math.PI); // 0 at edges, 1 at midpoint
+    const scale = PICK_PULSE_MIN + (PICK_PULSE_MAX - PICK_PULSE_MIN) * sinVal;
+
+    for (let i = 0; i < 3; i++) {
+      const card = this.cardViewModels[i];
+      if (card) {
+        card.cardScaleX = scale;
+        card.cardScaleY = scale;
+      }
+    }
+  }
+
   /** Set the cardScaleX and cardScaleY on a card ViewModel for 3D flip effect. */
   private _applyFlipScale(cardIndex: number, scaleX: number, scaleY: number): void {
     const card = this.cardViewModels[cardIndex];
@@ -371,19 +430,24 @@ export class MinigameHud extends Component {
 
     this.viewModel.visible = true;
     this.viewModel.feedbackVisible = false;
-    this.viewModel.titleText = 'Memorize the cards!';
+    this.viewModel.titleText = 'Watch closely';
     this.viewModel.titleVisible = true;
     if (this.uiComponent) this.uiComponent.isVisible = true;
 
     this.state = MinigameState.Reveal;
     this.stateTimer = 0;
+
+    // Always show the FTUE tutorial overlay during Reveal phase
+    this._ftuePaused = true;
+    this.viewModel.ftueVisible = true;
+    this.viewModel.titleVisible = false; // hide regular title, tutorial replaces it
+    console.log('[MinigameHud] FTUE tutorial shown');
   }
 
   private _enterFlipDown(): void {
     if (!this.viewModel) return;
     console.log('[MinigameHud] Flipping cards down (animated)');
-    this.viewModel.titleText = '';
-    this.viewModel.titleVisible = false;
+    // Keep "Watch closely" visible during flip down phase
 
     // Start flip animation for all 3 cards simultaneously (face up -> face down)
     for (let i = 0; i < 3; i++) {
@@ -396,7 +460,7 @@ export class MinigameHud extends Component {
 
   private _enterShuffle(): void {
     console.log('[MinigameHud] Starting shuffle');
-    this.viewModel!.titleText = 'Watch closely...';
+    this.viewModel!.titleText = 'Watch closely';
     this.viewModel!.titleVisible = true;
     this.swapCount = SWAP_COUNT_MIN + Math.floor(Math.random() * (SWAP_COUNT_MAX - SWAP_COUNT_MIN + 1));
     this.currentSwap = 0;
@@ -466,6 +530,7 @@ export class MinigameHud extends Component {
     this.viewModel.titleText = 'Pick a card!';
     this.viewModel.titleVisible = true;
     this._updateCardPositions();
+    this._pickPulseTimer = 0;
     this.state = MinigameState.Pick;
     this.stateTimer = 0;
   }
@@ -474,6 +539,15 @@ export class MinigameHud extends Component {
     if (!this.viewModel) return;
     this.chosenResult = this.cardTypes[idx];
     this.chosenIndex = idx;
+
+    // Stop pulse animation — reset all cards to normal scale
+    for (let i = 0; i < 3; i++) {
+      const card = this.cardViewModels[i];
+      if (card) {
+        card.cardScaleX = 1;
+        card.cardScaleY = 1;
+      }
+    }
 
     // Animate chosen card flipping face-up
     this._startFlip(idx, FlipDirection.ToFaceUp);

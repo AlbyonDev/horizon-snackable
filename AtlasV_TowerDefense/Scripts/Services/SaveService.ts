@@ -62,7 +62,7 @@ interface TdBiomeSave {
 // ── V2 save format (biome-aware) ────────────────────────────────────────────────
 interface TdSaveDataV2 {
   v: 2;
-  global: { sk: number; st: number[]; ek: number; rg: number; ri: number; rv: number; tb: number; ts: number; pr: number; ge: number; ar: Record<string, number> };
+  global: { sk: number; st: number[]; ek: number; rg: number; ri: number; rv: number; tb: number; ts: number; pr: number; ge: number; ar: Record<string, number>; minigame_tutorial: number };
   biomes: Record<string, TdBiomeSave>;
   activeBiome: string;
 }
@@ -82,7 +82,7 @@ function defaultBiomeSave(): TdBiomeSave {
 }
 
 function defaultSaveV2(): TdSaveDataV2 {
-  return { v: 2, global: { sk: 0, st: [], ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {} }, biomes: {}, activeBiome: 'grass' };
+  return { v: 2, global: { sk: 0, st: [], ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {}, minigame_tutorial: 0 }, biomes: {}, activeBiome: 'grass' };
 }
 
 @service()
@@ -157,6 +157,21 @@ export class SaveService extends Service {
   /** Get how many tier rewards have been claimed for a given achievement group. */
   getClaimedTiers(groupId: string): number {
     return this._data.global.ar[groupId] ?? 0;
+  }
+
+  /** Whether the minigame FTUE tutorial has been seen (persisted across sessions). */
+  getMinigameFtueSeen(): boolean {
+    return (this._data.global.minigame_tutorial ?? 0) === 1;
+  }
+
+  /** Mark the minigame FTUE tutorial as seen and persist. Client-only. */
+  markMinigameFtueSeen(): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    if (this._data.global.minigame_tutorial === 1) return;
+    this._data.global.minigame_tutorial = 1;
+    console.log('[SaveService] Minigame FTUE marked as seen');
+    this._requestSave();
   }
 
   /** Claim the next tier reward for an achievement group. Awards skulls and persists. Client-only. */
@@ -641,7 +656,7 @@ export class SaveService extends Service {
   }
 
   private _parseV2(raw: Record<string, unknown>): TdSaveDataV2 {
-    const global = raw['global'] as { sk?: number; st?: number[]; ek?: number; rg?: number; ri?: number; rv?: number; tb?: number; ts?: number; pr?: number; ge?: number; ar?: Record<string, number> } | undefined;
+    const global = raw['global'] as { sk?: number; st?: number[]; ek?: number; rg?: number; ri?: number; rv?: number; tb?: number; ts?: number; pr?: number; ge?: number; ar?: Record<string, number>; minigame_tutorial?: number; mf?: number } | undefined;
     const biomes = raw['biomes'] as Record<string, Partial<TdBiomeSave>> | undefined;
     const activeBiome = typeof raw['activeBiome'] === 'string' ? raw['activeBiome'] : 'grass';
 
@@ -659,6 +674,7 @@ export class SaveService extends Service {
         pr: typeof global?.pr === 'number' ? global.pr : 0,
         ge: typeof global?.ge === 'number' ? global.ge : 0,
         ar: (global?.ar && typeof global.ar === 'object') ? global.ar : {},
+        minigame_tutorial: typeof global?.minigame_tutorial === 'number' ? global.minigame_tutorial : (typeof global?.mf === 'number' ? global.mf : 0),
       },
       biomes: {},
       activeBiome,
@@ -705,6 +721,7 @@ export class SaveService extends Service {
         pr: 0,
         ge: 0,
         ar: {},
+        minigame_tutorial: 0,
       },
       biomes: { grass: grassBiome },
       activeBiome: 'grass',
