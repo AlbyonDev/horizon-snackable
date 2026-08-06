@@ -43,6 +43,9 @@ export const POISON_UNLOCK_NODE_INDEX = 10;
 
 /** Skill node index that unlocks the Lightning tower. */
 export const LIGHTNING_UNLOCK_NODE_INDEX = 18;
+
+/** Skill node index that unlocks the Pillar tower. */
+export const PILLAR_UNLOCK_NODE_INDEX = 9;
 import type { ISkillNodeDef } from '../Defs/SkillTreeDefs';
 import { Events } from '../Types';
 import { SaveService } from './SaveService';
@@ -126,6 +129,11 @@ export class SkillTreeService extends Service {
   /** Check if the Lightning tower has been unlocked via the skill tree (node index 18). */
   isLightningUnlocked(): boolean {
     return this._unlocked.has(LIGHTNING_UNLOCK_NODE_INDEX);
+  }
+
+  /** Check if the Pillar tower has been unlocked via the skill tree (node index 8). */
+  isPillarUnlocked(): boolean {
+    return this._unlocked.has(PILLAR_UNLOCK_NODE_INDEX);
   }
 
   /**
@@ -282,10 +290,9 @@ export class SkillTreeService extends Service {
     return 1.0 + bonus;
   }
 
-  /** Fortune branch: sell refund bonus (stacks: T3 +50%, T7 +75%). */
+  /** Fortune branch: sell refund bonus (stacks: T7 +75%). */
   getSellRefundBonus(): number {
     let bonus = 0;
-    if (this._unlocked.has(9)) bonus += 0.50;
     if (this._unlocked.has(21)) bonus += 0.75;
     return bonus;
   }
@@ -353,7 +360,6 @@ export class SkillTreeService extends Service {
   /** Fortune branch: income rate multiplier — passive gold per wave multiplier. */
   getIncomeRateMultiplier(): number {
     let bonus = 0;
-    if (this._unlocked.has(9)) bonus += 0.10;   // T3 sell refund node
     if (this._unlocked.has(15)) bonus += 0.15;  // T5 starting gold node
     if (this._unlocked.has(21)) bonus += 0.20;  // T7 sell refund node
     if (this._unlocked.has(27)) bonus += 0.25;  // T9 starting gold node

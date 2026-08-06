@@ -18,7 +18,7 @@
  * To add a lateral link: add [nodeA, nodeB] between any two nodes.
  *
  * ─── DOCUMENTATION RULE: Cannon Unlock Node Descriptions ───────────────────────
- * Tower unlock nodes: indices 8 (Laser), 10 (Poison), 16 (Fire Cannon),
+ * Tower unlock nodes: indices 8 (Laser), 9 (Pillar), 10 (Poison), 16 (Fire Cannon),
  *                     18 (Lightning), 19 (Frost)
  *
  * Convention for tower unlock nodes in the skill tree:
@@ -87,14 +87,14 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
   { index: 6, label: '+25% Wave Bonus Gold', cost: 6, branch: 'fortune', description: 'Earn 25% more bonus gold per wave.' },
 
   // Tier 3 (indices 7, 8, 9)
-  // NOTE: Tower unlock nodes (indices 8, 10, 16, 18, 19) all share the same crimson red
+  // NOTE: Tower unlock nodes (indices 8, 9, 10, 16, 18, 19) all share the same crimson red
   // styling and enlarged size in the XAML skill tree UI (SkillTree.xaml) to visually
   // distinguish them from stat-bonus nodes. When adding new tower unlock nodes,
   // replicate the crimson style: outer ellipse Stroke="#C0392B", Fill="#FF2E0E0E",
   // 210x210 grid, 130x130 icon viewbox, and tower texture icon from Textures/.
   { index: 7, label: '+25% Crit Chance',    cost: 10, branch: 'war', description: 'All towers gain 25% increased critical hit chance.' },
   { index: 8, label: 'Unlock Laser Canon',  cost: 6, branch: 'war', description: 'Highest DPS tower. Long range (3.6), rapid fire rate (5.0/s), 200g cost.' },
-  { index: 9, label: '+50% Sell Refund',    cost: 10, branch: 'fortune', description: 'Refund 50% more gold when selling towers.' },
+  { index: 9, label: 'Unlock Pillar',       cost: 8, branch: 'fortune', description: 'Unlocks the Pillar tower for all biomes. Single-use trap that tips over onto the first enemy in range, instant-killing it, then self-destructs. 30g cost.' },
 
   // Tier 4 (indices 10, 11, 12)
   { index: 10, label: 'Unlock Poison Tower', cost: 8, branch: 'war', description: 'Unlocks the Poison Tower for all biomes. DoT tower that lobs toxic globs stacking lingering poison. 90g cost.' },
@@ -103,8 +103,8 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
 
   // Tier 5 (indices 13, 14, 15)
   { index: 13, label: '+20% Damage',        cost: 4, branch: 'war', description: 'All towers deal 20% more damage.' },
-  { index: 14, label: 'Unlock Snow Biome',  cost: 10, branch: 'fortify', description: 'Unlock the Snow biome for new challenges.' },
-  { index: 15, label: '+50 Starting Gold',  cost: 4, branch: 'fortune', description: 'Begin each run with 50 extra gold.' },
+  { index: 14, label: '+50 Starting Gold',  cost: 4, branch: 'fortune', description: 'Begin each run with 50 extra gold.' },
+  { index: 15, label: 'Unlock Snow Biome',  cost: 10, branch: 'fortify', description: 'Unlock the Snow biome for new challenges.' },
 
   // Tier 6 (indices 16, 17, 18)
   { index: 16, label: 'Unlock Fire Cannon', cost: 12, branch: 'war', description: 'AoE fire damage with arc projectiles. Splash radius 0.6, 120g cost. Unlocked outside of volcano area.' },
@@ -147,8 +147,8 @@ export const SKILL_CONNECTIONS: readonly SkillConnection[] = [
   [4, 1], [7, 4], [10, 7], [13, 10], /*[16, 13],*/ [19, 16], [22, 19], [25, 22], /*[28, 25],*/
 
   // Fortify branch vertical: T1→T2→...→T10
-  [2, 5], [5, 8], [8, 11], [11, 14], [14, 17], [17, 20], [20, 23], [23, 26], [26, 29],
-  [5, 2], [8, 5], [11, 8], [14, 11], [17, 14], [20, 17], [23, 20], [26, 23], [29, 26],
+  [2, 5], [5, 8], [8, 11], [11, 14], [14, 17],/* [17, 20],*/ [20, 23], [23, 26], [26, 29],
+  [5, 2], [8, 5], [11, 8], [14, 11], [17, 14],/* [20, 17],*/ [23, 20], [26, 23], [29, 26],
 
   // Fortune branch vertical: T1→T2→...→T10
   [3, 6], [6, 9], [9, 12], [12, 15], [15, 18], [18, 21], /*[21, 24],*/ [24, 27], [27, 30],
@@ -165,12 +165,12 @@ export const SKILL_CONNECTIONS: readonly SkillConnection[] = [
   // Cross-branch lateral connections (tier 7)
   [19, 20], [20, 19], /*[20, 21], [21, 20],*/
   // Cross-branch lateral connections (tier 9)
-  [25, 26], [26, 25],/* [26, 27], [27, 26],*/
+  /*[25, 26], [26, 25], [26, 27], [27, 26],*/
   // Cross-branch lateral connections (tier 10)
   [28, 29], [29, 28], [29, 30], [30, 29],
 
     // Cross-tier
-  [4, 8], [8, 4], [6, 8], [8, 6], [20, 13], [13, 20], [23, 21], [21, 23],
+  [4, 8], [8, 4], [6, 8], [8, 6], [17, 13], [13, 17], [23, 21], [21, 23],
 ];
 
 // --- Helpers -----------------------------------------------------------------
@@ -258,7 +258,7 @@ const FORTUNE_BRANCH: ISkillBranchDef = {
   tiers: [
     { index: 3, label: '+30 Starting Gold',    cost: 3 },
     { index: 6, label: '+25% Wave Bonus Gold', cost: 6 },
-    { index: 9, label: '+50% Sell Refund',     cost: 10 },
+    { index: 9, label: 'Unlock Pillar',        cost: 8 },
   ],
 };
 

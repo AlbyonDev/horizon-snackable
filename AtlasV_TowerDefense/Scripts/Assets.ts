@@ -18,6 +18,7 @@ export namespace Assets {
   export const FireCannon = new TemplateAsset('@Templates/Towers/FireCanonTower.hstf');
   export const Lightning = new TemplateAsset('@Templates/Towers/LightningTower.hstf');
   export const Poison = new TemplateAsset('@Templates/Towers/PoisonTower.hstf');
+  export const Pillar = new TemplateAsset('@Templates/Towers/MenhirTower.hstf');
 
   // ── Enemies ───────────────────────────────────────────────────────────────
   export const EnemyBasic = new TemplateAsset('@Templates/Enemies/Enemy.hstf');
@@ -50,4 +51,5 @@ export namespace TowerIcons {
   export const FireCanonTower = new TextureAsset("@Textures/fire_tower.png");
   export const LightningTower = new TextureAsset("@Textures/lightning_tower.png");
   export const PoisonTower = new TextureAsset("@Textures/poison_tower.png");
+  export const PillarTower = new TextureAsset("@Textures/pillar_tower.png");
 }

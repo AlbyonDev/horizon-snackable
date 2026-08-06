@@ -32,6 +32,9 @@ const RECOIL_KICK_DURATION  = 0.06; // time to reach max recoil (s)
 const RECOIL_RETURN_DURATION = 0.14; // time to return to rest (s)
 const RECOIL_DISTANCE = 0.15;        // local units of kickback
 
+// ── Single-use fall animation constants ──────────────────────────────────────
+const FALL_DURATION = 0.35;   // seconds for the pillar to tip over
+
 @component()
 export class TowerController extends Component {
   private _transform!: TransformComponent;
@@ -49,6 +52,13 @@ export class TowerController extends Component {
   private _barrelRestCaptured: boolean = false;
   private _recoilDirX: number = 0;
   private _recoilDirZ: number = 0;
+
+  // ── Single-use fall state ──────────────────────────────────────────────────
+  private _singleUseFalling: boolean = false;
+  private _fallElapsed: number = 0;
+  private _fallTargetId: number = -1;
+  private _fallStartRot: Quaternion = Quaternion.identity;
+  private _fallEndRot: Quaternion = Quaternion.identity;
 
   @property() barrel: Maybe<Entity> = null;
   @property() spawnPoint: Maybe<Entity> = null;
@@ -155,9 +165,73 @@ export class TowerController extends Component {
       }
     }
 
+    // ── Single-use fall animation tick ─────────────────────────────────────────
+    if (this._singleUseFalling) {
+      this._fallElapsed += dt;
+      const t = Math.min(this._fallElapsed / FALL_DURATION, 1);
+      // Ease-out quad for a satisfying slam
+      const eased = 1 - (1 - t) * (1 - t);
+
+      if (this.barrel) {
+        const barrelT = this.barrel.getComponent(TransformComponent);
+        if (barrelT) {
+          // Slerp worldRotation from upright to tipped-toward-enemy
+          barrelT.worldRotation = this._fallStartRot.slerp(this._fallEndRot, eased);
+        }
+      }
+
+      if (t >= 1) {
+        // Fall complete → deal damage and self-destruct
+        console.log(`[TowerController] Pillar fall complete at col=${this._col}, row=${this._row}`);
+        const pos2 = this._transform.worldPosition;
+        const dmgPayload = new Events.TakeDamagePayload();
+        dmgPayload.enemyId = this._fallTargetId;
+        dmgPayload.damage = this._stats.damage * BossModifierService.get().damageMultiplier;
+        dmgPayload.props = this._stats.props;
+        dmgPayload.originX = pos2.x;
+        dmgPayload.originZ = pos2.z;
+        const enemyData = EnemyService.get().get(this._fallTargetId);
+        dmgPayload.hitX = enemyData ? enemyData.worldX : pos2.x;
+        dmgPayload.hitZ = enemyData ? enemyData.worldZ : pos2.z;
+        EventService.sendLocally(Events.TakeDamage, dmgPayload);
+        TowerService.get().removeTowerAt(this._col, this._row);
+        this._ready = false;
+        this.entity.destroy();
+      }
+      return; // Skip normal targeting/firing while falling
+    }
+
     const pos = this._transform.worldPosition;
     const targetId = TargetingService.get().getBestTarget(pos.x, pos.z, this._stats.range);
     if (targetId === -1) return;
+
+    // ── Single-use tower: start fall animation toward first target ────────────
+    if (this._stats.props.singleUse) {
+      const target = EnemyService.get().get(targetId);
+      if (target && this.barrel) {
+        const barrelT = this.barrel.getComponent(TransformComponent);
+        if (barrelT) {
+          // Capture starting world rotation of the barrel
+          this._fallStartRot = barrelT.worldRotation;
+          // Compute horizontal direction from barrel to enemy
+          const bPos = barrelT.worldPosition;
+          const dx = target.worldX - bPos.x;
+          const dz = target.worldZ - bPos.z;
+          const len = Math.sqrt(dx * dx + dz * dz) || 1;
+          const fallDir = new Vec3(dx / len, 0, dz / len);
+          // Stone's current "up" in world space (direction its top points)
+          const stoneUp = this._fallStartRot.mulVec3(Vec3.up);
+          // Rotation that tips stoneUp toward the fall direction
+          const tipRotation = Quaternion.rotationTo(stoneUp, fallDir);
+          this._fallEndRot = tipRotation.mul(this._fallStartRot);
+        }
+      }
+      this._singleUseFalling = true;
+      this._fallElapsed = 0;
+      this._fallTargetId = targetId;
+      console.log(`[TowerController] Pillar fall started toward enemy ${targetId}`);
+      return;
+    }
 
     if (this.barrel) {
       const target = EnemyService.get().get(targetId);
@@ -209,8 +283,8 @@ export class TowerController extends Component {
       : this.barrel
         ? (this.barrel.getComponent(TransformComponent)?.worldPosition ?? pos)
         : pos;
-    const t = entity.getComponent(TransformComponent);
-    if (t) t.worldPosition = spawnPos;
+    const trf = entity.getComponent(TransformComponent);
+    if (trf) trf.worldPosition = spawnPos;
 
     const initP = new Events.InitProjectilePayload();
     initP.targetEnemyId = targetId;

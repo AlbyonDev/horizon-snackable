@@ -114,4 +114,17 @@ export const TOWER_DEFS: ITowerDef[] = [
       [[Upg.range(120), Upg.rate(120)],     [Upg.damage(120), Upg.range(120)]],
     ),
   },
+  // ── Pillar ─────────────────────────────────────────────────────────────────
+  // Single-use trap. Tips over onto the first enemy in range, instant-killing it,
+  // then self-destructs. No projectile, no upgrades (consumed on use).
+  {
+    id: 'pillar', name: 'Pillar', cost: 30,
+    stats: { damage: 99999, range: 2.0, fireRate: 1.0, projectileSpeed: 0,
+      props: { singleUse: true } },
+    template: Assets.Pillar,
+    upgrades: tree(
+      [Upg.damage(9999), Upg.damage(9999)],
+      [[Upg.damage(9999), Upg.damage(9999)], [Upg.damage(9999), Upg.damage(9999)]],
+    ),
+  },
 ];

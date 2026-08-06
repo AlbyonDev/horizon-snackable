@@ -223,6 +223,7 @@ Scripts/
 | `lightning` | Lightning | 150g | 15 | 2.50 | 2.0/s | — | Chain: hits 2 extra targets (50% falloff per chain) |
 | `fire_cannon` | Fire Cannon | 120g | 35 | 2.20 | 0.7/s | r=0.6 | Arc AoE, fiery orange projectile |
 | `laser` | Laser | 200g | 8 | 3.60 | 5.0/s | — | Highest base DPS |
+| `pillar` | Pillar | 30g | 99999 | 2.00 | 1-shot | — | Single-use trap: tips over onto first enemy, instant-kills, then self-destructs |
 
 ---
 
