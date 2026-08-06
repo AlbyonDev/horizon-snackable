@@ -40,6 +40,7 @@ import { RelicService } from '../Services/RelicService';
 import { BossModifierService } from '../Services/BossModifierService';
 import { SaveService } from '../Services/SaveService';
 import { SkillTreeService } from '../Services/SkillTreeService';
+import { BiomeArrowIndicatorService } from '../Services/BiomeArrowIndicatorService';
 
 
 @component()
@@ -140,6 +141,7 @@ export class GameManager extends Component {
     VfxService.get();
     CameraShakeService.get();
     TowerDestroyAnimService.get();
+    BiomeArrowIndicatorService.get();
     void Promise.all([
       ProjectilePool.get().prewarm(),
       HealthBarService.get().prewarm(),

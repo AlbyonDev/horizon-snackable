@@ -36,6 +36,8 @@ export namespace Assets {
   export const PathTileStraight = new TemplateAsset('@Templates/GameplayObjects/PathTileStraightTop.hstf');
   export const FloatingText    = new TemplateAsset('@Templates/UI/FloatingText.hstf');
   export const Coin            = new TemplateAsset('@Templates/Coin.hstf');
+  export const BiomeArrowBuff  = new TemplateAsset('@Templates/BiomeArrowBuff.hstf');
+  export const BiomeArrowDebuff = new TemplateAsset('@Templates/BiomeArrowDebuff.hstf');
 }
 
 export namespace TowerIcons {

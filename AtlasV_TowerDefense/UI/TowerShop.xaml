@@ -63,6 +63,7 @@
 
                 <!-- Deselect Animation Storyboard -->
                 <Storyboard x:Key="DeselectAnimation">
+
                     <!-- TranslateTransform.Y back to 0 -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardTranslate"
                                                     Storyboard.TargetProperty="Y">
@@ -87,6 +88,63 @@
                         <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.0">
                             <EasingDoubleKeyFrame.EasingFunction>
                                 <QuadraticEase EasingMode="EaseOut"/>
+                            </EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                    </DoubleAnimationUsingKeyFrames>
+                </Storyboard>
+
+                <!-- Biome Arrow Bobbing Animation - continuous vertical oscillation -->
+                <Storyboard x:Key="BiomeArrowBobAnimation" RepeatBehavior="Forever">
+                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowTranslate"
+                                                    Storyboard.TargetProperty="Y">
+                        <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0"/>
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="-5">
+                            <EasingDoubleKeyFrame.EasingFunction>
+                                <SineEase EasingMode="EaseInOut"/>
+                            </EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="0">
+                            <EasingDoubleKeyFrame.EasingFunction>
+                                <SineEase EasingMode="EaseInOut"/>
+                            </EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.9" Value="5">
+                            <EasingDoubleKeyFrame.EasingFunction>
+                                <SineEase EasingMode="EaseInOut"/>
+                            </EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                        <EasingDoubleKeyFrame KeyTime="0:0:1.2" Value="0">
+                            <EasingDoubleKeyFrame.EasingFunction>
+                                <SineEase EasingMode="EaseInOut"/>
+                            </EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                    </DoubleAnimationUsingKeyFrames>
+                    <!-- Scale pulse (breathing effect 0.95 to 1.1) -->
+                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowScale"
+                                                    Storyboard.TargetProperty="ScaleX">
+                        <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1.0"/>
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="1.1">
+                            <EasingDoubleKeyFrame.EasingFunction>
+                                <SineEase EasingMode="EaseInOut"/>
+                            </EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                        <EasingDoubleKeyFrame KeyTime="0:0:1.2" Value="0.95">
+                            <EasingDoubleKeyFrame.EasingFunction>
+                                <SineEase EasingMode="EaseInOut"/>
+                            </EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                    </DoubleAnimationUsingKeyFrames>
+                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowScale"
+                                                    Storyboard.TargetProperty="ScaleY">
+                        <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1.0"/>
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="1.1">
+                            <EasingDoubleKeyFrame.EasingFunction>
+                                <SineEase EasingMode="EaseInOut"/>
+                            </EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                        <EasingDoubleKeyFrame KeyTime="0:0:1.2" Value="0.95">
+                            <EasingDoubleKeyFrame.EasingFunction>
+                                <SineEase EasingMode="EaseInOut"/>
                             </EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
@@ -202,6 +260,22 @@
                 </Grid>
                 <Border x:Name="Disabled" CornerRadius="50,50,50,50" BorderThickness="10,10,10,10" Background="#AF000000" Visibility="Collapsed" IsEnabled="False"/>
 
+                <!-- Biome Modifier Arrow Indicator - top-right corner -->
+                <Image x:Name="BiomeArrow" Width="80" Height="80"
+                       HorizontalAlignment="Right" VerticalAlignment="Top"
+                       Margin="0,10,30,0"
+                       Stretch="Uniform" IsHitTestVisible="False"
+                       Visibility="Collapsed"
+                       Source="{Binding biomeArrowIcon}"
+                       RenderTransformOrigin="0.5,0.5">
+                    <Image.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform x:Name="BiomeArrowScale" ScaleX="1.0" ScaleY="1.0"/>
+                            <TranslateTransform x:Name="BiomeArrowTranslate" X="0" Y="0"/>
+                        </TransformGroup>
+                    </Image.RenderTransform>
+                </Image>
+
                 <!-- Ribbon Banner - OUTSIDE the border chain to avoid CornerRadius clipping -->
                 <Grid VerticalAlignment="Top" 
                       IsHitTestVisible="False"
@@ -253,6 +327,14 @@
                     <DataTrigger.ExitActions>
                         <BeginStoryboard Storyboard="{StaticResource DeselectAnimation}"/>
                     </DataTrigger.ExitActions>
+                </DataTrigger>
+
+                <!-- Biome Arrow visible when biomeArrowVisible is True + start bobbing -->
+                <DataTrigger Binding="{Binding biomeArrowVisible}" Value="True">
+                    <Setter TargetName="BiomeArrow" Property="Visibility" Value="Visible"/>
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard Storyboard="{StaticResource BiomeArrowBobAnimation}"/>
+                    </DataTrigger.EnterActions>
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>

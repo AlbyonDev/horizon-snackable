@@ -33,6 +33,7 @@ import { ResourceService } from '../Services/ResourceService';
 import { SkillTreeService } from '../Services/SkillTreeService';
 import { SaveService } from '../Services/SaveService';
 import { TowerIcons } from '../Assets';
+import { getBiomeModifierState } from '../Defs/BiomeModifierDefs';
 
 const TOWER_COLORS: Record<string, string> = {
   arrow:  '#552ecc71',
@@ -52,6 +53,9 @@ const TOWER_SECONDARY_COLORS: Record<string, string> = {
   test:   '#b34700',
 };
 
+const BIOME_ARROW_BUFF_ICON = new TextureAsset('@sprites/biome_arrow_buff.png');
+const BIOME_ARROW_DEBUFF_ICON = new TextureAsset('@sprites/biome_arrow_debuff.png');
+
 @uiViewModel()
 export class TowerShopItemViewModel extends UiViewModel {
   icon: Maybe<TextureAsset> = null;
@@ -63,6 +67,8 @@ export class TowerShopItemViewModel extends UiViewModel {
   selected: boolean = false;
   towerColor: string = '#3a3a5a';
   secondaryColor: string = '#2a2a3a';
+  biomeArrowVisible: boolean = false;
+  biomeArrowIcon: Maybe<TextureAsset> = null;
 }
 
 @uiViewModel()
@@ -152,6 +158,7 @@ export class TowerShopHud extends Component {
 
     this._populateTowers();
     this._updateAffordability(ResourceService.get().gold);
+    this._updateBiomeArrows();
 
     // Initialize scroll flush with left edge
     this.scrollTarget = -CARD_EDGE_MARGIN;
@@ -249,6 +256,7 @@ export class TowerShopHud extends Component {
     // Re-populate towers in case skill tree unlock state changed since onStart
     this._populateTowers();
     this._updateAffordability(ResourceService.get().gold);
+    this._updateBiomeArrows();
     if (this.uiComponent) this.uiComponent.isVisible = true;
     this.viewModel.visible = true;
   }
@@ -290,11 +298,18 @@ export class TowerShopHud extends Component {
 
   }
 
+  @subscribe(Events.BiomeChanged, { execution: ExecuteOn.Owner })
+  onBiomeChanged(_payload: Events.BiomeChangedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._updateBiomeArrows();
+  }
+
   @subscribe(Events.RestartGame, { execution: ExecuteOn.Owner })
   onRestart(_payload: Events.RestartGamePayload): void {
     if (!this.viewModel) return;
     // Re-populate towers in case skill tree unlock state changed
     this._populateTowers();
+    this._updateBiomeArrows();
     // Don't show yet — will show again on LevelSelected
     this.viewModel.visible = false;
     if (this.uiComponent) this.uiComponent.isVisible = false;
@@ -432,6 +447,23 @@ export class TowerShopHud extends Component {
     for (const item of this.itemVMs) {
       const newState = gold >= item.cost ? 'affordable' : 'too_expensive';
       if (item.state !== newState) item.state = newState;
+    }
+  }
+
+  private _updateBiomeArrows(): void {
+    const activeBiome = SaveService.get().activeBiome;
+    for (const item of this.itemVMs) {
+      const modState = getBiomeModifierState(item.towerId, activeBiome);
+      if (modState === 'buff') {
+        item.biomeArrowVisible = true;
+        item.biomeArrowIcon = BIOME_ARROW_BUFF_ICON;
+      } else if (modState === 'debuff') {
+        item.biomeArrowVisible = true;
+        item.biomeArrowIcon = BIOME_ARROW_DEBUFF_ICON;
+      } else {
+        item.biomeArrowVisible = false;
+        item.biomeArrowIcon = null;
+      }
     }
   }
 

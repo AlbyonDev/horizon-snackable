@@ -1,6 +1,9 @@
 tasks: []
 
 done:
+  - Biome Tower Buff/Debuff System -- damage modifiers + dynamic shop card arrows
+
+done:
   - Camera Shake on Life Lost -- decaying random X/Y shake, 0.3s duration
   - Skill Tree Defs Graph Refactor -- explicit edge list, graph-based prereqs + UI
   - Grass Ground Plane -- Bloons TD style cartoon grass, UV tiling (6,4)

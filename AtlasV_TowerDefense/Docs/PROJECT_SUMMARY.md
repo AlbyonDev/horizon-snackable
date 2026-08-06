@@ -152,6 +152,7 @@ Scripts/
     NodeDefs.ts     — NODE_TYPE_DEFS: Record<OverworldNodeType, INodeTypeDef> (3 node types: combat, boss, minigame)
     NodeDefs.ts     — NODE_TYPE_DEFS: Record<OverworldNodeType, INodeTypeDef> (3 types: combat, boss, minigame with sprite paths)
     SkillTreeDefs.ts — SKILL_NODES + SKILL_CONNECTIONS: explicit graph-based skill tree (1 root node + 9 branch nodes with directed edge connections defining prerequisites; supports lateral cross-branch links)
+    BiomeModifierDefs.ts — BIOME_MODIFIERS: IBiomeModifier[] (tower-biome damage multipliers for buff/debuff system)
 
   Services/
     PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
@@ -178,6 +179,7 @@ Scripts/
     TowerDestroyAnimService — animated tower destruction for boss modifier; spawns a red meteor projectile from above, flies it to the tower, shakes the tower on impact, scales it to 0, then removes it from the grid
     SkillTreeService    — manages permanent skill tree unlocks; provides bonus getters consumed by TowerService, ResourceService, CritService, WaveService
     SkillTreeService        — permanent skill tree unlocks with graph-based prerequisites; exposes bonus multipliers consumed by TowerService, ResourceService, CritService, WaveService; purchase/persistence logic via SaveService
+    BiomeArrowIndicatorService — spawns floating arrow sprites (buff/debuff) above placed towers based on active biome modifier; bobs gently; cleans up on sell/restart/biome change
 
   Components/
     GameManager         — onStart prewarm, onUpdate tick, game start/end/restart
@@ -335,6 +337,17 @@ Both arrows cycle through `BIOME_ORDER = ['grass', 'snow', 'volcano']`. The swit
 - `OverworldHud` updates its background image via data-bound ViewModel property and manages the biome navigation arrow visibility/label
 - `PathTileService` subscribes to `BiomeChanged` and swaps the `pathTex` parameter on the shared materials
 - `GameManager.onStartGame()` reads `SaveService.get().activeBiome` to fire the correct initial `BiomeChanged`
+
+### Biome Modifiers (Tower Buff/Debuff)
+
+Towers receive damage multipliers based on the active biome. Defined in `Scripts/Defs/BiomeModifierDefs.ts`.
+
+| Tower | Biome | Multiplier | Effect |
+|-------|-------|-----------|--------|
+| Frost | Volcano | ×0.7 | Debuff (ice weak in heat) |
+| Fire Cannon | Snow | ×1.3 | Buff (fire strong vs cold) |
+
+Applied in `TowerService.getEffectiveStats()` after relic/skill multipliers. The Tower Shop HUD shows a colored arrow indicator (green up = buff, red down = debuff) on cards when a modifier applies in the current biome. Additionally, placed towers with an active biome modifier display a floating arrow sprite above them in the 3D world (spawned by `BiomeArrowIndicatorService`), bobbing gently for visibility.
 
 ---
 

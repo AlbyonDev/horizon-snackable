@@ -18,11 +18,13 @@ import type { ITowerDef, ITowerStats, IUpgradeNode } from '../Types';
 import { Events } from '../Types';
 import { GRID_COLS, GRID_ROWS, SELL_RATIO } from '../Constants';
 import { TOWER_DEFS } from '../Defs/TowerDefs';
+import { getBiomeDamageMultiplier } from '../Defs/BiomeModifierDefs';
 import { PathService } from './PathService';
 import { ResourceService } from './ResourceService';
 import { FloatingTextService } from './FloatingTextService';
 import { RelicService } from './RelicService';
 import { SkillTreeService } from './SkillTreeService';
+import { SaveService } from './SaveService';
 
 // ── Record ────────────────────────────────────────────────────────────────────
 
@@ -93,7 +95,11 @@ export class TowerService extends Service {
     const skills = SkillTreeService.get();
     const fireRateMult = relics.getFireRateMultiplier() * skills.getFireRateMultiplier();
     const rangeMult = relics.getRangeMultiplier() * skills.getRangeMultiplier();
-    const damageMult = skills.getDamageMultiplier();
+    let damageMult = skills.getDamageMultiplier();
+
+    // Apply biome damage modifier (buff/debuff based on active biome)
+    const biomeMultiplier = getBiomeDamageMultiplier(rec.defId, SaveService.get().activeBiome);
+    damageMult *= biomeMultiplier;
 
     if (fireRateMult !== 1 || rangeMult !== 1 || damageMult !== 1) {
       return {
