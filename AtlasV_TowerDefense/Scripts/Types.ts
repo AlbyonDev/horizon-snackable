@@ -83,6 +83,8 @@ export interface ITowerDef {
 
   template: TemplateAsset;
   upgrades: readonly [IUpgradeNode, IUpgradeNode];
+  /** If set, this tower only appears in the shop when the active biome matches. */
+  biomeExclusive?: string;
 }
 
 export interface IEnemyDef {
@@ -295,6 +297,11 @@ export namespace Events {
   // Run advanced (all levels beaten, moving to next run)
   export class RunAdvancedPayload { runCount: number = 0; }
   export const RunAdvanced = new LocalEvent<RunAdvancedPayload>('EvRunAdvanced', RunAdvancedPayload);
+
+  // Skill tree node purchased (fired after a successful skill purchase so other
+  // systems can refresh their unlock-gated state, e.g. biome arrows)
+  export class SkillTreeNodePurchasedPayload { skillIndex: number = 0; }
+  export const SkillTreeNodePurchased = new LocalEvent<SkillTreeNodePurchasedPayload>('EvSkillTreeNodePurchased', SkillTreeNodePurchasedPayload);
 
 }
 

@@ -58,6 +58,7 @@ import { MinigameHud } from './MinigameHud';
 import { SaveService } from '../Services/SaveService';
 import { OpenSkillTreeEvent, OpenSkillTreePayload } from './SkillTreeHudController';
 import { OpenAchievementsEvent, OpenAchievementsPayload } from './AchievementHudController';
+import { SkillTreeService } from '../Services/SkillTreeService';
 
 // Pre-defined TextureAssets for each biome background (must be static string literals)
 const BG_GRASS = new TextureAsset('@sprites/overworld_background-grass.png');
@@ -195,7 +196,7 @@ export class OverworldViewModel extends UiViewModel {
   skullCount: number = 0;
 
   // Biome navigation arrows
-  /** Whether the right (next) biome arrow is visible */
+  /** Whether the right (next) biome arrow is visible (false only at last biome boundary) */
   biomeArrowVisible: boolean = false;
   /** Label for the right arrow (e.g. "SNOW") */
   biomeArrowLabel: string = '';
@@ -205,7 +206,11 @@ export class OverworldViewModel extends UiViewModel {
   biomeArrowRightGlowColor: string = '#AA81D4FA';
   /** Destination biome type for the right arrow (for icon switching: 'grass'|'snow'|'volcano') */
   biomeArrowRightType: string = 'snow';
-  /** Whether the left (prev) biome arrow is visible */
+  /** Whether the right arrow destination is locked (grayed out, not clickable) */
+  biomeArrowRightLocked: boolean = false;
+  /** Opacity for the right arrow (1.0 = unlocked, 0.4 = locked) */
+  biomeArrowRightOpacity: number = 1.0;
+  /** Whether the left (prev) biome arrow is visible (false only at first biome boundary) */
   biomeArrowLeftVisible: boolean = false;
   /** Label for the left arrow (e.g. "GRASS") */
   biomeArrowLeftLabel: string = '';
@@ -215,6 +220,10 @@ export class OverworldViewModel extends UiViewModel {
   biomeArrowLeftGlowColor: string = '#AA4CAF50';
   /** Destination biome type for the left arrow (for icon switching) */
   biomeArrowLeftType: string = 'grass';
+  /** Whether the left arrow destination is locked (grayed out, not clickable) */
+  biomeArrowLeftLocked: boolean = false;
+  /** Opacity for the left arrow (1.0 = unlocked, 0.4 = locked) */
+  biomeArrowLeftOpacity: number = 1.0;
 
   // Carousel overlay state
   carouselVisible: boolean = false;
@@ -445,6 +454,14 @@ export class OverworldHud extends Component {
     console.log(`[OverworldHud] Progress restored successfully`);
   }
 
+  @subscribe(Events.SkillTreeNodePurchased, { execution: ExecuteOn.Owner })
+  onSkillTreeNodePurchased(_payload: Events.SkillTreeNodePurchasedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    console.log(`[OverworldHud] Skill tree node purchased (index=${_payload.skillIndex}), refreshing biome arrows`);
+    this._updateBiomeArrow();
+  }
+
   @subscribe(Events.BiomeChanged, { execution: ExecuteOn.Owner })
   onBiomeChanged(payload: Events.BiomeChangedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -598,6 +615,17 @@ export class OverworldHud extends Component {
       if (targetIdx >= BIOME_ORDER.length) return; // already on last biome
     }
     const nextBiomeId = BIOME_ORDER[targetIdx];
+
+    // Block taps on locked biomes
+    const skillTree = SkillTreeService.get();
+    if (nextBiomeId === 'snow' && !skillTree.isSnowUnlocked()) {
+      console.log(`[OverworldHud] Biome arrow tap blocked: Snow is locked`);
+      return;
+    }
+    if (nextBiomeId === 'volcano' && !skillTree.isVolcanoUnlocked()) {
+      console.log(`[OverworldHud] Biome arrow tap blocked: Volcano is locked`);
+      return;
+    }
 
     console.log(`[OverworldHud] Biome arrow tapped (${direction}): ${currentBiome} → ${nextBiomeId}`);
 
@@ -1302,6 +1330,8 @@ export class OverworldHud extends Component {
   };
 
   /** Update biome arrow visibility, label, color, and icon type based on destination biome.
+   *  Arrows are ALWAYS visible (unless on boundary). Locked biomes show the arrow
+   *  grayed out (low opacity) and block taps; unlocked biomes show full opacity.
    *  @param biomeOverride If provided, use this biome ID instead of reading from SaveService.
    *                       Eliminates timing dependency on switchBiome() having committed the state.
    */
@@ -1309,37 +1339,58 @@ export class OverworldHud extends Component {
     if (!this.viewModel) return;
     const currentBiome = biomeOverride ?? SaveService.get().activeBiome;
     const currentIdx = BIOME_ORDER.indexOf(currentBiome);
-    console.log(`[OverworldHud] _updateBiomeArrow: biome=${currentBiome}, idx=${currentIdx}, order=${BIOME_ORDER.length}`);
+    const skillTree = SkillTreeService.get();
+    console.log(`[OverworldHud] _updateBiomeArrow: biome=${currentBiome}, idx=${currentIdx}, order=${BIOME_ORDER.length}, snowUnlocked=${skillTree.isSnowUnlocked()}, volcanoUnlocked=${skillTree.isVolcanoUnlocked()}`);
 
-    // Right arrow (next biome): hidden on the last biome
+    // Right arrow (next biome): hidden ONLY on the last biome boundary
     const isLast = currentIdx >= BIOME_ORDER.length - 1;
-    this.viewModel.biomeArrowVisible = !isLast && BIOME_ORDER.length > 1;
-    if (!isLast) {
+    const rightVisible = !isLast && BIOME_ORDER.length > 1;
+    this.viewModel.biomeArrowVisible = rightVisible;
+    if (rightVisible) {
       const nextBiomeId = BIOME_ORDER[currentIdx + 1];
       const nextBiomeDef = BIOME_DEFS.find(b => b.id === nextBiomeId);
       this.viewModel.biomeArrowLabel = nextBiomeDef ? nextBiomeDef.name.toUpperCase() : '';
-      // Set color and icon type based on destination biome
       const colors = OverworldHud.BIOME_ARROW_COLORS[nextBiomeId] || OverworldHud.BIOME_ARROW_COLORS['grass'];
       this.viewModel.biomeArrowRightColor = colors.main;
       this.viewModel.biomeArrowRightGlowColor = colors.glow;
       this.viewModel.biomeArrowRightType = nextBiomeId;
+
+      // Determine locked state from skill tree
+      let locked = false;
+      if (nextBiomeId === 'snow' && !skillTree.isSnowUnlocked()) {
+        locked = true;
+      } else if (nextBiomeId === 'volcano' && !skillTree.isVolcanoUnlocked()) {
+        locked = true;
+      }
+      this.viewModel.biomeArrowRightLocked = locked;
+      this.viewModel.biomeArrowRightOpacity = 1.0;
     }
 
-    // Left arrow (prev biome): hidden on the first biome
+    // Left arrow (prev biome): hidden ONLY on the first biome boundary
     const isFirst = currentIdx <= 0;
-    this.viewModel.biomeArrowLeftVisible = !isFirst && BIOME_ORDER.length > 1;
-    if (!isFirst) {
+    const leftVisible = !isFirst && BIOME_ORDER.length > 1;
+    this.viewModel.biomeArrowLeftVisible = leftVisible;
+    if (leftVisible) {
       const prevBiomeId = BIOME_ORDER[currentIdx - 1];
       const prevBiomeDef = BIOME_DEFS.find(b => b.id === prevBiomeId);
       this.viewModel.biomeArrowLeftLabel = prevBiomeDef ? prevBiomeDef.name.toUpperCase() : '';
-      // Set color and icon type based on destination biome
       const colors = OverworldHud.BIOME_ARROW_COLORS[prevBiomeId] || OverworldHud.BIOME_ARROW_COLORS['grass'];
       this.viewModel.biomeArrowLeftColor = colors.main;
       this.viewModel.biomeArrowLeftGlowColor = colors.glow;
       this.viewModel.biomeArrowLeftType = prevBiomeId;
+
+      // Determine locked state from skill tree
+      let locked = false;
+      if (prevBiomeId === 'snow' && !skillTree.isSnowUnlocked()) {
+        locked = true;
+      } else if (prevBiomeId === 'volcano' && !skillTree.isVolcanoUnlocked()) {
+        locked = true;
+      }
+      this.viewModel.biomeArrowLeftLocked = locked;
+      this.viewModel.biomeArrowLeftOpacity = 1.0;
     }
 
-    console.log(`[OverworldHud] Arrow states: rightVisible=${this.viewModel.biomeArrowVisible} (label=${this.viewModel.biomeArrowLabel}, type=${this.viewModel.biomeArrowRightType}), leftVisible=${this.viewModel.biomeArrowLeftVisible} (label=${this.viewModel.biomeArrowLeftLabel}, type=${this.viewModel.biomeArrowLeftType})`);
+    console.log(`[OverworldHud] Arrow states: rightVisible=${this.viewModel.biomeArrowVisible} (label=${this.viewModel.biomeArrowLabel}, locked=${this.viewModel.biomeArrowRightLocked}), leftVisible=${this.viewModel.biomeArrowLeftVisible} (label=${this.viewModel.biomeArrowLeftLabel}, locked=${this.viewModel.biomeArrowLeftLocked})`);
   }
 
   /** Refresh the relic button visibility from RelicService active relics. */

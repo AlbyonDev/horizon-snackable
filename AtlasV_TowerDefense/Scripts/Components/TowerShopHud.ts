@@ -31,6 +31,7 @@ import { Events, UiEvents } from '../Types';
 import { TowerService } from '../Services/TowerService';
 import { ResourceService } from '../Services/ResourceService';
 import { SkillTreeService } from '../Services/SkillTreeService';
+import { SaveService } from '../Services/SaveService';
 import { TowerIcons } from '../Assets';
 
 const TOWER_COLORS: Record<string, string> = {
@@ -363,7 +364,22 @@ export class TowerShopHud extends Component {
     const allDefs = TowerService.get().all();
     // Filter out the laser tower if the skill tree node hasn't been unlocked
     const isLaserUnlocked = SkillTreeService.get().isLaserUnlocked();
-    const defs = allDefs.filter(def => def.id !== 'laser' || isLaserUnlocked);
+    const activeBiome = SaveService.get().activeBiome;
+    const defs = allDefs.filter(def => {
+      if (def.id === 'laser' && !isLaserUnlocked) return false;
+      // Biome-exclusive towers: show if current biome matches OR corresponding skill tree unlock is purchased
+      if (def.biomeExclusive && def.biomeExclusive !== activeBiome) {
+        // Check if the skill tree unlocks this tower for all biomes
+        if (def.id === 'fire_cannon' && SkillTreeService.get().isFireCannonUnlocked()) {
+          // Fire cannon unlocked via skill tree - show in any biome
+        } else if (def.id === 'frost' && SkillTreeService.get().isFrostUnlocked()) {
+          // Frost tower unlocked via skill tree - show in any biome
+        } else {
+          return false;
+        }
+      }
+      return true;
+    });
 
     this.itemVMs = defs.map((def) => {
       const item = new TowerShopItemViewModel();

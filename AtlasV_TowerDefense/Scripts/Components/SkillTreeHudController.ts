@@ -71,30 +71,37 @@ const buyTapEvent = new UiEvent('SkillTreeViewModel-onBuyTap', SkillTreeBuyTapPa
 
 // ── Colors ───────────────────────────────────────────────────────────────────
 
-const COLOR_BORDER_BOUGHT = '#FFf5c518';
-const COLOR_BORDER_BUYABLE = '#FFF5E6D0';
-const COLOR_BORDER_LOCKED = '#44F5E6D0';
-
-const COLOR_TEXT_BOUGHT = '#FFf5c518';
-const COLOR_TEXT_BUYABLE = '#DDFFE8D0';
-const COLOR_TEXT_LOCKED = '#55F5E6D0';
-
-const COLOR_ICON_BOUGHT = '#FFf5c518';
-const COLOR_ICON_BUYABLE = '#CCF5E6D0';
-const COLOR_ICON_LOCKED = '#44F5E6D0';
-
+// Visual hierarchy: Buyable=vibrant, Locked=dim/gray, Bought=super faded/washed out
+// BUYABLE — full color, vibrant gold (the only nodes that pop)
+const COLOR_BORDER_BUYABLE = '#FFf5c518';
+const COLOR_TEXT_BUYABLE = '#FFf5c518';
+const COLOR_ICON_BUYABLE = '#FFF5E6D0';
 const COLOR_COST_BUYABLE = '#FFf5c518';
-const COLOR_COST_LOCKED = '#66F5E6D0';
+// LOCKED — grayed out, dim (not yet available)
+const COLOR_BORDER_LOCKED = '#44777788';
+const COLOR_TEXT_LOCKED = '#44AAAAAA';
+const COLOR_ICON_LOCKED = '#44777788';
+const COLOR_COST_LOCKED = '#44777788';
 
-const COLOR_CONNECTION_ACTIVE = '#CCF5E6D0';
-const COLOR_CONNECTION_LOCKED = '#44F5E6D0';
+// BOUGHT — solid gray, desaturated (clearly "done/grayed out" but fully visible)
+const COLOR_BORDER_BOUGHT = '#FF888888';
+const COLOR_TEXT_BOUGHT = '#FF666666';
+const COLOR_ICON_BOUGHT = '#FF777777';
+const COLOR_COST_BOUGHT = '#FF666666';
 
-const COLOR_ROOT_BORDER_BOUGHT = '#FFf5c518';
-const COLOR_ROOT_BORDER_BUYABLE = '#FFFFFFFF';
-const COLOR_ROOT_BORDER_LOCKED = '#88FFFFFF';
-const COLOR_ROOT_RUNE_BOUGHT = '#FFf5c518';
+// UNAFFORDABLE — prereqs met but not enough skulls (cost shown in red)
+const COLOR_COST_UNAFFORDABLE = '#FFFF3333';
+
+const COLOR_CONNECTION_ACTIVE = '#AAF5E6D0';
+const COLOR_CONNECTION_LOCKED = '#33777788';
+
+// Root node states
+const COLOR_ROOT_BORDER_BUYABLE = '#FFf5c518';
 const COLOR_ROOT_RUNE_BUYABLE = '#FFf5c518';
-const COLOR_ROOT_RUNE_LOCKED = '#66f5c518';
+const COLOR_ROOT_BORDER_LOCKED = '#44777788';
+const COLOR_ROOT_RUNE_LOCKED = '#33f5c518';
+const COLOR_ROOT_BORDER_BOUGHT = '#FF888888';
+const COLOR_ROOT_RUNE_BOUGHT = '#FF777777';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 
@@ -247,6 +254,7 @@ export class SkillTreeViewModel extends UiViewModel {
   // Popup state
   popupVisible: boolean = false;
   popupDescription: string = '';
+  popupDetailText: string = '';
   popupCost: string = '';
   popupCostVisible: boolean = false;
   popupBuyVisible: boolean = true;
@@ -323,6 +331,48 @@ export class SkillTreeViewModel extends UiViewModel {
   connectionCount: number = 0;
 
   // Per-node properties (40 nodes: positions, colors, labels, costs)
+  // Per-node pulse visibility (true = buyable AND affordable, shows glow animation)
+  node0PulseVisible: boolean = false;
+  node1PulseVisible: boolean = false;
+  node2PulseVisible: boolean = false;
+  node3PulseVisible: boolean = false;
+  node4PulseVisible: boolean = false;
+  node5PulseVisible: boolean = false;
+  node6PulseVisible: boolean = false;
+  node7PulseVisible: boolean = false;
+  node8PulseVisible: boolean = false;
+  node9PulseVisible: boolean = false;
+  node10PulseVisible: boolean = false;
+  node11PulseVisible: boolean = false;
+  node12PulseVisible: boolean = false;
+  node13PulseVisible: boolean = false;
+  node14PulseVisible: boolean = false;
+  node15PulseVisible: boolean = false;
+  node16PulseVisible: boolean = false;
+  node17PulseVisible: boolean = false;
+  node18PulseVisible: boolean = false;
+  node19PulseVisible: boolean = false;
+  node20PulseVisible: boolean = false;
+  node21PulseVisible: boolean = false;
+  node22PulseVisible: boolean = false;
+  node23PulseVisible: boolean = false;
+  node24PulseVisible: boolean = false;
+  node25PulseVisible: boolean = false;
+  node26PulseVisible: boolean = false;
+  node27PulseVisible: boolean = false;
+  node28PulseVisible: boolean = false;
+  node29PulseVisible: boolean = false;
+  node30PulseVisible: boolean = false;
+  node31PulseVisible: boolean = false;
+  node32PulseVisible: boolean = false;
+  node33PulseVisible: boolean = false;
+  node34PulseVisible: boolean = false;
+  node35PulseVisible: boolean = false;
+  node36PulseVisible: boolean = false;
+  node37PulseVisible: boolean = false;
+  node38PulseVisible: boolean = false;
+  node39PulseVisible: boolean = false;
+
   // Node 0 (root - special)
   node0X: number = NODE_POSITIONS[0][0]; node0Y: number = NODE_POSITIONS[0][1];
   node0BorderColor: string = COLOR_ROOT_BORDER_BUYABLE;
@@ -528,6 +578,22 @@ export class SkillTreeViewModel extends UiViewModel {
   node39BorderColor: string = COLOR_BORDER_LOCKED; node39IconColor: string = COLOR_ICON_LOCKED;
   node39Text: string = COLOR_TEXT_LOCKED; node39Label: string = getNodeLabel(39);
   node39Cost: string = `${getNodeCost(39)}`; node39CostVisible: boolean = false; node39CostColor: string = COLOR_COST_LOCKED;
+
+  // Per-node icon opacity 0.05 when bought/grayed, 1.0 otherwise)
+  node0IconOpacity: number = 1; node1IconOpacity: number = 1; node2IconOpacity: number = 1;
+  node3IconOpacity: number = 1; node4IconOpacity: number = 1; node5IconOpacity: number = 1;
+  node6IconOpacity: number = 1; node7IconOpacity: number = 1; node8IconOpacity: number = 1;
+  node9IconOpacity: number = 1; node10IconOpacity: number = 1; node11IconOpacity: number = 1;
+  node12IconOpacity: number = 1; node13IconOpacity: number = 1; node14IconOpacity: number = 1;
+  node15IconOpacity: number = 1; node16IconOpacity: number = 1; node17IconOpacity: number = 1;
+  node18IconOpacity: number = 1; node19IconOpacity: number = 1; node20IconOpacity: number = 1;
+  node21IconOpacity: number = 1; node22IconOpacity: number = 1; node23IconOpacity: number = 1;
+  node24IconOpacity: number = 1; node25IconOpacity: number = 1; node26IconOpacity: number = 1;
+  node27IconOpacity: number = 1; node28IconOpacity: number = 1; node29IconOpacity: number = 1;
+  node30IconOpacity: number = 1; node31IconOpacity: number = 1; node32IconOpacity: number = 1;
+  node33IconOpacity: number = 1; node34IconOpacity: number = 1; node35IconOpacity: number = 1;
+  node36IconOpacity: number = 1; node37IconOpacity: number = 1; node38IconOpacity: number = 1;
+  node39IconOpacity: number = 1;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -579,8 +645,15 @@ export class SkillTreeHudController extends Component {
     const isBought = service.isUnlocked(skillIndex);
 
     this.viewModel.popupDescription = node.label.toUpperCase();
-    this.viewModel.popupCost = isBought ? 'OWNED' : `${node.cost}`;
-    this.viewModel.popupCostVisible = !isBought;
+    this.viewModel.popupDetailText = node.description;
+    if (isBought) {
+      this.viewModel.popupCost = 'BOUGHT!';
+    } else if (service.hasPrerequisitesMet(skillIndex)) {
+      this.viewModel.popupCost = `\u{1F480} ${node.cost}`;
+    } else {
+      this.viewModel.popupCost = '\u{1F480} ??';
+    }
+    this.viewModel.popupCostVisible = true;
     this.viewModel.popupBuyVisible = !isBought && service.canPurchase(skillIndex);
     this.viewModel.popupVisible = true;
 
@@ -605,11 +678,17 @@ export class SkillTreeHudController extends Component {
     if (this.pendingNodeIndex < 0 || this.pendingNodeIndex >= TOTAL_SKILLS) return;
 
     const service = SkillTreeService.get();
-    if (service.purchase(this.pendingNodeIndex)) {
-      console.log(`[SkillTreeHud] Purchased skill ${this.pendingNodeIndex}`);
+    const purchasedIndex = this.pendingNodeIndex;
+    if (service.purchase(purchasedIndex)) {
+      console.log(`[SkillTreeHud] Purchased skill ${purchasedIndex}`);
       this._refreshAllNodes();
+
+      // Notify other systems (e.g. OverworldHud biome arrows) that a skill was purchased
+      const purchasePayload = new Events.SkillTreeNodePurchasedPayload();
+      purchasePayload.skillIndex = purchasedIndex;
+      EventService.sendLocally(Events.SkillTreeNodePurchased, purchasePayload);
     } else {
-      console.log(`[SkillTreeHud] Cannot purchase skill ${this.pendingNodeIndex}`);
+      console.log(`[SkillTreeHud] Cannot purchase skill ${purchasedIndex}`);
     }
 
     this.viewModel.popupVisible = false;
@@ -681,10 +760,12 @@ export class SkillTreeHudController extends Component {
       this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_BOUGHT;
       this.viewModel.node0RuneColor = COLOR_ROOT_RUNE_BOUGHT;
       this.viewModel.node0Text = COLOR_TEXT_BOUGHT;
-      this.viewModel.node0Label = '';
+      this.viewModel.node0Label = 'BOUGHT!';
       this.viewModel.node0Cost = 'OWNED';
       this.viewModel.node0CostVisible = false;
       this.viewModel.node0CostColor = COLOR_COST_BUYABLE;
+      this.viewModel.node0PulseVisible = false;
+      this.viewModel.node0IconOpacity = 0.05;
     } else if (service.canPurchase(ROOT_SKILL_INDEX)) {
       this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_BUYABLE;
       this.viewModel.node0RuneColor = COLOR_ROOT_RUNE_BUYABLE;
@@ -693,14 +774,29 @@ export class SkillTreeHudController extends Component {
       this.viewModel.node0Cost = `${getNodeCost(ROOT_SKILL_INDEX)}`;
       this.viewModel.node0CostVisible = true;
       this.viewModel.node0CostColor = COLOR_COST_BUYABLE;
+      this.viewModel.node0PulseVisible = true;
+      this.viewModel.node0IconOpacity = 1;
+    } else if (service.hasPrerequisitesMet(ROOT_SKILL_INDEX)) {
+      // Root prereqs always met — this means can't afford
+      this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_BUYABLE;
+      this.viewModel.node0RuneColor = COLOR_ROOT_RUNE_BUYABLE;
+      this.viewModel.node0Text = COLOR_TEXT_BUYABLE;
+      this.viewModel.node0Label = `\u{1F480} ${getNodeCost(ROOT_SKILL_INDEX)}`;
+      this.viewModel.node0Cost = `${getNodeCost(ROOT_SKILL_INDEX)}`;
+      this.viewModel.node0CostVisible = true;
+      this.viewModel.node0CostColor = COLOR_COST_UNAFFORDABLE;
+      this.viewModel.node0PulseVisible = false;
+      this.viewModel.node0IconOpacity = 1;
     } else {
       this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_LOCKED;
       this.viewModel.node0RuneColor = COLOR_ROOT_RUNE_LOCKED;
       this.viewModel.node0Text = COLOR_TEXT_LOCKED;
-      this.viewModel.node0Label = `\u{1F480} ${getNodeCost(ROOT_SKILL_INDEX)}`;
+      this.viewModel.node0Label = '\u{1F480} ??';
       this.viewModel.node0Cost = `${getNodeCost(ROOT_SKILL_INDEX)}`;
       this.viewModel.node0CostVisible = true;
       this.viewModel.node0CostColor = COLOR_COST_LOCKED;
+      this.viewModel.node0PulseVisible = false;
+      this.viewModel.node0IconOpacity = 1;
     }
   }
 
@@ -714,6 +810,7 @@ export class SkillTreeHudController extends Component {
     let cost: string;
     let costVisible: boolean;
     let costColor: string;
+    let pulseVisible: boolean;
 
     let label: string;
 
@@ -724,7 +821,8 @@ export class SkillTreeHudController extends Component {
       cost = 'OWNED';
       costVisible = false;
       costColor = COLOR_COST_BUYABLE;
-      label = '';
+      label = 'BOUGHT!';
+      pulseVisible = false;
     } else if (service.canPurchase(index)) {
       borderColor = COLOR_BORDER_BUYABLE;
       iconColor = COLOR_ICON_BUYABLE;
@@ -733,6 +831,17 @@ export class SkillTreeHudController extends Component {
       costVisible = true;
       costColor = COLOR_COST_BUYABLE;
       label = `\u{1F480} ${getNodeCost(index)}`;
+      pulseVisible = true;
+    } else if (service.hasPrerequisitesMet(index)) {
+      // Prereqs met but can't afford — show buyable appearance with RED cost
+      borderColor = COLOR_BORDER_BUYABLE;
+      iconColor = COLOR_ICON_BUYABLE;
+      text = COLOR_TEXT_BUYABLE;
+      cost = `${getNodeCost(index)}`;
+      costVisible = true;
+      costColor = COLOR_COST_UNAFFORDABLE;
+      label = `\u{1F480} ${getNodeCost(index)}`;
+      pulseVisible = false;
     } else {
       borderColor = COLOR_BORDER_LOCKED;
       iconColor = COLOR_ICON_LOCKED;
@@ -740,7 +849,8 @@ export class SkillTreeHudController extends Component {
       cost = `${getNodeCost(index)}`;
       costVisible = true;
       costColor = COLOR_COST_LOCKED;
-      label = `\u{1F480} ${getNodeCost(index)}`;
+      label = '\u{1F480} ??';
+      pulseVisible = false;
     }
 
     vm[`node${index}BorderColor`] = borderColor;
@@ -750,5 +860,7 @@ export class SkillTreeHudController extends Component {
     vm[`node${index}Cost`] = cost;
     vm[`node${index}CostVisible`] = costVisible;
     vm[`node${index}CostColor`] = costColor;
+    vm[`node${index}PulseVisible`] = pulseVisible;
+    vm[`node${index}IconOpacity`] = service.isUnlocked(index) ? 0.05 : 1;
   }
 }

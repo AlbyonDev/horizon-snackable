@@ -46,7 +46,7 @@ export const TOWER_DEFS: ITowerDef[] = [
   // Splash path → broad control, then sustained or wider reach
   // Duration path → longer freeze, then more intense or wider
   {
-    id: 'frost', name: 'Frost', cost: 80,
+    id: 'frost', name: 'Frost', cost: 80, biomeExclusive: 'snow',
     stats: { damage: 5, range: 2.28, fireRate: 1.0, projectileSpeed: 5.5,
       props: { slowFactor: 0.5, slowDuration: 1.5,
                projectileColor: { r: 0.40, g: 0.91, b: 0.97 }, projectileScale: 0.12, arcHeight: 1.5 } },
@@ -75,7 +75,7 @@ export const TOWER_DEFS: ITowerDef[] = [
   // Splash path → massive fire zone, then faster salvos or longer reach
   // Damage path → devastating blasts, then rapid fire or extended range
   {
-    id: 'fire_cannon', name: 'Fire Cannon', cost: 120,
+    id: 'fire_cannon', name: 'Fire Cannon', cost: 120, biomeExclusive: 'volcano',
     stats: { damage: 35, range: 2.20, fireRate: 0.7, projectileSpeed: 4.5,
       props: { splashRadius: 0.6, projectileScale: 0.15, projectileColor: { r: 0.95, g: 0.35, b: 0.05 }, arcHeight: 1.5 } },
     template: Assets.FireCannon,

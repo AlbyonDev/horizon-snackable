@@ -24,7 +24,19 @@ import {
 } from '../Defs/SkillTreeDefs';
 
 /** Skill node index that unlocks the Laser tower in the shop. */
-export const LASER_UNLOCK_NODE_INDEX = 4;
+export const LASER_UNLOCK_NODE_INDEX = 8;
+
+/** Skill node index that unlocks the Snow biome. */
+export const SNOW_UNLOCK_NODE_INDEX = 14;
+
+/** Skill node index that unlocks the Volcano biome. */
+export const VOLCANO_UNLOCK_NODE_INDEX = 20;
+
+/** Skill node index that unlocks the Fire Cannon tower for all biomes. */
+export const FIRE_CANNON_UNLOCK_NODE_INDEX = 16;
+
+/** Skill node index that unlocks the Frost tower for all biomes. */
+export const FROST_UNLOCK_NODE_INDEX = 19;
 import type { ISkillNodeDef } from '../Defs/SkillTreeDefs';
 import { Events } from '../Types';
 import { SaveService } from './SaveService';
@@ -75,9 +87,29 @@ export class SkillTreeService extends Service {
     return this._unlocked.has(ROOT_SKILL_INDEX);
   }
 
-  /** Check if the Laser tower has been unlocked via the skill tree (node index 4). */
+  /** Check if the Laser tower has been unlocked via the skill tree (node index 8). */
   isLaserUnlocked(): boolean {
     return this._unlocked.has(LASER_UNLOCK_NODE_INDEX);
+  }
+
+  /** Check if the Snow biome has been unlocked via the skill tree (node index 14). */
+  isSnowUnlocked(): boolean {
+    return this._unlocked.has(SNOW_UNLOCK_NODE_INDEX);
+  }
+
+  /** Check if the Volcano biome has been unlocked via the skill tree (node index 20). */
+  isVolcanoUnlocked(): boolean {
+    return this._unlocked.has(VOLCANO_UNLOCK_NODE_INDEX);
+  }
+
+  /** Check if the Fire Cannon tower has been unlocked for all biomes (node index 17). */
+  isFireCannonUnlocked(): boolean {
+    return this._unlocked.has(FIRE_CANNON_UNLOCK_NODE_INDEX);
+  }
+
+  /** Check if the Frost tower has been unlocked for all biomes (node index 19). */
+  isFrostUnlocked(): boolean {
+    return this._unlocked.has(FROST_UNLOCK_NODE_INDEX);
   }
 
   /**
@@ -115,6 +147,14 @@ export class SkillTreeService extends Service {
     return true;
   }
 
+  /** Are the prerequisites for this skill met? (not bought, not checking affordability) */
+  hasPrerequisitesMet(skillIndex: number): boolean {
+    if (this._unlocked.has(skillIndex)) return false;
+    const nodeDef = getNodeDef(skillIndex);
+    if (!nodeDef) return false;
+    return this._meetsPrerequisites(skillIndex);
+  }
+
   /** Can the player afford and unlock this skill? */
   canPurchase(skillIndex: number): boolean {
     if (this._unlocked.has(skillIndex)) return false;
@@ -144,7 +184,7 @@ export class SkillTreeService extends Service {
   getFireRateMultiplier(): number {
     let bonus = 0;
     if (this._unlocked.has(4)) bonus += 0.15;
-    if (this._unlocked.has(16)) bonus += 0.25;
+    if (this._unlocked.has(17)) bonus += 0.25;
     if (this._unlocked.has(28)) bonus += 0.35;
     return 1.0 + bonus;
   }
@@ -156,11 +196,9 @@ export class SkillTreeService extends Service {
     return bonus;
   }
 
-  /** War branch: crit damage multiplier (T7 +15%). */
+  /** War branch: crit damage multiplier (no longer has dedicated nodes after tree rework). */
   getCritDamageMultiplier(): number {
-    let bonus = 0;
-    if (this._unlocked.has(19)) bonus += 0.15;
-    return 1.0 + bonus;
+    return 1.0;
   }
 
   /** War branch: total splash radius bonus (stacks: T4 +20%, T8 +30%). */
@@ -176,11 +214,10 @@ export class SkillTreeService extends Service {
     return this._unlocked.has(2) ? 2 : 0;
   }
 
-  /** Fortify branch: tower range multiplier (stacks: T2 +20%, T6 +30%, T10 +40%). */
+  /** Fortify branch: tower range multiplier (stacks: T2 +20%, T10 +40%). */
   getRangeMultiplier(): number {
     let bonus = 0;
     if (this._unlocked.has(5)) bonus += 0.20;
-    if (this._unlocked.has(17)) bonus += 0.30;
     if (this._unlocked.has(29)) bonus += 0.40;
     return 1.0 + bonus;
   }
@@ -195,7 +232,6 @@ export class SkillTreeService extends Service {
     let lives = 0;
     if (this._unlocked.has(2)) lives += 2;   // T1
     if (this._unlocked.has(8)) lives += 5;   // T3
-    if (this._unlocked.has(20)) lives += 8;  // T7
     return lives;
   }
 
@@ -207,10 +243,9 @@ export class SkillTreeService extends Service {
     return 1.0 + bonus;
   }
 
-  /** Fortify branch: tower HP bonus (stacks: T5 +30%, T9 +40%). */
+  /** Fortify branch: tower HP bonus (stacks: T9 +40%). */
   getTowerHpMultiplier(): number {
     let bonus = 0;
-    if (this._unlocked.has(14)) bonus += 0.30;
     if (this._unlocked.has(26)) bonus += 0.40;
     return 1.0 + bonus;
   }
@@ -255,15 +290,14 @@ export class SkillTreeService extends Service {
   getProjectileSpeedMultiplier(): number {
     let bonus = 0;
     if (this._unlocked.has(4)) bonus += 0.10;   // T2 fire rate node
-    if (this._unlocked.has(16)) bonus += 0.15;  // T6 fire rate node
+    if (this._unlocked.has(17)) bonus += 0.15;  // T6 fire rate node
     if (this._unlocked.has(28)) bonus += 0.20;  // T10 fire rate node
     return 1.0 + bonus;
   }
 
-  /** War branch: crit multiplier escalation (secondary on crit & damage nodes). */
+  /** War branch: crit multiplier escalation (secondary on damage nodes). */
   getCritMultiplierBonus(): number {
     let bonus = 0;
-    if (this._unlocked.has(19)) bonus += 0.15;  // T7 crit damage node (primary)
     if (this._unlocked.has(25)) bonus += 0.25;  // T9 damage node
     return 1.0 + bonus;
   }
@@ -280,7 +314,6 @@ export class SkillTreeService extends Service {
   /** Fortify branch: armor bonus — flat damage reduction per hit. */
   getArmorBonus(): number {
     let bonus = 0;
-    if (this._unlocked.has(14)) bonus += 1;   // T5 tower HP node
     if (this._unlocked.has(26)) bonus += 2;   // T9 tower HP node
     if (this._unlocked.has(29)) bonus += 3;   // T10 range node
     return bonus;

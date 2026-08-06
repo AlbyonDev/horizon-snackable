@@ -39,6 +39,7 @@ import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { RelicService } from '../Services/RelicService';
 import { BossModifierService } from '../Services/BossModifierService';
 import { SaveService } from '../Services/SaveService';
+import { SkillTreeService } from '../Services/SkillTreeService';
 
 
 @component()
@@ -56,6 +57,10 @@ export class GameManager extends Component {
     // RelicService must be alive before the initial SaveRestored broadcast so
     // it can restore saved relics on load — not only from _startGame().
     RelicService.get();
+    // SkillTreeService must be instantiated BEFORE requestLoad() so its
+    // SaveRestored handler is registered first. Otherwise OverworldHud reads
+    // isSnowUnlocked()/isVolcanoUnlocked() before _unlocked is populated.
+    SkillTreeService.get();
     // Request the cloud save now. This MUST happen from a component onStart (not
     // from SaveService's onReady): sendGlobally needs the global event entity,
     // which doesn't exist yet during service init. All save subscribers are wired
