@@ -37,6 +37,12 @@ export const FIRE_CANNON_UNLOCK_NODE_INDEX = 16;
 
 /** Skill node index that unlocks the Frost tower for all biomes. */
 export const FROST_UNLOCK_NODE_INDEX = 19;
+
+/** Skill node index that unlocks the Poison tower. */
+export const POISON_UNLOCK_NODE_INDEX = 10;
+
+/** Skill node index that unlocks the Lightning tower. */
+export const LIGHTNING_UNLOCK_NODE_INDEX = 18;
 import type { ISkillNodeDef } from '../Defs/SkillTreeDefs';
 import { Events } from '../Types';
 import { SaveService } from './SaveService';
@@ -110,6 +116,16 @@ export class SkillTreeService extends Service {
   /** Check if the Frost tower has been unlocked for all biomes (node index 19). */
   isFrostUnlocked(): boolean {
     return this._unlocked.has(FROST_UNLOCK_NODE_INDEX);
+  }
+
+  /** Check if the Poison tower has been unlocked via the skill tree (node index 10). */
+  isPoisonUnlocked(): boolean {
+    return this._unlocked.has(POISON_UNLOCK_NODE_INDEX);
+  }
+
+  /** Check if the Lightning tower has been unlocked via the skill tree (node index 18). */
+  isLightningUnlocked(): boolean {
+    return this._unlocked.has(LIGHTNING_UNLOCK_NODE_INDEX);
   }
 
   /**
@@ -201,10 +217,9 @@ export class SkillTreeService extends Service {
     return 1.0;
   }
 
-  /** War branch: total splash radius bonus (stacks: T4 +20%, T8 +30%). */
+  /** War branch: total splash radius bonus (stacks: T8 +30%). */
   getSplashRadiusMultiplier(): number {
     let bonus = 0;
-    if (this._unlocked.has(10)) bonus += 0.20;
     if (this._unlocked.has(22)) bonus += 0.30;
     return 1.0 + bonus;
   }
@@ -259,11 +274,10 @@ export class SkillTreeService extends Service {
     return bonus;
   }
 
-  /** Fortune branch: wave bonus gold multiplier (stacks: T2 +25%, T6 +40%, T10 +60%). */
+  /** Fortune branch: wave bonus gold multiplier (stacks: T2 +25%, T10 +60%). */
   getWaveBonusGoldMultiplier(): number {
     let bonus = 0;
     if (this._unlocked.has(6)) bonus += 0.25;
-    if (this._unlocked.has(18)) bonus += 0.40;
     if (this._unlocked.has(30)) bonus += 0.60;
     return 1.0 + bonus;
   }
@@ -332,7 +346,6 @@ export class SkillTreeService extends Service {
   getGoldPerKillBonus(): number {
     let bonus = 0;
     if (this._unlocked.has(6)) bonus += 1;    // T2 wave bonus node
-    if (this._unlocked.has(18)) bonus += 2;   // T6 wave bonus node
     if (this._unlocked.has(30)) bonus += 3;   // T10 wave bonus node
     return bonus;
   }

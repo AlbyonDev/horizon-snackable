@@ -1265,6 +1265,49 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "16874082-fcfe-4f3c-84d3-33c467ca6d94",
+            "name": "ChainLightningSfx",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::SoundPlatformComponent",
+                        "version": 15,
+                        "data": {
+                            "soundEmitterType": "NonSpatial",
+                            "soundAsset": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "18082565417493729279",
+                                "targetId": "1366267635"
+                            },
+                            "playVolume": 0.25
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "ChainLightningSfxController",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "5815611251457547499",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -1386,6 +1429,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "d8aa6f9d-4625-4309-8a13-b899ac4a82a8",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "16874082-fcfe-4f3c-84d3-33c467ca6d94",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

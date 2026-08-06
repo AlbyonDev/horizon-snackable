@@ -190,7 +190,7 @@ export namespace Events {
   }
   export const InitProjectile = new LocalEvent<InitProjectilePayload>('EvInitProjectile', InitProjectilePayload);
 
-  export class TakeDamagePayload { enemyId: number = 0; damage: number = 0; props: Record<string, unknown> = {}; originX: number = 0; originZ: number = 0; }
+  export class TakeDamagePayload { enemyId: number = 0; damage: number = 0; props: Record<string, unknown> = {}; originX: number = 0; originZ: number = 0; hitX: number = 0; hitZ: number = 0; }
   export const TakeDamage = new LocalEvent<TakeDamagePayload>('EvTakeDamage', TakeDamagePayload);
 
   // Resources
@@ -302,6 +302,10 @@ export namespace Events {
   // systems can refresh their unlock-gated state, e.g. biome arrows)
   export class SkillTreeNodePurchasedPayload { skillIndex: number = 0; }
   export const SkillTreeNodePurchased = new LocalEvent<SkillTreeNodePurchasedPayload>('EvSkillTreeNodePurchased', SkillTreeNodePurchasedPayload);
+
+  // Chain lightning arc spawned (used to trigger SFX per bounce)
+  export class ChainArcSpawnedPayload {}
+  export const ChainArcSpawned = new LocalEvent<ChainArcSpawnedPayload>('EvChainArcSpawned', ChainArcSpawnedPayload);
 
 }
 

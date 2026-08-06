@@ -108,6 +108,42 @@ export class VfxService extends Service {
     });
   }
 
+  /**
+   * Spawns a chain-lightning particle with configurable scale, lifetime, velocity, and alpha.
+   * Used by ChainLightningService for dramatic arc visuals.
+   */
+  spawnChainParticle(
+    worldX: number, worldY: number, worldZ: number,
+    r: number, g: number, b: number,
+    scale: number, life: number,
+    vx: number = 0, vy: number = 0, vz: number = 0,
+  ): void {
+    const entity = this._acquireParticle();
+    if (!entity) return;
+
+    const tc = entity.getComponent(TransformComponent);
+    if (tc) {
+      tc.worldPosition = new Vec3(worldX, worldY, worldZ);
+      tc.localScale = new Vec3(scale, scale, scale);
+    }
+    const color = new Color(r, g, b, 1.0);
+    const cc = entity.getComponent(ColorComponent);
+    if (cc) cc.color = color;
+    for (const child of entity.getChildrenWithComponent(ColorComponent)) {
+      const c = child.getComponent(ColorComponent);
+      if (c) c.color = color;
+    }
+
+    this._particles.push({
+      entity,
+      vx, vy, vz,
+      age: 0,
+      life,
+      r, g, b,
+      baseScale: scale,
+    });
+  }
+
   // ── Death explosion ───────────────────────────────────────────────────────
 
   @subscribe(Events.EnemyDied, { execution: ExecuteOn.Owner })

@@ -18,12 +18,26 @@
  * To add a lateral link: add [nodeA, nodeB] between any two nodes.
  *
  * ─── DOCUMENTATION RULE: Cannon Unlock Node Descriptions ───────────────────────
- * Cannon unlock nodes (indices 8, 16, 19) MUST always reflect the current stats
- * and properties of their respective towers as defined in TowerDefs.ts.
+ * Tower unlock nodes: indices 8 (Laser), 10 (Poison), 16 (Fire Cannon),
+ *                     18 (Lightning), 19 (Frost)
  *
- * Whenever a cannon tower's properties are updated in TowerDefs.ts (damage, range,
- * cost, fire rate, special effects like splash radius or slow duration), the
- * corresponding skill tree node description below MUST be updated to match.
+ * Convention for tower unlock nodes in the skill tree:
+ *   1. ICON: Must use the tower's shop icon texture from Textures/ folder
+ *      (e.g., Textures/laser_tower.png, Textures/poison_tower.png) -- NOT a
+ *      generic skilltree icon from sprites/skilltree/.
+ *   2. STYLING: Must use the crimson red + enlarged node style in SkillTree.xaml:
+ *      - Outer ellipse: Stroke="#C0392B", Fill="#FF2E0E0E"
+ *      - Grid size: 210x210 (vs regular 180x180)
+ *      - Icon viewbox: 130x130 (vs regular 110x110)
+ *      This visually distinguishes tower unlock nodes from stat-bonus nodes.
+ *   3. DESCRIPTION: Must always reflect the current stats and properties of
+ *      the tower as defined in TowerDefs.ts (damage, range, cost, fire rate,
+ *      special effects like splash radius or slow duration).
+ *
+ * When adding a NEW tower unlock node:
+ *   - Add the node here with appropriate description from TowerDefs.ts
+ *   - In SkillTree.xaml, replicate the crimson style from nodes 8/10/16/18/19
+ *   - Use the tower's texture from Textures/<tower_name>_tower.png as icon
  *
  * Additionally:
  *   - Fire Cannon (index 16) and Frost Tower (index 19) descriptions must always
@@ -73,17 +87,17 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
   { index: 6, label: '+25% Wave Bonus Gold', cost: 6, branch: 'fortune', description: 'Earn 25% more bonus gold per wave.' },
 
   // Tier 3 (indices 7, 8, 9)
-  // NOTE: Cannon unlock nodes (indices 8, 16, 19) all share the same crimson red
+  // NOTE: Tower unlock nodes (indices 8, 10, 16, 18, 19) all share the same crimson red
   // styling and enlarged size in the XAML skill tree UI (SkillTree.xaml) to visually
-  // distinguish them from stat-bonus nodes. When adding new cannon/tower unlock nodes,
+  // distinguish them from stat-bonus nodes. When adding new tower unlock nodes,
   // replicate the crimson style: outer ellipse Stroke="#C0392B", Fill="#FF2E0E0E",
-  // 210x210 grid, 130x130 icon viewbox, and tower texture icon.
+  // 210x210 grid, 130x130 icon viewbox, and tower texture icon from Textures/.
   { index: 7, label: '+25% Crit Chance',    cost: 10, branch: 'war', description: 'All towers gain 25% increased critical hit chance.' },
   { index: 8, label: 'Unlock Laser Canon',  cost: 6, branch: 'war', description: 'Highest DPS tower. Long range (3.6), rapid fire rate (5.0/s), 200g cost.' },
   { index: 9, label: '+50% Sell Refund',    cost: 10, branch: 'fortune', description: 'Refund 50% more gold when selling towers.' },
 
   // Tier 4 (indices 10, 11, 12)
-  { index: 10, label: '+20% Splash Radius', cost: 3, branch: 'war', description: 'All splash towers gain 20% larger area.' },
+  { index: 10, label: 'Unlock Poison Tower', cost: 8, branch: 'war', description: 'Unlocks the Poison Tower for all biomes. DoT tower that lobs toxic globs stacking lingering poison. 90g cost.' },
   { index: 11, label: '+15% Slow Duration', cost: 3, branch: 'fortify', description: 'Slow effects last 15% longer.' },
   { index: 12, label: '+20% Interest Rate', cost: 3, branch: 'fortune', description: 'Earn 20% more interest on banked gold.' },
 
@@ -95,7 +109,7 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
   // Tier 6 (indices 16, 17, 18)
   { index: 16, label: 'Unlock Fire Cannon', cost: 12, branch: 'war', description: 'AoE fire damage with arc projectiles. Splash radius 0.6, 120g cost. Unlocked outside of volcano area.' },
   { index: 17, label: '+25% Fire Rate',     cost: 5, branch: 'fortify', description: 'All towers fire 25% faster.' },
-  { index: 18, label: '+40% Wave Bonus Gold', cost: 5, branch: 'fortune', description: 'Earn 40% more bonus gold per wave.' },
+  { index: 18, label: 'Unlock Lightning Tower', cost: 14, branch: 'fortune', description: 'Unlocks the Lightning Tower for all biomes. Chain lightning multi-target tower, bolts chain to nearby enemies. 300g cost.' },
 
   // Tier 7 (indices 19, 20, 21)
   { index: 19, label: 'Unlock Frost Tower',     cost: 12, branch: 'war', description: 'Slows enemies by 50% for 1.5s. 80g cost. Unlocked outside of snow area.' },

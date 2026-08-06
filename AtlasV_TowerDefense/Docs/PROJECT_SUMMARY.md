@@ -128,8 +128,9 @@ One resolution pipeline — a `reduce` over registered modifier closures:
 | Service | Pipeline | Current modifiers |
 |---------|----------|-------------------|
 | `HitService` | `IHitContext → IHitContext` | `SplashSystem` (AoE target expansion), `CritService` (crit damage × multiplier + skill tree crit bonus), `RelicService` (damage × relic multiplier, slow duration × relic multiplier) |
+| `TakeDamage` subscribers | event-driven | `ChainLightningService` (chain-bounce to nearby enemies with falloff), `PoisonDotService` (stacking DoT ticks) |
 
-Adding a new mechanic (chain, pierce, burn…) = one new `@service()` that calls `HitService.get().register(modifier)` in `onReady()`, then one import line in `GameManager`.
+Adding a new mechanic (pierce, burn…) = one new `@service()` that calls `HitService.get().register(modifier)` in `onReady()` or subscribes to `TakeDamage`, then one import line in `GameManager`.
 
 ---
 
@@ -142,7 +143,7 @@ Scripts/
   Assets.ts         — ALL TemplateAsset declarations (single source of truth)
 
   Defs/
-    TowerDefs.ts    — TOWER_DEFS: ITowerDef[] (5 towers + upgrade trees)
+    TowerDefs.ts    — TOWER_DEFS: ITowerDef[] (7 towers + upgrade trees)
     EnemyDefs.ts    — ENEMY_DEFS: IEnemyDef[] (4 enemy types)
     LevelDefs.ts    — LEVEL_DEFS: ILevelDef[] (20 waves, 1 level, includes path waypoints); WAVES_LEVEL_0 exported but unused by runtime
     PathDefs.ts     — PATH_WAYPOINTS_LEVEL_0 exported but unused by runtime (legacy reference data)
@@ -168,6 +169,8 @@ Scripts/
     SplashSystem        — registers AoE modifier into HitService
     SlowService         — subscribes to TakeDamage, applies slowFactor to enemies
     CritService         — registers crit modifier into HitService (arrow/cannon only)
+    ChainLightningService — subscribes to TakeDamage, chain-bounces damage to nearby enemies
+    PoisonDotService    — subscribes to TakeDamage, applies stacking DoT ticks
     ProjectilePool      — pre-spawned projectile pool (30 entities)
     HealthBarService    — pre-spawned health bar pool (30 entities)
     FloatingTextService — pools floating text entities; shows gold on death, crit multiplier on hit
@@ -216,8 +219,10 @@ Scripts/
 | `arrow` | Arrow | 50g | 12 | 2.70 | 1.5/s | — | Crit ×2 @ 20% baseline (arrow-only baseline) |
 | `cannon` | Cannon | 100g | 40 | 2.10 | 0.6/s | r=0.75 | Arc projectile |
 | `frost` | Frost | 80g | 5 | 2.28 | 1.0/s | — | Slow 50% / 1.5s |
-| `laser` | Laser | 200g | 8 | 3.60 | 5.0/s | — | Highest base DPS |
+| `poison` | Poison | 90g | 8 | 2.00 | 1.2/s | — | DoT: 5 dmg/0.5s for 3s |
+| `lightning` | Lightning | 150g | 15 | 2.50 | 2.0/s | — | Chain: hits 2 extra targets (50% falloff per chain) |
 | `fire_cannon` | Fire Cannon | 120g | 35 | 2.20 | 0.7/s | r=0.6 | Arc AoE, fiery orange projectile |
+| `laser` | Laser | 200g | 8 | 3.60 | 5.0/s | — | Highest base DPS |
 
 ---
 
@@ -277,7 +282,7 @@ HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_
 | Total levels per run | 5 (`TOTAL_LEVELS` in Constants.ts) |
 | Run counter | Starts at 1, increments when all levels beaten (boss included), resets on new game (`StartGame`). Tracked in `LevelGeneratorService.runCount`. |
 | Skull currency | Permanent metaprogression currency. +1 per combat level win, +3-5 per boss level win (randomized via seeded PRNG per level). Never resets. Persisted in `TdSaveData.sk`. Displayed in overworld header. |
-| Skill Tree | Permanent meta-progression purchased with skulls. 1 root node + 30 branch nodes (10 tiers x 3 branches) with directed graph connections (SKILL_CONNECTIONS edges). A node is purchasable when at least one incoming-connected node is unlocked. Unlocks persist in `TdSaveData.st`. Opens from the overworld skull header tap. Bonuses: +damage, +fire rate, +crit, +lives, +range, +starting gold, +wave bonus, +sell refund. Special unlock nodes: "Unlock Snow Biome" (index 14, cost 10 skulls) and "Unlock Volcano Biome" (index 20, cost 18 skulls) gate biome navigation arrows in the Overworld HUD. |× 3 tiers each. Connections between nodes are explicitly defined as a directed graph (SKILL_CONNECTIONS edges), allowing lateral cross-branch links and flexible prerequisite paths. A node is purchasable when at least one incoming-connected node is unlocked. Unlocks persist in `TdSaveData.st`. Opens from the overworld skull header tap. Bonuses: +damage, +fire rate, +crit, +lives, +range, +starting gold, +wave bonus, +sell refund. Special nodes: Unlock Laser Canon (index 8), Unlock Fire Cannon for all biomes (index 17, cost 12 skulls), Unlock Frost Tower for all biomes (index 19, cost 12 skulls), Unlock Snow Biome (index 14, cost 10 skulls), Unlock Volcano Biome (index 20, cost 18 skulls). |
+| Skill Tree | Permanent meta-progression purchased with skulls. 1 root node + 30 branch nodes (10 tiers x 3 branches) with directed graph connections (SKILL_CONNECTIONS edges). A node is purchasable when at least one incoming-connected node is unlocked. Unlocks persist in `TdSaveData.st`. Opens from the overworld skull header tap. Bonuses: +damage, +fire rate, +crit, +lives, +range, +starting gold, +wave bonus, +sell refund. Special unlock nodes: "Unlock Snow Biome" (index 14, cost 10 skulls) and "Unlock Volcano Biome" (index 20, cost 18 skulls) gate biome navigation arrows in the Overworld HUD. |× 3 tiers each. Connections between nodes are explicitly defined as a directed graph (SKILL_CONNECTIONS edges), allowing lateral cross-branch links and flexible prerequisite paths. A node is purchasable when at least one incoming-connected node is unlocked. Unlocks persist in `TdSaveData.st`. Opens from the overworld skull header tap. Bonuses: +damage, +fire rate, +crit, +lives, +range, +starting gold, +wave bonus, +sell refund. Special nodes: Unlock Laser Canon (index 8), Unlock Poison Tower (index 10, cost 8 skulls), Unlock Fire Cannon for all biomes (index 16, cost 12 skulls), Unlock Lightning Tower (index 18, cost 14 skulls), Unlock Frost Tower for all biomes (index 19, cost 12 skulls), Unlock Snow Biome (index 14, cost 10 skulls), Unlock Volcano Biome (index 20, cost 18 skulls). |
 | Wave bonus | +15g flat (`WAVE_BONUS_GOLD`) + 15% of gold on hand (`INCOME_RATE`) at wave end |
 | Sell refund | 60% of total invested (`SELL_RATIO = 0.6`) |
 
@@ -412,7 +417,7 @@ Title Screen → [BiomeSelect bypassed, auto-selects "grass"] → Overworld (Lev
 | `InitTower` | `defId, col, row` | TowerController |
 | `InitEnemy` | `defId, waveIndex` | EnemyController |
 | `InitProjectile` | `targetEnemyId, damage, speed, props` | ProjectileController |
-| `TakeDamage` | `enemyId, damage, props` | EnemyController, SlowService, FloatingTextService |
+| `TakeDamage` | `enemyId, damage, props` | EnemyController, SlowService, ChainLightningService, PoisonDotService, FloatingTextService |
 | `EnemyDied` | `enemyId, reward, worldX, worldZ` | FloatingTextService, ResourceService |
 | `EnemyReachedEnd` | `enemyId` | GameManager, CameraShakeService |
 | `TowerSelected` | `col, row, defId, tier, choices` | TowerUpgradeMenuHud |

@@ -41,6 +41,8 @@ import { BossModifierService } from '../Services/BossModifierService';
 import { SaveService } from '../Services/SaveService';
 import { SkillTreeService } from '../Services/SkillTreeService';
 import { BiomeArrowIndicatorService } from '../Services/BiomeArrowIndicatorService';
+import { ChainLightningService } from '../Services/ChainLightningService';
+import { PoisonDotService } from '../Services/PoisonDotService';
 
 
 @component()
@@ -142,6 +144,8 @@ export class GameManager extends Component {
     CameraShakeService.get();
     TowerDestroyAnimService.get();
     BiomeArrowIndicatorService.get();
+    ChainLightningService.get();
+    PoisonDotService.get();
     void Promise.all([
       ProjectilePool.get().prewarm(),
       HealthBarService.get().prewarm(),

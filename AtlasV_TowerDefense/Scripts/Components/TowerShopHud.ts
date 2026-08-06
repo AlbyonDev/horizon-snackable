@@ -41,6 +41,8 @@ const TOWER_COLORS: Record<string, string> = {
   frost:  '#5500bcd4',
   laser:  '#559b59b6',
   fire_cannon: '#55ff4500',
+  lightning: '#553d9bdb',
+  poison: '#5527ae60',
   test:   '#55ff6b00',
 };
 
@@ -50,6 +52,8 @@ const TOWER_SECONDARY_COLORS: Record<string, string> = {
   frost:  '#007a8a',
   laser:  '#6a3a7d',
   fire_cannon: '#b33000',
+  lightning: '#2a6b9e',
+  poison: '#1a7a3e',
   test:   '#b34700',
 };
 
@@ -379,9 +383,13 @@ export class TowerShopHud extends Component {
     const allDefs = TowerService.get().all();
     // Filter out the laser tower if the skill tree node hasn't been unlocked
     const isLaserUnlocked = SkillTreeService.get().isLaserUnlocked();
+    const isPoisonUnlocked = SkillTreeService.get().isPoisonUnlocked();
+    const isLightningUnlocked = SkillTreeService.get().isLightningUnlocked();
     const activeBiome = SaveService.get().activeBiome;
     const defs = allDefs.filter(def => {
       if (def.id === 'laser' && !isLaserUnlocked) return false;
+      if (def.id === 'poison' && !isPoisonUnlocked) return false;
+      if (def.id === 'lightning' && !isLightningUnlocked) return false;
       // Biome-exclusive towers: show if current biome matches OR corresponding skill tree unlock is purchased
       if (def.biomeExclusive && def.biomeExclusive !== activeBiome) {
         // Check if the skill tree unlocks this tower for all biomes
@@ -412,6 +420,8 @@ export class TowerShopHud extends Component {
         frost: TowerIcons.FrostTower,
         laser: TowerIcons.LaserTower,
         fire_cannon: TowerIcons.FireCanonTower,
+        lightning: TowerIcons.LightningTower,
+        poison: TowerIcons.PoisonTower,
       };
       if (TOWER_ICON_MAP[def.id]) {
         item.icon = TOWER_ICON_MAP[def.id];

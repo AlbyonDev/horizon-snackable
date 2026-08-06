@@ -84,4 +84,34 @@ export const TOWER_DEFS: ITowerDef[] = [
       [[Upg.rate(150),   Upg.range(150)],    [Upg.rate(150),    Upg.splash(150)]],
     ),
   },
+  // ── Lightning ─────────────────────────────────────────────────────────────────
+  // Chain lightning, multi-target. Bolts chain to nearby enemies.
+  // Damage path → heavier bolts, then faster zaps or extended reach
+  // Range path → longer reach, then more chains or faster fire
+  {
+    id: 'lightning', name: 'Lightning', cost: 300,
+    stats: { damage: 15, range: 2.00, fireRate: 2.0, projectileSpeed: 10,
+      props: { chainCount: 2, chainRange: 2.5, chainDamageFalloff: 0.5,
+               projectileColor: { r: 0.3, g: 0.7, b: 1.0 }, projectileScale: 0.08, arcHeight: 0.2 } },
+    template: Assets.Lightning,
+    upgrades: tree(
+      [Upg.damage(125), Upg.range(125)],
+      [[Upg.rate(200),  Upg.range(200)],    [Upg.damage(200), Upg.rate(200)]],
+    ),
+  },
+  // ── Poison ────────────────────────────────────────────────────────────────────
+  // Damage over time. Lobs toxic globs that stack lingering poison.
+  // Damage path → more potent venom, then faster lobs or wider splash
+  // Rate path → rapid lobbing, then bigger DoT or longer reach
+  {
+    id: 'poison', name: 'Poison', cost: 90,
+    stats: { damage: 0, range: 2.00, fireRate: 1.2, projectileSpeed: 6,
+      props: { dotDamage: 1, dotDuration: 15, dotTickRate: 1.0,
+               projectileColor: { r: 0.2, g: 0.8, b: 0.1 }, projectileScale: 0.12, arcHeight: 1.0 } },
+    template: Assets.Poison,
+    upgrades: tree(
+      [Upg.damage(80),  Upg.rate(80)],
+      [[Upg.range(120), Upg.rate(120)],     [Upg.damage(120), Upg.range(120)]],
+    ),
+  },
 ];

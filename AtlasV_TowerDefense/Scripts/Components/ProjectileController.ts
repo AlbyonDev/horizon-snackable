@@ -148,7 +148,7 @@ export class ProjectileController extends Component {
       const def = rec ? EnemyService.get().find(rec.defId) : undefined;
       if (def?.dodgeChance && Math.random() < def.dodgeChance) continue;
       EventService.sendLocally(Events.TakeDamage,
-        { enemyId: id, damage: hitCtx.damage, props: hitCtx.props, originX: this._originX, originZ: this._originZ });
+        { enemyId: id, damage: hitCtx.damage, props: hitCtx.props, originX: this._originX, originZ: this._originZ, hitX: worldX, hitZ: worldZ });
     }
 
     this._return();

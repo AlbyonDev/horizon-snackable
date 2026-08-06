@@ -35,6 +35,12 @@
       "folderName": "human_walk_short_neutral_forward",
       "name": "human_walk_short_neutral_forward",
       "version": "0.0.6"
+    },
+    "meta/sfxlib_elc_LiveWireElectricityPowerOn_01/0.0.1": {
+      "author": "meta",
+      "folderName": "sfxlib_elc_LiveWireElectricityPowerOn_01",
+      "name": "sfxlib_elc_LiveWireElectricityPowerOn_01",
+      "version": "0.0.1"
     }
   }
 }
