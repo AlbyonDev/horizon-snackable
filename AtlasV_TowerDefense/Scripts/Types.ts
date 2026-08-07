@@ -368,7 +368,10 @@ export namespace UiEvents {
   @serializable() export class SkipWaveTapPayload         { readonly parameter: string = ''; }
   @serializable() export class OverworldLevelTapPayload   { readonly parameter: string = ''; }
 
+  @serializable() export class DismissUpgradeTapPayload  { readonly parameter: string = ''; }
+
   export const towerShopTap    = new UiEvent('TowerShopTapEvent',                             TowerShopTapPayload);
+  export const dismissUpgradeTap = new UiEvent('TowerUpgradeMenuViewModel-onDismissUpgradeTap', DismissUpgradeTapPayload);
   export const sellTowerTap    = new UiEvent('TowerUpgradeMenuViewModel-onSellTowerTap',    SellTowerTapPayload);
   export const upgradeTowerTap = new UiEvent('TowerUpgradeMenuViewModel-onUpgradeTowerTap', UpgradeTowerTapPayload);
   export const skipWaveTap     = new UiEvent('GameHudViewModel-onSkipWaveTap',               SkipWaveTapPayload);

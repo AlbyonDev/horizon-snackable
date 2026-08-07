@@ -188,13 +188,13 @@ export class TowerService extends Service {
     this._towers.clear();
     this._nextId = 0;
     this._initGrid();
-    this._selectedId = 'arrow';
+    this._selectedId = '';
     this._selectedCol = -1;
     this._selectedRow = -1;
   }
 
   // ── Selection tracking ───────────────────────────────────────────────────────
-  private _selectedId: string = 'arrow';
+  private _selectedId: string = '';
   private _selectedCol: number = -1;
   private _selectedRow: number = -1;
 

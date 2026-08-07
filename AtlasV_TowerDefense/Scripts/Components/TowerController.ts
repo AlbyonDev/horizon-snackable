@@ -15,17 +15,23 @@ import type { Entity, Maybe } from 'meta/worlds';
 import { component, property, subscribe } from 'meta/worlds';
 import { OnEntityStartEvent, OnWorldUpdateEvent } from 'meta/worlds';
 import type { OnWorldUpdateEventPayload } from 'meta/worlds';
-import { NetworkingService } from 'meta/worlds';
+import { NetworkingService, ExecuteOn } from 'meta/worlds';
 import { Events, type ITowerStats } from '../Types';
 import { TargetingService } from '../Services/TargetingService';
 import { EnemyService } from '../Services/EnemyService';
 import { TowerService } from '../Services/TowerService';
 import { ProjectilePool } from '../Services/ProjectilePool';
 import { BossModifierService } from '../Services/BossModifierService';
+import { ResourceService } from '../Services/ResourceService';
 
 // ── Bounce animation constants ───────────────────────────────────────────────
 const BOUNCE_DURATION = 0.35;  // total bounce time in seconds
 const BOUNCE_OVERSHOOT = 1.25; // peak scale multiplier
+
+// ── Breathing/pulse animation constants (upgradeable indicator) ───────────
+const BREATH_SPEED = 5.24;     // radians per second (~1.2s cycle)
+const BREATH_MIN = 1.0;
+const BREATH_MAX = 1.12;
 
 // ── Recoil animation constants ───────────────────────────────────────────────
 const RECOIL_KICK_DURATION  = 0.06; // time to reach max recoil (s)
@@ -34,6 +40,10 @@ const RECOIL_DISTANCE = 0.15;        // local units of kickback
 
 // ── Single-use fall animation constants ──────────────────────────────────────
 const FALL_DURATION = 0.35;   // seconds for the pillar to tip over
+
+// ── Selection tint ───────────────────────────────────────────────────────
+const SELECTED_TINT = new Color(1.0, 0.85, 0.2, 1.0); // golden highlight
+const DEFAULT_TINT  = new Color(1.0, 1.0, 1.0, 1.0);  // neutral white
 
 @component()
 export class TowerController extends Component {
@@ -52,6 +62,11 @@ export class TowerController extends Component {
   private _barrelRestCaptured: boolean = false;
   private _recoilDirX: number = 0;
   private _recoilDirZ: number = 0;
+
+  // ── Breathing pulse state ──────────────────────────────────────────────────
+  private _breathing: boolean = false;
+  private _breathTime: number = 0;
+  private _selected: boolean = false;
 
   // ── Single-use fall state ──────────────────────────────────────────────────
   private _singleUseFalling: boolean = false;
@@ -99,6 +114,7 @@ export class TowerController extends Component {
     this._setShadowAlpha(0);
     this._refreshStats();
     this._applyTierModel();
+    // Breathing will be evaluated after bounce completes
   }
 
   @subscribe(Events.TowerUpgraded)
@@ -107,6 +123,42 @@ export class TowerController extends Component {
     this._currentTier = p.tier;
     this._refreshStats();
     this._applyTierModel();
+    this._updateBreathing();
+  }
+
+  @subscribe(Events.ResourceChanged)
+  onResourceChanged(_p: Events.ResourceChangedPayload): void {
+    if (!this._ready || this._bouncing) return;
+    this._updateBreathing();
+  }
+
+  @subscribe(Events.TowerSelected)
+  onTowerSelected(p: Events.TowerSelectedPayload): void {
+    if (p.col !== this._col || p.row !== this._row) return;
+    this._selected = true;
+    this._applyTint(SELECTED_TINT);
+    console.log(`[TowerController] Tower selected at col=${this._col}, row=${this._row}`);
+  }
+
+  @subscribe(Events.TowerDeselected)
+  onTowerDeselected(_p: Events.TowerDeselectedPayload): void {
+    if (!this._selected) return;
+    this._selected = false;
+    this._applyTint(DEFAULT_TINT);
+    console.log(`[TowerController] Tower deselected at col=${this._col}, row=${this._row}`);
+  }
+
+  /** Enable breathing if the player can afford at least one upgrade for this tower. */
+  private _updateBreathing(): void {
+    const options = TowerService.get().getNextUpgradeOptions(this._col, this._row);
+    if (!options) {
+      // Tower is maxed — stop breathing
+      this._breathing = false;
+      return;
+    }
+    const gold = ResourceService.get().gold;
+    const canAfford = gold >= options[0].cost || gold >= options[1].cost;
+    this._breathing = canAfford;
   }
 
   @subscribe(OnWorldUpdateEvent)
@@ -132,6 +184,21 @@ export class TowerController extends Component {
       if (t >= 1) {
         this._bouncing = false;
         this._transform.localScale = new Vec3(scale, scale, scale);
+        this._updateBreathing();
+      }
+    }
+
+    // Breathing pulse: gentle scale oscillation when tower is upgradeable
+    if (this._breathing && !this._bouncing) {
+      this._breathTime += dt;
+      const breathT = (Math.sin(this._breathTime * BREATH_SPEED) + 1) * 0.5; // 0..1
+      const s = BREATH_MIN + (BREATH_MAX - BREATH_MIN) * breathT;
+      this._transform.localScale = new Vec3(s, s, s);
+    } else if (!this._bouncing && !this._singleUseFalling) {
+      // Ensure scale is exactly 1 when not breathing (avoid stuck at non-1)
+      if (this._breathTime > 0) {
+        this._breathTime = 0;
+        this._transform.localScale = new Vec3(1, 1, 1);
       }
     }
 
@@ -318,5 +385,14 @@ export class TowerController extends Component {
   private _refreshStats(): void {
     const stats = TowerService.get().getEffectiveStats(this._col, this._row);
     if (stats) this._stats = stats;
+  }
+
+  /** Apply a color tint to the currently visible tier model entity. */
+  private _applyTint(tint: Color): void {
+    const tiers: Array<Maybe<Entity>> = [this.modelTier1, this.modelTier2, this.modelTier3];
+    const model = tiers[this._currentTier];
+    if (!model) return;
+    const cc = model.getComponent(ColorComponent);
+    if (cc) cc.color = tint;
   }
 }

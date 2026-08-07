@@ -49,7 +49,32 @@
             <Border BorderThickness="6,6,6,0" BorderBrush="#FF553B14"/>
         </Border>
 
-        <!-- Content Layout: [Info Panel] [Card 1] [Card 2] ——— [SELL] -->
+        <!-- Content Layout: [Info Panel] [Card 1] [Card 2] —— [SELL] -->
+
+        <!-- ========== HEADER BAR: "Close" button ========== -->
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="100"
+              Margin="40,0,40,340">
+
+            <!-- "Close" text button on the right -->
+            <Border HorizontalAlignment="Right" VerticalAlignment="Center"
+                    CornerRadius="16" Padding="30,12,30,12">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                        <GradientStop Color="#FF3a2a1a" Offset="0"/>
+                        <GradientStop Color="#FF1a0a00" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border BorderThickness="3" BorderBrush="#FF553B14" CornerRadius="16" Margin="-30,-12,-30,-12" Padding="30,12,30,12">
+                    <TextBlock Text="Close" FontFamily="Anton" FontSize="44" FontWeight="Bold"
+                               Foreground="#FFF5E6C8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                        <b:InvokeCommandAction Command="{Binding events.dismissUpgradeTap}"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+            </Border>
+        </Grid>
         <StackPanel Orientation="Horizontal" 
                     HorizontalAlignment="Center" 
                     VerticalAlignment="Bottom"
@@ -210,6 +235,27 @@
                                 </EasingDoubleKeyFrame>
                             </DoubleAnimationUsingKeyFrames>
                         </Storyboard>
+                        <!-- Breathing Pulse for affordable state -->
+                        <Storyboard x:Key="Card1BreathingPulse" RepeatBehavior="Forever">
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Card1BreathScale" Storyboard.TargetProperty="ScaleX">
+                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1.0"/>
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.8" Value="1.05">
+                                    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                </EasingDoubleKeyFrame>
+                                <EasingDoubleKeyFrame KeyTime="0:0:1.6" Value="1.0">
+                                    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                </EasingDoubleKeyFrame>
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Card1BreathScale" Storyboard.TargetProperty="ScaleY">
+                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1.0"/>
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.8" Value="1.05">
+                                    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                </EasingDoubleKeyFrame>
+                                <EasingDoubleKeyFrame KeyTime="0:0:1.6" Value="1.0">
+                                    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                </EasingDoubleKeyFrame>
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
                     </Grid.Resources>
                     <Grid.RenderTransform>
                         <TransformGroup>
@@ -235,10 +281,21 @@
                         <b:DataTrigger Binding="{Binding card1Visible}" Value="False">
                             <b:ControlStoryboardAction Storyboard="{StaticResource Card1SlideIn}" ControlStoryboardOption="Play"/>
                         </b:DataTrigger>
+                        <!-- Breathing pulse triggers co-located with storyboard resource -->
+                        <b:DataTrigger Binding="{Binding upgrade1State}" Value="affordable">
+                            <b:ControlStoryboardAction Storyboard="{StaticResource Card1BreathingPulse}" ControlStoryboardOption="Play"/>
+                        </b:DataTrigger>
+                        <b:DataTrigger Binding="{Binding upgrade1State}" Value="too_expensive">
+                            <b:ControlStoryboardAction Storyboard="{StaticResource Card1BreathingPulse}" ControlStoryboardOption="Stop"/>
+                        </b:DataTrigger>
                     </b:Interaction.Triggers>
 
                     <!-- Main Card - 400x620 -->
-                    <Grid x:Name="Card1Grid" Width="400" Height="620" ClipToBounds="False">
+                    <Grid x:Name="Card1Grid" Width="400" Height="620" ClipToBounds="False"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="Card1BreathScale" ScaleX="1.0" ScaleY="1.0"/>
+                        </Grid.RenderTransform>
                         <!-- Drop Shadow Layer -->
                         <Border Margin="5,5,5,5" CornerRadius="50" Background="#FF554318"/>
 
@@ -444,6 +501,27 @@
                                 </EasingDoubleKeyFrame>
                             </DoubleAnimationUsingKeyFrames>
                         </Storyboard>
+                        <!-- Breathing Pulse for affordable state -->
+                        <Storyboard x:Key="Card2BreathingPulse" RepeatBehavior="Forever">
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Card2BreathScale" Storyboard.TargetProperty="ScaleX">
+                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1.0"/>
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.8" Value="1.05">
+                                    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                </EasingDoubleKeyFrame>
+                                <EasingDoubleKeyFrame KeyTime="0:0:1.6" Value="1.0">
+                                    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                </EasingDoubleKeyFrame>
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Card2BreathScale" Storyboard.TargetProperty="ScaleY">
+                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1.0"/>
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.8" Value="1.05">
+                                    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                </EasingDoubleKeyFrame>
+                                <EasingDoubleKeyFrame KeyTime="0:0:1.6" Value="1.0">
+                                    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+                                </EasingDoubleKeyFrame>
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
                     </Grid.Resources>
                     <Grid.RenderTransform>
                         <TransformGroup>
@@ -469,10 +547,21 @@
                         <b:DataTrigger Binding="{Binding card2Visible}" Value="False">
                             <b:ControlStoryboardAction Storyboard="{StaticResource Card2SlideIn}" ControlStoryboardOption="Play"/>
                         </b:DataTrigger>
+                        <!-- Breathing pulse triggers co-located with storyboard resource -->
+                        <b:DataTrigger Binding="{Binding upgrade2State}" Value="affordable">
+                            <b:ControlStoryboardAction Storyboard="{StaticResource Card2BreathingPulse}" ControlStoryboardOption="Play"/>
+                        </b:DataTrigger>
+                        <b:DataTrigger Binding="{Binding upgrade2State}" Value="too_expensive">
+                            <b:ControlStoryboardAction Storyboard="{StaticResource Card2BreathingPulse}" ControlStoryboardOption="Stop"/>
+                        </b:DataTrigger>
                     </b:Interaction.Triggers>
 
                     <!-- Main Card - 400x620 -->
-                    <Grid x:Name="Card2Grid" Width="400" Height="620" ClipToBounds="False">
+                    <Grid x:Name="Card2Grid" Width="400" Height="620" ClipToBounds="False"
+                          RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="Card2BreathScale" ScaleX="1.0" ScaleY="1.0"/>
+                        </Grid.RenderTransform>
                         <!-- Drop Shadow Layer -->
                         <Border Margin="5,5,5,5" CornerRadius="50" Background="#FF554318"/>
 
@@ -638,27 +727,27 @@
 
         <!-- DataTriggers for state-based styling -->
         <b:Interaction.Triggers>
-            <!-- Upgrade 1: affordable -->
+            <!-- Upgrade 1: affordable (BreathingPulse Play is handled inside Card1's own triggers where the resource is in scope) -->
             <b:DataTrigger Binding="{Binding upgrade1State}" Value="affordable">
                 <b:ChangePropertyAction TargetName="Card1Container" PropertyName="Opacity" Value="1.0"/>
                 <b:ChangePropertyAction TargetName="Card1CostText" PropertyName="Foreground" Value="{StaticResource GoldBrush}"/>
                 <b:ChangePropertyAction TargetName="Card1Disabled" PropertyName="Visibility" Value="Collapsed"/>
             </b:DataTrigger>
 
-            <!-- Upgrade 1: too_expensive -->
+            <!-- Upgrade 1: too_expensive (BreathingPulse Stop is handled inside Card1's own triggers) -->
             <b:DataTrigger Binding="{Binding upgrade1State}" Value="too_expensive">
                 <b:ChangePropertyAction TargetName="Card1CostText" PropertyName="Foreground" Value="{StaticResource RedBrush}"/>
                 <b:ChangePropertyAction TargetName="Card1Disabled" PropertyName="Visibility" Value="Visible"/>
             </b:DataTrigger>
 
-            <!-- Upgrade 2: affordable -->
+            <!-- Upgrade 2: affordable (BreathingPulse Play is handled inside Card2's own triggers) -->
             <b:DataTrigger Binding="{Binding upgrade2State}" Value="affordable">
                 <b:ChangePropertyAction TargetName="Card2Container" PropertyName="Opacity" Value="1.0"/>
                 <b:ChangePropertyAction TargetName="Card2CostText" PropertyName="Foreground" Value="{StaticResource GoldBrush}"/>
                 <b:ChangePropertyAction TargetName="Card2Disabled" PropertyName="Visibility" Value="Collapsed"/>
             </b:DataTrigger>
 
-            <!-- Upgrade 2: too_expensive -->
+            <!-- Upgrade 2: too_expensive (BreathingPulse Stop is handled inside Card2's own triggers) -->
             <b:DataTrigger Binding="{Binding upgrade2State}" Value="too_expensive">
                 <b:ChangePropertyAction TargetName="Card2CostText" PropertyName="Foreground" Value="{StaticResource RedBrush}"/>
                 <b:ChangePropertyAction TargetName="Card2Disabled" PropertyName="Visibility" Value="Visible"/>

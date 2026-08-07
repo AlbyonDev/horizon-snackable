@@ -44,7 +44,7 @@
                             "modelTier1": "ded64b12-2e7a-4309-ab65-6d8ee8734562/df2c9483-57a3-4f62-9b9b-4f9f19f0958f",
                             "modelTier2": "ded64b12-2e7a-4309-ab65-6d8ee8734562/36438361-f302-4e7a-abf1-b34ce45e71a2",
                             "modelTier3": "ded64b12-2e7a-4309-ab65-6d8ee8734562/96384f29-549f-4631-84f7-59bbe1c273f7",
-                            "barrelForwardOffsetDeg": 180.0
+                            "barrelForwardOffsetDeg": 270.0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"

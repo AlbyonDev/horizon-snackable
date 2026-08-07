@@ -77,6 +77,7 @@ export class TowerUpgradeMenuViewModel extends UiViewModel {
   override readonly events = {
     sellTowerTap: UiEvents.sellTowerTap,
     upgradeTowerTap: UiEvents.upgradeTowerTap,
+    dismissUpgradeTap: UiEvents.dismissUpgradeTap,
   };
 
   visible: boolean = false;
@@ -233,6 +234,26 @@ export class TowerUpgradeMenuHud extends Component {
     if (!this.viewModel) return;
     EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
     TowerService.get().sell();
+  }
+
+  @subscribe(UiEvents.dismissUpgradeTap, { execution: ExecuteOn.Owner })
+  onDismissUpgradeTap(_payload: UiEvents.DismissUpgradeTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel || !this.viewModel.visible) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+    // Dismiss the upgrade menu — same logic as tapping empty ground
+    this.viewModel.card1Visible = false;
+    this.viewModel.card2Visible = false;
+    this.viewModel.visible = false;
+    if (this.uiComponent) this.uiComponent.isVisible = false;
+    this.viewModel.towerBorderColor = DEFAULT_BORDER_COLOR;
+    this.viewModel.upgrade1Selected = false;
+    this.viewModel.upgrade2Selected = false;
+    this.selectedCol     = 0;
+    this.selectedRow     = 0;
+    this.selectedDefId   = '';
+    this.selectedChoices = [];
+    EventService.sendLocally(Events.TowerDeselected, new Events.TowerDeselectedPayload());
   }
 
   @subscribe(UiEvents.upgradeTowerTap, { execution: ExecuteOn.Owner })

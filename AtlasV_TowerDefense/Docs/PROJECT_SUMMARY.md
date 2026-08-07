@@ -3,7 +3,7 @@
 ## Concept
 
 Single-player mobile tower defense, portrait orientation, for Meta Horizon Worlds.
-The player places towers on a **7×14 world-unit grid** during build phases to stop waves of enemies from reaching the end of a snake path.
+The player places towers on an **11×14 world-unit grid** during build phases to stop waves of enemies from reaching the end of a snake path.
 Core tension: strategic placement (choke points, range overlap) vs. economy management (gold per kill, upgrade vs. new tower decisions).
 
 ---
@@ -15,7 +15,7 @@ Core tension: strategic placement (choke points, range overlap) vs. economy mana
 | Platform | Meta Horizon Studio (MHS) |
 | Language | TypeScript ES2022 |
 | Target | Mobile portrait, local single-player |
-| Grid | 7 cols × 14 rows × 1 cell = **7×14 world units**, centered on origin |
+| Grid | 11 cols × 14 rows × 1 cell = **11×14 world units**, centered on origin |
 | Play area | Grid ~70% screen height; HUD top ~10%, Shop bottom ~20% |
 | Ground | Tiled cartoon grass texture (Unlit material, UV scale 6×4) on 11×8 plane; dark border plane behind |
 
@@ -29,7 +29,7 @@ The game is a top-down 2D play field rendered with a 3D camera. Everything below
 
 | Property | Value | Why |
 |----------|-------|-----|
-| Position | `(1, 15.5, 0)` | 15.5 units above the play field on Y. Slight +1 X offset re-centers the visible play area under the portrait HUD (top HUD eats screen real estate, so the camera is nudged forward along the row axis). |
+| Position | `(1, 17.5, 0)` | 17.5 units above the play field on Y. Slight +1 X offset re-centers the visible play area under the portrait HUD (top HUD eats screen real estate, so the camera is nudged forward along the row axis). |
 | Rotation (Euler) | `(-90, 90, 0)` | `-90` pitch = camera looks straight down (-Y). `+90` yaw = rotates the view so world **+X is "down" on screen** and world **+Z is "right" on screen** — this is what makes portrait orientation work. |
 | FOV | 60° | Set in `ClientSetup` (`cameraFov`). |
 | Mode | `CameraMode.Fixed` | No follow, no player camera. `FocusedInteractionService` is enabled so screen taps route to `OnFocusedInteractionInputStarted*` events. |
@@ -534,7 +534,7 @@ Tower (root)                         ← TransformComponent + TowerController
 
 | Property | Default | Effect |
 |----------|---------|--------|
-| `barrelForwardOffsetDeg` | 180 | Degrees added to the computed yaw to compensate for the mesh's authored forward axis. **Default for this project is `180`** because generated meshes are authored with forward = `+Z`, but MHS `lookAt` / aim math expects forward = `-Z` — so most towers (Cannon, Frost, Laser) need `180`. Exception: `ArrowTower` uses `0` because its barrel art was authored facing `-Z` directly. |
+| `barrelForwardOffsetDeg` | 180 | Degrees added to the computed yaw to compensate for the mesh's authored forward axis. **Default for this project is `180`** because generated meshes are authored with forward = `+Z`, but MHS `lookAt` / aim math expects forward = `-Z` — so most towers (Frost, Laser, Fire Cannon) need `180`. Exceptions: `ArrowTower` uses `0` (barrel art facing `-Z`); `CanonTower` uses `270` (barrel mesh forward is rotated 90° from the standard +Z convention). |
 
 #### Animation breakdown — what runs each frame
 

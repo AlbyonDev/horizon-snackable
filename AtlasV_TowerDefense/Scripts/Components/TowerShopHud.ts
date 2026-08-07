@@ -93,8 +93,8 @@ export class TowerShopViewModel extends UiViewModel {
   dragNormalized: number = 0;
 }
 
-// Scroll constants — card slot width = 400 (card) + 20*2 (ItemContainer margin) + 10*2 (CardContainer margin)
-const CARD_SLOT_WIDTH = 460;
+// Scroll constants — card slot width = 340 (card) + 20*2 (ItemContainer margin) + 10*2 (CardContainer margin)
+const CARD_SLOT_WIDTH = 400;
 // Viewport width matches the Page design width
 const VIEWPORT_WIDTH = 1080;
 // Combined left/right margin before the first card's visible content (20px ItemContainer + 10px CardContainer)
@@ -319,9 +319,10 @@ export class TowerShopHud extends Component {
     // Don't show yet — will show again on LevelSelected
     this.viewModel.visible = false;
     if (this.uiComponent) this.uiComponent.isVisible = false;
-    this.viewModel.selectedTowerId = this.itemVMs.length > 0 ? this.itemVMs[0].towerId : '';
-    this.viewModel.selectedCardIndex = 0;
-    for (const item of this.itemVMs) item.selected = item.towerId === this.viewModel.selectedTowerId;
+    // Reset to no selection on restart
+    this.viewModel.selectedTowerId = '';
+    this.viewModel.selectedCardIndex = -1;
+    for (const item of this.itemVMs) item.selected = false;
     // Reset scroll to first card (flush with left edge)
     this.scrollTarget = -CARD_EDGE_MARGIN;
     this.scrollCurrent = -CARD_EDGE_MARGIN;
@@ -333,9 +334,32 @@ export class TowerShopHud extends Component {
   @subscribe(UiEvents.towerShopTap, { execution: ExecuteOn.Owner })
   onTowerTapped(payload: UiEvents.TowerShopTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
-    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     const towerId = payload.parameter;
+
+    // Ignore tap entirely if the player can't afford this tower (unless deselecting)
+    if (this.viewModel && this.viewModel.selectedTowerId !== towerId) {
+      const item = this.itemVMs.find(i => i.towerId === towerId);
+      if (item && !ResourceService.get().canAfford(item.cost)) {
+        console.log(`[TowerShopHud] Tap ignored — can't afford ${towerId} (cost=${item.cost}, gold=${ResourceService.get().gold})`);
+        return;
+      }
+    }
+
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+
+    // Toggle OFF: if tapping the already-selected card, deselect and exit placement mode
+    if (this.viewModel && this.viewModel.selectedTowerId === towerId) {
+      console.log(`[TowerShopHud] Same card tapped again (${towerId}), deselecting`);
+      this.viewModel.selectedTowerId = '';
+      this.viewModel.selectedCardIndex = -1;
+      for (const item of this.itemVMs) {
+        if (item.selected) item.selected = false;
+      }
+      EventService.sendLocally(Events.TowerDeselected, new Events.TowerDeselectedPayload());
+      return;
+    }
+
     if (!TowerService.get().find(towerId)) {
       // Handle the test card tap (no TowerService entry)
       if (towerId === 'test') {
@@ -359,7 +383,7 @@ export class TowerShopHud extends Component {
 
     TowerService.get().selectShopTower(towerId);
 
-    if (this.viewModel && this.viewModel.selectedTowerId !== towerId) {
+    if (this.viewModel) {
       this.viewModel.selectedTowerId = towerId;
     }
 
@@ -451,11 +475,9 @@ export class TowerShopHud extends Component {
     if (this.viewModel) {
       this.viewModel.contentWidth = this.itemVMs.length * CARD_SLOT_WIDTH;
       this.viewModel.items = this.itemVMs;
-      if (this.itemVMs.length > 0) {
-        this.viewModel.selectedTowerId = this.itemVMs[0].towerId;
-        this.viewModel.selectedCardIndex = 0;
-        this.itemVMs[0].selected = true;
-      }
+      // No card is pre-selected; player must explicitly tap a card
+      this.viewModel.selectedTowerId = '';
+      this.viewModel.selectedCardIndex = -1;
     }
   }
 
@@ -514,6 +536,27 @@ export class TowerShopHud extends Component {
     const towerId = this.itemVMs[cardIndex].towerId;
     console.log(`[TowerShopHud] Drag-tap detected on card index=${cardIndex}, towerId=${towerId}`);
 
+    // Ignore tap entirely if the player can't afford this tower (unless deselecting)
+    if (this.viewModel && this.viewModel.selectedTowerId !== towerId) {
+      const item = this.itemVMs[cardIndex];
+      if (item && !ResourceService.get().canAfford(item.cost)) {
+        console.log(`[TowerShopHud] Drag-tap ignored — can't afford ${towerId} (cost=${item.cost}, gold=${ResourceService.get().gold})`);
+        return;
+      }
+    }
+
+    // Toggle OFF: if tapping the already-selected card, deselect and exit placement mode
+    if (this.viewModel && this.viewModel.selectedTowerId === towerId) {
+      console.log(`[TowerShopHud] Drag-tap same card (${towerId}), deselecting`);
+      this.viewModel.selectedTowerId = '';
+      this.viewModel.selectedCardIndex = -1;
+      for (const item of this.itemVMs) {
+        if (item.selected) item.selected = false;
+      }
+      EventService.sendLocally(Events.TowerDeselected, new Events.TowerDeselectedPayload());
+      return;
+    }
+
     // Reuse the same logic as the XAML tap handler
     if (!TowerService.get().find(towerId)) {
       if (towerId === 'test') {
@@ -533,7 +576,7 @@ export class TowerShopHud extends Component {
 
     TowerService.get().selectShopTower(towerId);
 
-    if (this.viewModel && this.viewModel.selectedTowerId !== towerId) {
+    if (this.viewModel) {
       this.viewModel.selectedTowerId = towerId;
     }
     if (this.viewModel) {

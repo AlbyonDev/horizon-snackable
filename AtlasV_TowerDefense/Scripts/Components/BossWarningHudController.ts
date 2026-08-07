@@ -56,6 +56,10 @@ export class BossWarningHudController extends Component {
   private viewModel: Maybe<BossWarningViewModel> = null;
   private uiComponent: Maybe<CustomUiComponent> = null;
 
+  // ── Feature flag ──────────────────────────────────────────────────────
+  // Set to true to re-enable the boss warning banner and modifier badge.
+  private static readonly ENABLED = false;
+
   // Banner animation state
   private _animating: boolean = false;
   private _elapsed: number = 0;
@@ -82,6 +86,12 @@ export class BossWarningHudController extends Component {
   onLevelSelected(p: Events.LevelSelectedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+
+    // Feature-flagged: when disabled, never show the banner or modifier badge
+    if (!BossWarningHudController.ENABLED) {
+      this._hideAll();
+      return;
+    }
 
     if (p.nodeType === 'boss') {
       console.log('[BossWarningHudController] Boss level detected — showing banner & modifier badge');
