@@ -333,6 +333,7 @@ export class TowerShopHud extends Component {
   @subscribe(UiEvents.towerShopTap, { execution: ExecuteOn.Owner })
   onTowerTapped(payload: UiEvents.TowerShopTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     const towerId = payload.parameter;
     if (!TowerService.get().find(towerId)) {

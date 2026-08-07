@@ -23,6 +23,12 @@ export const BIOME_MODIFIERS: readonly IBiomeModifier[] = [
 
   // Fire Cannon is stronger in snow (fire thrives against cold)
   { towerId: 'fire_cannon', biomeId: 'snow', damageMultiplier: 1.5 },
+
+  // Lightning tower is stronger in snow
+  { towerId: 'lightning', biomeId: 'snow', damageMultiplier: 1.5 },
+
+  // Lightning tower is weaker in grass
+  { towerId: 'lightning', biomeId: 'grass', damageMultiplier: 0.5 },
 ];
 
 /**

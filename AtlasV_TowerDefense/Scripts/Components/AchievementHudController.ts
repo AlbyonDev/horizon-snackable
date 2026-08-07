@@ -15,6 +15,7 @@ import {
   ExecuteOn,
   LocalEvent,
   CustomUiComponent,
+  EventService,
   component,
   subscribe,
   uiViewModel,
@@ -22,7 +23,7 @@ import {
 } from 'meta/worlds';
 import type { Maybe } from 'meta/worlds';
 
-import { UiEvents } from '../Types';
+import { UiEvents, Events } from '../Types';
 import { ACHIEVEMENT_GROUPS, TIER_REWARDS } from '../Defs/AchievementDefs';
 import { SaveService } from '../Services/SaveService';
 
@@ -148,6 +149,7 @@ export class AchievementHudController extends Component {
   onCloseTap(): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel || !this.uiComponent) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     // If popup is open, close popup first
     if (this.viewModel.rewardPopup.visible) {
@@ -200,6 +202,13 @@ export class AchievementHudController extends Component {
       const reward = tierIndex < TIER_REWARDS.length ? TIER_REWARDS[tierIndex] : TIER_REWARDS[TIER_REWARDS.length - 1];
       save.claimTierReward(groupId, reward);
       console.log(`[AchievementHudController] Claimed tier ${tierIndex} for ${groupId}: +${reward} skulls`);
+
+      // Notify SFX service that a reward was claimed
+      const rewardPayload = new Events.AchievementRewardClaimedPayload();
+      rewardPayload.groupId = groupId;
+      rewardPayload.tierIndex = tierIndex;
+      rewardPayload.reward = reward;
+      EventService.sendLocally(Events.AchievementRewardClaimed, rewardPayload);
 
       // Refresh the popup and the achievements list
       this._populateRewardPopup(this._popupGroupIndex);

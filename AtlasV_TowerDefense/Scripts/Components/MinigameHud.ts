@@ -202,6 +202,7 @@ export class MinigameHud extends Component {
   onCardTap(payload: UiEvents.MinigameCardTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (this.state !== MinigameState.Pick) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     const idx = parseInt(payload.parameter, 10);
     if (isNaN(idx) || idx < 0 || idx > 2) return;

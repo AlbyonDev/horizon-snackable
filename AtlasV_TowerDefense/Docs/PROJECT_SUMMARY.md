@@ -344,6 +344,11 @@ Both arrows cycle through `BIOME_ORDER = ['grass', 'snow', 'volcano']`. The swit
 - `PathTileService` subscribes to `BiomeChanged` and swaps the `pathTex` parameter on the shared materials
 - `GameManager.onStartGame()` reads `SaveService.get().activeBiome` to fire the correct initial `BiomeChanged`
 
+### Biome Audio
+
+- `OverworldHud` plays a looping volcano ambient sound (lava rumble/crackle) while the Overworld phase is active AND the volcano biome is selected. Starts on phase enter or biome switch to volcano; stops on phase exit or biome switch away from volcano. Uses the `AudioManager` pooled looping-sound system (`scripts/Audio/AudioManager.ts`).
+- Audio asset: `Lava_Ambience/Lava_Ambience.WAV` (marketplace package).
+
 ### Biome Modifiers (Tower Buff/Debuff)
 
 Towers receive damage multipliers based on the active biome. Defined in `Scripts/Defs/BiomeModifierDefs.ts`.

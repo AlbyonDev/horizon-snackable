@@ -213,6 +213,7 @@ export class GameOverScreenHud extends Component {
   onRestartTap(_payload: RestartTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     this._resetAndHide();
 
@@ -231,6 +232,7 @@ export class GameOverScreenHud extends Component {
   onOverworldTap(_payload: OverworldTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     console.log('[GameOverScreenHud] Return to Overworld tapped');
     this._resetAndHide();
@@ -246,6 +248,7 @@ export class GameOverScreenHud extends Component {
   onChooseRelicTap(_payload: ChooseRelicTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     console.log('[GameOverScreenHud] Choose Relic tapped');
     this._resetAndHide();
@@ -262,6 +265,7 @@ export class GameOverScreenHud extends Component {
   onNextRunTap(_payload: NextRunTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     console.log('[GameOverScreenHud] Next Run tapped — skipping relic choice');
     this._resetAndHide();

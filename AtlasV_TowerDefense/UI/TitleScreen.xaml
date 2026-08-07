@@ -75,10 +75,31 @@
                             <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                     </Storyboard>
+                    <Storyboard x:Key="PlayBtnPressAnim">
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PlayBtnScale" Storyboard.TargetProperty="ScaleX">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
+                                <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
+                            </EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                                <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
+                            </EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PlayBtnScale" Storyboard.TargetProperty="ScaleY">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
+                                <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
+                            </EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                                <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
+                            </EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                    </Storyboard>
                 </Grid.Resources>
                 <b:Interaction.Triggers>
                     <b:EventTrigger>
                         <b:ControlStoryboardAction Storyboard="{StaticResource PlayBtnPulseAnim}"/>
+                    </b:EventTrigger>
+                    <b:EventTrigger EventName="MouseLeftButtonDown">
+                        <b:ControlStoryboardAction Storyboard="{StaticResource PlayBtnPressAnim}"/>
                     </b:EventTrigger>
                 </b:Interaction.Triggers>
 

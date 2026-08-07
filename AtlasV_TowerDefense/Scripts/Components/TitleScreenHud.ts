@@ -148,6 +148,7 @@ export class TitleScreenHud extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     if (!this.viewModel.visible) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     // Block if still in loading state (button shows LOADING and is visually disabled).
     // Once the timeout or SaveRestored fires, isLoading becomes false and play is allowed.

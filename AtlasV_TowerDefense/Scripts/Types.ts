@@ -314,9 +314,17 @@ export namespace Events {
   export class SkillTreeNodePurchasedPayload { skillIndex: number = 0; }
   export const SkillTreeNodePurchased = new LocalEvent<SkillTreeNodePurchasedPayload>('EvSkillTreeNodePurchased', SkillTreeNodePurchasedPayload);
 
+  // Achievement reward claimed (fired when a tier reward is claimed in the achievements panel)
+  export class AchievementRewardClaimedPayload { groupId: string = ''; tierIndex: number = 0; reward: number = 0; }
+  export const AchievementRewardClaimed = new LocalEvent<AchievementRewardClaimedPayload>('EvAchievementRewardClaimed', AchievementRewardClaimedPayload);
+
   // Chain lightning arc spawned (used to trigger SFX per bounce)
   export class ChainArcSpawnedPayload {}
   export const ChainArcSpawned = new LocalEvent<ChainArcSpawnedPayload>('EvChainArcSpawned', ChainArcSpawnedPayload);
+
+  // UI Button Click SFX (fired by any controller on button tap)
+  export class UiButtonClickPayload {}
+  export const UiButtonClick = new LocalEvent<UiButtonClickPayload>('EvUiButtonClick', UiButtonClickPayload);
 
 }
 

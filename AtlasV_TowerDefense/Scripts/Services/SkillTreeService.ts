@@ -28,7 +28,7 @@ import {
 export const LASER_UNLOCK_NODE_INDEX = 8;
 
 /** Skill node index that unlocks the Snow biome. */
-export const SNOW_UNLOCK_NODE_INDEX = 14;
+export const SNOW_UNLOCK_NODE_INDEX = 15;
 
 /** Skill node index that unlocks the Volcano biome. */
 export const VOLCANO_UNLOCK_NODE_INDEX = 20;

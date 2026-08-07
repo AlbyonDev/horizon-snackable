@@ -575,10 +575,23 @@
                                     <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
                             </Storyboard>
+                            <Storyboard x:Key="AchievementPressAnim">
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="AchievementScaleTransform" Storyboard.TargetProperty="ScaleX">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="AchievementScaleTransform" Storyboard.TargetProperty="ScaleY">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
                         </Grid.Resources>
                         <b:Interaction.Triggers>
                             <b:EventTrigger>
                                 <b:ControlStoryboardAction Storyboard="{StaticResource AchievementPulseAnim}"/>
+                            </b:EventTrigger>
+                            <b:EventTrigger EventName="MouseLeftButtonDown">
+                                <b:ControlStoryboardAction Storyboard="{StaticResource AchievementPressAnim}"/>
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
 
@@ -691,11 +704,24 @@
                                     <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
                             </Storyboard>
+                            <Storyboard x:Key="SkullPressAnim">
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkullScaleTransform" Storyboard.TargetProperty="ScaleX">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkullScaleTransform" Storyboard.TargetProperty="ScaleY">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
                         </Grid.Resources>
                         <!-- Auto-play pulse animation on load (skulls are always tappable) -->
                         <b:Interaction.Triggers>
                             <b:EventTrigger>
                                 <b:ControlStoryboardAction Storyboard="{StaticResource SkullPulseAnim}"/>
+                            </b:EventTrigger>
+                            <b:EventTrigger EventName="MouseLeftButtonDown">
+                                <b:ControlStoryboardAction Storyboard="{StaticResource SkullPressAnim}"/>
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
 
@@ -873,10 +899,23 @@
                                     <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                                 </DoubleAnimation>
                             </Storyboard>
+                            <Storyboard x:Key="RelicPressAnim">
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RelicScaleTransform" Storyboard.TargetProperty="ScaleX">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RelicScaleTransform" Storyboard.TargetProperty="ScaleY">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
                         </Grid.Resources>
                         <b:Interaction.Triggers>
                             <b:EventTrigger>
                                 <b:ControlStoryboardAction Storyboard="{StaticResource RelicPulseAnim}"/>
+                            </b:EventTrigger>
+                            <b:EventTrigger EventName="MouseLeftButtonDown">
+                                <b:ControlStoryboardAction Storyboard="{StaticResource RelicPressAnim}"/>
                             </b:EventTrigger>
                         </b:Interaction.Triggers>
 
@@ -1034,10 +1073,36 @@
                             <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                     </Storyboard>
+                    <Storyboard x:Key="BiomeArrowLeftPressAnim">
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowLeftScaleTransform" Storyboard.TargetProperty="ScaleX">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowLeftScaleTransform" Storyboard.TargetProperty="ScaleY">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                    </Storyboard>
+                    <Storyboard x:Key="BiomeArrowLeftPressAnim">
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowLeftScaleTransform" Storyboard.TargetProperty="ScaleX">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowLeftScaleTransform" Storyboard.TargetProperty="ScaleY">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                    </Storyboard>
                 </Grid.Resources>
                 <b:Interaction.Triggers>
                     <b:EventTrigger>
                         <b:ControlStoryboardAction Storyboard="{StaticResource BiomeArrowLeftPulseAnim}"/>
+                    </b:EventTrigger>
+                    <b:EventTrigger EventName="MouseLeftButtonDown">
+                        <b:ControlStoryboardAction Storyboard="{StaticResource BiomeArrowLeftPressAnim}"/>
+                    </b:EventTrigger>
+                    <b:EventTrigger EventName="MouseLeftButtonDown">
+                        <b:ControlStoryboardAction Storyboard="{StaticResource BiomeArrowLeftPressAnim}"/>
                     </b:EventTrigger>
                 </b:Interaction.Triggers>
 
@@ -1211,10 +1276,23 @@
                             <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                         </DoubleAnimation>
                     </Storyboard>
+                    <Storyboard x:Key="BiomeArrowPressAnim">
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowScaleTransform" Storyboard.TargetProperty="ScaleX">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowScaleTransform" Storyboard.TargetProperty="ScaleY">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                    </Storyboard>
                 </Grid.Resources>
                 <b:Interaction.Triggers>
                     <b:EventTrigger>
                         <b:ControlStoryboardAction Storyboard="{StaticResource BiomeArrowPulseAnim}"/>
+                    </b:EventTrigger>
+                    <b:EventTrigger EventName="MouseLeftButtonDown">
+                        <b:ControlStoryboardAction Storyboard="{StaticResource BiomeArrowPressAnim}"/>
                     </b:EventTrigger>
                 </b:Interaction.Triggers>
 
@@ -1768,10 +1846,23 @@
                                         <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                                     </DoubleAnimation>
                                 </Storyboard>
+                                <Storyboard x:Key="LockedReturnPressAnim">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="LockedReturnScaleTransform" Storyboard.TargetProperty="ScaleX">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="LockedReturnScaleTransform" Storyboard.TargetProperty="ScaleY">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
                             </Grid.Resources>
                             <b:Interaction.Triggers>
                                 <b:EventTrigger>
                                     <b:ControlStoryboardAction Storyboard="{StaticResource LockedReturnPulseAnim}"/>
+                                </b:EventTrigger>
+                                <b:EventTrigger EventName="MouseLeftButtonDown">
+                                    <b:ControlStoryboardAction Storyboard="{StaticResource LockedReturnPressAnim}"/>
                                 </b:EventTrigger>
                             </b:Interaction.Triggers>
 
@@ -1837,10 +1928,23 @@
                                         <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                                     </DoubleAnimation>
                                 </Storyboard>
+                                <Storyboard x:Key="LockedSkillTreePressAnim">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="LockedSkillTreeScaleTransform" Storyboard.TargetProperty="ScaleX">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="LockedSkillTreeScaleTransform" Storyboard.TargetProperty="ScaleY">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
                             </Grid.Resources>
                             <b:Interaction.Triggers>
                                 <b:EventTrigger>
                                     <b:ControlStoryboardAction Storyboard="{StaticResource LockedSkillTreePulseAnim}"/>
+                                </b:EventTrigger>
+                                <b:EventTrigger EventName="MouseLeftButtonDown">
+                                    <b:ControlStoryboardAction Storyboard="{StaticResource LockedSkillTreePressAnim}"/>
                                 </b:EventTrigger>
                             </b:Interaction.Triggers>
 

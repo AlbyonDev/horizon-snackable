@@ -55,3 +55,15 @@ Buttons are large, rectangular, framed in the same stone-and-gold style as the p
 ## Overall Mood
 
 Sunny battlefield, gritty frame. The play area feels like a cheerful cartoon meadow you defend; the UI around it feels like the rough banner of a goblin warband. A game that looks instantly fun on a phone storefront screenshot, and immediately readable once you start playing.
+
+---
+
+## Button Interaction Feel
+
+Every button in the game has two layers of juice:
+
+1. **Idle breathing pulse** — a gentle scale (1.0→1.06) + gold glow loop that makes buttons feel alive even when untouched.
+2. **Press squish** — on tap, the button scales down to 0.90× then bounces back elastically (0.22s total). Feels snappy and physical, like pressing a chunky stone slab.
+3. **Click SFX** — a short medieval stone/wood "clack" plays on every tap (vol 0.3). Subtle but satisfying confirmation that the press registered.
+
+This combination — always breathing, punchy on press, audible feedback — gives the UI a tactile, game-like quality rather than a flat app feel. See `Docs/BUTTON_RULES.md` for exact implementation specs.

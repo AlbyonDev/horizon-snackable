@@ -12,6 +12,42 @@
       "name": "GreenFlag",
       "version": "0.0.2"
     },
+    "meta/Lava_Ambience/0.0.1": {
+      "author": "meta",
+      "folderName": "Lava_Ambience",
+      "name": "Lava_Ambience",
+      "version": "0.0.1"
+    },
+    "meta/MUS_sting_loss_electric_01/0.0.1": {
+      "author": "meta",
+      "folderName": "MUS_sting_loss_electric_01",
+      "name": "MUS_sting_loss_electric_01",
+      "version": "0.0.1"
+    },
+    "meta/SFX_Coin_Collect_01/0.0.1": {
+      "author": "meta",
+      "folderName": "SFX_Coin_Collect_01",
+      "name": "SFX_Coin_Collect_01",
+      "version": "0.0.1"
+    },
+    "meta/Win_Prize_Impact/0.0.1": {
+      "author": "meta",
+      "folderName": "Win_Prize_Impact",
+      "name": "Win_Prize_Impact",
+      "version": "0.0.1"
+    },
+    "meta/Wind_Cold_Low_Loop/0.0.1": {
+      "author": "meta",
+      "folderName": "Wind_Cold_Low_Loop",
+      "name": "Wind_Cold_Low_Loop",
+      "version": "0.0.1"
+    },
+    "meta/amb_venues_dj_cricket_ambix_lp/0.0.2": {
+      "author": "meta",
+      "folderName": "amb_venues_dj_cricket_ambix_lp",
+      "name": "amb_venues_dj_cricket_ambix_lp",
+      "version": "0.0.2"
+    },
     "meta/human_jog_masculine_forward/0.0.6": {
       "author": "meta",
       "folderName": "human_jog_masculine_forward",
@@ -40,6 +76,12 @@
       "author": "meta",
       "folderName": "sfxlib_elc_LiveWireElectricityPowerOn_01",
       "name": "sfxlib_elc_LiveWireElectricityPowerOn_01",
+      "version": "0.0.1"
+    },
+    "meta/sfxlib_ui_MagicalConfirm_01/0.0.1": {
+      "author": "meta",
+      "folderName": "sfxlib_ui_MagicalConfirm_01",
+      "name": "sfxlib_ui_MagicalConfirm_01",
       "version": "0.0.1"
     },
     "meta/sfxlib_ui_WoodConfirm_01/0.0.1": {

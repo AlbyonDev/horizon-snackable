@@ -152,6 +152,7 @@ export class RelicChoiceHud extends Component {
   onRelicCardTap(payload: RelicCardTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     const relicId = payload.parameter;
     console.log(`[RelicChoiceHud] Player chose relic: ${relicId}`);

@@ -1,0 +1,78 @@
+{
+    "version": 6,
+    "entities": [
+        {
+            "id": "7e81f016-8dd9-4bf1-ac1d-a34be51b2700",
+            "name": "Root",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "1339db05-4581-40f3-9d6f-fad55c925fb1",
+            "name": "AudioInstance",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::SoundPlatformComponent",
+                        "version": 15,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "ea014705-d8e2-4f3d-bf89-dbd522508092",
+            "name": "AudioInstance",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::SoundPlatformComponent",
+                        "version": 15,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "1339db05-4581-40f3-9d6f-fad55c925fb1",
+            "destination": "7e81f016-8dd9-4bf1-ac1d-a34be51b2700"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "ea014705-d8e2-4f3d-bf89-dbd522508092",
+            "destination": "7e81f016-8dd9-4bf1-ac1d-a34be51b2700"
+        }
+    ]
+}

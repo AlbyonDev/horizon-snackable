@@ -16,6 +16,7 @@ import {
   OnEntityStartEvent,
   NetworkingService,
   ExecuteOn,
+  EventService,
   TextureAsset,
   component,
   subscribe,
@@ -230,6 +231,7 @@ export class TowerUpgradeMenuHud extends Component {
   onSellTowerTap(_payload: UiEvents.SellTowerTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
     TowerService.get().sell();
   }
 
@@ -237,6 +239,7 @@ export class TowerUpgradeMenuHud extends Component {
   onUpgradeTowerTap(payload: UiEvents.UpgradeTowerTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     const upgradeIndex = parseInt(payload.parameter, 10);
     const state = upgradeIndex === 0 ? this.viewModel.upgrade1State : this.viewModel.upgrade2State;

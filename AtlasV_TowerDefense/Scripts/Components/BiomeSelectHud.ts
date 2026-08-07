@@ -81,6 +81,7 @@ export class BiomeSelectHud extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
     if (!this.viewModel.visible) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     const biomeId = payload.parameter;
     if (!biomeId) return;

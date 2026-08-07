@@ -662,6 +662,7 @@ export class SkillTreeHudController extends Component {
   onSkillTap(payload: SkillTreeTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     const skillIndex = parseInt(payload.parameter, 10);
     if (isNaN(skillIndex) || skillIndex < 0 || skillIndex >= TOTAL_SKILLS) return;
@@ -700,6 +701,7 @@ export class SkillTreeHudController extends Component {
   onReturnTap(_payload: SkillTreeReturnTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     this.viewModel.popupVisible = false;
     this.pendingNodeIndex = -1;
@@ -710,6 +712,7 @@ export class SkillTreeHudController extends Component {
   onBuyTap(_payload: SkillTreeBuyTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     if (this.pendingNodeIndex < 0 || this.pendingNodeIndex >= TOTAL_SKILLS) return;
 
@@ -735,6 +738,7 @@ export class SkillTreeHudController extends Component {
   onCloseTap(_payload: SkillTreeCloseTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
     this.viewModel.visible = false;
     if (this.uiComponent) this.uiComponent.isVisible = false;

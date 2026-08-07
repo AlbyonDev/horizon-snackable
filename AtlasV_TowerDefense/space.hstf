@@ -1310,6 +1310,274 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "bd41275a-18c8-4990-8a7b-acc2f598283a",
+            "name": "UiClickSfxEntity",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::SoundPlatformComponent",
+                        "version": 15,
+                        "data": {
+                            "soundEmitterType": "NonSpatial",
+                            "soundAsset": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "14790268761286139285",
+                                "targetId": "1366267635"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "UiClickSfxService",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "18428330274724808204",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "1fbec326-d51c-46d3-9c4e-b88904c496d5",
+            "name": "SkillPurchaseSfx",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::SoundPlatformComponent",
+                        "version": 15,
+                        "data": {
+                            "soundEmitterType": "NonSpatial",
+                            "soundAsset": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "14675507304706022565",
+                                "targetId": "1366267635"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "SkillPurchaseSfxService",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "2726093441907449588",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "3a98d1b2-c9c6-4b24-907b-e64a0d7eed6e",
+            "name": "AchievementClaimSfxEntity",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::SoundPlatformComponent",
+                        "version": 15,
+                        "data": {
+                            "soundEmitterType": "NonSpatial",
+                            "soundAsset": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "1748165914750636069",
+                                "targetId": "1366267635"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "AchievementClaimSfxService",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "9089326948220997625",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "737e219f-c998-45fc-9b97-7cf6e1979c93",
+            "name": "AudioManager",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "AudioManager",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "13527424782128567458",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "soundSourceTemplate": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "13730451097716815029",
+                                "targetId": "2719744159"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "5c3b394d-2d95-44d4-b726-c036866536fd",
+            "name": "AudioManager",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "AudioManager",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "13527424782128567458",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "soundSourceTemplate": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "13730451097716815029",
+                                "targetId": "2719744159"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "SnowBiomeAudioController",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "7370517053780198697",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "snowAmbientSound": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "8313384119323939215",
+                                "targetId": "1366267635"
+                            },
+                            "volume": 0.6
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "GrassBiomeAudioController",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "6040976656944161675",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "grassAmbientSound": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "3812170304432435889",
+                                "targetId": "1366267635"
+                            },
+                            "volume": 0.6
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "6a4e810a-23e4-49b6-8710-4128db8b6d34",
+            "name": "GameEndSfxEntity",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "GameEndSfxService",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "4627421053141331895",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "victorySfx": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "1652623560861703506",
+                                "targetId": "1366267635"
+                            },
+                            "defeatSfx": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "12336131486785935956",
+                                "targetId": "1366267635"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -1436,6 +1704,36 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "16874082-fcfe-4f3c-84d3-33c467ca6d94",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "bd41275a-18c8-4990-8a7b-acc2f598283a",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "1fbec326-d51c-46d3-9c4e-b88904c496d5",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "3a98d1b2-c9c6-4b24-907b-e64a0d7eed6e",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "737e219f-c998-45fc-9b97-7cf6e1979c93",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "5c3b394d-2d95-44d4-b726-c036866536fd",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "6a4e810a-23e4-49b6-8710-4128db8b6d34",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

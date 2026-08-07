@@ -178,6 +178,7 @@ export class GameHudController extends Component {
   onAbandonLevelTap(_p: UiEvents.SkipWaveTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
     console.log('[GameHudController] Abandon level tapped — showing confirm popup');
     this.viewModel.showConfirmPopup = true;
   }
@@ -186,6 +187,7 @@ export class GameHudController extends Component {
   onConfirmYes(_p: UiEvents.SkipWaveTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
     console.log('[GameHudController] Confirm Yes — firing RestartGame');
     this.viewModel.showConfirmPopup = false;
     EventService.sendLocally(Events.RestartGame, new Events.RestartGamePayload());
@@ -195,6 +197,7 @@ export class GameHudController extends Component {
   onConfirmNo(_p: UiEvents.SkipWaveTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
     console.log('[GameHudController] Confirm No — closing popup');
     this.viewModel.showConfirmPopup = false;
   }
@@ -223,6 +226,7 @@ export class GameHudController extends Component {
   @subscribe(UiEvents.nextWaveTap, { execution: ExecuteOn.Owner })
   onNextWaveTap(_p: UiEvents.SkipWaveTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
     console.log('[GameHudController] Next Wave tapped — killing all enemies');
     const enemies = EnemyService.get().getAll();
     for (const [id, rec] of enemies) {
@@ -239,6 +243,7 @@ export class GameHudController extends Component {
   @subscribe(UiEvents.finishLevelTap, { execution: ExecuteOn.Owner })
   onFinishLevelTap(_p: UiEvents.SkipWaveTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
     console.log('[GameHudController] Finish Level tapped — triggering Victory');
     const phasePayload = new Events.GamePhaseChangedPayload();
     phasePayload.phase = GamePhase.Victory;
