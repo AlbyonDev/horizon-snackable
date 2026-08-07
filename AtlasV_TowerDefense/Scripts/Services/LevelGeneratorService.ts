@@ -24,7 +24,7 @@
 import { Service } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
 import { EventService } from 'meta/worlds';
-import { Events, BossModifier } from '../Types';
+import { Events, BossModifier, BOSS_MODIFIER_SKULL_REWARDS } from '../Types';
 import type { IWaveDef, IWaveGroup } from '../Types';
 import type { ILevelDef } from '../Defs/LevelDefs';
 import { OverworldNodeType } from '../Defs/NodeDefs';
@@ -227,9 +227,9 @@ export class LevelGeneratorService extends Service {
     const bossModifier = isBoss
       ? this._peekBag()
       : undefined;
-    // Randomize boss skull reward: 3, 4, or 5 (deterministic from seeded PRNG)
+    // Skull reward determined by the boss modifier difficulty
     const bossSkullReward = isBoss
-      ? 3 + Math.floor(this._rng() * 3)
+      ? BOSS_MODIFIER_SKULL_REWARDS[bossModifier!]
       : undefined;
     if (isBoss) {
       console.log(`[LevelGeneratorService] Boss level ${levelIndex} assigned modifier: ${BossModifier[bossModifier!]} (bag ${this._modifierBagIndex}/${this._modifierBag.length}), skullReward: ${bossSkullReward}`);

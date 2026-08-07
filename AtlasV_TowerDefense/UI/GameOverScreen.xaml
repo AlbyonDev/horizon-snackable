@@ -194,6 +194,15 @@
                                     </Grid>
                                 </Viewbox>
                                 <TextBlock Text="{Binding Path=skullsEarned, StringFormat=F0}" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                                <TextBlock Text=" x2" FontSize="64" FontWeight="Bold" Foreground="#00E5CC" VerticalAlignment="Center" Margin="16,0,0,0">
+                                    <TextBlock.Visibility>
+                                        <Binding Path="showMultiplierIndicator">
+                                            <Binding.Converter>
+                                                <BooleanToVisibilityConverter/>
+                                            </Binding.Converter>
+                                        </Binding>
+                                    </TextBlock.Visibility>
+                                </TextBlock>
                             </StackPanel>
                         </StackPanel>
 

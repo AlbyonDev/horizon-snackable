@@ -29,6 +29,16 @@ export const BOSS_MODIFIER_LABELS: Record<BossModifier, string> = {
   [BossModifier.TowerDestroy]: 'Destroy towers',
 };
 
+/** Skull reward per boss modifier (harder = more skulls). */
+export const BOSS_MODIFIER_SKULL_REWARDS: Record<BossModifier, number> = {
+  [BossModifier.HpUp]: 2,
+  [BossModifier.SpeedUp]: 2,
+  [BossModifier.DmgDown]: 2,
+  [BossModifier.OneLife]: 2,
+  [BossModifier.NoIncome]: 3,
+  [BossModifier.TowerDestroy]: 2,
+};
+
 /** Longer descriptions for the boss info popup. */
 export const BOSS_MODIFIER_DESCRIPTIONS: Record<BossModifier, string> = {
   [BossModifier.HpUp]: 'All enemies have 20% more health',
@@ -282,6 +292,7 @@ export namespace Events {
     relics: string[] = [];
     skulls: number = 0;
     skillTree: number[] = [];
+    skillTreeCounts: Record<string, number> = {};
   }
   export const SaveRestored = new LocalEvent<SaveRestoredPayload>('EvSaveRestored', SaveRestoredPayload);
 
@@ -401,4 +412,10 @@ export namespace UiEvents {
 
   @serializable() export class BossInfoCloseTapPayload { readonly parameter: string = ''; }
   export const bossInfoCloseTap = new UiEvent('OverworldViewModel-onBossInfoCloseTap', BossInfoCloseTapPayload);
+
+  @serializable() export class LockedBiomeReturnTapPayload { readonly parameter: string = ''; }
+  export const lockedBiomeReturnTap = new UiEvent('OverworldViewModel-onLockedBiomeReturnTap', LockedBiomeReturnTapPayload);
+
+  @serializable() export class LockedBiomeSkillTreeTapPayload { readonly parameter: string = ''; }
+  export const lockedBiomeSkillTreeTap = new UiEvent('OverworldViewModel-onLockedBiomeSkillTreeTap', LockedBiomeSkillTreeTapPayload);
 }

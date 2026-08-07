@@ -12,6 +12,7 @@ import { OnWorldUpdateEvent } from 'meta/worlds';
 import { Events } from '../Types';
 import { EnemyService } from './EnemyService';
 import { EnemyController } from '../Components/EnemyController';
+import { SkillTreeService } from './SkillTreeService';
 
 const TINT_SLOW = new Color(0.4, 0.85, 1.0, 1.0); // icy cyan
 
@@ -35,12 +36,15 @@ export class SlowService extends Service {
     const def = rec ? this._enemyService.find(rec.defId) : undefined;
     if (def?.slowImmune) return;
 
-    const expiresAt = Date.now() + duration * 1000;
+    const skills = SkillTreeService.get();
+    const adjustedFactor = Math.max(0, factor - skills.getSlowFactorBonus());
+    const adjustedDuration = duration * skills.getSlowDurationMultiplier();
+    const expiresAt = Date.now() + adjustedDuration * 1000;
     const existing  = this._slows.get(p.enemyId);
 
-    if (!existing || factor <= existing.factor || expiresAt > existing.expiresAt) {
-      this._slows.set(p.enemyId, { factor, expiresAt });
-      this._enemyService.setSpeedFactor(p.enemyId, factor);
+    if (!existing || adjustedFactor <= existing.factor || expiresAt > existing.expiresAt) {
+      this._slows.set(p.enemyId, { factor: adjustedFactor, expiresAt });
+      this._enemyService.setSpeedFactor(p.enemyId, adjustedFactor);
       const rec = this._enemyService.get(p.enemyId);
       if (rec) rec.entity.getComponent(EnemyController)?.applyTint(TINT_SLOW);
     }

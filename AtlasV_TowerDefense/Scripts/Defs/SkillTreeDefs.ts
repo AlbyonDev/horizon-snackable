@@ -77,14 +77,14 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
   { index: 0, label: 'UNLOCK TREE', cost: 1, branch: null, description: 'Unlock the skill tree to access all branches.' },
 
   // Tier 1 (indices 1, 2, 3)
-  { index: 1, label: '+10% Damage',        cost: 3, branch: 'war', description: 'All towers deal 10% more damage.' },
+  { index: 1, label: '+5% Damage',        cost: 7, branch: 'war', description: 'All towers deal 5% more damage.' },
   { index: 2, label: '+2 Starting Lives',   cost: 3, branch: 'fortify', description: 'Start each run with 2 extra lives.' },
-  { index: 3, label: '+30 Starting Gold',   cost: 3, branch: 'fortune', description: 'Begin each run with 30 extra gold.' },
+  { index: 3, label: '+10 Starting Gold',   cost: 5, branch: 'fortune', description: 'Begin each run with 10 extra gold.' },
 
   // Tier 2 (indices 4, 5, 6)
-  { index: 4, label: '+5 Starting Lives',   cost: 10, branch: 'fortify', description: 'Start each run with 5 extra lives.' },
-  { index: 5, label: '+20% Tower Range',    cost: 6, branch: 'fortify', description: 'All towers gain 20% increased range.' },
-  { index: 6, label: '+25% Wave Bonus Gold', cost: 6, branch: 'fortune', description: 'Earn 25% more bonus gold per wave.' },
+  { index: 4, label: '+5 Starting Lives',   cost: 6, branch: 'fortify', description: 'Start each run with 5 extra lives.' },
+  { index: 5, label: '+5% Tower Range',    cost: 10, branch: 'fortify', description: 'All towers gain 5% increased range.' },
+  { index: 6, label: '+25% Sell Refund',       cost: 9, branch: 'fortune', description: 'Earn 25% more bonus gold per wave.' },
 
   // Tier 3 (indices 7, 8, 9)
   // NOTE: Tower unlock nodes (indices 8, 9, 10, 16, 18, 19) all share the same crimson red
@@ -92,44 +92,44 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
   // distinguish them from stat-bonus nodes. When adding new tower unlock nodes,
   // replicate the crimson style: outer ellipse Stroke="#C0392B", Fill="#FF2E0E0E",
   // 210x210 grid, 130x130 icon viewbox, and tower texture icon from Textures/.
-  { index: 7, label: '+25% Crit Chance',    cost: 10, branch: 'war', description: 'All towers gain 25% increased critical hit chance.' },
-  { index: 8, label: 'Unlock Laser Canon',  cost: 6, branch: 'war', description: 'Highest DPS tower. Long range (3.6), rapid fire rate (5.0/s), 200g cost.' },
-  { index: 9, label: 'Unlock Pillar',       cost: 8, branch: 'fortune', description: 'Unlocks the Pillar tower for all biomes. Single-use trap that tips over onto the first enemy in range, instant-killing it, then self-destructs. 30g cost.' },
+  { index: 7, label: '+25% Crit Chance',    cost: 15, branch: 'war', description: 'All towers gain 25% increased critical hit chance.' },
+  { index: 8, label: 'Unlock Laser Canon',  cost: 20, branch: 'war', description: 'Highest DPS tower. Long range (3.6), rapid fire rate (5.0/s), 200g cost.' },
+  { index: 9, label: 'Unlock Pillar',       cost: 10, branch: 'fortune', description: 'Unlocks the Pillar tower for all biomes. Single-use trap that tips over onto the first enemy in range, instant-killing it, then self-destructs. 30g cost.' },
 
   // Tier 4 (indices 10, 11, 12)
-  { index: 10, label: 'Unlock Poison Tower', cost: 8, branch: 'war', description: 'Unlocks the Poison Tower for all biomes. DoT tower that lobs toxic globs stacking lingering poison. 90g cost.' },
+  { index: 10, label: 'Unlock Poison Tower', cost: 10, branch: 'war', description: 'Unlocks the Poison Tower for all biomes. DoT tower that lobs toxic globs stacking lingering poison. 90g cost.' },
   { index: 11, label: '+15% Slow Duration', cost: 3, branch: 'fortify', description: 'Slow effects last 15% longer.' },
-  { index: 12, label: '+20% Interest Rate', cost: 3, branch: 'fortune', description: 'Earn 20% more interest on banked gold.' },
+  { index: 12, label: '+20% Interest Rate', cost: 18, branch: 'fortune', description: 'Earn 20% more interest on banked gold.' },
 
   // Tier 5 (indices 13, 14, 15)
-  { index: 13, label: '+20% Damage',        cost: 4, branch: 'war', description: 'All towers deal 20% more damage.' },
-  { index: 14, label: '+50 Starting Gold',  cost: 4, branch: 'fortune', description: 'Begin each run with 50 extra gold.' },
-  { index: 15, label: 'Unlock Snow Biome',  cost: 10, branch: 'fortify', description: 'Unlock the Snow biome for new challenges.' },
+  { index: 13, label: '+20% Damage',        cost: 20, branch: 'war', description: 'All towers deal 20% more damage.' },
+  { index: 14, label: '+30 Starting Gold',  cost: 20, branch: 'fortune', description: 'Begin each run with 30 extra gold.' },
+  { index: 15, label: 'Unlock Snow Biome',  cost: 25, branch: 'fortify', description: 'Unlock the Snow biome for new challenges.' },
 
   // Tier 6 (indices 16, 17, 18)
-  { index: 16, label: 'Unlock Fire Cannon', cost: 12, branch: 'war', description: 'AoE fire damage with arc projectiles. Splash radius 0.6, 120g cost. Unlocked outside of volcano area.' },
-  { index: 17, label: '+25% Fire Rate',     cost: 5, branch: 'fortify', description: 'All towers fire 25% faster.' },
-  { index: 18, label: 'Unlock Lightning Tower', cost: 14, branch: 'fortune', description: 'Unlocks the Lightning Tower for all biomes. Chain lightning multi-target tower, bolts chain to nearby enemies. 300g cost.' },
+  { index: 16, label: 'Unlock Fire Cannon', cost: 20, branch: 'war', description: 'AoE fire damage with arc projectiles. Splash radius 0.6, 120g cost. Unlocked outside of volcano area.' },
+  { index: 17, label: '+25% Fire Rate',     cost: 28, branch: 'fortify', description: 'All towers fire 25% faster.' },
+  { index: 18, label: 'Unlock Lightning Tower', cost: 29, branch: 'fortune', description: 'Unlocks the Lightning Tower for all biomes. Chain lightning multi-target tower, bolts chain to nearby enemies. 300g cost.' },
 
   // Tier 7 (indices 19, 20, 21)
-  { index: 19, label: 'Unlock Frost Tower',     cost: 12, branch: 'war', description: 'Slows enemies by 50% for 1.5s. 80g cost. Unlocked outside of snow area.' },
-  { index: 20, label: 'Unlock Volcano Biome',   cost: 18, branch: 'fortify', description: 'Unlock the Volcano biome for fiery trials.' },
-  { index: 21, label: '+75% Sell Refund',       cost: 6, branch: 'fortune', description: 'Refund 75% more gold when selling towers.' },
+  { index: 19, label: 'Unlock Frost Tower',     cost: 20, branch: 'war', description: 'Slows enemies by 50% for 1.5s. 80g cost. Unlocked outside of snow area.' },
+  { index: 20, label: 'Unlock Volcano Biome',   cost: 30, branch: 'fortify', description: 'Unlock the Volcano biome for fiery trials.' },
+  { index: 21, label: '+75% Sell Refund',       cost: 17, branch: 'fortune', description: 'Refund 75% more gold when selling towers.' },
 
   // Tier 8 (indices 22, 23, 24)
-  { index: 22, label: '+30% Splash Radius', cost: 7, branch: 'war', description: 'All splash towers gain 30% larger area.' },
-  { index: 23, label: '+25% Slow Duration', cost: 7, branch: 'fortify', description: 'Slow effects last 25% longer.' },
-  { index: 24, label: '+35% Interest Rate', cost: 7, branch: 'fortune', description: 'Earn 35% more interest on banked gold.' },
+  { index: 22, label: '+30% Splash Radius', cost: 30, branch: 'war', description: 'All splash towers gain 30% larger area.' },
+  { index: 23, label: '+25% Slow Duration', cost: 30, branch: 'fortify', description: 'Slow effects last 25% longer.' },
+  { index: 24, label: '+1 Gold per enemy', cost: 50, branch: 'fortune', description: 'Earn 1 more gold per enemy killed.' },
 
   // Tier 9 (indices 25, 26, 27)
-  { index: 25, label: '+30% Damage',        cost: 8, branch: 'war', description: 'All towers deal 30% more damage.' },
-  { index: 26, label: '+40% Tower HP',      cost: 8, branch: 'fortify', description: 'All towers gain 40% more hit points.' },
-  { index: 27, label: '+80 Starting Gold',  cost: 8, branch: 'fortune', description: 'Begin each run with 80 extra gold.' },
+  { index: 25, label: '+5% Damage',        cost: 50, branch: 'war', description: 'All towers deal 5% more damage.' },
+  { index: 26, label: '+40% Tower HP',      cost: 40, branch: 'fortify', description: 'All towers gain 40% more hit points.' },
+  { index: 27, label: '+80 Starting Gold',  cost: 40, branch: 'fortune', description: 'Begin each run with 50 extra gold.' },
 
   // Tier 10 (indices 28, 29, 30)
-  { index: 28, label: '+35% Fire Rate',     cost: 9, branch: 'war', description: 'All towers fire 35% faster.' },
-  { index: 29, label: '+40% Tower Range',   cost: 9, branch: 'fortify', description: 'All towers gain 40% increased range.' },
-  { index: 30, label: '+60% Wave Bonus Gold', cost: 9, branch: 'fortune', description: 'Earn 60% more bonus gold per wave.' },
+  { index: 28, label: '+5% Fire Rate',     cost: 50, branch: 'war', description: 'All towers fire 5% faster.' },
+  { index: 29, label: '+40% Tower Range',   cost: 45, branch: 'fortify', description: 'All towers gain 40% increased range.' },
+  { index: 30, label: 'Double skull reward', cost: 100, branch: 'fortune', description: 'Beating a run gives twice as many skulls.' },
 ];
 
 // --- Explicit Graph Connections ----------------------------------------------
@@ -172,6 +172,14 @@ export const SKILL_CONNECTIONS: readonly SkillConnection[] = [
     // Cross-tier
   [4, 8], [8, 4], [6, 8], [8, 6], [17, 13], [13, 17], [23, 21], [21, 23],
 ];
+
+// --- Infinite (re-purchasable) nodes -----------------------------------------
+
+/**
+ * Skill node indices that can be purchased infinitely. Each re-purchase stacks
+ * the bonus additively (e.g. +30% damage × 3 purchases = +90%).
+ */
+export const INFINITE_SKILL_NODES: ReadonlySet<number> = new Set([24, 25, 28]);
 
 // --- Helpers -----------------------------------------------------------------
 

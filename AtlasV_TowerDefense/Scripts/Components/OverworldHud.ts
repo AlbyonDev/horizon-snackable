@@ -122,6 +122,8 @@ export class OverworldPathNodeViewModel extends UiViewModel {
   showSkullReward: boolean = false;
   /** Text for the skull reward badge (e.g. "+3") */
   skullRewardText: string = '+3';
+  /** Whether to show the teal "x2" multiplier indicator next to the skull badge */
+  showSkullMultiplier: boolean = false;
 }
 
 // -- Relic Icon sub-ViewModel --
@@ -175,6 +177,8 @@ export class OverworldViewModel extends UiViewModel {
     achievementTap: UiEvents.achievementTap,
     bossInfoTap: UiEvents.bossInfoTap,
     bossInfoCloseTap: UiEvents.bossInfoCloseTap,
+    lockedBiomeReturnTap: UiEvents.lockedBiomeReturnTap,
+    lockedBiomeSkillTreeTap: UiEvents.lockedBiomeSkillTreeTap,
   };
 
   visible: boolean = false;
@@ -235,6 +239,9 @@ export class OverworldViewModel extends UiViewModel {
   bossPopupModifierName: string = '';
   bossPopupModifierDescription: string = '';
   bossPopupRewardText: string = '+3';
+
+  // Locked biome popup state
+  lockedBiomePopupVisible: boolean = false;
 }
 
 // -- Component --
@@ -592,6 +599,24 @@ export class OverworldHud extends Component {
     console.log('[OverworldHud] Boss info popup closed');
   }
 
+  @subscribe(UiEvents.lockedBiomeReturnTap, { execution: ExecuteOn.Owner })
+  onLockedBiomeReturnTap(_payload: UiEvents.LockedBiomeReturnTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    this.viewModel.lockedBiomePopupVisible = false;
+    console.log('[OverworldHud] Locked biome popup closed (Return)');
+  }
+
+  @subscribe(UiEvents.lockedBiomeSkillTreeTap, { execution: ExecuteOn.Owner })
+  onLockedBiomeSkillTreeTap(_payload: UiEvents.LockedBiomeSkillTreeTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    this.viewModel.lockedBiomePopupVisible = false;
+    // Open skill tree overlay
+    EventService.sendLocally(OpenSkillTreeEvent, new OpenSkillTreePayload());
+    console.log('[OverworldHud] Locked biome popup -> opening skill tree');
+  }
+
   @subscribe(UiEvents.biomeArrowTap, { execution: ExecuteOn.Owner })
   onBiomeArrowTap(_payload: UiEvents.BiomeArrowTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -616,14 +641,16 @@ export class OverworldHud extends Component {
     }
     const nextBiomeId = BIOME_ORDER[targetIdx];
 
-    // Block taps on locked biomes
+    // Block taps on locked biomes — show popup instead
     const skillTree = SkillTreeService.get();
     if (nextBiomeId === 'snow' && !skillTree.isSnowUnlocked()) {
-      console.log(`[OverworldHud] Biome arrow tap blocked: Snow is locked`);
+      console.log(`[OverworldHud] Biome arrow tap blocked: Snow is locked, showing popup`);
+      this.viewModel.lockedBiomePopupVisible = true;
       return;
     }
     if (nextBiomeId === 'volcano' && !skillTree.isVolcanoUnlocked()) {
-      console.log(`[OverworldHud] Biome arrow tap blocked: Volcano is locked`);
+      console.log(`[OverworldHud] Biome arrow tap blocked: Volcano is locked, showing popup`);
+      this.viewModel.lockedBiomePopupVisible = true;
       return;
     }
 
@@ -783,6 +810,7 @@ export class OverworldHud extends Component {
         const levelDef = LevelGeneratorService.get().getLevelDef(i);
         const reward = levelDef.bossSkullReward ?? 3;
         node.skullRewardText = `+${reward}`;
+        node.showSkullMultiplier = SkillTreeService.get().getSkullEarnRateMultiplier() > 1.0;
       }
       updatedNodes.push(node);
     }
@@ -1008,6 +1036,7 @@ export class OverworldHud extends Component {
         node.showSkullReward = state !== OverworldNodeState.Beaten;
         const reward = levelDef.bossSkullReward ?? 3;
         node.skullRewardText = `+${reward}`;
+        node.showSkullMultiplier = SkillTreeService.get().getSkullEarnRateMultiplier() > 1.0;
       } else {
         node.modifierMargin = `${size + 50},0,0,0`;
         node.modifierOffsetX = size + 50;

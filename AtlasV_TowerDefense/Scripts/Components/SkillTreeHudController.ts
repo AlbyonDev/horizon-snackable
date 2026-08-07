@@ -17,6 +17,7 @@ import {
   EventService,
   LocalEvent,
   component,
+  property,
   subscribe,
   uiViewModel,
   UiViewModel,
@@ -34,6 +35,7 @@ import {
   SKILL_CONNECTIONS,
   TOTAL_SKILLS,
   ROOT_SKILL_INDEX,
+  INFINITE_SKILL_NODES,
 } from '../Defs/SkillTreeDefs';
 
 // ── Local Events ─────────────────────────────────────────────────────────────
@@ -66,8 +68,20 @@ export class SkillTreeBuyTapPayload {
   readonly parameter: string = '';
 }
 
+@serializable()
+export class SkillTreeDebugResetTapPayload {
+  readonly parameter: string = '';
+}
+
+@serializable()
+export class SkillTreeDebugSkullsTapPayload {
+  readonly parameter: string = '';
+}
+
 const returnTapEvent = new UiEvent('SkillTreeViewModel-onReturnTap', SkillTreeReturnTapPayload);
 const buyTapEvent = new UiEvent('SkillTreeViewModel-onBuyTap', SkillTreeBuyTapPayload);
+const debugResetTapEvent = new UiEvent('SkillTreeViewModel-onDebugResetTap', SkillTreeDebugResetTapPayload);
+const debugSkullsTapEvent = new UiEvent('SkillTreeViewModel-onDebugSkullsTap', SkillTreeDebugSkullsTapPayload);
 
 // ── Colors ───────────────────────────────────────────────────────────────────
 
@@ -91,6 +105,12 @@ const COLOR_COST_BOUGHT = '#FF666666';
 
 // UNAFFORDABLE — prereqs met but not enough skulls (cost shown in red)
 const COLOR_COST_UNAFFORDABLE = '#FFFF3333';
+
+// INFINITE nodes — teal ring to distinguish from normal one-time nodes
+const COLOR_BORDER_INFINITE_BUYABLE = '#FF00CED1';
+const COLOR_BORDER_INFINITE_OWNED = '#FF008B8B';
+const COLOR_TEXT_INFINITE = '#FF00CED1';
+const COLOR_ICON_INFINITE = '#FF00CED1';
 
 const COLOR_CONNECTION_ACTIVE = '#AAF5E6D0';
 const COLOR_CONNECTION_LOCKED = '#33777788';
@@ -245,16 +265,20 @@ export class SkillTreeViewModel extends UiViewModel {
     closeTap: closeTapEvent,
     returnTap: returnTapEvent,
     buyTap: buyTapEvent,
+    debugResetTap: debugResetTapEvent,
+    debugSkullsTap: debugSkullsTapEvent,
   };
 
   visible: boolean = false;
   skullCount: number = 0;
   canvasHeight: number = CANVAS_HEIGHT;
+  debugVisible: boolean = false;
 
   // Popup state
   popupVisible: boolean = false;
   popupDescription: string = '';
   popupDetailText: string = '';
+  popupInfiniteTextVisible: boolean = false;
   popupCost: string = '';
   popupCostVisible: boolean = false;
   popupBuyVisible: boolean = true;
@@ -600,6 +624,10 @@ export class SkillTreeViewModel extends UiViewModel {
 
 @component()
 export class SkillTreeHudController extends Component {
+  /** When false, the Reset Skill Tree and +1000 Skulls debug buttons are hidden. */
+  @property()
+  isDebug: boolean = false;
+
   private viewModel: Maybe<SkillTreeViewModel> = null;
   private uiComponent: Maybe<CustomUiComponent> = null;
   private pendingNodeIndex: number = -1;
@@ -623,6 +651,7 @@ export class SkillTreeHudController extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
 
+    this.viewModel.debugVisible = this.isDebug;
     this._refreshAllNodes();
     this.viewModel.visible = true;
     if (this.uiComponent) this.uiComponent.isVisible = true;
@@ -643,18 +672,25 @@ export class SkillTreeHudController extends Component {
 
     this.pendingNodeIndex = skillIndex;
     const isBought = service.isUnlocked(skillIndex);
+    const isInfinite = INFINITE_SKILL_NODES.has(skillIndex);
+    const infiniteCount = service.getInfiniteCount(skillIndex);
 
     this.viewModel.popupDescription = node.label.toUpperCase();
-    this.viewModel.popupDetailText = node.description;
-    if (isBought) {
+    this.viewModel.popupInfiniteTextVisible = isInfinite;
+    if (isInfinite && infiniteCount > 0) {
+      this.viewModel.popupDetailText = `${node.description}\n\n\u2713 Purchased x${infiniteCount}`;
+    } else {
+      this.viewModel.popupDetailText = node.description;
+    }
+    if (isBought && !isInfinite) {
       this.viewModel.popupCost = 'BOUGHT!';
-    } else if (service.hasPrerequisitesMet(skillIndex)) {
+    } else if (service.hasPrerequisitesMet(skillIndex) || (isInfinite && isBought)) {
       this.viewModel.popupCost = `\u{1F480} ${node.cost}`;
     } else {
-      this.viewModel.popupCost = '\u{1F480} ??';
+      this.viewModel.popupCost = `\u{1F480} ${node.cost}`;
     }
     this.viewModel.popupCostVisible = true;
-    this.viewModel.popupBuyVisible = !isBought && service.canPurchase(skillIndex);
+    this.viewModel.popupBuyVisible = (isInfinite && (service.canPurchase(skillIndex))) || (!isBought && service.canPurchase(skillIndex));
     this.viewModel.popupVisible = true;
 
     console.log(`[SkillTreeHud] Popup opened for node ${skillIndex}`);
@@ -703,6 +739,35 @@ export class SkillTreeHudController extends Component {
     this.viewModel.visible = false;
     if (this.uiComponent) this.uiComponent.isVisible = false;
     console.log('[SkillTreeHud] Closed');
+  }
+
+  @subscribe(debugResetTapEvent, { execution: ExecuteOn.Owner })
+  onDebugResetTap(_payload: SkillTreeDebugResetTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    const save = SaveService.get();
+    save.setSkillTreeState([]);
+    save.setSkillTreeCounts({});
+    save.resetSkulls();
+    // Fire SaveRestored to re-initialize SkillTreeService with empty state
+    const restorePayload = new Events.SaveRestoredPayload();
+    restorePayload.skillTree = [];
+    restorePayload.skillTreeCounts = {};
+    restorePayload.skulls = 0;
+    EventService.sendLocally(Events.SaveRestored, restorePayload);
+    this._refreshAllNodes();
+    console.log('[SkillTreeHud] DEBUG: Skill tree + skulls reset');
+  }
+
+  @subscribe(debugSkullsTapEvent, { execution: ExecuteOn.Owner })
+  onDebugSkullsTap(_payload: SkillTreeDebugSkullsTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+
+    SaveService.get().addSkulls(1000);
+    this._refreshAllNodes();
+    console.log('[SkillTreeHud] DEBUG: +1000 skulls');
   }
 
   private _refreshAllNodes(): void {
@@ -791,7 +856,7 @@ export class SkillTreeHudController extends Component {
       this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_LOCKED;
       this.viewModel.node0RuneColor = COLOR_ROOT_RUNE_LOCKED;
       this.viewModel.node0Text = COLOR_TEXT_LOCKED;
-      this.viewModel.node0Label = '\u{1F480} ??';
+      this.viewModel.node0Label = `\u{1F480} ${getNodeCost(ROOT_SKILL_INDEX)}`;
       this.viewModel.node0Cost = `${getNodeCost(ROOT_SKILL_INDEX)}`;
       this.viewModel.node0CostVisible = true;
       this.viewModel.node0CostColor = COLOR_COST_LOCKED;
@@ -814,7 +879,32 @@ export class SkillTreeHudController extends Component {
 
     let label: string;
 
-    if (service.isUnlocked(index)) {
+    const isInfinite = INFINITE_SKILL_NODES.has(index);
+    const infiniteCount = service.getInfiniteCount(index);
+
+    if (isInfinite && service.isUnlocked(index)) {
+      // Infinite node that has been purchased at least once — show as re-buyable
+      if (service.canPurchase(index)) {
+        borderColor = COLOR_BORDER_INFINITE_BUYABLE;
+        iconColor = COLOR_ICON_INFINITE;
+        text = COLOR_TEXT_INFINITE;
+        cost = `${getNodeCost(index)}`;
+        costVisible = true;
+        costColor = COLOR_COST_BUYABLE;
+        label = `\u2713 x${infiniteCount}`;
+        pulseVisible = true;
+      } else {
+        // Owned but can't afford another purchase
+        borderColor = COLOR_BORDER_INFINITE_OWNED;
+        iconColor = COLOR_ICON_INFINITE;
+        text = COLOR_TEXT_INFINITE;
+        cost = `${getNodeCost(index)}`;
+        costVisible = true;
+        costColor = COLOR_COST_UNAFFORDABLE;
+        label = `\u2713 x${infiniteCount}`;
+        pulseVisible = false;
+      }
+    } else if (service.isUnlocked(index)) {
       borderColor = COLOR_BORDER_BOUGHT;
       iconColor = COLOR_ICON_BOUGHT;
       text = COLOR_TEXT_BOUGHT;
@@ -824,9 +914,9 @@ export class SkillTreeHudController extends Component {
       label = 'BOUGHT!';
       pulseVisible = false;
     } else if (service.canPurchase(index)) {
-      borderColor = COLOR_BORDER_BUYABLE;
-      iconColor = COLOR_ICON_BUYABLE;
-      text = COLOR_TEXT_BUYABLE;
+      borderColor = isInfinite ? COLOR_BORDER_INFINITE_BUYABLE : COLOR_BORDER_BUYABLE;
+      iconColor = isInfinite ? COLOR_ICON_INFINITE : COLOR_ICON_BUYABLE;
+      text = isInfinite ? COLOR_TEXT_INFINITE : COLOR_TEXT_BUYABLE;
       cost = `${getNodeCost(index)}`;
       costVisible = true;
       costColor = COLOR_COST_BUYABLE;
@@ -834,9 +924,9 @@ export class SkillTreeHudController extends Component {
       pulseVisible = true;
     } else if (service.hasPrerequisitesMet(index)) {
       // Prereqs met but can't afford — show buyable appearance with RED cost
-      borderColor = COLOR_BORDER_BUYABLE;
-      iconColor = COLOR_ICON_BUYABLE;
-      text = COLOR_TEXT_BUYABLE;
+      borderColor = isInfinite ? COLOR_BORDER_INFINITE_BUYABLE : COLOR_BORDER_BUYABLE;
+      iconColor = isInfinite ? COLOR_ICON_INFINITE : COLOR_ICON_BUYABLE;
+      text = isInfinite ? COLOR_TEXT_INFINITE : COLOR_TEXT_BUYABLE;
       cost = `${getNodeCost(index)}`;
       costVisible = true;
       costColor = COLOR_COST_UNAFFORDABLE;
@@ -849,7 +939,7 @@ export class SkillTreeHudController extends Component {
       cost = `${getNodeCost(index)}`;
       costVisible = true;
       costColor = COLOR_COST_LOCKED;
-      label = '\u{1F480} ??';
+      label = `\u{1F480} ${getNodeCost(index)}`;
       pulseVisible = false;
     }
 
@@ -861,6 +951,7 @@ export class SkillTreeHudController extends Component {
     vm[`node${index}CostVisible`] = costVisible;
     vm[`node${index}CostColor`] = costColor;
     vm[`node${index}PulseVisible`] = pulseVisible;
-    vm[`node${index}IconOpacity`] = service.isUnlocked(index) ? 0.05 : 1;
+    // Infinite nodes keep full opacity even when owned
+    vm[`node${index}IconOpacity`] = (service.isUnlocked(index) && !isInfinite) ? 0.05 : 1;
   }
 }

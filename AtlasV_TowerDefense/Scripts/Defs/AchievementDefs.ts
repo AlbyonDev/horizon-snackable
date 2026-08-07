@@ -44,7 +44,7 @@ export interface IAchievementGroupDef {
  * Skull rewards per tier index. Tier 1 = 1 skull, scaling up for later tiers.
  * If an achievement has fewer tiers than this array, use the first N values.
  */
-export const TIER_REWARDS: readonly number[] = [1, 2, 3, 5, 8, 12, 18, 25, 35];
+export const TIER_REWARDS: readonly number[] = [3, 8, 15, 25, 50, 100, 150, 200, 500];
 
 /** All achievement group definitions in display order. */
 export const ACHIEVEMENT_GROUPS: readonly IAchievementGroupDef[] = [
@@ -54,7 +54,7 @@ export const ACHIEVEMENT_GROUPS: readonly IAchievementGroupDef[] = [
     description: 'Kill enemies',
     descriptionTemplate: 'Kill {0} enemies',
     statKey: 'ek',
-    tiers: [50, 100, 200, 500, 1000, 2000, 5000, 10000, 50000],
+    tiers: [50, 100, 200, 500, 1000, 2000, 5000, 10000, 100000],
     tierNames: [
       'Baby Slayer',   // working toward 50
       'Slayer',        // working toward 100
@@ -131,7 +131,7 @@ export const ACHIEVEMENT_GROUPS: readonly IAchievementGroupDef[] = [
     description: 'Buy towers',
     descriptionTemplate: 'Buy {0} towers',
     statKey: 'tb',
-    tiers: [10, 25, 50, 100, 250, 500, 1000, 5000, 10000],
+    tiers: [50, 100, 200, 500, 1000, 2000, 5000, 10000, 100000],
     tierNames: [
       'Apprentice Builder', // working toward 10
       'Brick Layer',        // working toward 25
@@ -171,7 +171,7 @@ export const ACHIEVEMENT_GROUPS: readonly IAchievementGroupDef[] = [
     description: 'Complete levels without losing a life',
     descriptionTemplate: 'Complete {0} levels without losing a life',
     statKey: 'pr',
-    tiers: [1, 3, 5, 10, 25, 50, 100, 500, 1000],
+    tiers: [1, 10, 20, 50, 100, 500, 1000, 5000, 10000],
     tierNames: [
       'Lucky Shot',       // working toward 1
       'Clean Hands',      // working toward 3

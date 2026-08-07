@@ -19,6 +19,7 @@ import {
   SKILL_NODES,
   TOTAL_SKILLS,
   ROOT_SKILL_INDEX,
+  INFINITE_SKILL_NODES,
   getNodeDef,
   getPrerequisites,
 } from '../Defs/SkillTreeDefs';
@@ -55,6 +56,9 @@ export class SkillTreeService extends Service {
   /** Set of unlocked skill indices (0-39). */
   private _unlocked: Set<number> = new Set();
 
+  /** Purchase counts for infinite (re-buyable) nodes. */
+  private _infiniteCounts: Map<number, number> = new Map();
+
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
     console.log('[SkillTreeService] Initialized');
@@ -64,6 +68,7 @@ export class SkillTreeService extends Service {
   @subscribe(Events.SaveRestored)
   onSaveRestored(p: Events.SaveRestoredPayload): void {
     this._unlocked.clear();
+    this._infiniteCounts.clear();
     if (p.skillTree && p.skillTree.length > 0) {
       for (const idx of p.skillTree) {
         if (typeof idx === 'number' && idx >= 0 && idx < TOTAL_SKILLS) {
@@ -71,7 +76,17 @@ export class SkillTreeService extends Service {
         }
       }
     }
-    console.log(`[SkillTreeService] Restored ${this._unlocked.size} unlocked skills: [${[...this._unlocked].join(',')}]`);
+    // Restore infinite node purchase counts
+    if (p.skillTreeCounts) {
+      for (const key of Object.keys(p.skillTreeCounts)) {
+        const idx = parseInt(key, 10);
+        const count = p.skillTreeCounts[key];
+        if (!isNaN(idx) && INFINITE_SKILL_NODES.has(idx) && count > 0) {
+          this._infiniteCounts.set(idx, count);
+        }
+      }
+    }
+    console.log(`[SkillTreeService] Restored ${this._unlocked.size} unlocked skills: [${[...this._unlocked].join(',')}], infinite counts: ${JSON.stringify(Object.fromEntries(this._infiniteCounts))}`);
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
@@ -89,6 +104,20 @@ export class SkillTreeService extends Service {
   /** Get the number of unlocked skills. */
   get unlockedCount(): number {
     return this._unlocked.size;
+  }
+
+  /** Get the purchase count for an infinite skill node (0 if not purchased or not infinite). */
+  getInfiniteCount(skillIndex: number): number {
+    return this._infiniteCounts.get(skillIndex) ?? 0;
+  }
+
+  /** Get all infinite node counts as a Record (for save persistence). */
+  getInfiniteCountsRecord(): Record<string, number> {
+    const result: Record<string, number> = {};
+    for (const [idx, count] of this._infiniteCounts.entries()) {
+      result[String(idx)] = count;
+    }
+    return result;
   }
 
   /** Check if the root skill (index 0) is unlocked. */
@@ -140,7 +169,10 @@ export class SkillTreeService extends Service {
    * Attempt to purchase a skill node. Returns true if successful.
    */
   purchase(skillIndex: number): boolean {
-    if (this._unlocked.has(skillIndex)) {
+    // For infinite nodes, allow re-purchase even if already unlocked
+    const isInfinite = INFINITE_SKILL_NODES.has(skillIndex);
+
+    if (!isInfinite && this._unlocked.has(skillIndex)) {
       console.log(`[SkillTreeService] Skill ${skillIndex} already unlocked`);
       return false;
     }
@@ -151,7 +183,7 @@ export class SkillTreeService extends Service {
       return false;
     }
 
-    if (!this._meetsPrerequisites(skillIndex)) {
+    if (!this._meetsPrerequisites(skillIndex) && !this._unlocked.has(skillIndex)) {
       console.log(`[SkillTreeService] Prerequisites not met for skill ${skillIndex}`);
       return false;
     }
@@ -164,7 +196,15 @@ export class SkillTreeService extends Service {
 
     save.spendSkulls(nodeDef.cost);
     this._unlocked.add(skillIndex);
-    console.log(`[SkillTreeService] Purchased skill ${skillIndex} (${nodeDef.label}) for ${nodeDef.cost} skulls`);
+
+    if (isInfinite) {
+      const currentCount = this._infiniteCounts.get(skillIndex) ?? 0;
+      this._infiniteCounts.set(skillIndex, currentCount + 1);
+      console.log(`[SkillTreeService] Purchased infinite skill ${skillIndex} (${nodeDef.label}) x${currentCount + 1} for ${nodeDef.cost} skulls`);
+      save.setSkillTreeCounts(this.getInfiniteCountsRecord());
+    } else {
+      console.log(`[SkillTreeService] Purchased skill ${skillIndex} (${nodeDef.label}) for ${nodeDef.cost} skulls`);
+    }
 
     save.setSkillTreeState(this.getUnlockedIndices());
 
@@ -173,7 +213,9 @@ export class SkillTreeService extends Service {
 
   /** Are the prerequisites for this skill met? (not bought, not checking affordability) */
   hasPrerequisitesMet(skillIndex: number): boolean {
-    if (this._unlocked.has(skillIndex)) return false;
+    // Infinite nodes that are already bought remain buyable (prereqs always met)
+    if (INFINITE_SKILL_NODES.has(skillIndex) && this._unlocked.has(skillIndex)) return true;
+    if (!INFINITE_SKILL_NODES.has(skillIndex) && this._unlocked.has(skillIndex)) return false;
     const nodeDef = getNodeDef(skillIndex);
     if (!nodeDef) return false;
     return this._meetsPrerequisites(skillIndex);
@@ -181,6 +223,14 @@ export class SkillTreeService extends Service {
 
   /** Can the player afford and unlock this skill? */
   canPurchase(skillIndex: number): boolean {
+    // Infinite nodes can always be re-purchased if affordable + prereqs met
+    if (INFINITE_SKILL_NODES.has(skillIndex)) {
+      if (!this._unlocked.has(skillIndex) && !this._meetsPrerequisites(skillIndex)) return false;
+      const nodeDef = getNodeDef(skillIndex);
+      if (!nodeDef) return false;
+      return SaveService.get().getSkullCount() >= nodeDef.cost;
+    }
+
     if (this._unlocked.has(skillIndex)) return false;
 
     const nodeDef = getNodeDef(skillIndex);
@@ -198,9 +248,10 @@ export class SkillTreeService extends Service {
   /** War branch: total bonus damage multiplier (stacks: T1 +10%, T5 +20%, T9 +30%). */
   getDamageMultiplier(): number {
     let bonus = 0;
-    if (this._unlocked.has(1)) bonus += 0.10;
+    if (this._unlocked.has(1)) bonus += 0.05;
     if (this._unlocked.has(13)) bonus += 0.20;
-    if (this._unlocked.has(25)) bonus += 0.30;
+    // Node 25 is infinite: stacks per purchase count
+    if (this._unlocked.has(25)) bonus += 0.05 * Math.max(1, this._infiniteCounts.get(25) ?? 1);
     return 1.0 + bonus;
   }
 
@@ -209,7 +260,8 @@ export class SkillTreeService extends Service {
     let bonus = 0;
     if (this._unlocked.has(4)) bonus += 0.15;
     if (this._unlocked.has(17)) bonus += 0.25;
-    if (this._unlocked.has(28)) bonus += 0.35;
+    // Node 28 is infinite: stacks per purchase count
+    if (this._unlocked.has(28)) bonus += 0.35 * Math.max(1, this._infiniteCounts.get(28) ?? 1);
     return 1.0 + bonus;
   }
 
@@ -237,10 +289,10 @@ export class SkillTreeService extends Service {
     return this._unlocked.has(2) ? 2 : 0;
   }
 
-  /** Fortify branch: tower range multiplier (stacks: T2 +20%, T10 +40%). */
+  /** Fortify branch: tower range multiplier (stacks: T2 +5%, T10 +40%). */
   getRangeMultiplier(): number {
     let bonus = 0;
-    if (this._unlocked.has(5)) bonus += 0.20;
+    if (this._unlocked.has(5)) bonus += 0.05;
     if (this._unlocked.has(29)) bonus += 0.40;
     return 1.0 + bonus;
   }
@@ -276,23 +328,23 @@ export class SkillTreeService extends Service {
   /** Fortune T1: +30 starting gold → flat bonus. */
   getStartingGoldBonus(): number {
     let bonus = 0;
-    if (this._unlocked.has(3)) bonus += 30;
-    if (this._unlocked.has(15)) bonus += 50;
-    if (this._unlocked.has(27)) bonus += 80;
+    if (this._unlocked.has(3)) bonus += 10;
+    if (this._unlocked.has(14)) bonus += 30;
+    if (this._unlocked.has(27)) bonus += 50;
     return bonus;
   }
 
   /** Fortune branch: wave bonus gold multiplier (stacks: T2 +25%, T10 +60%). */
   getWaveBonusGoldMultiplier(): number {
     let bonus = 0;
-    if (this._unlocked.has(6)) bonus += 0.25;
-    if (this._unlocked.has(30)) bonus += 0.60;
+    //if (this._unlocked.has(30)) bonus += 0.60;
     return 1.0 + bonus;
   }
 
   /** Fortune branch: sell refund bonus (stacks: T7 +75%). */
   getSellRefundBonus(): number {
     let bonus = 0;
+    if (this._unlocked.has(6)) bonus += 0.25;
     if (this._unlocked.has(21)) bonus += 0.75;
     return bonus;
   }
@@ -301,7 +353,7 @@ export class SkillTreeService extends Service {
   getInterestRateBonus(): number {
     let bonus = 0;
     if (this._unlocked.has(12)) bonus += 0.20;
-    if (this._unlocked.has(24)) bonus += 0.35;
+    // Node 24 is infinite: stacks per purchase count
     return bonus;
   }
 
@@ -312,14 +364,15 @@ export class SkillTreeService extends Service {
     let bonus = 0;
     if (this._unlocked.has(4)) bonus += 0.10;   // T2 fire rate node
     if (this._unlocked.has(17)) bonus += 0.15;  // T6 fire rate node
-    if (this._unlocked.has(28)) bonus += 0.20;  // T10 fire rate node
+    // Node 28 is infinite: stacks per purchase count
+    if (this._unlocked.has(28)) bonus += 0.05 * Math.max(1, this._infiniteCounts.get(28) ?? 1);
     return 1.0 + bonus;
   }
 
   /** War branch: crit multiplier escalation (secondary on damage nodes). */
   getCritMultiplierBonus(): number {
     let bonus = 0;
-    if (this._unlocked.has(25)) bonus += 0.25;  // T9 damage node
+    //if (this._unlocked.has(25)) bonus += 0.05 * Math.max(1, this._infiniteCounts.get(25) ?? 1);
     return 1.0 + bonus;
   }
 
@@ -328,7 +381,7 @@ export class SkillTreeService extends Service {
     let bonus = 0;
     if (this._unlocked.has(11)) bonus += 0.05;  // T4 slow duration node
     if (this._unlocked.has(23)) bonus += 0.10;  // T8 slow duration node
-    if (this._unlocked.has(29)) bonus += 0.15;  // T10 range node
+    if (this._unlocked.has(29)) bonus += 0.15;
     return bonus;
   }
 
@@ -336,24 +389,22 @@ export class SkillTreeService extends Service {
   getArmorBonus(): number {
     let bonus = 0;
     if (this._unlocked.has(26)) bonus += 2;   // T9 tower HP node
-    if (this._unlocked.has(29)) bonus += 3;   // T10 range node
+    if (this._unlocked.has(29)) bonus += 3;
     return bonus;
   }
 
   /** Fortune branch: skull earn rate multiplier — bonus skulls earned per run. */
   getSkullEarnRateMultiplier(): number {
     let bonus = 0;
-    if (this._unlocked.has(12)) bonus += 0.10;  // T4 interest node
-    if (this._unlocked.has(24)) bonus += 0.20;  // T8 interest node
-    if (this._unlocked.has(30)) bonus += 0.30;  // T10 wave bonus node
+    // Node 24 is infinite: stacks per purchase count
+    if (this._unlocked.has(30)) bonus += 1.00;  // T10 wave bonus node
     return 1.0 + bonus;
   }
 
   /** Fortune branch: flat gold per kill bonus. */
   getGoldPerKillBonus(): number {
     let bonus = 0;
-    if (this._unlocked.has(6)) bonus += 1;    // T2 wave bonus node
-    if (this._unlocked.has(30)) bonus += 3;   // T10 wave bonus node
+    if (this._unlocked.has(24)) bonus += 1 * Math.max(1, this._infiniteCounts.get(24) ?? 1);
     return bonus;
   }
 

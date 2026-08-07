@@ -24,6 +24,7 @@ import { EnemyService } from '../Services/EnemyService';
 import { ResourceService } from '../Services/ResourceService';
 import { BossModifierService } from '../Services/BossModifierService';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
+import { SkillTreeService } from '../Services/SkillTreeService';
 
 @component()
 export class EnemyController extends Component {
@@ -214,7 +215,7 @@ export class EnemyController extends Component {
     const pos = this._transform.worldPosition;
     const p = new Events.EnemyDiedPayload();
     p.enemyId = this._enemyId;
-    p.reward  = this._reward;
+    p.reward  = this._reward + SkillTreeService.get().getGoldPerKillBonus();
     p.worldX  = pos.x;
     p.worldZ  = pos.z;
     EventService.sendLocally(Events.EnemyDied, p);

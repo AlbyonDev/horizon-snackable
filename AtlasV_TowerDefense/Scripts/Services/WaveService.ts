@@ -145,7 +145,10 @@ export class WaveService extends Service {
     const incomeMultiplier = BossModifierService.get().incomeMultiplier;
     const skillWaveMult = SkillTreeService.get().getWaveBonusGoldMultiplier();
     const waveBonus = Math.floor(WAVE_BONUS_GOLD * incomeMultiplier * skillWaveMult);
-    const incomeBonus = Math.floor(goldBeforeBonus * INCOME_RATE * incomeMultiplier);
+    const skillInterestBonus = SkillTreeService.get().getInterestRateBonus();
+    const skillIncomeMult = SkillTreeService.get().getIncomeRateMultiplier();
+    const effectiveIncomeRate = (INCOME_RATE + skillInterestBonus) * skillIncomeMult;
+    const incomeBonus = Math.floor(goldBeforeBonus * effectiveIncomeRate * incomeMultiplier);
     if (waveBonus > 0) ResourceService.get().earn(waveBonus);
     if (incomeBonus > 0) ResourceService.get().earn(incomeBonus);
     const totalBonus = waveBonus + incomeBonus;

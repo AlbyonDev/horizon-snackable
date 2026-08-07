@@ -21,7 +21,7 @@ export class CritService extends Service {
       const baseCritChance = (ctx.props['critChance'] as number | undefined) ?? 0;
       const skillBonus = SkillTreeService.get().getCritChanceBonus();
       const chance = baseCritChance + skillBonus;
-      const mult = (ctx.props['critMultiplier'] as number | undefined) ?? 1;
+      const mult = ((ctx.props['critMultiplier'] as number | undefined) ?? 1) * SkillTreeService.get().getCritMultiplierBonus();
       
       if (chance <= 0 || Math.random() >= chance) return ctx;
       return { ...ctx, damage: ctx.damage * mult, props: { ...ctx.props, isCrit: true } };

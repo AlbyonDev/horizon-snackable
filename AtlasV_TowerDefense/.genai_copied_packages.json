@@ -41,6 +41,12 @@
       "folderName": "sfxlib_elc_LiveWireElectricityPowerOn_01",
       "name": "sfxlib_elc_LiveWireElectricityPowerOn_01",
       "version": "0.0.1"
+    },
+    "meta/sfxlib_ui_WoodConfirm_01/0.0.1": {
+      "author": "meta",
+      "folderName": "sfxlib_ui_WoodConfirm_01",
+      "name": "sfxlib_ui_WoodConfirm_01",
+      "version": "0.0.1"
     }
   }
 }

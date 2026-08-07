@@ -25,6 +25,8 @@ import {
 import type { Maybe } from 'meta/worlds';
 
 import { Events, UiEvents } from '../Types';
+import { SkillTreeService } from '../Services/SkillTreeService';
+import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 
 // -- Module-level UiEvent constants --
 
@@ -73,6 +75,7 @@ export class GameOverScreenViewModel extends UiViewModel {
   showChooseRelic: boolean = false;
   showNextRun: boolean = false;
   showSkullsEarned: boolean = false;
+  showMultiplierIndicator: boolean = false;
   enemiesKilled: number = 0;
   goldEarned: number = 0;
   wavesCompleted: number = 0;
@@ -188,9 +191,13 @@ export class GameOverScreenHud extends Component {
     this.viewModel.showNextRun = payload.won && payload.isBossVictory;
     this.viewModel.showDefeatButtons = !payload.won;
 
-    // Skulls earned: +5 for boss victories only (regular combat wins give no skulls)
+    // Skulls earned: modifier-dependent for boss victories (regular combat wins give no skulls)
     this.viewModel.showSkullsEarned = payload.won && payload.isBossVictory;
-    this.viewModel.skullsEarned = (payload.won && payload.isBossVictory) ? 5 : 0;
+    const bossSkullReward = LevelGeneratorService.get().getLevelDef(this._lastLevelIndex).bossSkullReward ?? 3;
+    this.viewModel.skullsEarned = (payload.won && payload.isBossVictory) ? bossSkullReward : 0;
+
+    // Show x2 multiplier indicator if skill tree skull earn rate is active
+    this.viewModel.showMultiplierIndicator = payload.won && payload.isBossVictory && SkillTreeService.get().getSkullEarnRateMultiplier() > 1.0;
 
     // Show the overlay - enable native panel first, then set ViewModel
     if (this.uiComponent) {

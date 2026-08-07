@@ -62,7 +62,7 @@ interface TdBiomeSave {
 // ── V2 save format (biome-aware) ────────────────────────────────────────────────
 interface TdSaveDataV2 {
   v: 2;
-  global: { sk: number; st: number[]; ek: number; rg: number; ri: number; rv: number; tb: number; ts: number; pr: number; ge: number; ar: Record<string, number>; minigame_tutorial: number };
+  global: { sk: number; st: number[]; stc: Record<string, number>; ek: number; rg: number; ri: number; rv: number; tb: number; ts: number; pr: number; ge: number; ar: Record<string, number>; minigame_tutorial: number };
   biomes: Record<string, TdBiomeSave>;
   activeBiome: string;
 }
@@ -82,7 +82,7 @@ function defaultBiomeSave(): TdBiomeSave {
 }
 
 function defaultSaveV2(): TdSaveDataV2 {
-  return { v: 2, global: { sk: 0, st: [], ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {}, minigame_tutorial: 0 }, biomes: {}, activeBiome: 'grass' };
+  return { v: 2, global: { sk: 0, st: [], stc: {}, ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {}, minigame_tutorial: 0 }, biomes: {}, activeBiome: 'grass' };
 }
 
 @service()
@@ -216,6 +216,14 @@ export class SaveService extends Service {
     this._requestSave();
   }
 
+  /** Add skulls to the player's balance. Client-only. */
+  addSkulls(amount: number): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._data.global.sk += amount;
+    console.log(`[SaveService] Skulls added: +${amount} (total: ${this._data.global.sk})`);
+    this._requestSave();
+  }
+
   /** Deduct skulls for a skill tree purchase. Client-only. */
   spendSkulls(amount: number): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -225,12 +233,33 @@ export class SaveService extends Service {
     this._requestSave();
   }
 
+  /** Reset skulls to 0 (debug use). Client-only. */
+  resetSkulls(): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._data.global.sk = 0;
+    console.log('[SaveService] Skulls reset to 0');
+    this._requestSave();
+  }
+
   /** Update the skill tree unlock state and persist. Client-only. */
   setSkillTreeState(indices: number[]): void {
     if (NetworkingService.get().isServerContext()) return;
     this._data.global.st = indices.slice();
     console.log(`[SaveService] Skill tree state saved: [${indices.join(',')}]`);
     this._requestSave();
+  }
+
+  /** Update infinite skill node purchase counts and persist. Client-only. */
+  setSkillTreeCounts(counts: Record<string, number>): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this._data.global.stc = { ...counts };
+    console.log(`[SaveService] Skill tree counts saved: ${JSON.stringify(counts)}`);
+    this._requestSave();
+  }
+
+  /** Get infinite skill node purchase counts. */
+  getSkillTreeCounts(): Record<string, number> {
+    return { ...(this._data.global.stc ?? {}) };
   }
 
   /** True if every level of the current run has been beaten (run finished). */
@@ -377,6 +406,7 @@ export class SaveService extends Service {
     restored.relics = biome.relics.slice();
     restored.skulls = this._data.global.sk;
     restored.skillTree = this._data.global.st.slice();
+    restored.skillTreeCounts = { ...(this._data.global.stc ?? {}) };
     EventService.sendLocally(Events.SaveRestored, restored);
   }
 
@@ -524,6 +554,7 @@ export class SaveService extends Service {
     restored.relics = biome.relics.slice();
     restored.skulls = this._data.global.sk;
     restored.skillTree = this._data.global.st.slice();
+    restored.skillTreeCounts = { ...(this._data.global.stc ?? {}) };
     EventService.sendLocally(Events.SaveRestored, restored);
 
     // Handle race: if StartGame fired before SaveLoaded, ensureRunSeed() bailed
@@ -656,7 +687,7 @@ export class SaveService extends Service {
   }
 
   private _parseV2(raw: Record<string, unknown>): TdSaveDataV2 {
-    const global = raw['global'] as { sk?: number; st?: number[]; ek?: number; rg?: number; ri?: number; rv?: number; tb?: number; ts?: number; pr?: number; ge?: number; ar?: Record<string, number>; minigame_tutorial?: number; mf?: number } | undefined;
+    const global = raw['global'] as { sk?: number; st?: number[]; stc?: Record<string, number>; ek?: number; rg?: number; ri?: number; rv?: number; tb?: number; ts?: number; pr?: number; ge?: number; ar?: Record<string, number>; minigame_tutorial?: number; mf?: number } | undefined;
     const biomes = raw['biomes'] as Record<string, Partial<TdBiomeSave>> | undefined;
     const activeBiome = typeof raw['activeBiome'] === 'string' ? raw['activeBiome'] : 'grass';
 
@@ -665,6 +696,7 @@ export class SaveService extends Service {
       global: {
         sk: typeof global?.sk === 'number' ? global.sk : 0,
         st: Array.isArray(global?.st) ? global.st.filter((n): n is number => typeof n === 'number') : [],
+        stc: (global?.stc && typeof global.stc === 'object') ? global.stc : {},
         ek: typeof global?.ek === 'number' ? global.ek : 0,
         rg: typeof global?.rg === 'number' ? global.rg : 0,
         ri: typeof global?.ri === 'number' ? global.ri : 0,
@@ -712,6 +744,7 @@ export class SaveService extends Service {
       global: {
         sk: typeof raw.sk === 'number' ? raw.sk : 0,
         st: Array.isArray(raw.st) ? raw.st.filter((n): n is number => typeof n === 'number') : [],
+        stc: {},
         ek: 0,
         rg: 0,
         ri: 0,
