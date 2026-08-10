@@ -353,6 +353,7 @@ Both arrows cycle through `BIOME_ORDER = ['grass', 'snow', 'volcano']`. The swit
   - Volcano biome: overworld = none (handled by BiomeAmbientAudioService ambient), wave = "Phantoms & Fantasies" (placeholder)
   - All music plays looping at volume 0.4 via AudioManager pooled looping-sound system.
 - `BiomeAmbientAudioService` (on AudioManager entity) plays a looping ambient sound per biome during active gameplay phases (Overworld, Build, Wave, WaveClear). Starts on phase enter or biome switch; stops on phase exit or biome switch. One unified controller handles all biomes with per-biome sound asset + volume properties.
+- `BlizzardService` — Snow biome VFX+SFX system. Every 5 seconds during active gameplay (Build/Wave/WaveClear) while the biome is "snow", triggers a snow blizzard VFX burst (snow_blizzard_local PopcornFX asset) centered over the grid and a cold wind gust SFX. The VFX entity is spawned once at prewarm and play/stopped per gust. Deactivates when biome changes or game exits active phases.
 - Audio assets: `Lava_Ambience/Lava_Ambience.WAV` (volcano ambient), `Wind_Cold_Low_Loop/Wind_Cold_Low_Loop.WAV` (snow ambient), `a_walk_in_the_forest_QZAAJ1902071/a_walk_in_the_forest_QZAAJ1902071.wav` (grass overworld), `phantoms_fantasies_QZAAJ2000898/phantoms_fantasies_QZAAJ2000898.wav` (wave music all biomes).
 
 ### Biome Modifiers (Tower Buff/Debuff)

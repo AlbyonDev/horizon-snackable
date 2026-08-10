@@ -322,6 +322,10 @@ export namespace Events {
   export class AchievementRewardClaimedPayload { groupId: string = ''; tierIndex: number = 0; reward: number = 0; }
   export const AchievementRewardClaimed = new LocalEvent<AchievementRewardClaimedPayload>('EvAchievementRewardClaimed', AchievementRewardClaimedPayload);
 
+  // Blizzard freeze (towers stop firing during intense blizzard burst)
+  export class BlizzardFreezePayload { active: boolean = false; }
+  export const BlizzardFreeze = new LocalEvent<BlizzardFreezePayload>('EvBlizzardFreeze', BlizzardFreezePayload);
+
   // Chain lightning arc spawned (used to trigger SFX per bounce)
   export class ChainArcSpawnedPayload {}
   export const ChainArcSpawned = new LocalEvent<ChainArcSpawnedPayload>('EvChainArcSpawned', ChainArcSpawnedPayload);

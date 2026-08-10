@@ -44,6 +44,7 @@ import { BiomeArrowIndicatorService } from '../Services/BiomeArrowIndicatorServi
 import { ChainLightningService } from '../Services/ChainLightningService';
 import { PoisonDotService } from '../Services/PoisonDotService';
 import { MagmaTileService } from '../Services/MagmaTileService';
+import { BlizzardService } from '../Services/BlizzardService';
 
 
 @component()
@@ -147,6 +148,7 @@ export class GameManager extends Component {
     BiomeArrowIndicatorService.get();
     ChainLightningService.get();
     PoisonDotService.get();
+    BlizzardService.get();
     void Promise.all([
       ProjectilePool.get().prewarm(),
       HealthBarService.get().prewarm(),
@@ -156,6 +158,7 @@ export class GameManager extends Component {
       CoinService.get().prewarm(),
       PathTileService.get().prewarm(),
       MagmaTileService.get().prewarm(),
+      BlizzardService.get().prewarm(),
     ]);
     ResourceService.get().reset();
     WaveService.get().startGame();

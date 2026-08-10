@@ -44,6 +44,7 @@ const FALL_DURATION = 0.35;   // seconds for the pillar to tip over
 // ── Selection tint ───────────────────────────────────────────────────────
 const SELECTED_TINT = new Color(1.0, 0.85, 0.2, 1.0); // golden highlight
 const DEFAULT_TINT  = new Color(1.0, 1.0, 1.0, 1.0);  // neutral white
+const FROZEN_TINT   = new Color(0.3, 0.55, 1.0, 1.0); // blue/ice freeze
 
 @component()
 export class TowerController extends Component {
@@ -67,6 +68,7 @@ export class TowerController extends Component {
   private _breathing: boolean = false;
   private _breathTime: number = 0;
   private _selected: boolean = false;
+  private _frozen: boolean = false; // true when blizzard freeze is active
 
   // ── Single-use fall state ──────────────────────────────────────────────────
   private _singleUseFalling: boolean = false;
@@ -136,7 +138,10 @@ export class TowerController extends Component {
   onTowerSelected(p: Events.TowerSelectedPayload): void {
     if (p.col !== this._col || p.row !== this._row) return;
     this._selected = true;
-    this._applyTint(SELECTED_TINT);
+    // Frozen tint takes priority over selection tint
+    if (!this._frozen) {
+      this._applyTint(SELECTED_TINT);
+    }
     console.log(`[TowerController] Tower selected at col=${this._col}, row=${this._row}`);
   }
 
@@ -144,8 +149,26 @@ export class TowerController extends Component {
   onTowerDeselected(_p: Events.TowerDeselectedPayload): void {
     if (!this._selected) return;
     this._selected = false;
-    this._applyTint(DEFAULT_TINT);
+    // Only restore default if not frozen (frozen tint stays)
+    if (!this._frozen) {
+      this._applyTint(DEFAULT_TINT);
+    }
     console.log(`[TowerController] Tower deselected at col=${this._col}, row=${this._row}`);
+  }
+
+  @subscribe(Events.BlizzardFreeze)
+  onBlizzardFreeze(p: Events.BlizzardFreezePayload): void {
+    if (!this._ready) return;
+    this._frozen = p.active;
+    if (p.active) {
+      // Apply blue/ice tint via ColorComponent (same proven mechanism as selection)
+      this._applyTintWithBarrel(FROZEN_TINT);
+      console.log(`[TowerController] Tower frozen at col=${this._col}, row=${this._row}`);
+    } else {
+      // Restore: selection tint if selected, otherwise default white
+      this._applyTintWithBarrel(this._selected ? SELECTED_TINT : DEFAULT_TINT);
+      console.log(`[TowerController] Tower unfrozen at col=${this._col}, row=${this._row}`);
+    }
   }
 
   /** Enable breathing if the player can afford at least one upgrade for this tower. */
@@ -269,6 +292,10 @@ export class TowerController extends Component {
     }
 
     const pos = this._transform.worldPosition;
+
+    // Skip targeting and firing while frozen by blizzard
+    if (this._frozen) return;
+
     const targetId = TargetingService.get().getBestTarget(pos.x, pos.z, this._stats.range);
     if (targetId === -1) return;
 
@@ -387,12 +414,38 @@ export class TowerController extends Component {
     if (stats) this._stats = stats;
   }
 
-  /** Apply a color tint to the currently visible tier model entity. */
+  /** Apply a color tint to the active tier model AND barrel via ColorComponent.
+   *  Used by the blizzard freeze to tint both parts of the tower. */
+  private _applyTintWithBarrel(tint: Color): void {
+    const tiers: Array<Maybe<Entity>> = [this.modelTier1, this.modelTier2, this.modelTier3];
+    const model = tiers[this._currentTier];
+    const colorComponents: ColorComponent[] = [];
+    if (model) this._collectColorComponents(model, colorComponents);
+    if (this.barrel) this._collectColorComponents(this.barrel, colorComponents);
+    for (const cc of colorComponents) {
+      cc.color = tint;
+    }
+  }
+
+  /** Recursively collect all ColorComponents from an entity and its children (excluding shadow). */
+  private _collectColorComponents(entity: Entity, out: ColorComponent[]): void {
+    if (entity === this.shadow) return;
+    const cc = entity.getComponent(ColorComponent);
+    if (cc) out.push(cc);
+    for (const child of entity.getChildren()) {
+      this._collectColorComponents(child, out);
+    }
+  }
+
+  /** Apply a color tint to ALL mesh children of the currently visible tier model entity. */
   private _applyTint(tint: Color): void {
     const tiers: Array<Maybe<Entity>> = [this.modelTier1, this.modelTier2, this.modelTier3];
     const model = tiers[this._currentTier];
     if (!model) return;
-    const cc = model.getComponent(ColorComponent);
-    if (cc) cc.color = tint;
+    const colorComponents: ColorComponent[] = [];
+    this._collectColorComponents(model, colorComponents);
+    for (const cc of colorComponents) {
+      cc.color = tint;
+    }
   }
 }
