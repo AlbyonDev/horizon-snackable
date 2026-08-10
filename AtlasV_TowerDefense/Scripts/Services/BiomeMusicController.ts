@@ -32,24 +32,24 @@ import { playLoopingSound, stopLoopingSound } from '../Audio/AudioManager';
 
 // --- Sound Assets (static string literals) ---
 
-// Grass overworld: chill ambient with subtle drums (Through The Trees Loop)
+// Grass overworld: abstract textural forest atmosphere (wind through foliage, rustling branches, no birds/instruments)
 const GRASS_OVERWORLD_MUSIC: SoundAsset = new SoundAsset(
-  '@through_the_trees_loop_QZAAJ2101882/through_the_trees_loop_QZAAJ2101882.wav:sound',
+  '@SFX/VEGETree_Branches_Movement_Foliage_Rustling.wav:sound',
 );
 
 // Grass biome wave music: Phantoms & Fantasies (dark/mysterious/psychedelic, ~108 BPM)
 const GRASS_WAVE_MUSIC: SoundAsset = new SoundAsset(
-  '@phantoms_fantasies_QZAAJ2000898/phantoms_fantasies_QZAAJ2000898.wav:sound',
+  '@Music/phantoms_fantasies.wav:sound',
 );
 
 // Volcano biome wave music: One Groove (energetic house, A minor, ~110 BPM, punchy bass)
 const VOLCANO_WAVE_MUSIC: SoundAsset = new SoundAsset(
-  '@one_groove_QZAAJ2000897/one_groove_QZAAJ2000897.wav:sound',
+  '@Music/one_groove.wav:sound',
 );
 
 // Snow biome wave music: Mister Mystery (dark/mysterious electronic, ~105 BPM)
 const SNOW_WAVE_MUSIC: SoundAsset = new SoundAsset(
-  '@mister_mystery_QZAAJ2001130/mister_mystery_QZAAJ2001130.wav:sound',
+  '@Music/mister_mystery.wav:sound',
 );
 
 // --- Per-biome music configuration ---
@@ -61,8 +61,7 @@ interface IBiomeMusicConfig {
 
 /**
  * Snow and Volcano biomes don't have dedicated overworld music managed by THIS
- * controller (their ambient sounds are handled by SnowBiomeAudioController and
- * OverworldHud's volcano ambient).
+ * controller (their ambient sounds are handled by BiomeAmbientAudioService).
  * Snow uses Mister Mystery (dark/mysterious electronic ~105 BPM).
  * Volcano uses One Groove (energetic house, A minor, ~110 BPM, punchy bass).
  * All wave tracks are by The Polish Ambassador.
@@ -73,7 +72,7 @@ const BIOME_MUSIC: Record<string, IBiomeMusicConfig> = {
     wave: GRASS_WAVE_MUSIC,
   },
   snow: {
-    overworld: null, // handled by SnowBiomeAudioController
+    overworld: null, // ambient handled by BiomeAmbientAudioService
     wave: SNOW_WAVE_MUSIC,
   },
   volcano: {
@@ -82,7 +81,7 @@ const BIOME_MUSIC: Record<string, IBiomeMusicConfig> = {
   },
 };
 
-const MUSIC_VOLUME = 0.8;
+const MUSIC_VOLUME = 1;
 
 @component()
 export class BiomeMusicController extends Component {

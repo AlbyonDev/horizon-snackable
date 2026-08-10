@@ -29,7 +29,7 @@ import type { IWaveDef, IWaveGroup } from '../Types';
 import type { ILevelDef } from '../Defs/LevelDefs';
 import { OverworldNodeType } from '../Defs/NodeDefs';
 import { SaveService } from './SaveService';
-import { TOTAL_LEVELS, START_GOLD, START_LIVES, GRID_COLS, GRID_ROWS } from '../Constants';
+import { TOTAL_LEVELS, START_GOLD, START_LIVES, GRID_COLS, GRID_ROWS, LOCKED_COLS } from '../Constants';
 
 /** Deterministic PRNG (mulberry32). Returns a function producing [0, 1). */
 function mulberry32(seed: number): () => number {
@@ -370,11 +370,20 @@ export class LevelGeneratorService extends Service {
     // Generate a zigzag path from top to bottom of the grid
     // Path goes from row 0 (top) to row GRID_ROWS-1 (bottom)
     // Alternates left/right at random row intervals
+    // Path must stay within unlocked columns (avoid LOCKED_COLS)
+
+    // Find first unlocked column (smallest col not in LOCKED_COLS)
+    let minCol = 0;
+    while (minCol < GRID_COLS && LOCKED_COLS.includes(minCol)) minCol++;
+    // Find last unlocked column (largest col not in LOCKED_COLS)
+    let maxCol = GRID_COLS - 1;
+    while (maxCol >= 0 && LOCKED_COLS.includes(maxCol)) maxCol--;
+    const colRange = maxCol - minCol + 1; // number of usable columns
 
     const waypoints: Array<readonly [number, number]> = [];
 
-    // Start at random column, row 0
-    let col = Math.floor(this._rng() * (GRID_COLS - 2)) + 1; // avoid edges
+    // Start at random column within unlocked range
+    let col = minCol + Math.floor(this._rng() * colRange);
     let row = 0;
     waypoints.push([col, row] as const);
 
@@ -390,10 +399,10 @@ export class LevelGeneratorService extends Service {
 
       if (row >= maxRow) break;
 
-      // Move horizontally (zigzag)
+      // Move horizontally (zigzag), clamped to unlocked columns
       const maxHorizontal = goingRight
-        ? GRID_COLS - 1 - col
-        : col;
+        ? maxCol - col
+        : col - minCol;
       if (maxHorizontal > 0) {
         const hStep = Math.min(2 + Math.floor(this._rng() * 3), maxHorizontal);
         col = goingRight ? col + hStep : col - hStep;

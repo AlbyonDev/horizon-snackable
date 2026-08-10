@@ -15,7 +15,7 @@ Core tension: strategic placement (choke points, range overlap) vs. economy mana
 | Platform | Meta Horizon Studio (MHS) |
 | Language | TypeScript ES2022 |
 | Target | Mobile portrait, local single-player |
-| Grid | 11 cols × 14 rows × 1 cell = **11×14 world units**, centered on origin |
+| Grid | 11 cols × 14 rows × 1 cell = **11×14 world units**, centered on origin; cols 0 and 10 are locked (no towers, no path routing) |
 | Play area | Grid ~70% screen height; HUD top ~10%, Shop bottom ~20% |
 | Ground | Tiled cartoon grass texture (Unlit material, UV scale 6×4) on 11×8 plane; dark border plane behind |
 
@@ -347,12 +347,12 @@ Both arrows cycle through `BIOME_ORDER = ['grass', 'snow', 'volcano']`. The swit
 ### Biome Audio
 
 - `BiomeMusicController` manages a dual-music-per-biome system: each biome has an **overworld music** track (plays during Overworld phase) and a **wave music** track (plays once the first wave starts, replacing overworld music). On returning to overworld (LevelCompleted, GameOver, RestartGame, etc.), wave music stops and overworld music resumes.
-  - Grass biome: overworld = "Through The Trees Loop" (chill ambient with subtle drums, 59s loop), wave = "Phantoms & Fantasies"
-  - Snow biome: overworld = none (handled by SnowBiomeAudioController ambient), wave = "Phantoms & Fantasies" (placeholder)
-  - Volcano biome: overworld = none (handled by OverworldHud volcano ambient), wave = "Phantoms & Fantasies" (placeholder)
+  - Grass biome: overworld = "A Walk in the Forest" (ambient daytime forest with wind, birdsong, nature sounds, 207s loop), wave = "Phantoms & Fantasies"
+  - Snow biome: overworld = none (handled by BiomeAmbientAudioService ambient), wave = "Phantoms & Fantasies" (placeholder)
+  - Volcano biome: overworld = none (handled by BiomeAmbientAudioService ambient), wave = "Phantoms & Fantasies" (placeholder)
   - All music plays looping at volume 0.4 via AudioManager pooled looping-sound system.
-- `OverworldHud` plays a looping volcano ambient sound (lava rumble/crackle) while a biome-active phase is showing AND the volcano biome is selected. Starts on phase enter or biome switch to volcano; stops on phase exit or biome switch away from volcano.
-- Audio assets: `Lava_Ambience/Lava_Ambience.WAV` (volcano ambient), `through_the_trees_loop_QZAAJ2101882/through_the_trees_loop_QZAAJ2101882.wav` (grass overworld), `phantoms_fantasies_QZAAJ2000898/phantoms_fantasies_QZAAJ2000898.wav` (wave music all biomes).
+- `BiomeAmbientAudioService` (on AudioManager entity) plays a looping ambient sound per biome during active gameplay phases (Overworld, Build, Wave, WaveClear). Starts on phase enter or biome switch; stops on phase exit or biome switch. One unified controller handles all biomes with per-biome sound asset + volume properties.
+- Audio assets: `Lava_Ambience/Lava_Ambience.WAV` (volcano ambient), `Wind_Cold_Low_Loop/Wind_Cold_Low_Loop.WAV` (snow ambient), `a_walk_in_the_forest_QZAAJ1902071/a_walk_in_the_forest_QZAAJ1902071.wav` (grass overworld), `phantoms_fantasies_QZAAJ2000898/phantoms_fantasies_QZAAJ2000898.wav` (wave music all biomes).
 
 ### Biome Modifiers (Tower Buff/Debuff)
 

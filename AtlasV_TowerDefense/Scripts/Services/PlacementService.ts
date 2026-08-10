@@ -23,7 +23,7 @@ import type { OnFocusedInteractionInputEventPayload, OnWorldUpdateEventPayload, 
 import { ExecuteOn } from 'meta/worlds';
 import { Events } from '../Types';
 import { Assets } from '../Assets';
-import { GRID_ORIGIN_X, GRID_ORIGIN_Z, CELL_WIDTH, CELL_HEIGHT, GRID_COLS, GRID_ROWS, GROUND_Y, PROJECTILE_POOL_Y } from '../Constants';
+import { GRID_ORIGIN_X, GRID_ORIGIN_Z, CELL_WIDTH, CELL_HEIGHT, GRID_COLS, GRID_ROWS, GROUND_Y, PROJECTILE_POOL_Y, LOCKED_COLS } from '../Constants';
 import { TowerService } from './TowerService';
 import { PathService } from './PathService';
 import { ResourceService } from './ResourceService';
@@ -299,6 +299,7 @@ export class PlacementService extends Service {
     let idx = 0;
     for (let col = 0; col < GRID_COLS; col++) {
       for (let row = 0; row < GRID_ROWS; row++) {
+        if (LOCKED_COLS.includes(col)) continue;
         if (PathService.get().isPathCell(col, row)) continue;
         if (TowerService.get().isOccupied(col, row)) continue;
         if (idx >= this._cellMarkerPool.length) break;
@@ -475,6 +476,7 @@ export class PlacementService extends Service {
   }
 
   private _canPlaceAt(col: number, row: number): boolean {
+    if (LOCKED_COLS.includes(col)) return false;
     return !PathService.get().isPathCell(col, row);
   }
 

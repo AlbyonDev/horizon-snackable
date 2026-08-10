@@ -16,7 +16,7 @@ import { service, subscribe } from 'meta/worlds';
 import { OnServiceReadyEvent } from 'meta/worlds';
 import type { ITowerDef, ITowerStats, IUpgradeNode } from '../Types';
 import { Events } from '../Types';
-import { GRID_COLS, GRID_ROWS, SELL_RATIO } from '../Constants';
+import { GRID_COLS, GRID_ROWS, SELL_RATIO, LOCKED_COLS } from '../Constants';
 import { TOWER_DEFS } from '../Defs/TowerDefs';
 import { getBiomeDamageMultiplier } from '../Defs/BiomeModifierDefs';
 import { PathService } from './PathService';
@@ -227,6 +227,7 @@ export class TowerService extends Service {
     const def = this._defs.get(towerId);
     if (!def) return;
 
+    if (LOCKED_COLS.includes(col)) return;
     if (PathService.get().isPathCell(col, row)) return;
     if (this.isOccupied(col, row)) return;
     if (!ResourceService.get().canAfford(def.cost)) return;

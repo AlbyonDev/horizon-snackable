@@ -37,8 +37,6 @@ import {
   EventService,
   EntityService,
   TextureAsset,
-  SoundAsset,
-  Vec3,
   component,
   subscribe,
   property,
@@ -49,7 +47,6 @@ import {
 import type { Maybe } from 'meta/worlds';
 
 import { Events, GamePhase, OverworldNodeState, UiEvents, BOSS_MODIFIER_LABELS, BOSS_MODIFIER_DESCRIPTIONS } from '../Types';
-import { playLoopingSound, stopLoopingSound } from '../Audio/AudioManager';
 import { BIOME_DEFS, BIOME_ORDER } from '../Defs/BiomeDefs';
 import { RelicService } from '../Services/RelicService';
 import { RELIC_DEFS } from '../Defs/RelicDefs';
@@ -64,10 +61,6 @@ import { OpenAchievementsEvent, OpenAchievementsPayload } from './AchievementHud
 import { SkillTreeService } from '../Services/SkillTreeService';
 
 // Pre-defined TextureAssets for each biome background (must be static string literals)
-// Volcano ambient looping sound asset
-const VOLCANO_AMBIENT_SOUND: SoundAsset = new SoundAsset("@Lava_Ambience/Lava_Ambience.WAV:sound");
-// (Grass overworld music moved to BiomeMusicController)
-
 const BG_GRASS = new TextureAsset('@sprites/overworld_background-grass.png');
 const BG_SNOW = new TextureAsset('@sprites/overworld_background-snow.png');
 const BG_VOLCANO = new TextureAsset('@sprites/overworld_background-volcano.png');
@@ -299,22 +292,6 @@ export class OverworldHud extends Component {
 
 
 
-  /** Active looping sound ID for volcano ambient (-1 = not playing) */
-  private _volcanoAmbientId: number = -1;
-  /** Whether a volcano ambient start is in progress (promise not yet resolved) */
-  private _volcanoAmbientStarting: boolean = false;
-  /** Promise from the last volcano stop call — awaited before starting to prevent pool reuse race.
-   *  Initialized to a resolved promise so the FIRST play goes through the same await path as
-   *  subsequent plays — normalizes timing and ensures the audio engine has a microtask to fully
-   *  initialize the SoundComponent's internal state before property changes + play(). */
-  private _volcanoStopPromise: Promise<void> | null = Promise.resolve();
-  /** Whether the game is in an active biome phase (for volcano ambient audio) */
-  private _biomePhaseActive: boolean = false;
-  /** Currently active biome ID (for audio switching) */
-  private _activeBiomeId: string = 'grass';
-  /** Whether the volcano ambient has been primed (first play cycle completed) */
-  private _volcanoAmbientPrimed: boolean = false;
-
   /** Per-level state tracking: index -> OverworldNodeState */
   private levelStates: OverworldNodeState[] = [];
 
@@ -345,9 +322,6 @@ export class OverworldHud extends Component {
     this._updateRunLabel();
     this._updateBiomeArrow();
 
-    // Initialize active biome for audio
-    this._activeBiomeId = SaveService.get().activeBiome;
-
     // Apply any buffered progress that arrived before initialization
     if (this.pendingBeatenLevels) {
       console.log(`[OverworldHud] Applying buffered progress: ${JSON.stringify(this.pendingBeatenLevels)}`);
@@ -365,14 +339,6 @@ export class OverworldHud extends Component {
     const shouldShow = payload.phase === GamePhase.Overworld;
     this.viewModel.visible = shouldShow;
     if (this.uiComponent) this.uiComponent.isVisible = shouldShow;
-
-    // Track active biome phase and update volcano ambient audio
-    this._biomePhaseActive =
-      payload.phase === GamePhase.Overworld ||
-      payload.phase === GamePhase.Build ||
-      payload.phase === GamePhase.Wave ||
-      payload.phase === GamePhase.WaveClear;
-    this._updateVolcanoAmbient();
 
     // Refresh node states when returning to overworld
     if (shouldShow) {
@@ -518,10 +484,6 @@ export class OverworldHud extends Component {
     if (bgTexture) {
       this.viewModel.backgroundImage = bgTexture;
     }
-
-    // Update active biome and manage volcano ambient audio
-    this._activeBiomeId = biome.id;
-    this._updateVolcanoAmbient();
   }
 
   @subscribe(UiEvents.overworldLevelTap, { execution: ExecuteOn.Owner })
@@ -717,10 +679,6 @@ export class OverworldHud extends Component {
       this.viewModel.backgroundImage = bgTexture;
       console.log(`[OverworldHud] Background set directly to ${nextBiomeId}`);
     }
-
-    // Update active biome for audio (volcano ambient is managed by onBiomeChanged handler
-    // via BiomeChanged event fired by switchBiome() above — no direct call needed here)
-    this._activeBiomeId = nextBiomeId;
 
     // Restore the run count from the new biome's save so the run label is correct
     const restoredRunCount = SaveService.get().getRunCount() + 1;
@@ -1475,70 +1433,7 @@ export class OverworldHud extends Component {
     console.log(`[OverworldHud] Arrow states: rightVisible=${this.viewModel.biomeArrowVisible} (label=${this.viewModel.biomeArrowLabel}, locked=${this.viewModel.biomeArrowRightLocked}), leftVisible=${this.viewModel.biomeArrowLeftVisible} (label=${this.viewModel.biomeArrowLeftLabel}, locked=${this.viewModel.biomeArrowLeftLocked})`);
   }
 
-  /** Start or stop the volcano ambient sound based on current state.
-   *  Handles the async race condition where the biome may change before
-   *  playLoopingSound resolves — the .then() handler re-checks whether
-   *  the sound is still needed and stops it immediately if not.
-   *
-   *  On the FIRST play, a "prime" cycle (stop + replay) is performed because
-   *  freshly spawned audio pool components may not apply playVolume correctly
-   *  when a new soundAsset is loaded for the first time — the asset init can
-   *  reset runtime properties. After one stop/play cycle the asset is cached
-   *  on the component and volume sticks on subsequent plays. */
-  private _updateVolcanoAmbient(): void {
-    const shouldPlay = this._biomePhaseActive && this._activeBiomeId === 'volcano';
 
-    if (shouldPlay && this._volcanoAmbientId === -1 && !this._volcanoAmbientStarting) {
-      // Start playing
-      console.log('[OverworldHud] Starting volcano ambient sound');
-      this._volcanoAmbientStarting = true;
-
-      const doStart = async (): Promise<number> => {
-        // Wait for any pending stop to fully complete before starting,
-        // preventing the audio engine from reusing a pool component
-        // that hasn't fully flushed its previous playback state.
-        if (this._volcanoStopPromise) {
-          await this._volcanoStopPromise;
-          this._volcanoStopPromise = null;
-        }
-
-        // On the first ever play, prime the pool component by doing a quick
-        // play-stop-play cycle. The first play loads the soundAsset onto the
-        // component (which may reset playVolume internally). The stop flushes
-        // that state, and the second play reuses the now-cached asset so
-        // playVolume = 0.85 is applied correctly.
-        if (!this._volcanoAmbientPrimed) {
-          this._volcanoAmbientPrimed = true;
-          const primeId = await playLoopingSound(VOLCANO_AMBIENT_SOUND, Vec3.zero, { playVolume: 0.85 });
-          await stopLoopingSound(primeId);
-        }
-
-        return playLoopingSound(VOLCANO_AMBIENT_SOUND, Vec3.zero, { playVolume: 0.85 });
-      };
-
-      doStart()
-        .then(id => {
-          this._volcanoAmbientStarting = false;
-          // Re-check whether we should still be playing (state may have changed while awaiting)
-          const stillShouldPlay = this._biomePhaseActive && this._activeBiomeId === 'volcano';
-          if (stillShouldPlay) {
-            this._volcanoAmbientId = id;
-          } else {
-            // State changed while the promise was in flight — stop immediately
-            console.log('[OverworldHud] Volcano ambient resolved but no longer needed, stopping');
-            stopLoopingSound(id);
-          }
-        })
-        .catch(() => { this._volcanoAmbientStarting = false; });
-    } else if (!shouldPlay && this._volcanoAmbientId !== -1) {
-      // Stop playing (sound was already running)
-      console.log('[OverworldHud] Stopping volcano ambient sound');
-      this._volcanoStopPromise = stopLoopingSound(this._volcanoAmbientId);
-      this._volcanoAmbientId = -1;
-    }
-    // If !shouldPlay && _volcanoAmbientStarting, the .then() handler above
-    // will detect the changed state and stop the sound when it resolves.
-  }
 
 
 

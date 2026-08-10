@@ -8,8 +8,11 @@
 
 // ─── Grid ─────────────────────────────────────────────────────────────────────
 
-export const GRID_COLS = 9;
+export const GRID_COLS = 11;
 export const GRID_ROWS = 14;
+
+// Columns that are locked: no tower placement, no path routing
+export const LOCKED_COLS: readonly number[] = [0, 1, 9, 10];
 export const CELL_WIDTH  = 1; // world units per cell along X axis (rows)
 export const CELL_HEIGHT = 1; // world units per cell along Z axis (cols)
 

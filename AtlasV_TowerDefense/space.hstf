@@ -1288,7 +1288,7 @@
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "18082565417493729279",
+                                "ingestionId": "10591590792516683445",
                                 "targetId": "1366267635"
                             },
                             "playVolume": 0.25
@@ -1331,7 +1331,7 @@
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "14790268761286139285",
+                                "ingestionId": "10655843997009205346",
                                 "targetId": "1366267635"
                             }
                         }
@@ -1373,7 +1373,7 @@
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "14675507304706022565",
+                                "ingestionId": "4984302483509700018",
                                 "targetId": "1366267635"
                             }
                         }
@@ -1415,7 +1415,7 @@
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "1748165914750636069",
+                                "ingestionId": "2818243035822377680",
                                 "targetId": "1366267635"
                             }
                         }
@@ -1462,7 +1462,11 @@
                                 "packageOrRemoteId": "26631398616455768",
                                 "ingestionId": "13730451097716815029",
                                 "targetId": "2719744159"
-                            }
+                            },
+                            "poolSize": 32.0,
+                            "loopingPoolSize": 8.0,
+                            "initialOneShotCount": 4.0,
+                            "initialLoopingCount": 2.0
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -1495,39 +1499,12 @@
                                 "packageOrRemoteId": "26631398616455768",
                                 "ingestionId": "13730451097716815029",
                                 "targetId": "2719744159"
-                            }
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "SnowBiomeAudioController",
-                        "definitionAsset": {
-                            "packageOrRemoteId": "26631398616455768",
-                            "ingestionId": "7370517053780198697",
-                            "targetId": "4237980480"
-                        },
-                        "data": {
-                            "snowAmbientSound": {
-                                "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "8313384119323939215",
-                                "targetId": "1366267635"
                             },
-                            "volume": 0.6
+                            "poolSize": 32.0,
+                            "loopingPoolSize": 8.0,
+                            "initialOneShotCount": 4.0,
+                            "initialLoopingCount": 2.0
                         }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "GrassBiomeAudioController",
-                        "definitionAsset": {
-                            "packageOrRemoteId": "26631398616455768",
-                            "ingestionId": "6040976656944161675",
-                            "targetId": "4237980480"
-                        },
-                        "data": {}
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 },
@@ -1540,6 +1517,37 @@
                             "targetId": "4237980480"
                         },
                         "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "BiomeAmbientAudioService",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "432616788420009977",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "grassAmbientSound": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "6658604516767176551",
+                                "targetId": "1366267635"
+                            },
+                            "grassVolume": 1.0,
+                            "snowAmbientSound": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "13396332945063131916",
+                                "targetId": "1366267635"
+                            },
+                            "snowVolume": 3.0,
+                            "volcanoAmbientSound": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "14694117741434827731",
+                                "targetId": "1366267635"
+                            },
+                            "volcanoVolume": 1.0
+                        }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 }
@@ -1569,12 +1577,12 @@
                         "data": {
                             "victorySfx": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "1652623560861703506",
+                                "ingestionId": "9775269606772516455",
                                 "targetId": "1366267635"
                             },
                             "defeatSfx": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "12336131486785935956",
+                                "ingestionId": "11603164902004910817",
                                 "targetId": "1366267635"
                             }
                         }
