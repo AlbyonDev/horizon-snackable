@@ -25,6 +25,7 @@ import { FloatingTextService } from './FloatingTextService';
 import { RelicService } from './RelicService';
 import { SkillTreeService } from './SkillTreeService';
 import { SaveService } from './SaveService';
+import { MagmaTileService } from './MagmaTileService';
 
 // ── Record ────────────────────────────────────────────────────────────────────
 
@@ -229,6 +230,7 @@ export class TowerService extends Service {
 
     if (LOCKED_COLS.includes(col)) return;
     if (PathService.get().isPathCell(col, row)) return;
+    if (MagmaTileService.get().isMagmaCell(col, row)) return;
     if (this.isOccupied(col, row)) return;
     if (!ResourceService.get().canAfford(def.cost)) return;
 

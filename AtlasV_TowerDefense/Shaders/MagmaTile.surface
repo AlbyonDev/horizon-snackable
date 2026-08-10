@@ -1,0 +1,209 @@
+BEGIN_OPTIONS
+  blendState alphaBlend
+  depthStencilState depthTestOnly
+  Template "Unlit"
+END_OPTIONS
+
+BEGIN_PROPERTIES
+
+[BeginGroup("Tile Shape", 0)]
+    [Slider(0.0, 0.5, 0.01)] cornerRadius("Corner Radius", float) = 0.20
+    [Slider(0.0, 1, 0.001)] edgeSoftness("Edge Softness", float) = 0.01
+[EndGroup]
+
+[BeginGroup("Neighbors", 1)]
+    [Slider(0.0, 1.0, 1.0)] neighborUp("Neighbor Up", float) = 0.0
+    [Slider(0.0, 1.0, 1.0)] neighborDown("Neighbor Down", float) = 0.0
+    [Slider(0.0, 1.0, 1.0)] neighborLeft("Neighbor Left", float) = 0.0
+    [Slider(0.0, 1.0, 1.0)] neighborRight("Neighbor Right", float) = 0.0
+[EndGroup]
+
+[BeginGroup("Edge Noise", 2)]
+    [Slider(0.0, 1, 0.001)] edgeNoiseAmount("Edge Noise Amount", float) = 0.07
+    [Slider(0.1, 20.0, 0.1)] edgeNoiseScale("Edge Noise Scale", float) = 4.0
+[EndGroup]
+
+[BeginGroup("Path Shadow", 3)]
+    [Slider(0.0, 0.5, 0.01)] shadowExtra("Shadow Extra Width", float) = 0.08
+    [Slider(0.0, 1.0, 0.01)] shadowAlpha("Shadow Alpha", float) = 0.4
+    [Slider(0.0, 0.2, 0.001)] shadowSoftness("Shadow Edge Softness", float) = 0.04
+    shadowColor("Shadow Color", Color) = (0.05, 0.02, 0.01, 1.0)
+[EndGroup]
+
+[BeginGroup("Texture", 4)]
+    pathTex("Path Texture", 2D) = "white"
+    [Slider(0.05, 10.0, 0.01)] textureWorldSize("Texture World Size (m)", float) = 5.0
+    tint("Tint", Color) = (1.0, 1.0, 1.0, 1.0)
+[EndGroup]
+
+END_PROPERTIES
+
+BEGIN_SURFACE
+
+// 2D hash for cheap pseudo-noise.
+float hash21(vec2 p)
+{
+    vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+// Smooth value noise via bilinear interpolation of hashed corners.
+float valueNoise(vec2 p)
+{
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    float a = hash21(i);
+    float b = hash21(i + vec2(1.0, 0.0));
+    float c = hash21(i + vec2(0.0, 1.0));
+    float d = hash21(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+// SDF for a rounded rectangle with per-corner radii.
+// p: position relative to center
+// halfSize: half extent of the rectangle
+// r: vec4 of corner radii (TL, TR, BR, BL) — x=TL, y=TR, z=BR, w=BL
+float sdRoundedBox(vec2 p, vec2 halfSize, vec4 r)
+{
+    vec2 rSelect;
+    rSelect.x = (p.x > 0.0) ? r.y : r.x;
+    rSelect.y = (p.x > 0.0) ? r.z : r.w;
+    float radius = (p.y > 0.0) ? rSelect.x : rSelect.y;
+
+    vec2 q = abs(p) - halfSize + vec2(radius);
+    return min(max(q.x, q.y), 0.0) + length(max(q, vec2(0.0))) - radius;
+}
+
+void surfaceFunction(inout Surface s, inout SurfaceData d)
+{
+    // --- Texture sampling (world-space UVs for seamless tiling) ---
+    vec2 worldUV = d.worldSpacePosition.xz / matParams.textureWorldSize;
+    vec4 tex = texture(sampler2D(pathTex, linearWrapSampler), worldUV);
+
+    // --- Determine per-corner radii based on neighbor flags ---
+    // A corner is rounded only when BOTH edges meeting at that corner have NO neighbor.
+    // If at least one adjacent edge has a neighbor, keep the corner sharp (radius = 0).
+    float nUp    = matParams.neighborUp;
+    float nDown  = matParams.neighborDown;
+    float nLeft  = matParams.neighborLeft;
+    float nRight = matParams.neighborRight;
+
+    // Top-Left (UV space) = World Bottom-Left: rounded if !Down AND !Left
+    float rTL = matParams.cornerRadius * (1.0 - max(nDown, nLeft));
+    // Top-Right (UV space) = World Bottom-Right: rounded if !Down AND !Right
+    float rTR = matParams.cornerRadius * (1.0 - max(nDown, nRight));
+    // Bottom-Right (UV space) = World Top-Right: rounded if !Up AND !Right
+    float rBR = matParams.cornerRadius * (1.0 - max(nUp, nRight));
+    // Bottom-Left (UV space) = World Top-Left: rounded if !Up AND !Left
+    float rBL = matParams.cornerRadius * (1.0 - max(nUp, nLeft));
+
+    vec4 radii = vec4(rTL, rTR, rBR, rBL);
+
+    // --- SDF computation ---
+    // UV coords: d.texcoord0 is in [0,1], remap to [-0.5, 0.5]
+    vec2 uv = d.texcoord0 - vec2(0.5);
+
+    // CRITICAL FIX: Always use halfSize = 0.52 (slightly past mesh edge) on ALL sides.
+    // This guarantees the SDF shape boundary is OUTSIDE the mesh on every edge,
+    // meaning at the mesh boundary (uv = ±0.5) the pixel is always deep inside
+    // the shape (dist < 0 → alpha = 1.0). No gap is possible between adjacent tiles.
+    //
+    // Only corners get rounded inward — the shape is a full-cell box with rounded
+    // outer corners where both adjacent edges have no neighbor.
+    vec2 halfSz = vec2(0.52);
+
+    float dist = sdRoundedBox(uv, halfSz, radii);
+    // dist < 0 inside, dist > 0 outside
+
+    // --- Edge noise: perturb the SDF boundary with world-space noise ---
+    // Only apply noise on non-neighbor edges (outer perimeter of the magma group).
+    vec2 noiseUV = d.worldSpacePosition.xz * matParams.edgeNoiseScale;
+    float n1 = valueNoise(noiseUV) - 0.5;
+    float n2 = valueNoise(noiseUV * 2.37 + vec2(13.1, 7.7)) - 0.5;
+    float n  = n1 * 0.7 + n2 * 0.3;
+
+    // Suppress noise near ANY neighbor edge to prevent visual artifacts.
+    // On neighbor sides, the shape extends past the mesh edge so noise would
+    // be invisible anyway, but suppressing it avoids wasting cycles.
+    float edgeMaskR = 1.0 - nRight * smoothstep(0.30, 0.45, uv.x);
+    float edgeMaskL = 1.0 - nLeft  * smoothstep(0.30, 0.45, -uv.x);
+    float edgeMaskU = 1.0 - nUp    * smoothstep(0.30, 0.45, -uv.y);
+    float edgeMaskD = 1.0 - nDown  * smoothstep(0.30, 0.45, uv.y);
+    float noiseMask = edgeMaskR * edgeMaskL * edgeMaskU * edgeMaskD;
+
+    float perturbedDist = dist - n * matParams.edgeNoiseAmount * noiseMask;
+
+    // --- Main shape mask ---
+    float shapeMask = smoothstep(matParams.edgeSoftness, -matParams.edgeSoftness, perturbedDist);
+
+    // --- Shadow: soft halo outside the shape ---
+    float shadowNoise = n * 2.0;
+    float shadowPerturbedDist = dist - shadowNoise * matParams.edgeNoiseAmount;
+    float shadowFalloff = clamp((-shadowPerturbedDist + matParams.shadowExtra) / max(matParams.shadowExtra, 0.0001), 0.0, 1.0);
+    shadowFalloff = shadowFalloff * shadowFalloff;
+    float shadowOuterFade = smoothstep(matParams.shadowExtra + matParams.shadowSoftness, matParams.shadowExtra, -shadowPerturbedDist);
+    float shadowInside = 1.0 - shapeMask;
+    float shadowMask = shadowFalloff * shadowOuterFade * shadowInside;
+
+    // --- Exposed edge outline (dark brown charred crust) ---
+    // Thin dark border on sides where the neighbor flag is 0 (exposed edges).
+    // Uses SDF distance from the shape boundary combined with
+    // a per-pixel check of which edge is closest. If the closest edge has a neighbor, suppress.
+    float outlineWidth = 0.03;
+    vec3 outlineColor = vec3(0.12, 0.06, 0.02); // Dark charred/cooled lava crust
+
+    // For each pixel, determine how close it is to each of the 4 edges of the tile.
+    // The tile spans [-0.5, 0.5] in UV space.
+    float distToRight = 0.5 - uv.x;   // distance to right edge
+    float distToLeft  = 0.5 + uv.x;   // distance to left edge
+    float distToTop   = 0.5 - uv.y;   // distance to top edge (UV +Y)
+    float distToBot   = 0.5 + uv.y;   // distance to bottom edge (UV -Y)
+
+    // Find the minimum distance to any edge — this tells us if we're near any edge.
+    float minEdgeDist = min(min(distToRight, distToLeft), min(distToTop, distToBot));
+
+    // Only draw outline if we're within outlineWidth of some edge AND inside the shape.
+    float inOutlineZone = smoothstep(outlineWidth, outlineWidth * 0.5, minEdgeDist) * shapeMask;
+
+    // Now suppress the outline where a neighbor exists on the closest edge.
+    // For each edge, compute its suppression contribution: if that edge is closest
+    // AND has a neighbor, suppress.
+    float suppressRight = step(distToRight, distToLeft) * step(distToRight, distToTop) * step(distToRight, distToBot) * nRight;
+    float suppressLeft  = step(distToLeft, distToRight) * step(distToLeft, distToTop) * step(distToLeft, distToBot) * nLeft;
+    float suppressTop   = step(distToTop, distToRight) * step(distToTop, distToLeft) * step(distToTop, distToBot) * nUp;
+    float suppressBot   = step(distToBot, distToRight) * step(distToBot, distToLeft) * step(distToBot, distToTop) * nDown;
+
+    float suppress = max(max(suppressRight, suppressLeft), max(suppressTop, suppressBot));
+
+    float outlineMask = inOutlineZone * (1.0 - suppress);
+
+    // --- Compose ---
+    // First compute the base textured color, then composite outline ON TOP.
+    vec3 baseTexColor = tex.rgb * matParams.tint.rgb;
+    float baseAlpha = shapeMask * tex.a * matParams.tint.a;
+    // Blend outline over the textured result (outline is fully opaque where outlineMask > 0)
+    vec3 shapeColor = mix(baseTexColor, outlineColor, outlineMask);
+    // Outline forces full opacity where present (not attenuated by texture alpha)
+    float shapeAlpha = mix(baseAlpha, shapeMask, outlineMask);
+    float shadowFinalAlpha = shadowMask * matParams.shadowAlpha;
+
+    float outAlpha = shapeAlpha + shadowFinalAlpha * (1.0 - shapeAlpha);
+    vec3 outColor = (shapeColor * shapeAlpha + matParams.shadowColor.rgb * shadowFinalAlpha * (1.0 - shapeAlpha))
+                  / max(outAlpha, 0.0001);
+
+    if (outAlpha <= 0.001) {
+        s.alpha = 0.0;
+        s.baseColor = vec3(0.0);
+        return;
+    }
+
+    s.baseColor = outColor;
+    s.alpha = outAlpha;
+    s.emissive = vec3(0.0);
+    s.metallic = 0.0;
+    s.roughness = 1.0;
+}
+
+END_SURFACE

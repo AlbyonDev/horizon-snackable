@@ -27,6 +27,7 @@ import { GRID_ORIGIN_X, GRID_ORIGIN_Z, CELL_WIDTH, CELL_HEIGHT, GRID_COLS, GRID_
 import { TowerService } from './TowerService';
 import { PathService } from './PathService';
 import { ResourceService } from './ResourceService';
+import { MagmaTileService } from './MagmaTileService';
 
 const TINT_VALID        = new Color(0.4, 1.0, 0.4, 1.0);
 const TINT_INVALID      = new Color(1.0, 0.3, 0.3, 1.0);
@@ -301,6 +302,7 @@ export class PlacementService extends Service {
       for (let row = 0; row < GRID_ROWS; row++) {
         if (LOCKED_COLS.includes(col)) continue;
         if (PathService.get().isPathCell(col, row)) continue;
+        if (MagmaTileService.get().isMagmaCell(col, row)) continue;
         if (TowerService.get().isOccupied(col, row)) continue;
         if (idx >= this._cellMarkerPool.length) break;
 
@@ -477,7 +479,9 @@ export class PlacementService extends Service {
 
   private _canPlaceAt(col: number, row: number): boolean {
     if (LOCKED_COLS.includes(col)) return false;
-    return !PathService.get().isPathCell(col, row);
+    if (PathService.get().isPathCell(col, row)) return false;
+    if (MagmaTileService.get().isMagmaCell(col, row)) return false;
+    return true;
   }
 
   private _inBounds(col: number, row: number): boolean {

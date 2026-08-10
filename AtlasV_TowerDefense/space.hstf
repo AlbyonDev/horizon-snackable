@@ -1591,6 +1591,52 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "6468df09-4a16-40c8-9348-883589bedb70",
+            "name": "MagmaFtueUI",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "15764414974534810753",
+                                "targetId": "2149638574"
+                            },
+                            "panelVisibility": false,
+                            "isInteractable": true,
+                            "isBlocking": true,
+                            "renderOrderOffset": 25
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "MagmaFtueHud",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "1399891744129117100",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -1747,6 +1793,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "6a4e810a-23e4-49b6-8710-4128db8b6d34",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "6468df09-4a16-40c8-9348-883589bedb70",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

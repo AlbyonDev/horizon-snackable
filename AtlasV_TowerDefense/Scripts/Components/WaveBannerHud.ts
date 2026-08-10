@@ -30,6 +30,7 @@ import {
 import type { Maybe } from 'meta/worlds';
 
 import { Events } from '../Types';
+import { SaveService } from '../Services/SaveService';
 
 // Animation timing constants
 const SCALE_IN_DURATION = 0.3;
@@ -66,6 +67,9 @@ export class WaveBannerHud extends Component {
   private _ftueDelayWaiting: boolean = false;
   private _ftueDelayTimer: number = 0;
 
+  // Volcano FTUE deferral state
+  private _volcanoFtueDeferred: boolean = false;
+
   // Lifecycle
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
@@ -100,11 +104,23 @@ export class WaveBannerHud extends Component {
   /**
    * When FTUE hint fires, show immediately on non-boss levels.
    * On boss levels, delay by BOSS_FTUE_DELAY so the boss warning banner finishes first.
+   * On volcano biome when FTUE popup hasn't been dismissed yet, defer until VolcanoFtueDismissed.
    */
   @subscribe(Events.FtueHint, { execution: ExecuteOn.Owner })
   onFtueHint(_p: Events.FtueHintPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+
+    // Check if volcano FTUE popup is about to show (biome is volcano and not yet seen)
+    const save = SaveService.get();
+    const volcanoFtuePending = save.activeBiome === 'volcano' && !save.getVolcanoFtueSeen();
+
+    if (volcanoFtuePending) {
+      // Defer until the volcano FTUE popup is dismissed
+      console.log('[WaveBannerHud] Volcano FTUE pending, deferring build-phase hint');
+      this._volcanoFtueDeferred = true;
+      return;
+    }
 
     if (this._isBossLevel) {
       // Delay showing until boss banner has dismissed
@@ -113,6 +129,25 @@ export class WaveBannerHud extends Component {
       this._ftueDelayTimer = 0;
     } else {
       // Non-boss: show immediately as before
+      this._showFtueHint();
+    }
+  }
+
+  /**
+   * When the volcano FTUE popup is dismissed, show the deferred build-phase hint.
+   */
+  @subscribe(Events.VolcanoFtueDismissed, { execution: ExecuteOn.Owner })
+  onVolcanoFtueDismissed(_p: Events.VolcanoFtueDismissedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._volcanoFtueDeferred) return;
+
+    console.log('[WaveBannerHud] Volcano FTUE dismissed, showing build-phase hint now');
+    this._volcanoFtueDeferred = false;
+
+    if (this._isBossLevel) {
+      this._ftueDelayWaiting = true;
+      this._ftueDelayTimer = 0;
+    } else {
       this._showFtueHint();
     }
   }
@@ -167,6 +202,7 @@ export class WaveBannerHud extends Component {
     this._isBossLevel = false;
     this._ftueDelayWaiting = false;
     this._ftueDelayTimer = 0;
+    this._volcanoFtueDeferred = false;
     this.viewModel.visible = false;
     this.viewModel.opacity = 0;
     this.viewModel.waveText = '';

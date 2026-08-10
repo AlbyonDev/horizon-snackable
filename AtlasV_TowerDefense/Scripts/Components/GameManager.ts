@@ -43,6 +43,7 @@ import { SkillTreeService } from '../Services/SkillTreeService';
 import { BiomeArrowIndicatorService } from '../Services/BiomeArrowIndicatorService';
 import { ChainLightningService } from '../Services/ChainLightningService';
 import { PoisonDotService } from '../Services/PoisonDotService';
+import { MagmaTileService } from '../Services/MagmaTileService';
 
 
 @component()
@@ -154,6 +155,7 @@ export class GameManager extends Component {
       VfxService.get().prewarm(),
       CoinService.get().prewarm(),
       PathTileService.get().prewarm(),
+      MagmaTileService.get().prewarm(),
     ]);
     ResourceService.get().reset();
     WaveService.get().startGame();

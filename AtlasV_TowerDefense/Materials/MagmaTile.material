@@ -1,0 +1,165 @@
+{
+    "__attr__": {
+        "__version__": {
+            "version": 1
+        }
+    },
+    "name": "MagmaTile",
+    "attributes": [
+        {
+            "name": "cornerRadius",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.30
+                ]
+            }
+        },
+        {
+            "name": "neighborUp",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.0
+                ]
+            }
+        },
+        {
+            "name": "neighborDown",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.0
+                ]
+            }
+        },
+        {
+            "name": "neighborLeft",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.0
+                ]
+            }
+        },
+        {
+            "name": "neighborRight",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.0
+                ]
+            }
+        },
+        {
+            "name": "edgeSoftness",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.01
+                ]
+            }
+        },
+        {
+            "name": "edgeNoiseAmount",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.10
+                ]
+            }
+        },
+        {
+            "name": "edgeNoiseScale",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    9.5
+                ]
+            }
+        },
+        {
+            "name": "shadowExtra",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.1
+                ]
+            }
+        },
+        {
+            "name": "shadowAlpha",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.2
+                ]
+            }
+        },
+        {
+            "name": "shadowSoftness",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.01
+                ]
+            }
+        },
+        {
+            "name": "shadowColor",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    0.05,
+                    0.02,
+                    0.01,
+                    1.0
+                ]
+            }
+        },
+        {
+            "name": "pathTex",
+            "value": {
+                "type": "assetId",
+                "assetIdValue": {
+                    "packageOrRemoteId": "26631398616455768",
+                    "ingestionId": "15730823546069360189",
+                    "targetId": "1850524962"
+                }
+            }
+        },
+        {
+            "name": "textureWorldSize",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    5.0
+                ]
+            }
+        },
+        {
+            "name": "tint",
+            "value": {
+                "type": "Floats",
+                "floatValues": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "name": "RenderGroup",
+            "value": {
+                "type": "String",
+                "stringValue": "masked"
+            }
+        }
+    ],
+    "shaderAssetId": {
+        "packageOrRemoteId": "26631398616455768",
+        "ingestionId": "11462877596502423559",
+        "targetId": "2708897769"
+    }
+}

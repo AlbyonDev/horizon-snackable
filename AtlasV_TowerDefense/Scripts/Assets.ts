@@ -6,7 +6,7 @@
  *   2. Add an entry here — this is the ONLY file to edit when a path changes.
  *   3. Reference the export from Defs files or services — never use new TemplateAsset() elsewhere.
  */
-import { TemplateAsset, TextureAsset } from 'meta/worlds';
+import { MaterialAsset, TemplateAsset, TextureAsset } from 'meta/worlds';
 
 export namespace Assets {
 
@@ -37,10 +37,15 @@ export namespace Assets {
   export const PathTileCornerBR = new TemplateAsset('@Templates/GameplayObjects/PathTileCornerBR.hstf');
   export const PathTileCornerBL = new TemplateAsset('@Templates/GameplayObjects/PathTileCornerBL.hstf');
   export const PathTileStraight = new TemplateAsset('@Templates/GameplayObjects/PathTileStraightTop.hstf');
+  export const MagmaTileStraight = new TemplateAsset('@Templates/GameplayObjects/MagmaTileStraight.hstf');
   export const FloatingText    = new TemplateAsset('@Templates/UI/FloatingText.hstf');
   export const Coin            = new TemplateAsset('@Templates/Coin.hstf');
   export const BiomeArrowBuff  = new TemplateAsset('@Templates/BiomeArrowBuff.hstf');
   export const BiomeArrowDebuff = new TemplateAsset('@Templates/BiomeArrowDebuff.hstf');
+}
+
+export namespace Materials {
+  export const MagmaTile = new MaterialAsset('@Materials/MagmaTile.material');
 }
 
 export namespace TowerIcons {

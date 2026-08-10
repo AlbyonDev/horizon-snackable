@@ -269,6 +269,10 @@ export namespace Events {
   export class FtueHintPayload {}
   export const FtueHint = new LocalEvent<FtueHintPayload>('EvFtueHint', FtueHintPayload);
 
+  // Fired by MagmaFtueHud when the volcano FTUE popup is dismissed
+  export class VolcanoFtueDismissedPayload {}
+  export const VolcanoFtueDismissed = new LocalEvent<VolcanoFtueDismissedPayload>('EvVolcanoFtueDismissed', VolcanoFtueDismissedPayload);
+
   // Relic choice flow
   export class ShowRelicChoicePayload {}
   export const ShowRelicChoice = new LocalEvent<ShowRelicChoicePayload>('EvShowRelicChoice', ShowRelicChoicePayload);
@@ -402,6 +406,9 @@ export namespace UiEvents {
 
   @serializable() export class MinigameFtueGotItPayload { readonly parameter: string = ''; }
   export const minigameFtueGotIt = new UiEvent('MinigameViewModel-onFtueGotIt', MinigameFtueGotItPayload);
+
+  @serializable() export class MagmaFtueGotItPayload { readonly parameter: string = ''; }
+  export const magmaFtueGotIt = new UiEvent('MagmaFtueViewModel-onGotIt', MagmaFtueGotItPayload);
 
   @serializable() export class BiomeArrowTapPayload { readonly parameter: string = ''; }
   export const biomeArrowTap = new UiEvent('OverworldViewModel-onBiomeArrowTap', BiomeArrowTapPayload);
