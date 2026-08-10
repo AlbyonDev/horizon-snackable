@@ -66,6 +66,7 @@ import { SkillTreeService } from '../Services/SkillTreeService';
 // Pre-defined TextureAssets for each biome background (must be static string literals)
 // Volcano ambient looping sound asset
 const VOLCANO_AMBIENT_SOUND: SoundAsset = new SoundAsset("@Lava_Ambience/Lava_Ambience.WAV:sound");
+// (Grass overworld music moved to BiomeMusicController)
 
 const BG_GRASS = new TextureAsset('@sprites/overworld_background-grass.png');
 const BG_SNOW = new TextureAsset('@sprites/overworld_background-snow.png');
@@ -295,6 +296,8 @@ export class OverworldHud extends Component {
 
   private viewModel: Maybe<OverworldViewModel> = null;
   private uiComponent: Maybe<CustomUiComponent> = null;
+
+
 
   /** Active looping sound ID for volcano ambient (-1 = not playing) */
   private _volcanoAmbientId: number = -1;
@@ -1503,14 +1506,14 @@ export class OverworldHud extends Component {
         // play-stop-play cycle. The first play loads the soundAsset onto the
         // component (which may reset playVolume internally). The stop flushes
         // that state, and the second play reuses the now-cached asset so
-        // playVolume = 0.75 is applied correctly.
+        // playVolume = 0.85 is applied correctly.
         if (!this._volcanoAmbientPrimed) {
           this._volcanoAmbientPrimed = true;
-          const primeId = await playLoopingSound(VOLCANO_AMBIENT_SOUND, Vec3.zero, { playVolume: 0.75 });
+          const primeId = await playLoopingSound(VOLCANO_AMBIENT_SOUND, Vec3.zero, { playVolume: 0.85 });
           await stopLoopingSound(primeId);
         }
 
-        return playLoopingSound(VOLCANO_AMBIENT_SOUND, Vec3.zero, { playVolume: 0.75 });
+        return playLoopingSound(VOLCANO_AMBIENT_SOUND, Vec3.zero, { playVolume: 0.85 });
       };
 
       doStart()
@@ -1536,6 +1539,8 @@ export class OverworldHud extends Component {
     // If !shouldPlay && _volcanoAmbientStarting, the .then() handler above
     // will detect the changed state and stop the sound when it resolves.
   }
+
+
 
   /** Refresh the relic button visibility from RelicService active relics. */
   private _refreshRelicIcons(): void {

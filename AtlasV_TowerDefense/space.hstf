@@ -1527,14 +1527,19 @@
                             "ingestionId": "6040976656944161675",
                             "targetId": "4237980480"
                         },
-                        "data": {
-                            "grassAmbientSound": {
-                                "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "3812170304432435889",
-                                "targetId": "1366267635"
-                            },
-                            "volume": 0.6
-                        }
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "BiomeMusicController",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "3642712170569555949",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 }

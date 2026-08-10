@@ -346,8 +346,13 @@ Both arrows cycle through `BIOME_ORDER = ['grass', 'snow', 'volcano']`. The swit
 
 ### Biome Audio
 
-- `OverworldHud` plays a looping volcano ambient sound (lava rumble/crackle) while the Overworld phase is active AND the volcano biome is selected. Starts on phase enter or biome switch to volcano; stops on phase exit or biome switch away from volcano. Uses the `AudioManager` pooled looping-sound system (`scripts/Audio/AudioManager.ts`).
-- Audio asset: `Lava_Ambience/Lava_Ambience.WAV` (marketplace package).
+- `BiomeMusicController` manages a dual-music-per-biome system: each biome has an **overworld music** track (plays during Overworld phase) and a **wave music** track (plays once the first wave starts, replacing overworld music). On returning to overworld (LevelCompleted, GameOver, RestartGame, etc.), wave music stops and overworld music resumes.
+  - Grass biome: overworld = "Through The Trees Loop" (chill ambient with subtle drums, 59s loop), wave = "Phantoms & Fantasies"
+  - Snow biome: overworld = none (handled by SnowBiomeAudioController ambient), wave = "Phantoms & Fantasies" (placeholder)
+  - Volcano biome: overworld = none (handled by OverworldHud volcano ambient), wave = "Phantoms & Fantasies" (placeholder)
+  - All music plays looping at volume 0.4 via AudioManager pooled looping-sound system.
+- `OverworldHud` plays a looping volcano ambient sound (lava rumble/crackle) while a biome-active phase is showing AND the volcano biome is selected. Starts on phase enter or biome switch to volcano; stops on phase exit or biome switch away from volcano.
+- Audio assets: `Lava_Ambience/Lava_Ambience.WAV` (volcano ambient), `through_the_trees_loop_QZAAJ2101882/through_the_trees_loop_QZAAJ2101882.wav` (grass overworld), `phantoms_fantasies_QZAAJ2000898/phantoms_fantasies_QZAAJ2000898.wav` (wave music all biomes).
 
 ### Biome Modifiers (Tower Buff/Debuff)
 

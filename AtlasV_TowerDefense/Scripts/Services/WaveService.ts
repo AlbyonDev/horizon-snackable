@@ -4,7 +4,8 @@
  * State machine: Idle → Build → Wave → WaveClear → Build → … → Victory
  * startGame(): transitions from Idle to Build phase.
  * tick(dt): called every frame by GameManager. Drives timers and spawn queue.
- * Build phase lasts WAVE_BUILD_DURATION seconds, then auto-starts the wave.
+ * First wave: Build phase waits for first tower placement, then immediately starts the wave.
+ * Subsequent waves: auto-start after WaveClear duration.
  * Wave phase spawns enemies at ENEMY_SPAWN_INTERVAL intervals from the current wave def.
  * WaveClear phase waits WAVE_CLEAR_DURATION after last enemy dies, then loops or fires Victory.
  * Sends: GamePhaseChanged, WaveStarted, WaveCompleted, InitEnemy (via EnemyService.spawn).
@@ -15,7 +16,7 @@ import { Service, EventService } from 'meta/worlds';
 import { service, subscribe } from 'meta/worlds';
 import { OnServiceReadyEvent } from 'meta/worlds';
 import { Events, GamePhase } from '../Types';
-import { WAVE_CLEAR_DURATION, WAVE_BONUS_GOLD, WAVE_BUILD_DURATION, ENEMY_SPAWN_INTERVAL, INCOME_RATE } from '../Constants';
+import { WAVE_CLEAR_DURATION, WAVE_BONUS_GOLD, ENEMY_SPAWN_INTERVAL, INCOME_RATE } from '../Constants';
 import { LevelGeneratorService } from './LevelGeneratorService';
 import { EnemyService } from './EnemyService';
 import { ResourceService } from './ResourceService';
@@ -105,7 +106,8 @@ export class WaveService extends Service {
   onTowerPlaced(_p: Events.TowerPlacedPayload): void {
     if (!this._ftueWaiting) return;
     this._ftueWaiting = false;
-    this._timer = WAVE_BUILD_DURATION;
+    // Immediately trigger wave start — no countdown delay
+    this._timer = 0;
   }
 
   @subscribe(Events.SkipBuild)

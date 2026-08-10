@@ -18,6 +18,12 @@
       "name": "Lava_Ambience",
       "version": "0.0.1"
     },
+    "meta/MUSIC_Friendship_Folk_Slow/0.0.3": {
+      "author": "meta",
+      "folderName": "MUSIC_Friendship_Folk_Slow",
+      "name": "MUSIC_Friendship_Folk_Slow",
+      "version": "0.0.3"
+    },
     "meta/MUS_sting_loss_electric_01/0.0.1": {
       "author": "meta",
       "folderName": "MUS_sting_loss_electric_01",
@@ -41,12 +47,6 @@
       "folderName": "Wind_Cold_Low_Loop",
       "name": "Wind_Cold_Low_Loop",
       "version": "0.0.1"
-    },
-    "meta/amb_venues_dj_cricket_ambix_lp/0.0.2": {
-      "author": "meta",
-      "folderName": "amb_venues_dj_cricket_ambix_lp",
-      "name": "amb_venues_dj_cricket_ambix_lp",
-      "version": "0.0.2"
     },
     "meta/human_jog_masculine_forward/0.0.6": {
       "author": "meta",
@@ -72,6 +72,24 @@
       "name": "human_walk_short_neutral_forward",
       "version": "0.0.6"
     },
+    "meta/mister_mystery_QZAAJ2001130/0.0.1": {
+      "author": "meta",
+      "folderName": "mister_mystery_QZAAJ2001130",
+      "name": "mister_mystery_QZAAJ2001130",
+      "version": "0.0.1"
+    },
+    "meta/one_groove_QZAAJ2000897/0.0.1": {
+      "author": "meta",
+      "folderName": "one_groove_QZAAJ2000897",
+      "name": "one_groove_QZAAJ2000897",
+      "version": "0.0.1"
+    },
+    "meta/phantoms_fantasies_QZAAJ2000898/0.0.1": {
+      "author": "meta",
+      "folderName": "phantoms_fantasies_QZAAJ2000898",
+      "name": "phantoms_fantasies_QZAAJ2000898",
+      "version": "0.0.1"
+    },
     "meta/sfxlib_elc_LiveWireElectricityPowerOn_01/0.0.1": {
       "author": "meta",
       "folderName": "sfxlib_elc_LiveWireElectricityPowerOn_01",
@@ -88,6 +106,12 @@
       "author": "meta",
       "folderName": "sfxlib_ui_WoodConfirm_01",
       "name": "sfxlib_ui_WoodConfirm_01",
+      "version": "0.0.1"
+    },
+    "meta/through_the_trees_loop_QZAAJ2101882/0.0.1": {
+      "author": "meta",
+      "folderName": "through_the_trees_loop_QZAAJ2101882",
+      "name": "through_the_trees_loop_QZAAJ2101882",
       "version": "0.0.1"
     }
   }
