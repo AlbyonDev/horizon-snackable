@@ -108,6 +108,7 @@ export interface IEnemyDef {
   dodgeChance?: number;
   regenPerSec?: number;
   slowImmune?: boolean;
+  shield?: number;
 }
 
 export interface IWaveGroup {

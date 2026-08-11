@@ -144,10 +144,10 @@ Scripts/
 
   Defs/
     TowerDefs.ts    — TOWER_DEFS: ITowerDef[] (7 towers + upgrade trees)
-    EnemyDefs.ts    — ENEMY_DEFS: IEnemyDef[] (4 enemy types)
+    EnemyDefs.ts    — ENEMY_DEFS: IEnemyDef[] (5 enemy types)
     LevelDefs.ts    — LEVEL_DEFS: ILevelDef[] (20 waves, 1 level, includes path waypoints); WAVES_LEVEL_0 exported but unused by runtime
     PathDefs.ts     — PATH_WAYPOINTS_LEVEL_0 exported but unused by runtime (legacy reference data)
-    WavePackDefs.ts — Wave pack definitions (T1/T2/T3/Boss packs) and tier slot patterns per level; used by LevelGeneratorService for procedural wave composition
+    WavePackDefs.ts — Wave pack definitions (T1/T2/T3/Boss packs) and tier slot patterns per level; used by LevelGeneratorService for procedural wave composition; T1 packs include ShamanRaid (3 basic + 2 shaman)
     UpgradeDefs.ts  — Upg atoms catalog + tree() builder
     BiomeDefs.ts    — BIOME_DEFS: IBiomeDef[] (3 biomes: grass, snow, volcano)
     RelicDefs.ts    — RELIC_DEFS: IRelicDef[] (6 relics: gold, damage, speed, range, lives, slow)
@@ -271,6 +271,7 @@ Restrictions (e.g. "no splash on arrow", "laser range max once") are enforced **
 | `fast` | Fast | 35 | 2.50/s | 8g | `dodgeChance: 0.15` |
 | `tank` | Tank (Troll) | 220 | 0.75/s | 15g | `regenPerSec: 8` |
 | `boss` | Boss | 600 | 0.60/s | 50g | `slowImmune: true` |
+| `shaman` | Shaman | 45 | 1.75/s | 7g | — |
 
 HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_SCALE_PER_WAVE = 0.15`. Last wave (W20, `waveIndex = 19`): ~3.85× base HP.
 

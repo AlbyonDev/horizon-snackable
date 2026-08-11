@@ -11,7 +11,7 @@
  * _die(): unregisters from EnemyService, rewards gold, fires EnemyDied, starts death anim.
  * Death animation: squash Y scale to 0 over DEATH_DURATION seconds, then destroys entity.
  */
-import { Component, EventService, TransformComponent, Color, ColorComponent, Vec3, Quaternion } from 'meta/worlds';
+import { Component, EventService, TransformComponent, MeshComponent, Color, ColorComponent, Vec3, Quaternion, WorldService, NetworkMode } from 'meta/worlds';
 import type { Entity } from 'meta/worlds';
 import { component, property, subscribe } from 'meta/worlds';
 import { OnEntityStartEvent, OnWorldUpdateEvent } from 'meta/worlds';
@@ -25,6 +25,7 @@ import { ResourceService } from '../Services/ResourceService';
 import { BossModifierService } from '../Services/BossModifierService';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { SkillTreeService } from '../Services/SkillTreeService';
+import { Assets } from '../Assets';
 
 @component()
 export class EnemyController extends Component {
@@ -63,6 +64,14 @@ export class EnemyController extends Component {
   private _wpIndex: number = 0;
   private _subT: number = 0;
 
+  // Shield mechanic
+  private _shieldTimer: number = 0;
+  private _shieldActive: boolean = false;
+  private _shieldEntity: Entity | null = null;
+  private _shieldMeshComp: MeshComponent | null = null;
+  private static readonly SHIELD_FLICKER_THRESHOLD = 2.0; // seconds before expiry to start flickering
+  private _shieldFlickerAccum: number = 0; // accumulated phase for flicker oscillation
+
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -100,11 +109,29 @@ export class EnemyController extends Component {
     this._collectColorComponents(this.entity);
     this._baseColor = this._colorComponents[0]?.color ?? new Color(1, 1, 1, 1);
     this.resetTint();
+
+    // Shield initialization
+    const shieldDuration = def.shield ?? 0;
+    if (shieldDuration > 0) {
+      this._shieldTimer = shieldDuration;
+      this._shieldActive = true;
+      EnemyService.get().setShieldActive(this._enemyId, true);
+      this._spawnShieldVisual();
+    } else {
+      this._shieldTimer = 0;
+      this._shieldActive = false;
+    }
   }
 
   @subscribe(Events.TakeDamage)
   onTakeDamage(p: Events.TakeDamagePayload): void {
     if (!this._alive || p.enemyId !== this._enemyId) return;
+
+    // Shield blocks all damage while active
+    if (this._shieldActive) {
+      console.log(`[EnemyController] Shield blocked ${p.damage} damage on enemy ${this._enemyId}`);
+      return;
+    }
 
     this._hitFlashTimer = EnemyController.HIT_FLASH_DURATION;
     this._squashTimer = EnemyController.SQUASH_DURATION;
@@ -148,6 +175,25 @@ export class EnemyController extends Component {
 
     const dt = p.deltaTime;
 
+    // Shield countdown + flicker during last 2 seconds
+    if (this._shieldActive) {
+      this._shieldTimer -= dt;
+      if (this._shieldTimer <= 0) {
+        this._shieldActive = false;
+        EnemyService.get().setShieldActive(this._enemyId, false);
+        this._destroyShieldVisual();
+        console.log(`[EnemyController] Shield expired on enemy ${this._enemyId}`);
+      } else if (this._shieldTimer <= EnemyController.SHIELD_FLICKER_THRESHOLD && this._shieldMeshComp) {
+        // Flicker intensifies as timer approaches 0
+        // Frequency ramps from ~3Hz at 2s to ~10Hz at 0s
+        const urgency = 1 - (this._shieldTimer / EnemyController.SHIELD_FLICKER_THRESHOLD); // 0..1
+        const freq = 3 + urgency * 7; // 3Hz -> 10Hz
+        this._shieldFlickerAccum += dt * freq * 2 * Math.PI; // accumulate phase, not time
+        const sine = Math.sin(this._shieldFlickerAccum);
+        this._shieldMeshComp.isVisibleSelf = sine > 0;
+      }
+    }
+
     if (this._regenPerSec > 0 && this._hp < this._maxHp) {
       this._hp = Math.min(this._hp + this._regenPerSec * dt, this._maxHp);
       const pos = this._transform.worldPosition;
@@ -175,6 +221,14 @@ export class EnemyController extends Component {
     const ahead = pathService.getWorldPositionInSubPath(this._wpIndex, this._subT + 0.1);
     this._transform.lookAt(ahead, Vec3.up);
     EnemyService.get().update(this._enemyId, pos.x, pos.z, pathService.getGlobalT(this._wpIndex, this._subT), this._hp);
+
+    // Update shield sphere position to follow enemy
+    if (this._shieldEntity) {
+      const shieldTransform = this._shieldEntity.getComponent(TransformComponent);
+      if (shieldTransform) {
+        shieldTransform.worldPosition = pos;
+      }
+    }
 
     const dx = ahead.x - pos.x;
     const dz = ahead.z - pos.z;
@@ -211,6 +265,7 @@ export class EnemyController extends Component {
     this._dying = true;
     this._deathTimer = 0;
     EnemyService.get().unregister(this._enemyId);
+    this._destroyShieldVisual();
 
     const pos = this._transform.worldPosition;
     const p = new Events.EnemyDiedPayload();
@@ -247,6 +302,37 @@ export class EnemyController extends Component {
     const p = new Events.EnemyReachedEndPayload();
     p.enemyId = this._enemyId;
     EventService.sendLocally(Events.EnemyReachedEnd, p);
+    this._destroyShieldVisual();
     this.entity.destroy();
+  }
+
+  // ── Shield Visual ──────────────────────────────────────────────────────────
+
+  private _spawnShieldVisual(): void {
+    this._shieldFlickerAccum = 0;
+    WorldService.get().spawnTemplate({
+      templateAsset: Assets.ShieldSphere,
+      position: this._transform.worldPosition,
+      rotation: Quaternion.identity,
+      networkMode: NetworkMode.LocalOnly,
+    }).then((entity) => {
+      this._shieldEntity = entity;
+      // MeshComponent is on the child entity, not the root
+      const children = entity.getChildren();
+      if (children.length > 0) {
+        this._shieldMeshComp = children[0].getComponent(MeshComponent);
+      }
+      console.log(`[EnemyController] Shield sphere spawned for enemy ${this._enemyId}`);
+    }).catch(() => {
+      console.log(`[EnemyController] Failed to spawn shield sphere`);
+    });
+  }
+
+  private _destroyShieldVisual(): void {
+    if (this._shieldEntity) {
+      this._shieldEntity.destroy();
+      this._shieldEntity = null;
+      this._shieldMeshComp = null;
+    }
   }
 }

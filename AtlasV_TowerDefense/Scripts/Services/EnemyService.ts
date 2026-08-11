@@ -29,6 +29,7 @@ export interface IEnemyRecord {
   hp: number;
   maxHp: number;
   speedFactor: number; // multiplier applied each frame; 1 = normal, <1 = slowed
+  shieldActive: boolean; // true while the enemy's shield is blocking damage
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -53,7 +54,7 @@ export class EnemyService extends Service {
 
   register(entity: Entity, defId: string, maxHp: number, worldX: number, worldZ: number): number {
     const id = this._nextId++;
-    this._enemies.set(id, { entity, defId, worldX, worldZ, pathT: 0, hp: maxHp, maxHp, speedFactor: 1 });
+    this._enemies.set(id, { entity, defId, worldX, worldZ, pathT: 0, hp: maxHp, maxHp, speedFactor: 1, shieldActive: false });
     return id;
   }
 
@@ -73,6 +74,11 @@ export class EnemyService extends Service {
   setSpeedFactor(id: number, factor: number): void {
     const rec = this._enemies.get(id);
     if (rec) rec.speedFactor = factor;
+  }
+
+  setShieldActive(id: number, active: boolean): void {
+    const rec = this._enemies.get(id);
+    if (rec) rec.shieldActive = active;
   }
 
   get(id: number): IEnemyRecord | undefined { return this._enemies.get(id); }

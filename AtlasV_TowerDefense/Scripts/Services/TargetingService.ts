@@ -21,6 +21,9 @@ export class TargetingService extends Service {
     let bestPathT = -1;
 
     for (const [id, rec] of registry.getAll()) {
+      // Skip shielded enemies — towers should not waste shots on them
+      if (rec.shieldActive) continue;
+
       const dx = rec.worldX - worldX;
       const dz = rec.worldZ - worldZ;
       const dist = Math.sqrt(dx * dx + dz * dz);

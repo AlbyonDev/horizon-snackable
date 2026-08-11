@@ -30,6 +30,14 @@
         {
             "name": "meta/renderer_module",
             "version": "0.0.0"
+        },
+        {
+            "name": "meta/assistant_provisional",
+            "version": "*"
+        },
+        {
+            "name": "meta/assistant_experimental",
+            "version": "*"
         }
     ]
 }

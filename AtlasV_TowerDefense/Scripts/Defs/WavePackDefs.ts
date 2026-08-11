@@ -57,7 +57,11 @@ export const TIER_2_PACKS: ReadonlyArray<IWavePack> = [
   },
   {
     name: 'TankLite',
-    groups: [{ enemyId: 'tank', count: 2 }, { enemyId: 'basic', count: 4 }],
+    groups: [{ enemyId: 'tank', count: 1 }, { enemyId: 'basic', count: 4 }],
+  },
+  {
+    name: 'ShamanRaid',
+    groups: [{ enemyId: 'shaman', count: 2 }],
   },
   {
     name: 'Swarm',
@@ -75,6 +79,10 @@ export const TIER_3_PACKS: ReadonlyArray<IWavePack> = [
   {
     name: 'Split',
     groups: [{ enemyId: 'fast', count: 5 }, { enemyId: 'tank', count: 2 }],
+  },
+  {
+    name: 'ShamanRaid',
+    groups: [{ enemyId: 'fast', count: 3 }, { enemyId: 'shaman', count: 2 }],
   },
   {
     name: 'EliteRush',
