@@ -30,7 +30,7 @@ import type { ILevelDef } from '../Defs/LevelDefs';
 import { OverworldNodeType } from '../Defs/NodeDefs';
 import { SaveService } from './SaveService';
 import { TOTAL_LEVELS, START_GOLD, START_LIVES, GRID_COLS, GRID_ROWS, LOCKED_COLS } from '../Constants';
-import { LEVEL_TIER_PATTERNS, getPackPoolForTier } from '../Defs/WavePackDefs';
+import { LEVEL_TIER_PATTERNS, getPackPoolForTier, getPackPoolForTierAndBiome } from '../Defs/WavePackDefs';
 import type { IWavePack } from '../Defs/WavePackDefs';
 
 /** Deterministic PRNG (mulberry32). Returns a function producing [0, 1). */
@@ -236,12 +236,15 @@ export class LevelGeneratorService extends Service {
     const patternIdx = Math.min(levelIndex, LEVEL_TIER_PATTERNS.length - 1);
     const tierPattern = LEVEL_TIER_PATTERNS[patternIdx];
 
+    // Use biome-aware pack pools so snow biome includes yeti packs
+    const activeBiome = this._saveService.activeBiome ?? 'grass';
+
     const waves: IWaveDef[] = [];
     let lastPackName: string = '';
 
     for (let w = 0; w < tierPattern.length; w++) {
       const tier = tierPattern[w];
-      const pool = getPackPoolForTier(tier);
+      const pool = getPackPoolForTierAndBiome(tier, activeBiome);
 
       // Pick a random pack from this tier's pool, avoiding back-to-back repeats
       let pack: IWavePack;

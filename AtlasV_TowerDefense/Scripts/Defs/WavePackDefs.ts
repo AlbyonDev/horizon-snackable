@@ -121,6 +121,54 @@ export const LEVEL_TIER_PATTERNS: ReadonlyArray<ReadonlyArray<WavePackTier>> = [
 
 // ─── Tier → pack pool lookup ────────────────────────────────────────────────────
 
+/** Snow biome Tier 1 packs (Frost Goblin patrols) */
+export const SNOW_TIER_1_PACKS: ReadonlyArray<IWavePack> = [
+  {
+    name: 'FrostPatrol',
+    groups: [{ enemyId: 'frostGoblin', count: 5 }],
+  },
+  {
+    name: 'FrostScouts',
+    groups: [{ enemyId: 'frostGoblin', count: 3 }, { enemyId: 'basic', count: 2 }],
+  },
+  {
+    name: 'FrostScouts',
+    groups: [{ enemyId: 'frostGoblin', count: 6 }],
+  },
+];
+
+/** Snow biome Tier 2 packs (include Yeti Berserker) */
+export const SNOW_TIER_2_PACKS: ReadonlyArray<IWavePack> = [
+  {
+    name: 'YetiScout',
+    groups: [{ enemyId: 'yeti', count: 2 }, { enemyId: 'frostGoblin', count: 3 }],
+  },
+  {
+    name: 'FrostRush',
+    groups: [{ enemyId: 'fast', count: 4 }, { enemyId: 'yeti', count: 1 }],
+  },
+  {
+    name: 'FrostSuper',
+    groups: [{ enemyId: 'frostGoblin', count: 12 }],
+  },
+];
+
+/** Snow biome Tier 3 packs (heavier Yeti presence) */
+export const SNOW_TIER_3_PACKS: ReadonlyArray<IWavePack> = [
+  {
+    name: 'YetiHorde',
+    groups: [{ enemyId: 'yeti', count: 3 }, { enemyId: 'fast', count: 2 }],
+  },
+  {
+    name: 'FrostMix',
+    groups: [{ enemyId: 'yeti', count: 3 }, { enemyId: 'frostGoblin', count: 2 }, { enemyId: 'fast', count: 1 }],
+  },
+  {
+    name: 'IceWall',
+    groups: [{ enemyId: 'yeti', count: 2 }, { enemyId: 'tank', count: 1 }, { enemyId: 'frostGoblin', count: 3 }],
+  },
+];
+
 /** Returns the pack pool for a given tier. */
 export function getPackPoolForTier(tier: WavePackTier): ReadonlyArray<IWavePack> {
   switch (tier) {
@@ -129,4 +177,15 @@ export function getPackPoolForTier(tier: WavePackTier): ReadonlyArray<IWavePack>
     case WavePackTier.T3: return TIER_3_PACKS;
     case WavePackTier.Boss: return BOSS_PACKS;
   }
+}
+
+/** Returns the pack pool for a given tier, with biome-specific packs mixed in. */
+export function getPackPoolForTierAndBiome(tier: WavePackTier, biome: string): ReadonlyArray<IWavePack> {
+  const basePacks = getPackPoolForTier(tier);
+  if (biome === 'snow') {
+    if (tier === WavePackTier.T1) return [...basePacks, ...SNOW_TIER_1_PACKS];
+    if (tier === WavePackTier.T2) return [...basePacks, ...SNOW_TIER_2_PACKS];
+    if (tier === WavePackTier.T3) return [...basePacks, ...SNOW_TIER_3_PACKS];
+  }
+  return basePacks;
 }

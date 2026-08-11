@@ -26,6 +26,8 @@ export namespace Assets {
   export const EnemyTank  = new TemplateAsset('@Templates/Enemies/EnemyTank.hstf');
   export const EnemyBoss  = new TemplateAsset('@Templates/Enemies/EnemyBoss.hstf');
   export const EnemyShaman = new TemplateAsset('@Templates/Enemies/EnemyShaman.hstf');
+  export const EnemyYetiBerserker = new TemplateAsset('@Templates/Enemies/EnemyYetiBerserker.hstf');
+  export const EnemyFrostGoblin = new TemplateAsset('@Templates/Enemies/EnemyFrostGoblin.hstf');
 
   // ── Effects ──────────────────────────────────────────────────────────────
   export const ShieldSphere = new TemplateAsset('@Templates/ShieldSphere.hstf');

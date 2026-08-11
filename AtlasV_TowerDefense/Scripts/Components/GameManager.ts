@@ -45,6 +45,7 @@ import { ChainLightningService } from '../Services/ChainLightningService';
 import { PoisonDotService } from '../Services/PoisonDotService';
 import { MagmaTileService } from '../Services/MagmaTileService';
 import { BlizzardService } from '../Services/BlizzardService';
+import { BlizzardSurgeService } from '../Services/BlizzardSurgeService';
 
 
 @component()
@@ -149,6 +150,15 @@ export class GameManager extends Component {
     ChainLightningService.get();
     PoisonDotService.get();
     BlizzardService.get();
+    BlizzardSurgeService.get();
+
+    // Re-fire BiomeChanged AFTER biome-dependent services are instantiated.
+    // The initial fire in onStartGame() happens before _startGame() runs,
+    // so services like BlizzardService miss it on session restore.
+    const biomePayload = new Events.BiomeChangedPayload();
+    biomePayload.biomeId = SaveService.get().activeBiome;
+    EventService.sendLocally(Events.BiomeChanged, biomePayload);
+
     void Promise.all([
       ProjectilePool.get().prewarm(),
       HealthBarService.get().prewarm(),

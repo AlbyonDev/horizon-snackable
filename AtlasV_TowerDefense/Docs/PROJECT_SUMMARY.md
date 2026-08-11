@@ -144,10 +144,10 @@ Scripts/
 
   Defs/
     TowerDefs.ts    — TOWER_DEFS: ITowerDef[] (7 towers + upgrade trees)
-    EnemyDefs.ts    — ENEMY_DEFS: IEnemyDef[] (5 enemy types)
+    EnemyDefs.ts    — ENEMY_DEFS: IEnemyDef[] (7 enemy types including yeti berserker and frost goblin)
     LevelDefs.ts    — LEVEL_DEFS: ILevelDef[] (20 waves, 1 level, includes path waypoints); WAVES_LEVEL_0 exported but unused by runtime
     PathDefs.ts     — PATH_WAYPOINTS_LEVEL_0 exported but unused by runtime (legacy reference data)
-    WavePackDefs.ts — Wave pack definitions (T1/T2/T3/Boss packs) and tier slot patterns per level; used by LevelGeneratorService for procedural wave composition; T1 packs include ShamanRaid (3 basic + 2 shaman)
+    WavePackDefs.ts — Wave pack definitions (T1/T2/T3/Boss packs + snow biome T1/T2/T3 packs) and tier slot patterns per level; used by LevelGeneratorService for procedural wave composition; T1 packs include ShamanRaid (3 basic + 2 shaman); snow T1 packs include frost goblin enemies; snow T2/T3 packs include yeti enemies
     UpgradeDefs.ts  — Upg atoms catalog + tree() builder
     BiomeDefs.ts    — BIOME_DEFS: IBiomeDef[] (3 biomes: grass, snow, volcano)
     RelicDefs.ts    — RELIC_DEFS: IRelicDef[] (6 relics: gold, damage, speed, range, lives, slow)
@@ -159,7 +159,7 @@ Scripts/
   Services/
     PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
     PathTileService     — spawns path tiles using 5 templates (4 pre-rotated corners + 1 straight with runtime Y-rotation) and 2 shared UV-sliced materials; swaps pathTex on BiomeChanged
-    LevelGeneratorService — procedural level generation using wave pack system; generates TOTAL_LEVELS ILevelDef instances on StartGame using tier-based pack selection (T1/T2/T3/Boss packs with no-repeat logic); tracks runCount (resets on StartGame, increments on advanceRun when all levels beaten)
+    LevelGeneratorService — procedural level generation using wave pack system; generates TOTAL_LEVELS ILevelDef instances on StartGame using tier-based pack selection (T1/T2/T3/Boss packs with no-repeat logic); biome-aware wave composition mixes in biome-specific packs (e.g. snow yeti packs) based on active biome; tracks runCount (resets on StartGame, increments on advanceRun when all levels beaten)
     TowerService        — selectedId, place on GridTapped, upgrade, sell
     EnemyService        — live enemy registry (worldX, worldZ, pathT, hp, speedFactor)
     ResourceService     — gold, lives, earn(), spend(), loseLife(), reset()
@@ -185,6 +185,7 @@ Scripts/
     SkillTreeService        — permanent skill tree unlocks with graph-based prerequisites; exposes bonus multipliers consumed by TowerService, ResourceService, CritService, WaveService; purchase/persistence logic via SaveService
     BiomeArrowIndicatorService — spawns floating arrow sprites (buff/debuff) above placed towers based on active biome modifier; bobs gently; cleans up on sell/restart/biome change
     MagmaTileService    — spawns magma tile visuals on random non-path, non-locked cells in the volcano biome (run 1 = 5 tiles, +1 per run); exposes isMagmaCell(col, row) to block tower placement; tiles are LocalOnly client-side visuals with per-instance rounded-corner materials (SDF shader with neighbor-based corner rounding via Material.createInstance); cleans up on LevelSelected and RestartGame
+    BlizzardSurgeService — subscribes to BlizzardFreeze event; temporarily boosts yeti enemies' speedFactor by x2 during intense blizzard bursts (6s duration), then reverts; only affects enemies with defId='yeti'
 
   Components/
     GameManager         — onStart prewarm, onUpdate tick, game start/end/restart
@@ -272,6 +273,8 @@ Restrictions (e.g. "no splash on arrow", "laser range max once") are enforced **
 | `tank` | Tank (Troll) | 220 | 0.75/s | 15g | `regenPerSec: 8` |
 | `boss` | Boss | 600 | 0.60/s | 50g | `slowImmune: true` |
 | `shaman` | Shaman | 45 | 1.75/s | 7g | — |
+| `yeti` | Yeti Berserker | 180 | 0.85/s | 12g | `blizzardSpeedBoost: 2`, `biomeExclusive: 'snow'` |
+| `frostGoblin` | Frost Goblin | 66 | 1.25/s | 5g | `biomeExclusive: 'snow'` (snow T1 grunt) |
 
 HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_SCALE_PER_WAVE = 0.15`. Last wave (W20, `waveIndex = 19`): ~3.85× base HP.
 

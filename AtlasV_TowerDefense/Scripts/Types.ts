@@ -109,6 +109,8 @@ export interface IEnemyDef {
   regenPerSec?: number;
   slowImmune?: boolean;
   shield?: number;
+  blizzardSpeedBoost?: number;
+  biomeExclusive?: string;
 }
 
 export interface IWaveGroup {
