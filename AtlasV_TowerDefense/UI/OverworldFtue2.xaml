@@ -1,0 +1,163 @@
+<Component xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+           xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+           xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+           xmlns:noesis="clr-namespace:NoesisGUIExtensions"
+           xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+           xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+           mc:Ignorable="d"
+           d:DesignWidth="1080" d:DesignHeight="1920">
+
+  <noesis:LayoutScaler ReferenceResolution="1080,1920">
+    <Grid>
+      <!-- Full-screen dark overlay (blocks interaction) -->
+      <Grid Background="#CC000000">
+        <Grid.Visibility>
+          <Binding Path="visible">
+            <Binding.Converter>
+              <BooleanToVisibilityConverter/>
+            </Binding.Converter>
+          </Binding>
+        </Grid.Visibility>
+      </Grid>
+
+      <!-- FTUE content panel (centered) -->
+      <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Margin="60,0,60,0">
+        <Grid.Visibility>
+          <Binding Path="visible">
+            <Binding.Converter>
+              <BooleanToVisibilityConverter/>
+            </Binding.Converter>
+          </Binding>
+        </Grid.Visibility>
+
+        <!-- Outer green glow border -->
+        <Border Background="Transparent"
+                BorderBrush="#5500ff44"
+                BorderThickness="14"
+                CornerRadius="32"
+                Margin="-10,-10,-10,-10"
+                IsHitTestVisible="False"/>
+
+        <!-- Main panel -->
+        <Border Background="#EE1a1a2e"
+                BorderBrush="#44cc44"
+                BorderThickness="5"
+                CornerRadius="24"
+                Padding="44,32,44,32"
+                MaxWidth="920">
+          <StackPanel HorizontalAlignment="Center">
+            <!-- Title with gold text + outline -->
+            <Grid HorizontalAlignment="Center" Margin="0,0,0,16">
+              <TextBlock Text="TIPS &amp; TRICKS" FontFamily="Anton"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="TIPS &amp; TRICKS" FontFamily="Anton"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="TIPS &amp; TRICKS" FontFamily="Anton"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="TIPS &amp; TRICKS" FontFamily="Anton"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0"
+                         HorizontalAlignment="Center"/>
+              <TextBlock Text="TIPS &amp; TRICKS" FontFamily="Anton"
+                         FontSize="60" FontWeight="Bold" Foreground="#f5c518"
+                         HorizontalAlignment="Center"/>
+            </Grid>
+
+            <!-- Step indicator (e.g. "1 / 4") -->
+            <TextBlock Text="{Binding Path=stepIndicator}" FontFamily="Almendra" FontSize="36"
+                       Foreground="#88ffffff"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,12"/>
+
+            <!-- Body text (current step message) -->
+            <TextBlock Text="{Binding Path=stepText}" FontFamily="Almendra" FontSize="46"
+                       Foreground="#dddddd"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap" TextAlignment="Center"
+                       Margin="0,0,0,28"
+                       MinHeight="120"/>
+
+            <!-- Next / Got it! button with breathing pulse animation -->
+            <Grid HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+              <Grid.RenderTransform>
+                <ScaleTransform x:Name="OwFtue2BtnScale" ScaleX="1" ScaleY="1"/>
+              </Grid.RenderTransform>
+              <Grid.Resources>
+                <Storyboard x:Key="OwFtue2PulseAnim" RepeatBehavior="Forever">
+                  <DoubleAnimation Storyboard.TargetName="OwFtue2BtnScale"
+                                   Storyboard.TargetProperty="ScaleX"
+                                   From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                  </DoubleAnimation>
+                  <DoubleAnimation Storyboard.TargetName="OwFtue2BtnScale"
+                                   Storyboard.TargetProperty="ScaleY"
+                                   From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                  </DoubleAnimation>
+                  <DoubleAnimation Storyboard.TargetName="OwFtue2Glow"
+                                   Storyboard.TargetProperty="Opacity"
+                                   From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                  </DoubleAnimation>
+                </Storyboard>
+                <Storyboard x:Key="OwFtue2PressAnim">
+                  <DoubleAnimationUsingKeyFrames Storyboard.TargetName="OwFtue2BtnScale" Storyboard.TargetProperty="ScaleX">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
+                      <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
+                    </EasingDoubleKeyFrame>
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                      <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
+                    </EasingDoubleKeyFrame>
+                  </DoubleAnimationUsingKeyFrames>
+                  <DoubleAnimationUsingKeyFrames Storyboard.TargetName="OwFtue2BtnScale" Storyboard.TargetProperty="ScaleY">
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
+                      <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
+                    </EasingDoubleKeyFrame>
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                      <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
+                    </EasingDoubleKeyFrame>
+                  </DoubleAnimationUsingKeyFrames>
+                </Storyboard>
+              </Grid.Resources>
+              <b:Interaction.Triggers>
+                <b:EventTrigger>
+                  <b:ControlStoryboardAction Storyboard="{StaticResource OwFtue2PulseAnim}"/>
+                </b:EventTrigger>
+                <b:EventTrigger EventName="MouseLeftButtonDown">
+                  <b:ControlStoryboardAction Storyboard="{StaticResource OwFtue2PressAnim}"/>
+                </b:EventTrigger>
+              </b:Interaction.Triggers>
+
+              <!-- Outer glow border (pulsing green shimmer) -->
+              <Border x:Name="OwFtue2Glow" Opacity="0"
+                      Background="Transparent"
+                      BorderBrush="#AA44cc44"
+                      BorderThickness="10"
+                      CornerRadius="24"
+                      Margin="-8,-8,-8,-8"
+                      IsHitTestVisible="False"/>
+
+              <Button Command="{Binding events.next}"
+                      HorizontalAlignment="Center"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      Padding="0"
+                      Margin="0,4,0,0">
+                <Border Background="#44cc44"
+                        CornerRadius="16"
+                        Padding="52,14,52,14">
+                  <TextBlock Text="{Binding Path=buttonText}" FontFamily="Anton"
+                             FontSize="52" FontWeight="Bold"
+                             Foreground="#1a1a2e"
+                             HorizontalAlignment="Center"/>
+                </Border>
+              </Button>
+            </Grid>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Grid>
+  </noesis:LayoutScaler>
+</Component>

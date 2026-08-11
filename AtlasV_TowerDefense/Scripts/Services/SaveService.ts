@@ -62,7 +62,7 @@ interface TdBiomeSave {
 // ── V2 save format (biome-aware) ────────────────────────────────────────────────
 interface TdSaveDataV2 {
   v: 2;
-  global: { sk: number; st: number[]; stc: Record<string, number>; ek: number; rg: number; ri: number; rv: number; tb: number; ts: number; pr: number; ge: number; ar: Record<string, number>; minigame_tutorial: number; volcano_tutorial: number; snow_tutorial: number };
+  global: { sk: number; st: number[]; stc: Record<string, number>; ek: number; rg: number; ri: number; rv: number; tb: number; ts: number; pr: number; ge: number; ar: Record<string, number>; minigame_tutorial: number; volcano_tutorial: number; snow_tutorial: number; ft: number; ft2: number; ft3: number; ft4: number };
   biomes: Record<string, TdBiomeSave>;
   activeBiome: string;
 }
@@ -82,7 +82,7 @@ function defaultBiomeSave(): TdBiomeSave {
 }
 
 function defaultSaveV2(): TdSaveDataV2 {
-  return { v: 2, global: { sk: 0, st: [], stc: {}, ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {}, minigame_tutorial: 0, volcano_tutorial: 0, snow_tutorial: 0 }, biomes: {}, activeBiome: 'grass' };
+  return { v: 2, global: { sk: 0, st: [], stc: {}, ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {}, minigame_tutorial: 0, volcano_tutorial: 0, snow_tutorial: 0, ft: 0, ft2: 0, ft3: 0, ft4: 0 }, biomes: {}, activeBiome: 'grass' };
 }
 
 @service()
@@ -201,6 +201,66 @@ export class SaveService extends Service {
     if (this._data.global.snow_tutorial === 1) return;
     this._data.global.snow_tutorial = 1;
     console.log('[SaveService] Snow FTUE marked as seen');
+    this._requestSave();
+  }
+
+  /** Whether the overworld FTUE (first_time) tutorial has been seen (persisted across sessions). */
+  getOverworldFtueSeen(): boolean {
+    return (this._data.global.ft ?? 0) === 1;
+  }
+
+  /** Mark the overworld FTUE tutorial as seen and persist. Client-only. */
+  markOverworldFtueSeen(): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    if (this._data.global.ft === 1) return;
+    this._data.global.ft = 1;
+    console.log('[SaveService] Overworld FTUE marked as seen');
+    this._requestSave();
+  }
+
+  /** Whether the second overworld FTUE (post-level-0) has been seen (persisted across sessions). */
+  getOverworldFtue2Seen(): boolean {
+    return (this._data.global.ft2 ?? 0) === 1;
+  }
+
+  /** Mark the second overworld FTUE as seen and persist. Client-only. */
+  markOverworldFtue2Seen(): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    if (this._data.global.ft2 === 1) return;
+    this._data.global.ft2 = 1;
+    console.log('[SaveService] Overworld FTUE2 marked as seen');
+    this._requestSave();
+  }
+
+  /** Whether the third overworld FTUE (achievement rewards) has been seen (persisted across sessions). */
+  getOverworldFtue3Seen(): boolean {
+    return (this._data.global.ft3 ?? 0) === 1;
+  }
+
+  /** Mark the third overworld FTUE as seen and persist. Client-only. */
+  markOverworldFtue3Seen(): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    if (this._data.global.ft3 === 1) return;
+    this._data.global.ft3 = 1;
+    console.log('[SaveService] Overworld FTUE3 marked as seen');
+    this._requestSave();
+  }
+
+  /** Whether the fourth overworld FTUE (new run / difficulty) has been seen (persisted across sessions). */
+  getOverworldFtue4Seen(): boolean {
+    return (this._data.global.ft4 ?? 0) === 1;
+  }
+
+  /** Mark the fourth overworld FTUE as seen and persist. Client-only. */
+  markOverworldFtue4Seen(): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    if (this._data.global.ft4 === 1) return;
+    this._data.global.ft4 = 1;
+    console.log('[SaveService] Overworld FTUE4 marked as seen');
     this._requestSave();
   }
 
@@ -717,7 +777,7 @@ export class SaveService extends Service {
   }
 
   private _parseV2(raw: Record<string, unknown>): TdSaveDataV2 {
-    const global = raw['global'] as { sk?: number; st?: number[]; stc?: Record<string, number>; ek?: number; rg?: number; ri?: number; rv?: number; tb?: number; ts?: number; pr?: number; ge?: number; ar?: Record<string, number>; minigame_tutorial?: number; mf?: number; vf?: number; volcano_tutorial?: number; snow_tutorial?: number } | undefined;
+    const global = raw['global'] as { sk?: number; st?: number[]; stc?: Record<string, number>; ek?: number; rg?: number; ri?: number; rv?: number; tb?: number; ts?: number; pr?: number; ge?: number; ar?: Record<string, number>; minigame_tutorial?: number; mf?: number; vf?: number; volcano_tutorial?: number; snow_tutorial?: number; ft?: number; ft2?: number; ft3?: number; ft4?: number } | undefined;
     const biomes = raw['biomes'] as Record<string, Partial<TdBiomeSave>> | undefined;
     const activeBiome = typeof raw['activeBiome'] === 'string' ? raw['activeBiome'] : 'grass';
 
@@ -739,6 +799,10 @@ export class SaveService extends Service {
         minigame_tutorial: typeof global?.minigame_tutorial === 'number' ? global.minigame_tutorial : (typeof global?.mf === 'number' ? global.mf : 0),
         volcano_tutorial: typeof global?.volcano_tutorial === 'number' ? global.volcano_tutorial : (typeof global?.vf === 'number' ? global.vf : 0),
         snow_tutorial: typeof global?.snow_tutorial === 'number' ? global.snow_tutorial : 0,
+        ft: typeof global?.ft === 'number' ? global.ft : 0,
+        ft2: typeof global?.ft2 === 'number' ? global.ft2 : 0,
+        ft3: typeof global?.ft3 === 'number' ? global.ft3 : 0,
+        ft4: typeof global?.ft4 === 'number' ? global.ft4 : 0,
       },
       biomes: {},
       activeBiome,
@@ -789,6 +853,10 @@ export class SaveService extends Service {
         minigame_tutorial: 0,
         volcano_tutorial: 0,
         snow_tutorial: 0,
+        ft: 0,
+        ft2: 0,
+        ft3: 0,
+        ft4: 0,
       },
       biomes: { grass: grassBiome },
       activeBiome: 'grass',

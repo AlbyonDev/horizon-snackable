@@ -502,7 +502,7 @@
                 <RowDefinition Height="0"/>
             </Grid.RowDefinitions>
 
-            <!-- Header bar: Relics (left, clickable) | Run (center) | Levels Beaten (right) -->
+            <!-- Header bar: REWARD | SKULLS | SKILL TREE (3 equal buttons) -->
             <Grid Grid.Row="1" VerticalAlignment="Top" Height="280">
                 <!-- Dark wood gradient background matching GameHud style -->
                 <Border CornerRadius="0,0,40,40">
@@ -516,64 +516,23 @@
                     <Border BorderThickness="0,0,0,6" BorderBrush="#553B14" CornerRadius="0,0,40,40"/>
                 </Border>
 
-                <!-- Content: Three sections -->
+                <!-- Content: Three equal sections -->
                 <Grid Margin="60,36,60,36">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- LEFT SECTION: Achievements (trophy button)
-                         STANDARD BUTTON ANIMATION: All clickable buttons in this project should
-                         reuse the same animation style as this Trophies button. Copy this pattern
-                         for any new button: wrapper Grid with ScaleTransform + named glow Border,
-                         Storyboard (RepeatBehavior="Forever") animating ScaleX/ScaleY 1.0→1.06
-                         and glow Opacity 0.0→1.0, Duration 0:0:0.9, SineEase EaseInOut,
-                         AutoReverse="True". Auto-play via b:EventTrigger > ControlStoryboardAction. -->
-                    <!--
-                        STANDARD BUTTON ANIMATION: All clickable buttons in this project
-                        should reuse the same animation style as this Trophies button.
-                        Copy this pattern for any new button:
-                        - Wrapper Grid with RenderTransformOrigin="0.5,0.5", ClipToBounds="False"
-                        - Named ScaleTransform on Grid.RenderTransform
-                        - Storyboard: ScaleX/Y 1.0→1.06, Duration 0:0:0.9, SineEase EaseInOut, AutoReverse
-                        - Gold glow Border: Opacity 0→1, BorderBrush="#AAf5c518", BorderThickness="10"
-                        - Auto-play via b:EventTrigger > b:ControlStoryboardAction
-                    -->
-                    <!--
-                        STANDARD BUTTON ANIMATION: All clickable buttons in this project
-                        should reuse the same animation style as this Trophies button.
-                        Copy this pattern for any new button:
-                          - Grid wrapper with RenderTransformOrigin="0.5,0.5", ClipToBounds="False"
-                          - Named ScaleTransform on Grid.RenderTransform
-                          - Storyboard (RepeatBehavior="Forever") with DoubleAnimation:
-                              ScaleX/ScaleY 1.0→1.06, Duration 0:0:0.9, AutoReverse=True, SineEase EaseInOut
-                              Glow Border Opacity 0.0→1.0, same timing
-                          - Outer glow Border (Opacity="0", BorderBrush="#AAf5c518",
-                            BorderThickness="10", CornerRadius="24", Margin="-8,-8,-8,-8")
-                          - Auto-play via b:EventTrigger + b:ControlStoryboardAction
-                    -->
-                    <Grid Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                    <!-- LEFT: REWARD button (opens Achievements) -->
+                    <Grid Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Center"
                           RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
                         <Grid.RenderTransform><ScaleTransform x:Name="AchievementScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
                         <Grid.Resources>
                             <Storyboard x:Key="AchievementPulseAnim" RepeatBehavior="Forever">
-                                <DoubleAnimation Storyboard.TargetName="AchievementScaleTransform"
-                                                 Storyboard.TargetProperty="ScaleX"
-                                                 From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
-                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
-                                </DoubleAnimation>
-                                <DoubleAnimation Storyboard.TargetName="AchievementScaleTransform"
-                                                 Storyboard.TargetProperty="ScaleY"
-                                                 From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
-                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
-                                </DoubleAnimation>
-                                <DoubleAnimation Storyboard.TargetName="AchievementGlowBorder"
-                                                 Storyboard.TargetProperty="Opacity"
-                                                 From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
-                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
-                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="AchievementScaleTransform" Storyboard.TargetProperty="ScaleX" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="AchievementScaleTransform" Storyboard.TargetProperty="ScaleY" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="AchievementGlowBorder" Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
                             </Storyboard>
                             <Storyboard x:Key="AchievementPressAnim">
                                 <DoubleAnimationUsingKeyFrames Storyboard.TargetName="AchievementScaleTransform" Storyboard.TargetProperty="ScaleX">
@@ -587,122 +546,55 @@
                             </Storyboard>
                         </Grid.Resources>
                         <b:Interaction.Triggers>
-                            <b:EventTrigger>
-                                <b:ControlStoryboardAction Storyboard="{StaticResource AchievementPulseAnim}"/>
-                            </b:EventTrigger>
-                            <b:EventTrigger EventName="MouseLeftButtonDown">
-                                <b:ControlStoryboardAction Storyboard="{StaticResource AchievementPressAnim}"/>
-                            </b:EventTrigger>
+                            <b:EventTrigger><b:ControlStoryboardAction Storyboard="{StaticResource AchievementPulseAnim}"/></b:EventTrigger>
+                            <b:EventTrigger EventName="MouseLeftButtonDown"><b:ControlStoryboardAction Storyboard="{StaticResource AchievementPressAnim}"/></b:EventTrigger>
                         </b:Interaction.Triggers>
-
-                        <!-- Outer glow border -->
-                        <Border x:Name="AchievementGlowBorder" Opacity="0"
-                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                Background="Transparent"
-                                BorderBrush="#AAf5c518"
-                                BorderThickness="10"
-                                CornerRadius="24"
-                                Margin="-8,-8,-8,-8"/>
-
-                        <!-- Main ACHIEVEMENTS border -->
-                        <Border Background="#CC1a1a2e"
-                                BorderBrush="{StaticResource GoldBrush}"
-                                BorderThickness="5"
-                                CornerRadius="18">
-                        <b:Interaction.Triggers>
-                            <b:EventTrigger EventName="MouseLeftButtonUp">
-                                <b:InvokeCommandAction Command="{Binding events.achievementTap}" CommandParameter="open"/>
-                            </b:EventTrigger>
-                        </b:Interaction.Triggers>
-                        <Grid>
-                            <!-- Corner Ornaments -->
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
-                            <!-- Trophy icon + TROPHIES label -->
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="44,22,72,22">
-                                <!-- Trophy icon -->
-                                <Viewbox Width="96" Height="96" Margin="0,0,16,0">
-                                    <Grid Width="24" Height="24">
-                                        <Path Fill="#f5c518" Data="M5 3 L5 8 C5 11 8 14 12 14 C16 14 19 11 19 8 L19 3 Z"/>
-                                        <Path Fill="#c9a000" Data="M3 3 L3 7 C3 8 4 8 5 8 L5 3 Z M19 3 L19 8 C20 8 21 8 21 7 L21 3 Z"/>
-                                        <Path Fill="#f5c518" Data="M10 14 L10 17 L8 18 L8 20 L16 20 L16 18 L14 17 L14 14 Z"/>
-                                        <Path Fill="#c9a000" Data="M7 20 L17 20 L17 22 L7 22 Z"/>
+                        <Border x:Name="AchievementGlowBorder" Opacity="0" Background="Transparent" BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="24" Margin="-8,-8,-8,-8"/>
+                        <Border Background="#CC1a1a2e" BorderBrush="{StaticResource GoldBrush}" BorderThickness="5" CornerRadius="18">
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="MouseLeftButtonUp">
+                                    <b:InvokeCommandAction Command="{Binding events.achievementTap}" CommandParameter="open"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Grid>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="44,22,44,22">
+                                    <Viewbox Width="80" Height="80" Margin="0,0,14,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="#f5c518" Data="M5 3 L5 8 C5 11 8 14 12 14 C16 14 19 11 19 8 L19 3 Z"/>
+                                            <Path Fill="#c9a000" Data="M3 3 L3 7 C3 8 4 8 5 8 L5 3 Z M19 3 L19 8 C20 8 21 8 21 7 L21 3 Z"/>
+                                            <Path Fill="#f5c518" Data="M10 14 L10 17 L8 18 L8 20 L16 20 L16 18 L14 17 L14 14 Z"/>
+                                            <Path Fill="#c9a000" Data="M7 20 L17 20 L17 22 L7 22 Z"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <Grid VerticalAlignment="Center">
+                                        <TextBlock Text="REWARDS" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="REWARDS" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="REWARDS" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
+                                        <TextBlock Text="REWARDS" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
+                                        <TextBlock Text="REWARDS" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
                                     </Grid>
-                                </Viewbox>
-                                <!-- TROPHIES label with outline -->
-                                <Grid VerticalAlignment="Center">
-                                    <TextBlock Text="TROPHIES" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                    <TextBlock Text="TROPHIES" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                    <TextBlock Text="TROPHIES" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
-                                    <TextBlock Text="TROPHIES" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
-                                    <TextBlock Text="TROPHIES" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
-                                </Grid>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
                     </Grid>
 
-                    <!-- CENTER SECTION: Run count -->
-                    <Border Grid.Column="1"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Background="#CC1a1a2e"
-                            BorderBrush="{StaticResource GoldBrush}"
-                            BorderThickness="5"
-                            CornerRadius="18"
-                            IsHitTestVisible="False">
-                        <Grid>
-                            <!-- Corner Ornaments (inside with 8px breathing room) -->
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
-                            <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
-                            <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
-                            <!-- Run label with outline -->
-                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="40,14,40,14">
-                                <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="80" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
-                            </Grid>
-                        </Grid>
-                    </Border>
-
-                    <!-- RIGHT SECTION: Skull currency (metaprogression) with pulsing glow -->
-                    <!-- CONVENTION: All clickable interactive elements in the overworld should have this
-                         pulsing glow animation (breathing scale + gold border opacity pulse) to signal interactivity. -->
-                    <Grid Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center"
+                    <!-- CENTER: SKULLS button (shows skull info popup) -->
+                    <Grid Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
                           RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
                         <Grid.RenderTransform><ScaleTransform x:Name="SkullScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
                         <Grid.Resources>
                             <Storyboard x:Key="SkullPulseAnim" RepeatBehavior="Forever">
-                                <!-- Breathing scale 1.0 → 1.06 → 1.0 over 1.8s -->
-                                <DoubleAnimation Storyboard.TargetName="SkullScaleTransform"
-                                                 Storyboard.TargetProperty="ScaleX"
-                                                 From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
-                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
-                                </DoubleAnimation>
-                                <DoubleAnimation Storyboard.TargetName="SkullScaleTransform"
-                                                 Storyboard.TargetProperty="ScaleY"
-                                                 From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
-                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
-                                </DoubleAnimation>
-                                <!-- Glow opacity pulse 0.0 → 1.0 → 0.0 over 1.8s -->
-                                <DoubleAnimation Storyboard.TargetName="SkullGlowBorder"
-                                                 Storyboard.TargetProperty="Opacity"
-                                                 From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
-                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
-                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="SkullScaleTransform" Storyboard.TargetProperty="ScaleX" From="1.0" To="1.03" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="SkullScaleTransform" Storyboard.TargetProperty="ScaleY" From="1.0" To="1.03" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="SkullGlowBorder" Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
                             </Storyboard>
                             <Storyboard x:Key="SkullPressAnim">
                                 <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkullScaleTransform" Storyboard.TargetProperty="ScaleX">
@@ -715,37 +607,18 @@
                                 </DoubleAnimationUsingKeyFrames>
                             </Storyboard>
                         </Grid.Resources>
-                        <!-- Auto-play pulse animation on load (skulls are always tappable) -->
                         <b:Interaction.Triggers>
-                            <b:EventTrigger>
-                                <b:ControlStoryboardAction Storyboard="{StaticResource SkullPulseAnim}"/>
-                            </b:EventTrigger>
-                            <b:EventTrigger EventName="MouseLeftButtonDown">
-                                <b:ControlStoryboardAction Storyboard="{StaticResource SkullPressAnim}"/>
-                            </b:EventTrigger>
+                            <b:EventTrigger><b:ControlStoryboardAction Storyboard="{StaticResource SkullPulseAnim}"/></b:EventTrigger>
+                            <b:EventTrigger EventName="MouseLeftButtonDown"><b:ControlStoryboardAction Storyboard="{StaticResource SkullPressAnim}"/></b:EventTrigger>
                         </b:Interaction.Triggers>
-
-                        <!-- Outer glow border (pulsing golden shimmer behind the main border) -->
-                        <Border x:Name="SkullGlowBorder" Opacity="0"
-                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                Background="Transparent"
-                                BorderBrush="#AAf5c518"
-                                BorderThickness="10"
-                                CornerRadius="24"
-                                Margin="-8,-8,-8,-8"/>
-
-                        <!-- Main SKULLS border -->
-                        <Border Background="#CC1a1a2e"
-                                BorderBrush="{StaticResource GoldBrush}"
-                                BorderThickness="5"
-                                CornerRadius="18">
+                        <Border x:Name="SkullGlowBorder" Opacity="0" Background="Transparent" BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="24" Margin="-8,-8,-8,-8"/>
+                        <Border Background="#CC1a1a2e" BorderBrush="{StaticResource GoldBrush}" BorderThickness="5" CornerRadius="18">
                             <b:Interaction.Triggers>
                                 <b:EventTrigger EventName="MouseLeftButtonUp">
                                     <b:InvokeCommandAction Command="{Binding events.skullSectionTap}" CommandParameter="open"/>
                                 </b:EventTrigger>
                             </b:Interaction.Triggers>
                             <Grid>
-                                <!-- Corner Ornaments -->
                                 <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
                                 <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
                                 <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
@@ -754,38 +627,87 @@
                                 <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
                                 <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
                                 <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
-                                <!-- Skull icon + count -->
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="44,22,44,22">
-                                    <!-- Skull icon (SVG-style paths) -->
-                                    <Viewbox Width="96" Height="96" Margin="0,0,16,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="44,22,44,22">
+                                    <Viewbox Width="80" Height="80" Margin="0,0,14,0">
                                         <Grid Width="24" Height="24">
-                                            <!-- Skull dome -->
                                             <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
-                                            <!-- Left eye socket -->
                                             <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
-                                            <!-- Right eye socket -->
                                             <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
-                                            <!-- Nose -->
                                             <Path Fill="#1A1A2E" Data="M11 14 L12 16 L13 14 Z"/>
-                                            <!-- Teeth -->
-                                            <Path Fill="#1A1A2E" Data="M9 18 L9 20 M11 18 L11 20 M13 18 L13 20 M15 18 L15 20" StrokeThickness="0.8" Stroke="#1A1A2E"/>
                                         </Grid>
                                     </Viewbox>
-                                    <!-- SKULLS label with outline -->
-                                    <Grid VerticalAlignment="Center" Margin="0,0,16,0">
-                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
-                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
-                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                                    <Grid VerticalAlignment="Center" Margin="0,0,14,0">
+                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
+                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
+                                        <TextBlock Text="SKULLS" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
                                     </Grid>
-                                    <!-- Count with outline -->
                                     <Grid VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0"/>
-                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0"/>
-                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0"/>
-                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0"/>
-                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
+                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="{Binding skullCount, StringFormat=F0}" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- RIGHT: SKILL TREE button (opens skill tree overlay) -->
+                    <Grid Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                          RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                        <Grid.RenderTransform><ScaleTransform x:Name="SkillTreeScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                        <Grid.Resources>
+                            <Storyboard x:Key="SkillTreePulseAnim" RepeatBehavior="Forever">
+                                <DoubleAnimation Storyboard.TargetName="SkillTreeScaleTransform" Storyboard.TargetProperty="ScaleX" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="SkillTreeScaleTransform" Storyboard.TargetProperty="ScaleY" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="SkillTreeGlowBorder" Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            </Storyboard>
+                            <Storyboard x:Key="SkillTreePressAnim">
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkillTreeScaleTransform" Storyboard.TargetProperty="ScaleX">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkillTreeScaleTransform" Storyboard.TargetProperty="ScaleY">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </Grid.Resources>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger><b:ControlStoryboardAction Storyboard="{StaticResource SkillTreePulseAnim}"/></b:EventTrigger>
+                            <b:EventTrigger EventName="MouseLeftButtonDown"><b:ControlStoryboardAction Storyboard="{StaticResource SkillTreePressAnim}"/></b:EventTrigger>
+                        </b:Interaction.Triggers>
+                        <Border x:Name="SkillTreeGlowBorder" Opacity="0" Background="Transparent" BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="24" Margin="-8,-8,-8,-8"/>
+                        <Border Background="#CC1a1a2e" BorderBrush="{StaticResource GoldBrush}" BorderThickness="5" CornerRadius="18">
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="MouseLeftButtonUp">
+                                    <b:InvokeCommandAction Command="{Binding events.skillTreeButtonTap}" CommandParameter="open"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Grid>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="44,22,44,22">
+                                    <!-- Tree icon -->
+                                    <Viewbox Width="80" Height="80" Margin="0,0,14,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="#f5c518" Data="M12 2 L8 8 L10 8 L6 14 L9 14 L5 20 L19 20 L15 14 L18 14 L14 8 L16 8 Z"/>
+                                            <Rectangle Width="4" Height="4" Fill="#c9a000" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <Grid VerticalAlignment="Center">
+                                        <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
+                                        <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
+                                        <TextBlock Text="SKILL TREE" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
                                     </Grid>
                                 </StackPanel>
                             </Grid>
@@ -835,8 +757,8 @@
                 </Canvas>
             </ScrollViewer>
 
-            <!-- Bottom header bar: Next Level indicator (flush against bottom edge) -->
-            <Grid Grid.Row="5" VerticalAlignment="Bottom" Height="220">
+            <!-- Bottom header bar: Relics (left) | Next Level (center) | Run (right) -->
+            <Grid Grid.Row="5" VerticalAlignment="Bottom" Height="280">
                 <!-- Dark wood gradient background (flipped: darker at top) with top gold border -->
                 <Border CornerRadius="40,40,0,0">
                     <Border.Background>
@@ -864,6 +786,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Relics button: ANIMATED version (visible when relicPulseActive=True) -->
@@ -931,30 +854,40 @@
                         <!-- Main RELICS border -->
                         <Border Background="#CC1a1a2e"
                                 BorderBrush="{StaticResource GoldBrush}"
-                                BorderThickness="4" CornerRadius="16" Padding="20,10,20,10">
+                                BorderThickness="4" CornerRadius="16" Padding="24,10,24,10">
                             <b:Interaction.Triggers>
                                 <b:EventTrigger EventName="MouseLeftButtonUp">
                                     <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="open"/>
                                 </b:EventTrigger>
                             </b:Interaction.Triggers>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Viewbox Width="72" Height="72" Margin="0,0,12,0">
-                                    <Grid Width="24" Height="24">
-                                        <Path Fill="#9b59b6" Data="M12 1 L7 4 L5 10 L7 18 L12 23 L17 18 L19 10 L17 4 Z"/>
-                                        <Path Fill="#c39bd3" Data="M12 3 L9 5 L8 10 L12 14 L16 10 L15 5 Z" Opacity="0.7"/>
+                            <Grid>
+                                <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6,6,0,0"/>
+                                <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
+                                <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,6,0"/>
+                                <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                                <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,6"/>
+                                <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
+                                <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,6,6"/>
+                                <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="28,8,28,8">
+                                    <Viewbox Width="72" Height="72" Margin="0,0,12,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="#9b59b6" Data="M12 1 L7 4 L5 10 L7 18 L12 23 L17 18 L19 10 L17 4 Z"/>
+                                            <Path Fill="#c39bd3" Data="M12 3 L9 5 L8 10 L12 14 L16 10 L15 5 Z" Opacity="0.7"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <Grid VerticalAlignment="Center">
+                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
                                     </Grid>
-                                </Viewbox>
-                                <Grid VerticalAlignment="Center">
-                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
-                                </Grid>
-                                <Grid VerticalAlignment="Center" Margin="12,0,0,0">
-                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
-                                </Grid>
-                            </StackPanel>
+                                    <Grid VerticalAlignment="Center" Margin="12,0,0,0">
+                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
                         </Border>
                     </Grid>
 
@@ -975,30 +908,40 @@
                         <!-- Main RELICS border (no animation, no glow) -->
                         <Border Background="#CC1a1a2e"
                                 BorderBrush="{StaticResource GoldBrush}"
-                                BorderThickness="4" CornerRadius="16" Padding="20,10,20,10">
+                                BorderThickness="4" CornerRadius="16" Padding="24,10,24,10">
                             <b:Interaction.Triggers>
                                 <b:EventTrigger EventName="MouseLeftButtonUp">
                                     <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="open"/>
                                 </b:EventTrigger>
                             </b:Interaction.Triggers>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Viewbox Width="72" Height="72" Margin="0,0,12,0">
-                                    <Grid Width="24" Height="24">
-                                        <Path Fill="#9b59b6" Data="M12 1 L7 4 L5 10 L7 18 L12 23 L17 18 L19 10 L17 4 Z"/>
-                                        <Path Fill="#c39bd3" Data="M12 3 L9 5 L8 10 L12 14 L16 10 L15 5 Z" Opacity="0.7"/>
+                            <Grid>
+                                <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6,6,0,0"/>
+                                <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
+                                <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,6,0"/>
+                                <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                                <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,6"/>
+                                <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
+                                <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,6,6"/>
+                                <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="28,8,28,8">
+                                    <Viewbox Width="72" Height="72" Margin="0,0,12,0">
+                                        <Grid Width="24" Height="24">
+                                            <Path Fill="#9b59b6" Data="M12 1 L7 4 L5 10 L7 18 L12 23 L17 18 L19 10 L17 4 Z"/>
+                                            <Path Fill="#c39bd3" Data="M12 3 L9 5 L8 10 L12 14 L16 10 L15 5 Z" Opacity="0.7"/>
+                                        </Grid>
+                                    </Viewbox>
+                                    <Grid VerticalAlignment="Center">
+                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
                                     </Grid>
-                                </Viewbox>
-                                <Grid VerticalAlignment="Center">
-                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                    <TextBlock Text="RELICS" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
-                                </Grid>
-                                <Grid VerticalAlignment="Center" Margin="12,0,0,0">
-                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
-                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
-                                    <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
-                                </Grid>
-                            </StackPanel>
+                                    <Grid VerticalAlignment="Center" Margin="12,0,0,0">
+                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="{Binding relicCount, StringFormat=F0}" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
                         </Border>
                     </Grid>
 
@@ -1028,6 +971,30 @@
                             <TextBlock Text="{Binding levelsBeatenText}" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
                         </Grid>
                     </StackPanel>
+
+                    <!-- RIGHT: Run label -->
+                    <Border Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Background="#CC1a1a2e" BorderBrush="{StaticResource GoldBrush}"
+                            BorderThickness="4" CornerRadius="16" Padding="24,10,24,10"
+                            IsHitTestVisible="False">
+                        <Grid>
+                            <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6,6,0,0"/>
+                            <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
+                            <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,6,0"/>
+                            <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                            <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,6"/>
+                            <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
+                            <Ellipse Width="14" Height="14" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,6,6"/>
+                            <Ellipse Width="10" Height="10" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="28,8,28,8">
+                                <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="-3,0,0,0"/>
+                                <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="3,0,0,0"/>
+                                <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,-3,0,0"/>
+                                <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                                <TextBlock Text="{Binding runLabel}" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Grid>
         </Grid>
@@ -1762,6 +1729,259 @@
                                    Foreground="{StaticResource GoldBrush}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Skull Info Popup Overlay (fullscreen) -->
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid.Visibility>
+                <Binding Path="skullInfoPopupVisible">
+                    <Binding.Converter>
+                        <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                </Binding>
+            </Grid.Visibility>
+
+            <!-- Dimmed background (tap to close) -->
+            <Border Background="#CC000000">
+                <b:Interaction.Triggers>
+                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                        <b:InvokeCommandAction Command="{Binding events.skullInfoCloseTap}" CommandParameter="close"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+            </Border>
+
+            <!-- Centered panel -->
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Width="1200" CornerRadius="28" BorderThickness="6"
+                    BorderBrush="{StaticResource GoldBrush}" Padding="48,40">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FF2A1A0A" Offset="0"/>
+                        <GradientStop Color="#FF1A1008" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel HorizontalAlignment="Center">
+                    <!-- Skull icon -->
+                    <Viewbox Width="120" Height="120" HorizontalAlignment="Center" Margin="0,0,0,24">
+                        <Grid Width="24" Height="24">
+                            <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                            <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                            <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                            <Path Fill="#1A1A2E" Data="M11 14 L12 16 L13 14 Z"/>
+                            <Path Fill="#1A1A2E" Data="M9 18 L9 20 M11 18 L11 20 M13 18 L13 20 M15 18 L15 20" StrokeThickness="0.8" Stroke="#1A1A2E"/>
+                        </Grid>
+                    </Viewbox>
+
+                    <!-- HOW TO EARN SKULLS title -->
+                    <Grid HorizontalAlignment="Center" Margin="0,0,0,20">
+                        <TextBlock Text="HOW TO EARN SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="-3,0,0,0"/>
+                        <TextBlock Text="HOW TO EARN SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="3,0,0,0"/>
+                        <TextBlock Text="HOW TO EARN SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,-3,0,0"/>
+                        <TextBlock Text="HOW TO EARN SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        <TextBlock Text="HOW TO EARN SKULLS" FontFamily="Anton" FontSize="72" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Separator -->
+                    <Border Height="3" Background="{StaticResource GoldBrush}" Margin="40,0,40,28" Opacity="0.5"/>
+
+                    <!-- Combat win row -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
+                        <Viewbox Width="64" Height="64" Margin="0,0,16,0">
+                            <Grid Width="24" Height="24">
+                                <Path Fill="#E8E8E8" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                            </Grid>
+                        </Viewbox>
+                        <Grid VerticalAlignment="Center">
+                            <TextBlock Text="Defeat bosses" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                            <TextBlock Text="Defeat bosses" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                            <TextBlock Text="Defeat bosses" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="{StaticResource ParchmentBrush}"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Boss win row -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
+                        <Viewbox Width="64" Height="64" Margin="0,0,16,0">
+                            <Grid Width="24" Height="24">
+                                <Path Fill="#f5c518" Data="M12 2 C7 2 3 6 3 11 C3 14 4 16 6 17 L6 20 C6 21 7 22 8 22 L16 22 C17 22 18 21 18 20 L18 17 C20 16 21 14 21 11 C21 6 17 2 12 2 Z"/>
+                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,6,2"/>
+                                <Ellipse Width="4" Height="5" Fill="#1A1A2E" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,0,0,2"/>
+                            </Grid>
+                        </Viewbox>
+                        <Grid VerticalAlignment="Center">
+                            <TextBlock Text="Claim Rewards" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                            <TextBlock Text="Claim Rewards" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                            <TextBlock Text="Claim Rewards" FontFamily="Anton" FontSize="60" FontWeight="Bold" Foreground="{StaticResource ParchmentBrush}"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Separator -->
+                    <Border Height="3" Background="{StaticResource GoldBrush}" Margin="40,8,40,28" Opacity="0.5"/>
+
+                    <!-- Spend hint -->
+                    <TextBlock Text="Spend Skulls in the Skill Tree to unlock upgrades and new biomes!"
+                               FontFamily="Almendra" FontSize="52" Foreground="{StaticResource ParchmentBrush}"
+                               HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
+                               Margin="24,0,24,32"/>
+
+                    <!-- Row 1: Go to Rewards | Go to Skill Tree (side by side) -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,24">
+                        <!-- Go to Rewards button -->
+                        <Grid RenderTransformOrigin="0.5,0.5" ClipToBounds="False" Margin="0,0,16,0">
+                            <Grid.RenderTransform><ScaleTransform x:Name="SkullInfoRewardsScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                            <Grid.Resources>
+                                <Storyboard x:Key="SkullInfoRewardsPulseAnim" RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="SkullInfoRewardsScaleTransform" Storyboard.TargetProperty="ScaleX" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="SkullInfoRewardsScaleTransform" Storyboard.TargetProperty="ScaleY" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="SkullInfoRewardsGlowBorder" Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                </Storyboard>
+                                <Storyboard x:Key="SkullInfoRewardsPressAnim">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkullInfoRewardsScaleTransform" Storyboard.TargetProperty="ScaleX">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkullInfoRewardsScaleTransform" Storyboard.TargetProperty="ScaleY">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </Grid.Resources>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger><b:ControlStoryboardAction Storyboard="{StaticResource SkullInfoRewardsPulseAnim}"/></b:EventTrigger>
+                                <b:EventTrigger EventName="MouseLeftButtonDown"><b:ControlStoryboardAction Storyboard="{StaticResource SkullInfoRewardsPressAnim}"/></b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Border x:Name="SkullInfoRewardsGlowBorder" Opacity="0" Background="Transparent" BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="24" Margin="-8,-8,-8,-8"/>
+                            <Border Background="#CC1a1a2e" BorderBrush="{StaticResource GoldBrush}" BorderThickness="5" CornerRadius="18">
+                                <b:Interaction.Triggers>
+                                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                                        <b:InvokeCommandAction Command="{Binding events.skullInfoRewardsTap}" CommandParameter="rewards"/>
+                                    </b:EventTrigger>
+                                </b:Interaction.Triggers>
+                                <Grid>
+                                    <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
+                                    <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
+                                    <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                                    <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
+                                    <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
+                                    <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
+                                    <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                                    <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
+                                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="44,20,44,20">
+                                        <TextBlock Text="Go to Rewards" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="Go to Rewards" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="Go to Rewards" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
+                                        <TextBlock Text="Go to Rewards" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
+                                        <TextBlock Text="Go to Rewards" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <!-- Go to Skill Tree button -->
+                        <Grid RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                            <Grid.RenderTransform><ScaleTransform x:Name="SkullInfoSkillTreeScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                            <Grid.Resources>
+                                <Storyboard x:Key="SkullInfoSkillTreePulseAnim" RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="SkullInfoSkillTreeScaleTransform" Storyboard.TargetProperty="ScaleX" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="SkullInfoSkillTreeScaleTransform" Storyboard.TargetProperty="ScaleY" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="SkullInfoSkillTreeGlowBorder" Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                </Storyboard>
+                                <Storyboard x:Key="SkullInfoSkillTreePressAnim">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkullInfoSkillTreeScaleTransform" Storyboard.TargetProperty="ScaleX">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkullInfoSkillTreeScaleTransform" Storyboard.TargetProperty="ScaleY">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </Grid.Resources>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger><b:ControlStoryboardAction Storyboard="{StaticResource SkullInfoSkillTreePulseAnim}"/></b:EventTrigger>
+                                <b:EventTrigger EventName="MouseLeftButtonDown"><b:ControlStoryboardAction Storyboard="{StaticResource SkullInfoSkillTreePressAnim}"/></b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Border x:Name="SkullInfoSkillTreeGlowBorder" Opacity="0" Background="Transparent" BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="24" Margin="-8,-8,-8,-8"/>
+                            <Border Background="#CC1a1a2e" BorderBrush="{StaticResource GoldBrush}" BorderThickness="5" CornerRadius="18">
+                                <b:Interaction.Triggers>
+                                    <b:EventTrigger EventName="MouseLeftButtonUp">
+                                        <b:InvokeCommandAction Command="{Binding events.skullInfoSkillTreeTap}" CommandParameter="skilltree"/>
+                                    </b:EventTrigger>
+                                </b:Interaction.Triggers>
+                                <Grid>
+                                    <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
+                                    <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
+                                    <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                                    <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
+                                    <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
+                                    <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
+                                    <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                                    <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
+                                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="44,20,44,20">
+                                        <TextBlock Text="Go to Skill Tree" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                        <TextBlock Text="Go to Skill Tree" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                        <TextBlock Text="Go to Skill Tree" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
+                                        <TextBlock Text="Go to Skill Tree" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
+                                        <TextBlock Text="Go to Skill Tree" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Row 2: Close button (centered below) -->
+                    <Grid RenderTransformOrigin="0.5,0.5" ClipToBounds="False" HorizontalAlignment="Center">
+                        <Grid.RenderTransform><ScaleTransform x:Name="SkullInfoCloseScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                        <Grid.Resources>
+                            <Storyboard x:Key="SkullInfoClosePulseAnim" RepeatBehavior="Forever">
+                                <DoubleAnimation Storyboard.TargetName="SkullInfoCloseScaleTransform" Storyboard.TargetProperty="ScaleX" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="SkullInfoCloseScaleTransform" Storyboard.TargetProperty="ScaleY" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="SkullInfoCloseGlowBorder" Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            </Storyboard>
+                            <Storyboard x:Key="SkullInfoClosePressAnim">
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkullInfoCloseScaleTransform" Storyboard.TargetProperty="ScaleX">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkullInfoCloseScaleTransform" Storyboard.TargetProperty="ScaleY">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </Grid.Resources>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger><b:ControlStoryboardAction Storyboard="{StaticResource SkullInfoClosePulseAnim}"/></b:EventTrigger>
+                            <b:EventTrigger EventName="MouseLeftButtonDown"><b:ControlStoryboardAction Storyboard="{StaticResource SkullInfoClosePressAnim}"/></b:EventTrigger>
+                        </b:Interaction.Triggers>
+                        <Border x:Name="SkullInfoCloseGlowBorder" Opacity="0" Background="Transparent" BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="24" Margin="-8,-8,-8,-8"/>
+                        <Border Background="#CC1a1a2e" BorderBrush="{StaticResource GoldBrush}" BorderThickness="5" CornerRadius="18">
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="MouseLeftButtonUp">
+                                    <b:InvokeCommandAction Command="{Binding events.skullInfoCloseTap}" CommandParameter="close"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Grid>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
+                                <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                                <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="52,20,52,20">
+                                    <TextBlock Text="Close" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                                    <TextBlock Text="Close" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                                    <TextBlock Text="Close" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
+                                    <TextBlock Text="Close" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Close" FontFamily="Anton" FontSize="56" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
                 </StackPanel>
             </Border>
         </Grid>

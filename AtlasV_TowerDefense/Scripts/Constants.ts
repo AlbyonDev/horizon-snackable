@@ -32,7 +32,7 @@ export const ENEMY_SPAWN_INTERVAL  = 0.75; // seconds between enemy spawns withi
 
 // ─── Economy ──────────────────────────────────────────────────────────────────
 
-export const TOTAL_LEVELS = 5; // number of procedurally generated levels per run
+export const TOTAL_LEVELS = 6; // number of procedurally generated levels per run
 
 export const START_GOLD  = 120;
 export const START_LIVES = 10;
@@ -44,9 +44,9 @@ export const INCOME_RATE = 0.15;   // 15% of gold on hand → bonus at wave end
 export const HP_SCALE_PER_WAVE = 0.15; // HP multiplier = 1 + waveIndex * HP_SCALE_PER_WAVE
 
 // Run-count scaling — applied per run beyond the first
-export const RUN_HP_SCALE     = 0.01; // +1% HP per run
+export const RUN_HP_SCALE     = 0.05; // +5% HP per run
 export const RUN_SPEED_SCALE  = 0.01; // +1% speed per run
-export const RUN_REWARD_SCALE = 0.01; // +1% gold reward per run
+export const RUN_REWARD_SCALE = 0.05; // +5% gold reward per run
 
 // ─── Economy (continued) ──────────────────────────────────────────────────────
 

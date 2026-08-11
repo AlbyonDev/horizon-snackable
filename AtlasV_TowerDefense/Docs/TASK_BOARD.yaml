@@ -80,7 +80,7 @@ done:
   - Hide BiomeSelect for First Playable -- auto-selects grass, skips to Overworld
   - Fix Tower Cleanup on Level Start -- destroy all towers on LevelSelected event
   - Fix Enemy Cleanup on Level Start -- destroy all enemies on LevelSelected event
-  - Run-Based Difficulty Scaling -- +20% HP, +5% speed, +10% reward per run
+  - Run-Based Difficulty Scaling -- +5% HP, +1% speed, +5% reward per run
   - Play Again Restarts Level -- defeat re-fires LevelSelected, skips title/overworld
   - Skull Currency -- persistent metaprogression, +1 combat/+5 boss, header display
   - Skull Skill Tree -- 3 branches x 3 tiers, persistent unlocks, gameplay bonuses

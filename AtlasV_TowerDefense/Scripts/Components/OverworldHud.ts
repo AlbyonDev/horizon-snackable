@@ -179,6 +179,10 @@ export class OverworldViewModel extends UiViewModel {
     bossInfoCloseTap: UiEvents.bossInfoCloseTap,
     lockedBiomeReturnTap: UiEvents.lockedBiomeReturnTap,
     lockedBiomeSkillTreeTap: UiEvents.lockedBiomeSkillTreeTap,
+    skillTreeButtonTap: UiEvents.skillTreeButtonTap,
+    skullInfoCloseTap: UiEvents.skullInfoCloseTap,
+    skullInfoRewardsTap: UiEvents.skullInfoRewardsTap,
+    skullInfoSkillTreeTap: UiEvents.skullInfoSkillTreeTap,
   };
 
   visible: boolean = false;
@@ -239,6 +243,9 @@ export class OverworldViewModel extends UiViewModel {
   bossPopupModifierName: string = '';
   bossPopupModifierDescription: string = '';
   bossPopupRewardText: string = '+3';
+
+  // Skull info popup state
+  skullInfoPopupVisible: boolean = false;
 
   // Locked biome popup state
   lockedBiomePopupVisible: boolean = false;
@@ -551,9 +558,55 @@ export class OverworldHud extends Component {
     // Dismiss relic carousel if open
     this.viewModel.carouselVisible = false;
 
+    // Show the skull info popup explaining how to earn skulls
+    this.viewModel.skullInfoPopupVisible = true;
+    console.log('[OverworldHud] Skull section tapped, showing skull info popup');
+  }
+
+  @subscribe(UiEvents.skillTreeButtonTap, { execution: ExecuteOn.Owner })
+  onSkillTreeButtonTap(_payload: UiEvents.SkillTreeButtonTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    if (!this.viewModel.visible) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+
+    // Dismiss relic carousel if open
+    this.viewModel.carouselVisible = false;
+
     // Fire the OpenSkillTree event for SkillTreeHudController to pick up
     EventService.sendLocally(OpenSkillTreeEvent, new OpenSkillTreePayload());
-    console.log('[OverworldHud] Skull section tapped, opening skill tree');
+    console.log('[OverworldHud] Skill Tree button tapped, opening skill tree');
+  }
+
+  @subscribe(UiEvents.skullInfoCloseTap, { execution: ExecuteOn.Owner })
+  onSkullInfoCloseTap(_payload: UiEvents.SkullInfoCloseTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+    this.viewModel.skullInfoPopupVisible = false;
+    console.log('[OverworldHud] Skull info popup closed');
+  }
+
+  @subscribe(UiEvents.skullInfoRewardsTap, { execution: ExecuteOn.Owner })
+  onSkullInfoRewardsTap(_payload: UiEvents.SkullInfoRewardsTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+    this.viewModel.skullInfoPopupVisible = false;
+    // Open the Achievements overlay
+    EventService.sendLocally(OpenAchievementsEvent, new OpenAchievementsPayload());
+    console.log('[OverworldHud] Skull info popup -> opening rewards');
+  }
+
+  @subscribe(UiEvents.skullInfoSkillTreeTap, { execution: ExecuteOn.Owner })
+  onSkullInfoSkillTreeTap(_payload: UiEvents.SkullInfoSkillTreeTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+    this.viewModel.skullInfoPopupVisible = false;
+    // Open the Skill Tree overlay
+    EventService.sendLocally(OpenSkillTreeEvent, new OpenSkillTreePayload());
+    console.log('[OverworldHud] Skull info popup -> opening skill tree');
   }
 
   @subscribe(UiEvents.achievementTap, { execution: ExecuteOn.Owner })
@@ -756,7 +809,7 @@ export class OverworldHud extends Component {
   /** Update header bar: run label, relic count, and levels beaten */
   private _updateRunLabel(): void {
     if (!this.viewModel) return;
-    this.viewModel.runLabel = `RUN ${LevelGeneratorService.get().runCount}`;
+    this.viewModel.runLabel = `BOSS KILLED ${LevelGeneratorService.get().runCount}`;
     // Relic count
     const activeRelics = RelicService.get().getActiveRelicIds();
     this.viewModel.relicCount = activeRelics.length;

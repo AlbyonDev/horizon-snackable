@@ -421,6 +421,18 @@ export namespace UiEvents {
   @serializable() export class SnowFtueGotItPayload { readonly parameter: string = ''; }
   export const snowFtueGotIt = new UiEvent('SnowFtueViewModel-onGotIt', SnowFtueGotItPayload);
 
+  @serializable() export class OverworldFtueNextPayload { readonly parameter: string = ''; }
+  export const overworldFtueNext = new UiEvent('OverworldFtueViewModel-onNext', OverworldFtueNextPayload);
+
+  @serializable() export class OverworldFtue2NextPayload { readonly parameter: string = ''; }
+  export const overworldFtue2Next = new UiEvent('OverworldFtue2ViewModel-onNext', OverworldFtue2NextPayload);
+
+  @serializable() export class OverworldFtue3NextPayload { readonly parameter: string = ''; }
+  export const overworldFtue3Next = new UiEvent('OverworldFtue3ViewModel-onNext', OverworldFtue3NextPayload);
+
+  @serializable() export class OverworldFtue4NextPayload { readonly parameter: string = ''; }
+  export const overworldFtue4Next = new UiEvent('OverworldFtue4ViewModel-onNext', OverworldFtue4NextPayload);
+
   @serializable() export class BiomeArrowTapPayload { readonly parameter: string = ''; }
   export const biomeArrowTap = new UiEvent('OverworldViewModel-onBiomeArrowTap', BiomeArrowTapPayload);
 
@@ -447,4 +459,16 @@ export namespace UiEvents {
 
   @serializable() export class LockedBiomeSkillTreeTapPayload { readonly parameter: string = ''; }
   export const lockedBiomeSkillTreeTap = new UiEvent('OverworldViewModel-onLockedBiomeSkillTreeTap', LockedBiomeSkillTreeTapPayload);
+
+  @serializable() export class SkillTreeButtonTapPayload { readonly parameter: string = ''; }
+  export const skillTreeButtonTap = new UiEvent('OverworldViewModel-onSkillTreeButtonTap', SkillTreeButtonTapPayload);
+
+  @serializable() export class SkullInfoCloseTapPayload { readonly parameter: string = ''; }
+  export const skullInfoCloseTap = new UiEvent('OverworldViewModel-onSkullInfoCloseTap', SkullInfoCloseTapPayload);
+
+  @serializable() export class SkullInfoRewardsTapPayload { readonly parameter: string = ''; }
+  export const skullInfoRewardsTap = new UiEvent('OverworldViewModel-onSkullInfoRewardsTap', SkullInfoRewardsTapPayload);
+
+  @serializable() export class SkullInfoSkillTreeTapPayload { readonly parameter: string = ''; }
+  export const skullInfoSkillTreeTap = new UiEvent('OverworldViewModel-onSkullInfoSkillTreeTap', SkullInfoSkillTreeTapPayload);
 }
