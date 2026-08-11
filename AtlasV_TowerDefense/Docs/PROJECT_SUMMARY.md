@@ -147,6 +147,7 @@ Scripts/
     EnemyDefs.ts    — ENEMY_DEFS: IEnemyDef[] (4 enemy types)
     LevelDefs.ts    — LEVEL_DEFS: ILevelDef[] (20 waves, 1 level, includes path waypoints); WAVES_LEVEL_0 exported but unused by runtime
     PathDefs.ts     — PATH_WAYPOINTS_LEVEL_0 exported but unused by runtime (legacy reference data)
+    WavePackDefs.ts — Wave pack definitions (T1/T2/T3/Boss packs) and tier slot patterns per level; used by LevelGeneratorService for procedural wave composition
     UpgradeDefs.ts  — Upg atoms catalog + tree() builder
     BiomeDefs.ts    — BIOME_DEFS: IBiomeDef[] (3 biomes: grass, snow, volcano)
     RelicDefs.ts    — RELIC_DEFS: IRelicDef[] (6 relics: gold, damage, speed, range, lives, slow)
@@ -158,7 +159,7 @@ Scripts/
   Services/
     PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
     PathTileService     — spawns path tiles using 5 templates (4 pre-rotated corners + 1 straight with runtime Y-rotation) and 2 shared UV-sliced materials; swaps pathTex on BiomeChanged
-    LevelGeneratorService — procedural level generation; generates TOTAL_LEVELS random ILevelDef instances on StartGame event; tracks runCount (resets on StartGame, increments on advanceRun when all levels beaten); tracks runCount (resets to 1 on StartGame, increments via advanceRun() when all levels beaten)
+    LevelGeneratorService — procedural level generation using wave pack system; generates TOTAL_LEVELS ILevelDef instances on StartGame using tier-based pack selection (T1/T2/T3/Boss packs with no-repeat logic); tracks runCount (resets on StartGame, increments on advanceRun when all levels beaten)
     TowerService        — selectedId, place on GridTapped, upgrade, sell
     EnemyService        — live enemy registry (worldX, worldZ, pathT, hp, speedFactor)
     ResourceService     — gold, lives, earn(), spend(), loseLife(), reset()

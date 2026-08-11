@@ -7,7 +7,7 @@
  * reloading mid-run reproduces exactly what the player saw.
  *
  * Each level has:
- *   - IWaveDef[] with escalating difficulty
+ *   - IWaveDef[] with escalating difficulty (via wave pack system)
  *   - pathWaypoints forming a valid zigzag path on the grid
  *   - Fixed startGold / startLives from Constants
  *   - bossModifier (boss level only)
@@ -30,6 +30,8 @@ import type { ILevelDef } from '../Defs/LevelDefs';
 import { OverworldNodeType } from '../Defs/NodeDefs';
 import { SaveService } from './SaveService';
 import { TOTAL_LEVELS, START_GOLD, START_LIVES, GRID_COLS, GRID_ROWS, LOCKED_COLS } from '../Constants';
+import { LEVEL_TIER_PATTERNS, getPackPoolForTier } from '../Defs/WavePackDefs';
+import type { IWavePack } from '../Defs/WavePackDefs';
 
 /** Deterministic PRNG (mulberry32). Returns a function producing [0, 1). */
 function mulberry32(seed: number): () => number {
@@ -43,22 +45,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-// ─── Enemy pool for random generation ─────────────────────────────────────────
-
-const ENEMY_IDS = ['basic', 'fast', 'tank', 'boss'] as const;
-
-// Difficulty weights: probability of each enemy type per difficulty tier
-// Tier progresses per-level (level 0 = easiest, last level = hardest)
-const DIFFICULTY_TIERS: Array<{ basic: number; fast: number; tank: number; boss: number }> = [
-  { basic: 1.00, fast: 0.00, tank: 0.00, boss: 0.00 },
-  { basic: 0.70, fast: 0.30, tank: 0.00, boss: 0.00 },
-  { basic: 0.55, fast: 0.35, tank: 0.10, boss: 0.00 },
-  { basic: 0.40, fast: 0.30, tank: 0.20, boss: 0.10 },
-  { basic: 0.25, fast: 0.25, tank: 0.25, boss: 0.25 },
-  { basic: 0.10, fast: 0.30, tank: 0.30, boss: 0.30 },
-];
-
-// ─── Service ───────────────────────────────────────────────────────────────────
+// ——— Service ———————————————————————————————————————————————————————————
 
 @service()
 export class LevelGeneratorService extends Service {
@@ -199,7 +186,7 @@ export class LevelGeneratorService extends Service {
     this.generate(TOTAL_LEVELS, this._saveService.getSeed() || this._seed);
   }
 
-  // ─── Node-type layout (deterministic) ─────────────────────────────────────────
+  // ——— Node-type layout (deterministic) —————————————————————————————————————
   //   Last node = Boss. Every 3rd node (indices 2, 5, 8, ...) = Minigame (unless last). Rest = Combat.
   //   Pattern: Combat, Combat, Minigame, Combat, Combat, Minigame, ... Boss
   private _assignNodeTypes(count: number): void {
@@ -216,9 +203,7 @@ export class LevelGeneratorService extends Service {
     }
   }
 
-
-
-  // ─── Private generation logic ─────────────────────────────────────────────────
+  // ——— Private generation logic —————————————————————————————————————————————
 
   private _generateLevel(levelIndex: number, totalLevels: number): ILevelDef {
     const waves = this._generateWaves(levelIndex, totalLevels);
@@ -244,78 +229,44 @@ export class LevelGeneratorService extends Service {
     };
   }
 
-  // ─── Wave generation ──────────────────────────────────────────────────────────
+  // ——— Wave generation (wave pack system) ————————————————————————————————————
 
-  private _generateWaves(levelIndex: number, totalLevels: number): IWaveDef[] {
-    // Number of waves scales with level progression: 5 → 20
-    const minWaves = 5;
-    const maxWaves = 20;
-    const t = totalLevels > 1 ? levelIndex / (totalLevels - 1) : 0;
-    const waveCount = Math.round(minWaves + t * (maxWaves - minWaves));
-
-    // Pick difficulty tier based on level index
-    const tierIndex = Math.min(
-      Math.floor(t * DIFFICULTY_TIERS.length),
-      DIFFICULTY_TIERS.length - 1,
-    );
-    const tier = DIFFICULTY_TIERS[tierIndex];
+  private _generateWaves(levelIndex: number, _totalLevels: number): IWaveDef[] {
+    // Clamp level index to available tier patterns
+    const patternIdx = Math.min(levelIndex, LEVEL_TIER_PATTERNS.length - 1);
+    const tierPattern = LEVEL_TIER_PATTERNS[patternIdx];
 
     const waves: IWaveDef[] = [];
-    for (let w = 0; w < waveCount; w++) {
-      waves.push(this._generateSingleWave(w, waveCount, tier));
+    let lastPackName: string = '';
+
+    for (let w = 0; w < tierPattern.length; w++) {
+      const tier = tierPattern[w];
+      const pool = getPackPoolForTier(tier);
+
+      // Pick a random pack from this tier's pool, avoiding back-to-back repeats
+      let pack: IWavePack;
+      if (pool.length === 1) {
+        pack = pool[0];
+      } else {
+        let attempts = 0;
+        do {
+          const idx = Math.floor(this._rng() * pool.length);
+          pack = pool[idx];
+          attempts++;
+        } while (pack.name === lastPackName && attempts < 10);
+      }
+
+      lastPackName = pack.name;
+
+      // Convert readonly groups to mutable IWaveGroup[] for IWaveDef compatibility
+      const groups: IWaveGroup[] = pack.groups.map(g => ({ enemyId: g.enemyId, count: g.count }));
+      waves.push({ groups });
     }
+
     return waves;
   }
 
-  private _generateSingleWave(
-    waveIndex: number,
-    totalWaves: number,
-    tier: { basic: number; fast: number; tank: number; boss: number },
-  ): IWaveDef {
-    // Total enemies in this wave scales from 3 up to 30 based on wave progression
-    const waveT = totalWaves > 1 ? waveIndex / (totalWaves - 1) : 0;
-    const totalEnemies = Math.round(3 + waveT * 27);
-
-    // Distribute enemies across types based on tier weights (with randomness)
-    const groups: IWaveGroup[] = [];
-    const counts: Record<string, number> = { basic: 0, fast: 0, tank: 0, boss: 0 };
-
-    for (let i = 0; i < totalEnemies; i++) {
-      const roll = this._rng();
-      let cumulative = 0;
-      let picked = 'basic';
-      for (const id of ENEMY_IDS) {
-        cumulative += tier[id];
-        if (roll < cumulative) {
-          picked = id;
-          break;
-        }
-      }
-      counts[picked]++;
-    }
-
-    // Early waves shouldn't have bosses (first 20% of waves)
-    if (waveT < 0.2 && counts['boss'] > 0) {
-      counts['basic'] += counts['boss'];
-      counts['boss'] = 0;
-    }
-
-    // Build groups (only include non-zero counts)
-    for (const id of ENEMY_IDS) {
-      if (counts[id] > 0) {
-        groups.push({ enemyId: id, count: counts[id] });
-      }
-    }
-
-    // Ensure at least one group
-    if (groups.length === 0) {
-      groups.push({ enemyId: 'basic', count: 3 });
-    }
-
-    return { groups };
-  }
-
-  // ─── Shuffle bag helpers ──────────────────────────────────────────────────────
+  // ——— Shuffle bag helpers ——————————————————————————————————————————————————
 
   /** Initialize a shuffled bag with all 6 boss modifiers using the seeded PRNG. */
   private _initShuffleBag(): void {
@@ -364,7 +315,7 @@ export class LevelGeneratorService extends Service {
     EventService.sendLocally(Events.BossModAssigned, { bossModState });
   }
 
-  // ─── Path generation ──────────────────────────────────────────────────────────
+  // ——— Path generation ——————————————————————————————————————————————————————
 
   private _generatePath(): ReadonlyArray<readonly [number, number]> {
     // Generate a zigzag path from top to bottom of the grid
