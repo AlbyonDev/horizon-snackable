@@ -62,7 +62,7 @@ interface TdBiomeSave {
 // ── V2 save format (biome-aware) ────────────────────────────────────────────────
 interface TdSaveDataV2 {
   v: 2;
-  global: { sk: number; st: number[]; stc: Record<string, number>; ek: number; rg: number; ri: number; rv: number; tb: number; ts: number; pr: number; ge: number; ar: Record<string, number>; minigame_tutorial: number; volcano_tutorial: number };
+  global: { sk: number; st: number[]; stc: Record<string, number>; ek: number; rg: number; ri: number; rv: number; tb: number; ts: number; pr: number; ge: number; ar: Record<string, number>; minigame_tutorial: number; volcano_tutorial: number; snow_tutorial: number };
   biomes: Record<string, TdBiomeSave>;
   activeBiome: string;
 }
@@ -82,7 +82,7 @@ function defaultBiomeSave(): TdBiomeSave {
 }
 
 function defaultSaveV2(): TdSaveDataV2 {
-  return { v: 2, global: { sk: 0, st: [], stc: {}, ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {}, minigame_tutorial: 0, volcano_tutorial: 0 }, biomes: {}, activeBiome: 'grass' };
+  return { v: 2, global: { sk: 0, st: [], stc: {}, ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {}, minigame_tutorial: 0, volcano_tutorial: 0, snow_tutorial: 0 }, biomes: {}, activeBiome: 'grass' };
 }
 
 @service()
@@ -186,6 +186,21 @@ export class SaveService extends Service {
     if (this._data.global.volcano_tutorial === 1) return;
     this._data.global.volcano_tutorial = 1;
     console.log('[SaveService] Volcano FTUE marked as seen');
+    this._requestSave();
+  }
+
+  /** Whether the snow/blizzard FTUE tutorial has been seen (persisted across sessions). */
+  getSnowFtueSeen(): boolean {
+    return (this._data.global.snow_tutorial ?? 0) === 1;
+  }
+
+  /** Mark the snow/blizzard FTUE tutorial as seen and persist. Client-only. */
+  markSnowFtueSeen(): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._loaded) return;
+    if (this._data.global.snow_tutorial === 1) return;
+    this._data.global.snow_tutorial = 1;
+    console.log('[SaveService] Snow FTUE marked as seen');
     this._requestSave();
   }
 
@@ -702,7 +717,7 @@ export class SaveService extends Service {
   }
 
   private _parseV2(raw: Record<string, unknown>): TdSaveDataV2 {
-    const global = raw['global'] as { sk?: number; st?: number[]; stc?: Record<string, number>; ek?: number; rg?: number; ri?: number; rv?: number; tb?: number; ts?: number; pr?: number; ge?: number; ar?: Record<string, number>; minigame_tutorial?: number; mf?: number; vf?: number; volcano_tutorial?: number } | undefined;
+    const global = raw['global'] as { sk?: number; st?: number[]; stc?: Record<string, number>; ek?: number; rg?: number; ri?: number; rv?: number; tb?: number; ts?: number; pr?: number; ge?: number; ar?: Record<string, number>; minigame_tutorial?: number; mf?: number; vf?: number; volcano_tutorial?: number; snow_tutorial?: number } | undefined;
     const biomes = raw['biomes'] as Record<string, Partial<TdBiomeSave>> | undefined;
     const activeBiome = typeof raw['activeBiome'] === 'string' ? raw['activeBiome'] : 'grass';
 
@@ -723,6 +738,7 @@ export class SaveService extends Service {
         ar: (global?.ar && typeof global.ar === 'object') ? global.ar : {},
         minigame_tutorial: typeof global?.minigame_tutorial === 'number' ? global.minigame_tutorial : (typeof global?.mf === 'number' ? global.mf : 0),
         volcano_tutorial: typeof global?.volcano_tutorial === 'number' ? global.volcano_tutorial : (typeof global?.vf === 'number' ? global.vf : 0),
+        snow_tutorial: typeof global?.snow_tutorial === 'number' ? global.snow_tutorial : 0,
       },
       biomes: {},
       activeBiome,
@@ -772,6 +788,7 @@ export class SaveService extends Service {
         ar: {},
         minigame_tutorial: 0,
         volcano_tutorial: 0,
+        snow_tutorial: 0,
       },
       biomes: { grass: grassBiome },
       activeBiome: 'grass',

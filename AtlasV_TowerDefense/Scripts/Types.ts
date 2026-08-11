@@ -273,6 +273,10 @@ export namespace Events {
   export class VolcanoFtueDismissedPayload {}
   export const VolcanoFtueDismissed = new LocalEvent<VolcanoFtueDismissedPayload>('EvVolcanoFtueDismissed', VolcanoFtueDismissedPayload);
 
+  // Fired by SnowFtueHud when the snow/blizzard FTUE popup is dismissed
+  export class SnowFtueDismissedPayload {}
+  export const SnowFtueDismissed = new LocalEvent<SnowFtueDismissedPayload>('EvSnowFtueDismissed', SnowFtueDismissedPayload);
+
   // Relic choice flow
   export class ShowRelicChoicePayload {}
   export const ShowRelicChoice = new LocalEvent<ShowRelicChoicePayload>('EvShowRelicChoice', ShowRelicChoicePayload);
@@ -413,6 +417,9 @@ export namespace UiEvents {
 
   @serializable() export class MagmaFtueGotItPayload { readonly parameter: string = ''; }
   export const magmaFtueGotIt = new UiEvent('MagmaFtueViewModel-onGotIt', MagmaFtueGotItPayload);
+
+  @serializable() export class SnowFtueGotItPayload { readonly parameter: string = ''; }
+  export const snowFtueGotIt = new UiEvent('SnowFtueViewModel-onGotIt', SnowFtueGotItPayload);
 
   @serializable() export class BiomeArrowTapPayload { readonly parameter: string = ''; }
   export const biomeArrowTap = new UiEvent('OverworldViewModel-onBiomeArrowTap', BiomeArrowTapPayload);

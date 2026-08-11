@@ -5,6 +5,8 @@
  * triggers a blizzard VFX burst and plays a cold wind gust SFX.
  * Every 3rd gust (15s cycle) is a "super intense" blizzard with extra VFX layers,
  * louder/layered wind SFX, and longer duration for a dramatic effect.
+ * The intense cycle scales with the player's run count (every 5th gust on early
+ * runs down to every gust at run 100+).
  *
  * The VFX uses the snow_blizzard_local PopcornFX asset spawned as a local-only entity
  * positioned at grid center. It is played/stopped on each gust cycle for a punchy burst.
@@ -34,6 +36,7 @@ import type { Entity, OnWorldUpdateEventPayload } from 'meta/worlds';
 
 import { Events, GamePhase } from '../Types';
 import { playSound2D } from '../Audio/AudioManager';
+import { LevelGeneratorService } from './LevelGeneratorService';
 
 import { SoundAsset } from 'meta/worlds';
 
@@ -41,7 +44,6 @@ import { SoundAsset } from 'meta/worlds';
 const BLIZZARD_INTERVAL = 5.0;      // seconds between gusts
 const VFX_PLAY_DURATION = 3.0;      // seconds the VFX plays per normal gust
 const INTENSE_VFX_PLAY_DURATION = 6.0; // seconds the VFX plays during intense burst (whiteout)
-const INTENSE_CYCLE = 3;            // every Nth gust is intense (3 = every 15s)
 const INTENSE_EXTRA_LAYERS = 6;     // additional VFX entities spawned for intense burst (total whiteout)
 const SFX_LEAD_TIME = 1.25;         // seconds SFX plays BEFORE the intense VFX burst starts
 const GRID_CENTER = new Vec3(0, 0.5, 0); // center of the 11x14 grid, slightly above ground
@@ -80,6 +82,7 @@ export class BlizzardService extends Service {
   private _vfxPlayTimer: number = 0;
   private _vfxPlaying: boolean = false;
   private _gustCounter: number = 0; // tracks which gust we're on for the intense cycle
+  private _intenseCycle: number = 5; // computed at activation time based on run count
   private _currentPlayDuration: number = VFX_PLAY_DURATION; // active duration for current burst
   private _sfxLeadPending: boolean = false; // true when SFX fired, waiting for VFX to start
   private _sfxLeadTimer: number = 0; // countdown until VFX starts after SFX lead
@@ -221,7 +224,7 @@ export class BlizzardService extends Service {
       if (this._timer >= BLIZZARD_INTERVAL) {
         this._timer -= BLIZZARD_INTERVAL;
         this._gustCounter++;
-        const isIntense = this._gustCounter % INTENSE_CYCLE === 0;
+        const isIntense = this._gustCounter % this._intenseCycle === 0;
         if (isIntense) {
           this._triggerIntenseGust();
         } else {
@@ -250,11 +253,12 @@ export class BlizzardService extends Service {
       this._active = true;
       this._timer = BLIZZARD_INTERVAL - 1; // first gust arrives ~1s after activation
       this._gustCounter = 0;
+      this._intenseCycle = this._computeIntenseCycle();
+      console.log(`[BlizzardService] Activated — intense cycle = ${this._intenseCycle} (run ${LevelGeneratorService.get().runCount})`);
       // Lazy prewarm: only spawn VFX entities once snow biome is confirmed active
       if (!this._prewarmed) {
         void this.prewarm();
       }
-      console.log('[BlizzardService] Activated — blizzard gusts will start');
     } else if (!shouldBeActive && this._active) {
       this._active = false;
       this._timer = 0;
@@ -263,6 +267,19 @@ export class BlizzardService extends Service {
       this._sfxLeadPending = false;
       console.log('[BlizzardService] Deactivated');
     }
+  }
+
+  /**
+   * Compute the effective intense-cycle (every Nth gust is intense) based on run count.
+   * Scales with progression so later runs get more frequent intense bursts.
+   */
+  private _computeIntenseCycle(): number {
+    const runCount = LevelGeneratorService.get().runCount;
+    if (runCount >= 100) return 2;
+    if (runCount >= 60) return 3;
+    if (runCount >= 30) return 4;
+    if (runCount >= 10) return 5;
+    return 6; // default for runs 1-9
   }
 
   private _triggerGust(): void {

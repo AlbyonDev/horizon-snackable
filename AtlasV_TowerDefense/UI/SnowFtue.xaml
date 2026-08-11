@@ -30,35 +30,35 @@
           </Binding>
         </Grid.Visibility>
 
-        <Border Background="#EE1a1a2e"
-                BorderBrush="#ff6600"
+        <Border Background="#EE0a1a3e"
+                BorderBrush="#44aaff"
                 BorderThickness="6"
                 CornerRadius="24"
                 Padding="40,28,40,28"
                 MaxWidth="900">
           <StackPanel HorizontalAlignment="Center">
-            <!-- Title with fiery gold outline -->
+            <!-- Title with icy blue outline -->
             <Grid HorizontalAlignment="Center" Margin="0,0,0,12">
-              <TextBlock Text="VOLCANIC HAZARD" FontFamily="Anton"
-                         FontSize="64" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0"
+              <TextBlock Text="BLIZZARD WARNING" FontFamily="Anton"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="-3,0,0,0"
                          HorizontalAlignment="Center"/>
-              <TextBlock Text="VOLCANIC HAZARD" FontFamily="Anton"
-                         FontSize="64" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0"
+              <TextBlock Text="BLIZZARD WARNING" FontFamily="Anton"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="3,0,0,0"
                          HorizontalAlignment="Center"/>
-              <TextBlock Text="VOLCANIC HAZARD" FontFamily="Anton"
-                         FontSize="64" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0"
+              <TextBlock Text="BLIZZARD WARNING" FontFamily="Anton"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="0,-3,0,0"
                          HorizontalAlignment="Center"/>
-              <TextBlock Text="VOLCANIC HAZARD" FontFamily="Anton"
-                         FontSize="64" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0"
+              <TextBlock Text="BLIZZARD WARNING" FontFamily="Anton"
+                         FontSize="60" FontWeight="Bold" Foreground="Black" Margin="0,3,0,0"
                          HorizontalAlignment="Center"/>
-              <TextBlock Text="VOLCANIC HAZARD" FontFamily="Anton"
-                         FontSize="64" FontWeight="Bold" Foreground="#f5c518"
+              <TextBlock Text="BLIZZARD WARNING" FontFamily="Anton"
+                         FontSize="60" FontWeight="Bold" Foreground="#88ccff"
                          HorizontalAlignment="Center"/>
             </Grid>
 
             <!-- Body text -->
-            <TextBlock Text="Magma tiles block tower placement. The higher your run, the more magma tiles appear!"
-                       FontFamily="Almendra" FontSize="46"
+            <TextBlock Text="Blizzards periodically freeze towers! Upgrading towers helps resist the cold. Some towers are always immune. The higher your run, the more often blizzards occur."
+                       FontFamily="Almendra" FontSize="44"
                        Foreground="#dddddd"
                        HorizontalAlignment="Center"
                        TextWrapping="Wrap" TextAlignment="Center"
@@ -67,28 +67,28 @@
             <!-- Got it! button with breathing pulse animation -->
             <Grid HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
               <Grid.RenderTransform>
-                <ScaleTransform x:Name="MagmaGotItBtnScale" ScaleX="1" ScaleY="1"/>
+                <ScaleTransform x:Name="SnowGotItBtnScale" ScaleX="1" ScaleY="1"/>
               </Grid.RenderTransform>
               <Grid.Resources>
-                <Storyboard x:Key="MagmaGotItPulseAnim" RepeatBehavior="Forever">
-                  <DoubleAnimation Storyboard.TargetName="MagmaGotItBtnScale"
+                <Storyboard x:Key="SnowGotItPulseAnim" RepeatBehavior="Forever">
+                  <DoubleAnimation Storyboard.TargetName="SnowGotItBtnScale"
                                    Storyboard.TargetProperty="ScaleX"
                                    From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
                     <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                   </DoubleAnimation>
-                  <DoubleAnimation Storyboard.TargetName="MagmaGotItBtnScale"
+                  <DoubleAnimation Storyboard.TargetName="SnowGotItBtnScale"
                                    Storyboard.TargetProperty="ScaleY"
                                    From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
                     <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                   </DoubleAnimation>
-                  <DoubleAnimation Storyboard.TargetName="MagmaGotItGlow"
+                  <DoubleAnimation Storyboard.TargetName="SnowGotItGlow"
                                    Storyboard.TargetProperty="Opacity"
                                    From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
                     <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
                   </DoubleAnimation>
                 </Storyboard>
-                <Storyboard x:Key="MagmaGotItPressAnim">
-                  <DoubleAnimationUsingKeyFrames Storyboard.TargetName="MagmaGotItBtnScale" Storyboard.TargetProperty="ScaleX">
+                <Storyboard x:Key="SnowGotItPressAnim">
+                  <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SnowGotItBtnScale" Storyboard.TargetProperty="ScaleX">
                     <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
                       <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
                     </EasingDoubleKeyFrame>
@@ -96,7 +96,7 @@
                       <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
                     </EasingDoubleKeyFrame>
                   </DoubleAnimationUsingKeyFrames>
-                  <DoubleAnimationUsingKeyFrames Storyboard.TargetName="MagmaGotItBtnScale" Storyboard.TargetProperty="ScaleY">
+                  <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SnowGotItBtnScale" Storyboard.TargetProperty="ScaleY">
                     <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
                       <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
                     </EasingDoubleKeyFrame>
@@ -108,17 +108,17 @@
               </Grid.Resources>
               <b:Interaction.Triggers>
                 <b:EventTrigger>
-                  <b:ControlStoryboardAction Storyboard="{StaticResource MagmaGotItPulseAnim}"/>
+                  <b:ControlStoryboardAction Storyboard="{StaticResource SnowGotItPulseAnim}"/>
                 </b:EventTrigger>
                 <b:EventTrigger EventName="MouseLeftButtonDown">
-                  <b:ControlStoryboardAction Storyboard="{StaticResource MagmaGotItPressAnim}"/>
+                  <b:ControlStoryboardAction Storyboard="{StaticResource SnowGotItPressAnim}"/>
                 </b:EventTrigger>
               </b:Interaction.Triggers>
 
-              <!-- Outer glow border (pulsing fiery orange shimmer) -->
-              <Border x:Name="MagmaGotItGlow" Opacity="0"
+              <!-- Outer glow border (pulsing icy blue shimmer) -->
+              <Border x:Name="SnowGotItGlow" Opacity="0"
                       Background="Transparent"
-                      BorderBrush="#AAff6600"
+                      BorderBrush="#AA44aaff"
                       BorderThickness="10"
                       CornerRadius="24"
                       Margin="-8,-8,-8,-8"
@@ -130,12 +130,12 @@
                       BorderThickness="0"
                       Padding="0"
                       Margin="0,4,0,0">
-                <Border Background="#ff6600"
+                <Border Background="#2288dd"
                         CornerRadius="16"
                         Padding="52,14,52,14">
                   <TextBlock Text="Got it!" FontFamily="Anton"
                              FontSize="52" FontWeight="Bold"
-                             Foreground="#1a1a2e"
+                             Foreground="#0a1a3e"
                              HorizontalAlignment="Center"/>
                 </Border>
               </Button>

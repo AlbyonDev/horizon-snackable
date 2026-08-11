@@ -49,6 +49,7 @@ const FROZEN_TINT   = new Color(0.3, 0.55, 1.0, 1.0); // blue/ice freeze
 @component()
 export class TowerController extends Component {
   private _transform!: TransformComponent;
+  private _defId: string = '';
   private _col: number = 0;
   private _row: number = 0;
   private _cooldown: number = 0;
@@ -104,6 +105,7 @@ export class TowerController extends Component {
 
   @subscribe(Events.InitTower)
   onInit(p: Events.InitTowerPayload): void {
+    this._defId    = p.defId;
     this._col      = p.col;
     this._row      = p.row;
     this._cooldown = 0;
@@ -159,13 +161,34 @@ export class TowerController extends Component {
   @subscribe(Events.BlizzardFreeze)
   onBlizzardFreeze(p: Events.BlizzardFreezePayload): void {
     if (!this._ready) return;
-    this._frozen = p.active;
+    // Immune tower types are never frozen by the blizzard
+    if (this._defId === 'pillar' || this._defId === 'fire_cannon' || this._defId === 'frost') {
+      return;
+    }
+    // Tier-based immunity: rank 3 (tier >= 2) is fully immune
+    if (p.active && this._currentTier >= 2) {
+      console.log(`[TowerController] Tower immune (tier ${this._currentTier}) at col=${this._col}, row=${this._row}`);
+      return;
+    }
+
     if (p.active) {
-      // Apply blue/ice tint via ColorComponent (same proven mechanism as selection)
+      this._frozen = true;
       this._applyTintWithBarrel(FROZEN_TINT);
-      console.log(`[TowerController] Tower frozen at col=${this._col}, row=${this._row}`);
+      console.log(`[TowerController] Tower frozen (tier ${this._currentTier}) at col=${this._col}, row=${this._row}`);
+
+      // Tier 1 (rank 2): self-unfreeze after half duration (3s instead of 6s)
+      if (this._currentTier === 1) {
+        setTimeout(() => {
+          if (!this._frozen) return; // already unfrozen by global event
+          this._frozen = false;
+          this._applyTintWithBarrel(this._selected ? SELECTED_TINT : DEFAULT_TINT);
+          console.log(`[TowerController] Tower self-unfrozen (tier 1 half-duration) at col=${this._col}, row=${this._row}`);
+        }, 3000);
+      }
     } else {
-      // Restore: selection tint if selected, otherwise default white
+      // Global unfreeze event — only apply if still frozen (tier 1 may have self-unfrozen)
+      if (!this._frozen) return;
+      this._frozen = false;
       this._applyTintWithBarrel(this._selected ? SELECTED_TINT : DEFAULT_TINT);
       console.log(`[TowerController] Tower unfrozen at col=${this._col}, row=${this._row}`);
     }

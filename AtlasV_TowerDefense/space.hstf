@@ -1637,6 +1637,52 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "c7dde184-f55f-4e65-842b-4efac64027dd",
+            "name": "SnowFtueUI",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "5878881394714369726",
+                                "targetId": "2149638574"
+                            },
+                            "panelVisibility": false,
+                            "isInteractable": true,
+                            "isBlocking": true,
+                            "renderOrderOffset": 25
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "SnowFtueHud",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "11221679014892233125",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -1798,6 +1844,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "6468df09-4a16-40c8-9348-883589bedb70",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "c7dde184-f55f-4e65-842b-4efac64027dd",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

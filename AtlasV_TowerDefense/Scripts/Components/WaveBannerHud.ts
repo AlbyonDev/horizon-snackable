@@ -70,6 +70,9 @@ export class WaveBannerHud extends Component {
   // Volcano FTUE deferral state
   private _volcanoFtueDeferred: boolean = false;
 
+  // Snow FTUE deferral state
+  private _snowFtueDeferred: boolean = false;
+
   // Lifecycle
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
@@ -105,6 +108,7 @@ export class WaveBannerHud extends Component {
    * When FTUE hint fires, show immediately on non-boss levels.
    * On boss levels, delay by BOSS_FTUE_DELAY so the boss warning banner finishes first.
    * On volcano biome when FTUE popup hasn't been dismissed yet, defer until VolcanoFtueDismissed.
+   * On snow biome when FTUE popup hasn't been dismissed yet, defer until SnowFtueDismissed.
    */
   @subscribe(Events.FtueHint, { execution: ExecuteOn.Owner })
   onFtueHint(_p: Events.FtueHintPayload): void {
@@ -119,6 +123,16 @@ export class WaveBannerHud extends Component {
       // Defer until the volcano FTUE popup is dismissed
       console.log('[WaveBannerHud] Volcano FTUE pending, deferring build-phase hint');
       this._volcanoFtueDeferred = true;
+      return;
+    }
+
+    // Check if snow FTUE popup is about to show (biome is snow and not yet seen)
+    const snowFtuePending = save.activeBiome === 'snow' && !save.getSnowFtueSeen();
+
+    if (snowFtuePending) {
+      // Defer until the snow FTUE popup is dismissed
+      console.log('[WaveBannerHud] Snow FTUE pending, deferring build-phase hint');
+      this._snowFtueDeferred = true;
       return;
     }
 
@@ -143,6 +157,25 @@ export class WaveBannerHud extends Component {
 
     console.log('[WaveBannerHud] Volcano FTUE dismissed, showing build-phase hint now');
     this._volcanoFtueDeferred = false;
+
+    if (this._isBossLevel) {
+      this._ftueDelayWaiting = true;
+      this._ftueDelayTimer = 0;
+    } else {
+      this._showFtueHint();
+    }
+  }
+
+  /**
+   * When the snow FTUE popup is dismissed, show the deferred build-phase hint.
+   */
+  @subscribe(Events.SnowFtueDismissed, { execution: ExecuteOn.Owner })
+  onSnowFtueDismissed(_p: Events.SnowFtueDismissedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._snowFtueDeferred) return;
+
+    console.log('[WaveBannerHud] Snow FTUE dismissed, showing build-phase hint now');
+    this._snowFtueDeferred = false;
 
     if (this._isBossLevel) {
       this._ftueDelayWaiting = true;
@@ -203,6 +236,7 @@ export class WaveBannerHud extends Component {
     this._ftueDelayWaiting = false;
     this._ftueDelayTimer = 0;
     this._volcanoFtueDeferred = false;
+    this._snowFtueDeferred = false;
     this.viewModel.visible = false;
     this.viewModel.opacity = 0;
     this.viewModel.waveText = '';
