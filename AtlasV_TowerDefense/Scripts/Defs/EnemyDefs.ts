@@ -16,6 +16,8 @@ export const ENEMY_DEFS: IEnemyDef[] = [
   { id: 'shaman', name: 'Shaman', hp: 55, speed: 1.75, reward: 7, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyShaman, shield: 4 },
   { id: 'yeti',  name: 'Yeti Berserker', hp: 500, speed: 0.4, reward: 15, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyYetiBerserker, blizzardSpeedBoost: 1, biomeExclusive: 'snow', shield: 0 },
   { id: 'frostGoblin', name: 'Frost Goblin', hp: 66, speed: 1.25, reward: 5, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyFrostGoblin, biomeExclusive: 'snow', shield: 0 },
+  { id: 'fireGoblin', name: 'Fire Goblin', hp: 90, speed: 0.5, reward: 7, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyFireGoblin, biomeExclusive: 'volcano', shield: 0 },
   { id: 'tank',  name: 'Tank',  hp: 300, speed: 0.75, reward: 15, color: { r: 0.23, g: 0.51, b: 0.96 }, template: Assets.EnemyTank,  regenPerSec: 8, shield: 0 },
   { id: 'boss',  name: 'Boss',  hp: 1000, speed: 0.60, reward: 50, color: { r: 0.66, g: 0.33, b: 0.97 }, template: Assets.EnemyBoss,  slowImmune: true, shield: 0 },
+  { id: 'fireGolem', name: 'Fire Golem', hp: 1500, speed: 0.60, reward: 60, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyFireGolem, biomeExclusive: 'volcano', slowImmune: true, shield: 0 },
 ];

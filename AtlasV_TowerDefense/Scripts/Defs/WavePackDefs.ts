@@ -169,6 +169,66 @@ export const SNOW_TIER_3_PACKS: ReadonlyArray<IWavePack> = [
   },
 ];
 
+/** Volcano biome Tier 1 packs (Fire Goblin patrols) */
+export const VOLCANO_TIER_1_PACKS: ReadonlyArray<IWavePack> = [
+  {
+    name: 'FirePatrol',
+    groups: [{ enemyId: 'fireGoblin', count: 5 }],
+  },
+  {
+    name: 'FireScouts',
+    groups: [{ enemyId: 'fireGoblin', count: 3 }, { enemyId: 'basic', count: 2 }],
+  },
+  {
+    name: 'EmberPatrol',
+    groups: [{ enemyId: 'fireGoblin', count: 6 }],
+  },
+];
+
+/** Volcano biome Tier 2 packs (heavier fire presence) */
+export const VOLCANO_TIER_2_PACKS: ReadonlyArray<IWavePack> = [
+  {
+    name: 'FireRaid',
+    groups: [{ enemyId: 'fireGoblin', count: 4 }, { enemyId: 'fast', count: 2 }],
+  },
+  {
+    name: 'FireSwarm',
+    groups: [{ enemyId: 'fireGoblin', count: 6 }],
+  },
+  {
+    name: 'MagmaRush',
+    groups: [{ enemyId: 'fireGoblin', count: 8 }],
+  },
+];
+
+/** Volcano biome Tier 3 packs (heavy fire + tank combos) */
+export const VOLCANO_TIER_3_PACKS: ReadonlyArray<IWavePack> = [
+  {
+    name: 'FireHorde',
+    groups: [{ enemyId: 'fireGoblin', count: 5 }, { enemyId: 'tank', count: 2 }],
+  },
+  {
+    name: 'InfernoWave',
+    groups: [{ enemyId: 'fireGoblin', count: 8 }],
+  },
+  {
+    name: 'VolcanoSiege',
+    groups: [{ enemyId: 'fireGoblin', count: 4 }, { enemyId: 'fast', count: 3 }, { enemyId: 'basic', count: 2 }],
+  },
+  {
+    name: 'MagmaPush',
+    groups: [{ enemyId: 'fireGoblin', count: 6 }, { enemyId: 'fast', count: 2 }],
+  },
+];
+
+/** Volcano biome Boss packs (Fire Golem as volcano boss) */
+export const VOLCANO_BOSS_PACKS: ReadonlyArray<IWavePack> = [
+  {
+    name: 'VolcanoBoss',
+    groups: [{ enemyId: 'fireGolem', count: 1 }, { enemyId: 'fireGoblin', count: 4 }, { enemyId: 'fast', count: 2 }],
+  },
+];
+
 /** Returns the pack pool for a given tier. */
 export function getPackPoolForTier(tier: WavePackTier): ReadonlyArray<IWavePack> {
   switch (tier) {
@@ -186,6 +246,12 @@ export function getPackPoolForTierAndBiome(tier: WavePackTier, biome: string): R
     if (tier === WavePackTier.T1) return [...basePacks, ...SNOW_TIER_1_PACKS];
     if (tier === WavePackTier.T2) return [...basePacks, ...SNOW_TIER_2_PACKS];
     if (tier === WavePackTier.T3) return [...basePacks, ...SNOW_TIER_3_PACKS];
+  }
+  if (biome === 'volcano') {
+    if (tier === WavePackTier.T1) return [...basePacks, ...VOLCANO_TIER_1_PACKS];
+    if (tier === WavePackTier.T2) return [...basePacks, ...VOLCANO_TIER_2_PACKS];
+    if (tier === WavePackTier.T3) return [...basePacks, ...VOLCANO_TIER_3_PACKS];
+    if (tier === WavePackTier.Boss) return VOLCANO_BOSS_PACKS;
   }
   return basePacks;
 }

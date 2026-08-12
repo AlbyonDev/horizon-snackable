@@ -111,6 +111,7 @@ export interface IEnemyDef {
   shield?: number;
   blizzardSpeedBoost?: number;
   biomeExclusive?: string;
+
 }
 
 export interface IWaveGroup {
