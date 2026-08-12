@@ -101,8 +101,8 @@ export class GameManager extends Component {
     if (this._running) return;
     this._currentLevelIndex = _p.levelIndex;
 
-    console.log(`[GameManager] Level ${_p.levelIndex} selected, starting game`);
-    this._startGame();
+    console.log(`[GameManager] Level ${_p.levelIndex} selected (nodeType=${_p.nodeType}), starting game`);
+    this._startGame(_p.nodeType);
   }
 
   @subscribe(OnWorldUpdateEvent)
@@ -137,7 +137,7 @@ export class GameManager extends Component {
     EventService.sendLocally(Events.GamePhaseChanged, phase);
   }
 
-  private _startGame(): void {
+  private _startGame(nodeType: string = 'combat'): void {
     this._running = true;
     RelicService.get();
     BossModifierService.get();
@@ -171,7 +171,7 @@ export class GameManager extends Component {
       BlizzardService.get().prewarm(),
     ]);
     ResourceService.get().reset();
-    WaveService.get().startGame();
+    WaveService.get().startGame(nodeType);
   }
 
   private _endGame(won: boolean): void {

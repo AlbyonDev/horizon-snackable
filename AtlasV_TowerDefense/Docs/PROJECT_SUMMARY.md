@@ -144,10 +144,10 @@ Scripts/
 
   Defs/
     TowerDefs.ts    — TOWER_DEFS: ITowerDef[] (7 towers + upgrade trees)
-    EnemyDefs.ts    — ENEMY_DEFS: IEnemyDef[] (9 enemy types including yeti berserker, frost goblin, fire goblin, and fire golem)
+    EnemyDefs.ts    — ENEMY_DEFS: IEnemyDef[] (11 enemy types including charger, yeti berserker, frost goblin, fire goblin, fire golem, cave boss, and giant goblin; each has a `followPath` property controlling path vs straight-line movement)
     LevelDefs.ts    — LEVEL_DEFS: ILevelDef[] (20 waves, 1 level, includes path waypoints); WAVES_LEVEL_0 exported but unused by runtime
     PathDefs.ts     — PATH_WAYPOINTS_LEVEL_0 exported but unused by runtime (legacy reference data)
-    WavePackDefs.ts — Wave pack definitions (T1/T2/T3/Boss packs + snow biome T1/T2/T3 packs + volcano biome T1/T2/T3/Boss packs) and tier slot patterns per level; used by LevelGeneratorService for procedural wave composition; T1 packs include ShamanRaid (3 basic + 2 shaman); snow T1 packs include frost goblin enemies; snow T2/T3 packs include yeti enemies; volcano T1/T2/T3 packs include fire goblin enemies; volcano Boss packs use Fire Golem as the biome-specific boss
+    WavePackDefs.ts — Wave pack definitions (T1/T2/T3/T4/Boss packs + snow biome T1/T2/T3 packs + volcano biome T1/T2/T3/Boss packs) and tier slot patterns per level; used by LevelGeneratorService for procedural wave composition; T4 packs feature the Charger enemy as a mini-boss mixed with other enemies; T1 packs include ShamanRaid (3 basic + 2 shaman); snow T1 packs include frost goblin enemies; snow Boss packs use Yeti Berserker as the biome-specific boss; volcano T1/T2/T3 packs include fire goblin enemies; volcano Boss packs use Fire Golem as the biome-specific boss; grass Boss packs use Giant Goblin as the biome-specific boss; Boss packs include CaveBossWave (1 caveBoss + 5 basic + 3 fast) which randomly appears as the final wave of the last level in any non-volcano biome; T3 packs include FireballBarrage (4 fireball + 3 fast) and FireballRush (3 fireball + 5 basic) mixing the Fireball enemy into late-game general waves
     UpgradeDefs.ts  — Upg atoms catalog + tree() builder
     BiomeDefs.ts    — BIOME_DEFS: IBiomeDef[] (3 biomes: grass, snow, volcano)
     RelicDefs.ts    — RELIC_DEFS: IRelicDef[] (6 relics: gold, damage, speed, range, lives, slow)
@@ -159,7 +159,7 @@ Scripts/
   Services/
     PathService         — waypoint path, cellToWorld(), isPathCell() (rebuilds on LevelSelected from LevelGeneratorService)
     PathTileService     — spawns path tiles using 5 templates (4 pre-rotated corners + 1 straight with runtime Y-rotation) and 2 shared UV-sliced materials; swaps pathTex on BiomeChanged
-    LevelGeneratorService — procedural level generation using wave pack system; generates TOTAL_LEVELS ILevelDef instances on StartGame using tier-based pack selection (T1/T2/T3/Boss packs with no-repeat logic); biome-aware wave composition mixes in biome-specific packs (e.g. snow yeti packs) based on active biome; tracks runCount (resets on StartGame, increments on advanceRun when all levels beaten)
+    LevelGeneratorService — procedural level generation using wave pack system; generates TOTAL_LEVELS ILevelDef instances on StartGame using tier-based pack selection (T1/T2/T3/T4/Boss packs with no-repeat logic); biome-aware wave composition mixes in biome-specific packs (e.g. snow yeti packs) based on active biome; tracks runCount (resets on StartGame, increments on advanceRun when all levels beaten)
     TowerService        — selectedId, place on GridTapped, upgrade, sell
     EnemyService        — live enemy registry (worldX, worldZ, pathT, hp, speedFactor)
     ResourceService     — gold, lives, earn(), spend(), loseLife(), reset()
@@ -271,12 +271,15 @@ Restrictions (e.g. "no splash on arrow", "laser range max once") are enforced **
 | `basic` | Enemy | 60 | 1.25/s | 5g | — |
 | `fast` | Fast | 35 | 2.50/s | 8g | `dodgeChance: 0.15` |
 | `tank` | Tank (Troll) | 220 | 0.75/s | 15g | `regenPerSec: 8` |
-| `boss` | Boss | 600 | 0.60/s | 50g | `slowImmune: true` |
+| `charger` | Charger | 1000 | 0.60/s | 50g | `slowImmune: true`, `followPath: false` — does not follow the winding path, moves straight toward the base |
 | `shaman` | Shaman | 45 | 1.75/s | 7g | — |
-| `yeti` | Yeti Berserker | 180 | 0.85/s | 12g | `blizzardSpeedBoost: 2`, `biomeExclusive: 'snow'` |
+| `yeti` | Yeti Berserker | 1800 | 0.35/s | 65g | `blizzardSpeedBoost: 1`, `biomeExclusive: 'snow'`, `slowImmune: true` (snow biome boss) |
 | `frostGoblin` | Frost Goblin | 66 | 1.25/s | 5g | `biomeExclusive: 'snow'` (snow T1 grunt) |
 | `fireGoblin` | Fire Goblin | 66 | 1.25/s | 5g | `biomeExclusive: 'volcano'` (volcano T1 grunt) |
 | `fireGolem` | Fire Golem | 600 | 0.60/s | 50g | `biomeExclusive: 'volcano'`, `slowImmune: true` (volcano biome boss) |
+| `caveBoss` | Cave Boss | 2000 | 0.40/s | 75g | `slowImmune: true`, `straightLine: true` — ignores path, moves in a straight line toward the base, destroys any towers in its path on contact |
+| `giantGoblin` | Giant Goblin | 600 | 0.60/s | 50g | `biomeExclusive: 'grass'`, `slowImmune: true` (grass biome boss) |
+| `fireball` | Fireball | 150 | 1.5/s | 10g | `slowImmune: true`, `followPath: false` — moves in a straight line toward the base; animated with pulsing scale + Y-rotation via `FireballAnimator` component and a `fire_intense_loop` VFX child |
 
 HP scales +15% per wave: `hp × (1 + waveIndex × HP_SCALE_PER_WAVE)` where `HP_SCALE_PER_WAVE = 0.15`. Last wave (W20, `waveIndex = 19`): ~3.85× base HP.
 
@@ -508,6 +511,10 @@ Enemy (root)                         ← TransformComponent + EnemyController
 4. **Squash on hit** — XZ stretches to `1.12`, Y compresses to `0.88` for 0.12s using smoothstep. Applied to the root scale.
 5. **Hit flash** — All collected `ColorComponent`s flash red (`HIT_COLOR = (1, 0.1, 0.1)`) for 0.12s, then restore base color or `_persistentTint` (e.g. blue for slow debuff).
 6. **Death** — Uniform scale lerp from `_baseScale` to `0` over 0.35s, then `entity.destroy()`. No corpse, no fade.
+
+#### Straight-line boss mode
+
+When an enemy def has `straightLine: true`, the EnemyController bypasses PathService waypoint following and instead moves in a straight line along the -X axis (toward the player's base). Each frame it checks the grid cell it occupies and destroys any tower found there via `TowerService.removeTowerAt()`. The boss remains targetable by towers through the normal EnemyService registry. A 3D cave entrance mesh is placed at the spawn point as a visual origin for the boss.
 
 #### Authoring rules for new enemies
 

@@ -24,12 +24,14 @@ export namespace Assets {
   export const EnemyBasic = new TemplateAsset('@Templates/Enemies/Enemy.hstf');
   export const EnemyFast  = new TemplateAsset('@Templates/Enemies/EnemyFast.hstf');
   export const EnemyTank  = new TemplateAsset('@Templates/Enemies/EnemyTank.hstf');
-  export const EnemyBoss  = new TemplateAsset('@Templates/Enemies/EnemyBoss.hstf');
+  export const EnemyCharger  = new TemplateAsset('@Templates/Enemies/EnemyCharger.hstf');
   export const EnemyShaman = new TemplateAsset('@Templates/Enemies/EnemyShaman.hstf');
   export const EnemyYetiBerserker = new TemplateAsset('@Templates/Enemies/EnemyYetiBerserker.hstf');
   export const EnemyFrostGoblin = new TemplateAsset('@Templates/Enemies/EnemyFrostGoblin.hstf');
   export const EnemyFireGoblin = new TemplateAsset('@Templates/Enemies/EnemyFireGoblin.hstf');
   export const EnemyFireGolem = new TemplateAsset('@Templates/Enemies/EnemyFireGolem.hstf');
+  export const EnemyGiantGoblin = new TemplateAsset('@Templates/Enemies/EnemyGiantGoblin.hstf');
+  export const EnemyFireball = new TemplateAsset('@Templates/Enemies/EnemyFireball.hstf');
 
   // ── Effects ──────────────────────────────────────────────────────────────
   export const ShieldSphere = new TemplateAsset('@Templates/ShieldSphere.hstf');

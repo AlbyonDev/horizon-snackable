@@ -34,8 +34,8 @@ import { ACHIEVEMENT_GROUPS } from '../Defs/AchievementDefs';
 
 // Step definitions
 const FTUE3_STEPS: string[] = [
-  "You've earned your first reward! Tap the Trophy button at the top to claim it.",
-  'Complete achievements to earn skulls \u2014 your permanent currency.',
+  "You've earned your first reward! Tap the REWARDS button at the top to claim it.",
+  "Complete achievements to earn skulls. It's your permanent currency!",
   'Spend skulls in the Skill Tree to unlock powerful upgrades forever!',
 ];
 

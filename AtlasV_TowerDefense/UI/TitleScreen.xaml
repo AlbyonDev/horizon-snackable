@@ -181,7 +181,87 @@
             </Grid>
             </Grid>
 
-            <!-- Row 4: Subtitle text -->
+            <!-- Row 4: Reset save data button / "data reset" label -->
+            <Grid Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,40,0,0">
+                <!-- Reset Button (hidden after reset) -->
+                <Button Command="{Binding Path=events.resetTap}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="0" Cursor="Hand">
+                    <Button.Visibility>
+                        <Binding Path="resetButtonVisible">
+                            <Binding.Converter>
+                                <BooleanToVisibilityConverter/>
+                            </Binding.Converter>
+                        </Binding>
+                    </Button.Visibility>
+                    <Border CornerRadius="16" BorderThickness="4" BorderBrush="#88f5c518"
+                            Padding="40,16,40,16" Background="#44000000">
+                        <TextBlock Text="Reset save data" FontSize="48" FontFamily="Anton"
+                                   Foreground="#AAf5c518" HorizontalAlignment="Center"/>
+                    </Border>
+                </Button>
+                <!-- "data reset" label (shown after reset) -->
+                <TextBlock Text="data reset" FontSize="48" FontFamily="Anton"
+                           Foreground="#88FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Visibility>
+                        <Binding Path="resetDoneVisible">
+                            <Binding.Converter>
+                                <BooleanToVisibilityConverter/>
+                            </Binding.Converter>
+                        </Binding>
+                    </TextBlock.Visibility>
+                </TextBlock>
+            </Grid>
+        </Grid>
+
+        <!-- Confirmation Popup Overlay -->
+        <Grid>
+            <Grid.Visibility>
+                <Binding Path="resetPopupVisible">
+                    <Binding.Converter>
+                        <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                </Binding>
+            </Grid.Visibility>
+            <!-- Semi-transparent dim background -->
+            <Rectangle Fill="#CC000000"/>
+            <!-- Popup dialog -->
+            <Border Background="#FF1a1a2e" CornerRadius="24" BorderThickness="6"
+                    BorderBrush="#FFf5c518" Padding="60,40,60,40"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Width="800">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="Reset Save Data?" FontSize="72" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FFF5E6C8"
+                               HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                    <TextBlock Text="All progress will be lost." FontSize="44"
+                               FontFamily="Anton" Foreground="#AAFFFFFF"
+                               HorizontalAlignment="Center" Margin="0,0,0,40"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <!-- YES button -->
+                        <Button Command="{Binding Path=events.resetConfirm}"
+                                Background="Transparent" BorderThickness="0"
+                                Padding="0" Cursor="Hand" Margin="0,0,30,0">
+                            <Border CornerRadius="16" BorderThickness="4" BorderBrush="#FFFF4444"
+                                    Padding="50,20,50,20" Background="#44FF0000">
+                                <TextBlock Text="YES" FontSize="56" FontFamily="Anton"
+                                           Foreground="#FFFF6666" HorizontalAlignment="Center"/>
+                            </Border>
+                        </Button>
+                        <!-- NO button -->
+                        <Button Command="{Binding Path=events.resetCancel}"
+                                Background="Transparent" BorderThickness="0"
+                                Padding="0" Cursor="Hand" Margin="30,0,0,0">
+                            <Border CornerRadius="16" BorderThickness="4" BorderBrush="#88f5c518"
+                                    Padding="50,20,50,20" Background="#44000000">
+                                <TextBlock Text="NO" FontSize="56" FontFamily="Anton"
+                                           Foreground="#FFF5E6C8" HorizontalAlignment="Center"/>
+                            </Border>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </Grid>
     </Grid>
 </Page>

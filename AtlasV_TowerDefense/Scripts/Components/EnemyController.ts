@@ -14,17 +14,19 @@
 import { Component, EventService, TransformComponent, MeshComponent, Color, ColorComponent, Vec3, Quaternion, WorldService, NetworkMode } from 'meta/worlds';
 import type { Entity } from 'meta/worlds';
 import { component, property, subscribe } from 'meta/worlds';
-import { OnEntityStartEvent, OnWorldUpdateEvent } from 'meta/worlds';
+import { OnEntityStartEvent, OnEntityDestroyEvent, OnWorldUpdateEvent } from 'meta/worlds';
 import type { OnWorldUpdateEventPayload } from 'meta/worlds';
 import { NetworkingService } from 'meta/worlds';
 import { Events } from '../Types';
-import { HP_SCALE_PER_WAVE, RUN_HP_SCALE, RUN_SPEED_SCALE, RUN_REWARD_SCALE } from '../Constants';
+import { HP_SCALE_PER_WAVE, RUN_HP_SCALE, RUN_SPEED_SCALE, RUN_REWARD_SCALE, GRID_ORIGIN_X, GRID_ORIGIN_Z, CELL_WIDTH, CELL_HEIGHT, GRID_ROWS, GRID_COLS } from '../Constants';
 import { PathService } from '../Services/PathService';
 import { EnemyService } from '../Services/EnemyService';
 import { ResourceService } from '../Services/ResourceService';
 import { BossModifierService } from '../Services/BossModifierService';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { SkillTreeService } from '../Services/SkillTreeService';
+import { TowerService } from '../Services/TowerService';
+import { TowerDestroyAnimService } from '../Services/TowerDestroyAnimService';
 import { Assets } from '../Assets';
 
 @component()
@@ -61,8 +63,22 @@ export class EnemyController extends Component {
 
   private static readonly DEATH_DURATION = 0.35;
 
+  // Spawn scale-up animation
+  private _spawnScaleTimer: number = 0;
+  private _spawnScaling: boolean = false;
+  private static readonly SPAWN_SCALE_DURATION = 0.8; // seconds to grow to full size
+  private static readonly SPAWN_SCALE_START = 0.25; // fraction of _baseScale to start at
+
   private _wpIndex: number = 0;
   private _subT: number = 0;
+
+  // Straight-line boss mode
+  private _straightLine: boolean = false;
+  private _straightLineStartX: number = 0;
+  private _straightLineStartZ: number = 0;
+  private _straightLineEndX: number = 0;
+  private _lastCheckedCol: number = -1;
+  private _lastCheckedRow: number = -1;
 
   // Shield mechanic
   private _shieldTimer: number = 0;
@@ -72,10 +88,23 @@ export class EnemyController extends Component {
   private static readonly SHIELD_FLICKER_THRESHOLD = 2.0; // seconds before expiry to start flickering
   private _shieldFlickerAccum: number = 0; // accumulated phase for flicker oscillation
 
+  // Shield spawn scale-up animation (mirrors enemy spawn grow)
+  private _shieldScaling: boolean = false;
+  private _shieldScaleTimer: number = 0;
+  private _shieldBaseScale: Vec3 = Vec3.one;
+
   @subscribe(OnEntityStartEvent)
   onStart(): void {
     if (NetworkingService.get().isServerContext()) return;
     this._transform = this.entity.getComponent(TransformComponent)!;
+  }
+
+  @subscribe(OnEntityDestroyEvent)
+  onDestroy(): void {
+    // Catch-all: if the entity is destroyed externally (e.g. level transition cleanup),
+    // ensure the shield sphere is also destroyed. The null-check in _destroyShieldVisual
+    // makes this safe to call even if _die() or _reachEnd() already cleaned it up.
+    this._destroyShieldVisual();
   }
 
   @subscribe(Events.InitEnemy)
@@ -105,6 +134,19 @@ export class EnemyController extends Component {
     this._transform.worldPosition = startPos;
     this._enemyId = EnemyService.get().register(this.entity, this._defId, this._hp, startPos.x, startPos.z);
 
+    // Straight-line mode (followPath: false or legacy straightLine: true)
+    this._straightLine = def.followPath === false || (def.straightLine ?? false);
+    if (this._straightLine) {
+      this._straightLineStartX = startPos.x;
+      this._straightLineStartZ = startPos.z;
+      // End X is the base (last waypoint row). Use row GRID_ROWS-1 mapped to world X.
+      const endPos = PathService.get().cellToWorld(Math.round((startPos.z - GRID_ORIGIN_Z) / CELL_HEIGHT), GRID_ROWS - 1);
+      this._straightLineEndX = endPos.x;
+      this._lastCheckedCol = -1;
+      this._lastCheckedRow = -1;
+      console.log(`[EnemyController] Straight-line boss spawned at X=${startPos.x.toFixed(2)}, targeting endX=${this._straightLineEndX.toFixed(2)}`);
+    }
+
     this._colorComponents = [];
     this._collectColorComponents(this.entity);
     this._baseColor = this._colorComponents[0]?.color ?? new Color(1, 1, 1, 1);
@@ -121,6 +163,12 @@ export class EnemyController extends Component {
       this._shieldTimer = 0;
       this._shieldActive = false;
     }
+
+    // Start spawn scale-up animation
+    this._spawnScaling = true;
+    this._spawnScaleTimer = 0;
+    const startScale = this._baseScale * EnemyController.SPAWN_SCALE_START;
+    this._transform.localScale = new Vec3(startScale, startScale, startScale);
   }
 
   @subscribe(Events.TakeDamage)
@@ -153,14 +201,50 @@ export class EnemyController extends Component {
 
     if (this._squashTimer > 0) {
       this._squashTimer -= p.deltaTime;
-      if (this._squashTimer <= 0) {
+      if (this._squashTimer <= 0 && !this._spawnScaling) {
         this._transform.localScale = new Vec3(this._baseScale, this._baseScale, this._baseScale);
-      } else {
+      } else if (!this._spawnScaling) {
         const t = this._squashTimer / EnemyController.SQUASH_DURATION;
         const s = t * t * (3 - 2 * t);
         const xz = this._baseScale * (1 + (EnemyController.SQUASH_XZ - 1) * s);
         const y  = this._baseScale * (1 + (EnemyController.SQUASH_Y  - 1) * s);
         this._transform.localScale = new Vec3(xz, y, xz);
+      }
+    }
+
+    // Spawn scale-up animation (ease-out)
+    if (this._spawnScaling) {
+      this._spawnScaleTimer += p.deltaTime;
+      const t = Math.min(this._spawnScaleTimer / EnemyController.SPAWN_SCALE_DURATION, 1.0);
+      // Ease-out: 1 - (1-t)^2
+      const eased = 1 - (1 - t) * (1 - t);
+      const scale = this._baseScale * (EnemyController.SPAWN_SCALE_START + (1 - EnemyController.SPAWN_SCALE_START) * eased);
+      this._transform.localScale = new Vec3(scale, scale, scale);
+      if (t >= 1.0) {
+        this._spawnScaling = false;
+        this._transform.localScale = new Vec3(this._baseScale, this._baseScale, this._baseScale);
+      }
+    }
+
+    // Shield sphere scale-up animation (matches enemy spawn grow)
+    if (this._shieldScaling && this._shieldEntity) {
+      this._shieldScaleTimer += p.deltaTime;
+      const t = Math.min(this._shieldScaleTimer / EnemyController.SPAWN_SCALE_DURATION, 1.0);
+      const eased = 1 - (1 - t) * (1 - t);
+      const fraction = EnemyController.SPAWN_SCALE_START + (1 - EnemyController.SPAWN_SCALE_START) * eased;
+      const shieldTransform = this._shieldEntity.getComponent(TransformComponent);
+      if (shieldTransform) {
+        shieldTransform.localScale = new Vec3(
+          this._shieldBaseScale.x * fraction,
+          this._shieldBaseScale.y * fraction,
+          this._shieldBaseScale.z * fraction,
+        );
+      }
+      if (t >= 1.0) {
+        this._shieldScaling = false;
+        if (shieldTransform) {
+          shieldTransform.localScale = this._shieldBaseScale;
+        }
       }
     }
 
@@ -198,6 +282,54 @@ export class EnemyController extends Component {
       this._hp = Math.min(this._hp + this._regenPerSec * dt, this._maxHp);
       const pos = this._transform.worldPosition;
       EnemyService.get().update(this._enemyId, pos.x, pos.z, PathService.get().getGlobalT(this._wpIndex, this._subT), this._hp);
+    }
+
+    // --- Straight-line boss movement ---
+    if (this._straightLine) {
+      const speedFactor = EnemyService.get().get(this._enemyId)?.speedFactor ?? 1;
+      const moveAmount = this._speed * speedFactor * dt;
+      const pos = this._transform.worldPosition;
+      // Move along -X axis (toward base, which is lower X)
+      const newX = pos.x - moveAmount;
+      this._transform.worldPosition = new Vec3(newX, pos.y, pos.z);
+
+      // Check grid cell for tower destruction
+      const col = Math.round((pos.z - GRID_ORIGIN_Z) / CELL_HEIGHT);
+      const row = GRID_ROWS - 1 - Math.round((newX - GRID_ORIGIN_X) / CELL_WIDTH);
+      if (col >= 0 && col < GRID_COLS && row >= 0 && row < GRID_ROWS) {
+        if (col !== this._lastCheckedCol || row !== this._lastCheckedRow) {
+          this._lastCheckedCol = col;
+          this._lastCheckedRow = row;
+          const tower = TowerService.get().getAt(col, row);
+          if (tower) {
+            console.log(`[EnemyController] Cave boss destroying tower at col=${col}, row=${row}`);
+            TowerService.get().removeTowerAt(col, row);
+            TowerDestroyAnimService.get().beginCollapseOnly(tower.entity);
+          }
+        }
+      }
+
+      // Update enemy service record
+      EnemyService.get().update(this._enemyId, newX, pos.z, 0, this._hp);
+
+      // Face toward -X (forward movement direction)
+      const ahead = new Vec3(newX - 1, pos.y, pos.z);
+      this._transform.lookAt(ahead, Vec3.up);
+
+      // Update shield sphere position
+      if (this._shieldEntity) {
+        const shieldTransform = this._shieldEntity.getComponent(TransformComponent);
+        if (shieldTransform) {
+          shieldTransform.worldPosition = new Vec3(newX, pos.y, pos.z);
+        }
+      }
+
+      // Check if reached the end
+      if (newX <= this._straightLineEndX) {
+        console.log(`[EnemyController] Cave boss reached the base`);
+        this._reachEnd();
+      }
+      return;
     }
 
     const pathService = PathService.get();
@@ -264,6 +396,7 @@ export class EnemyController extends Component {
     this._alive = false;
     this._dying = true;
     this._deathTimer = 0;
+    this._spawnScaling = false;
     EnemyService.get().unregister(this._enemyId);
     this._destroyShieldVisual();
 
@@ -297,7 +430,14 @@ export class EnemyController extends Component {
   private _reachEnd(): void {
     this._alive = false;
     EnemyService.get().unregister(this._enemyId);
-    ResourceService.get().loseLife();
+
+    // Cave boss instant-kills (sets lives to 0) instead of removing 1 life
+    if (this._defId === 'caveBoss') {
+      console.log('[EnemyController] Cave boss reached the base — instant kill!');
+      ResourceService.get().loseAllLives();
+    } else {
+      ResourceService.get().loseLife();
+    }
 
     const p = new Events.EnemyReachedEndPayload();
     p.enemyId = this._enemyId;
@@ -310,6 +450,8 @@ export class EnemyController extends Component {
 
   private _spawnShieldVisual(): void {
     this._shieldFlickerAccum = 0;
+    this._shieldScaling = true;
+    this._shieldScaleTimer = 0;
     WorldService.get().spawnTemplate({
       templateAsset: Assets.ShieldSphere,
       position: this._transform.worldPosition,
@@ -321,6 +463,17 @@ export class EnemyController extends Component {
       const children = entity.getChildren();
       if (children.length > 0) {
         this._shieldMeshComp = children[0].getComponent(MeshComponent);
+      }
+      // Start shield at 25% scale and grow to full
+      const shieldTransform = entity.getComponent(TransformComponent);
+      if (shieldTransform) {
+        this._shieldBaseScale = shieldTransform.localScale;
+        const startFraction = EnemyController.SPAWN_SCALE_START;
+        shieldTransform.localScale = new Vec3(
+          this._shieldBaseScale.x * startFraction,
+          this._shieldBaseScale.y * startFraction,
+          this._shieldBaseScale.z * startFraction,
+        );
       }
       console.log(`[EnemyController] Shield sphere spawned for enemy ${this._enemyId}`);
     }).catch(() => {

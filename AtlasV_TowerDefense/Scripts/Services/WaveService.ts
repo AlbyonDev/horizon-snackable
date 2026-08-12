@@ -33,6 +33,7 @@ export class WaveService extends Service {
   private _timer: number = 0;
   private _ftueWaiting: boolean = false;
   private _currentLevel: number = 0;
+  private _nodeType: string = 'combat';
 
   // ── Spawn queue ───────────────────────────────────────────────────────────────
   private _spawnQueue: string[] = [];
@@ -69,9 +70,10 @@ export class WaveService extends Service {
     this._totalInWave  = 0;
   }
 
-  startGame(): void {
+  startGame(nodeType: string = 'combat'): void {
     this._waveIndex   = 0;
     this._ftueWaiting = false;
+    this._nodeType    = nodeType;
     this._enterBuild();
   }
 
@@ -171,7 +173,9 @@ export class WaveService extends Service {
     if (this._waveIndex === 0) {
       this._ftueWaiting = true;
       this._timer = 0;
-      EventService.sendLocally(Events.FtueHint, new Events.FtueHintPayload());
+      const hint = new Events.FtueHintPayload();
+      hint.nodeType = this._nodeType;
+      EventService.sendLocally(Events.FtueHint, hint);
     } else {
       this._timer = 0;
     }

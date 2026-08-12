@@ -1867,6 +1867,101 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "5178b638-ca7d-4aa3-8587-68353bf29f96",
+            "name": "CaveEntrance",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "15982404890404096580",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "6e11fcce-485e-fc06-2a88-925cd3061efc",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": 7.5,
+                                        "y": 0.0,
+                                        "z": 0.0
+                                    },
+                                    "localRotation": {
+                                        "x": -0.0,
+                                        "y": -1.5707963705062867,
+                                        "z": 0.0
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "CavePositionController",
+                                "definitionAsset": {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "15396541806941488853",
+                                    "targetId": "4237980480"
+                                },
+                                "data": {}
+                            }
+                        }
+                    ],
+                    "attributes": []
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "28eb5606-42a4-4c2c-b4d5-6fad9a7813c2",
+            "name": "BossFtueUI",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "445169138486524961",
+                                "targetId": "2149638574"
+                            },
+                            "panelVisibility": false,
+                            "isInteractable": true,
+                            "isBlocking": true,
+                            "renderOrderOffset": 25
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "BossFtueHud",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "196922332193135751",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -2053,6 +2148,16 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "91bd974c-3a2b-4ea1-92d4-6661cd24e98b",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "5178b638-ca7d-4aa3-8587-68353bf29f96",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "28eb5606-42a4-4c2c-b4d5-6fad9a7813c2",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

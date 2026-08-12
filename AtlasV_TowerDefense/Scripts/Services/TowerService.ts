@@ -230,6 +230,7 @@ export class TowerService extends Service {
 
     if (LOCKED_COLS.includes(col)) return;
     if (PathService.get().isPathCell(col, row)) return;
+    if (PathService.get().isCaveBlockedCell(col, row)) return;
     if (MagmaTileService.get().isMagmaCell(col, row)) return;
     if (this.isOccupied(col, row)) return;
     if (!ResourceService.get().canAfford(def.cost)) return;

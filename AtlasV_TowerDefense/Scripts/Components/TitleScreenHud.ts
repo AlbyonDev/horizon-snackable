@@ -46,12 +46,36 @@ export class TitleScreenPlayTapPayload {
 
 const playTapEvent = new UiEvent('TitleScreenViewModel-onPlayTap', TitleScreenPlayTapPayload);
 
+@serializable()
+export class TitleScreenResetTapPayload {
+  readonly parameter: string = '';
+}
+
+const resetTapEvent = new UiEvent('TitleScreenViewModel-onResetTap', TitleScreenResetTapPayload);
+
+@serializable()
+export class TitleScreenResetConfirmPayload {
+  readonly parameter: string = '';
+}
+
+const resetConfirmEvent = new UiEvent('TitleScreenViewModel-onResetConfirm', TitleScreenResetConfirmPayload);
+
+@serializable()
+export class TitleScreenResetCancelPayload {
+  readonly parameter: string = '';
+}
+
+const resetCancelEvent = new UiEvent('TitleScreenViewModel-onResetCancel', TitleScreenResetCancelPayload);
+
 // ── ViewModel ───────────────────────────────────────────────────────────────────
 
 @uiViewModel()
 export class TitleScreenViewModel extends UiViewModel {
   override readonly events = {
     playTap: playTapEvent,
+    resetTap: resetTapEvent,
+    resetConfirm: resetConfirmEvent,
+    resetCancel: resetCancelEvent,
   };
 
   visible: boolean = true;
@@ -63,6 +87,15 @@ export class TitleScreenViewModel extends UiViewModel {
 
   /** Button caption: "LOADING" while waiting for the cloud save, "PLAY" once ready. */
   buttonLabel: string = 'LOADING';
+
+  /** Whether the reset button is visible (hidden after data is reset). */
+  resetButtonVisible: boolean = true;
+
+  /** Whether the confirmation popup is visible. */
+  resetPopupVisible: boolean = false;
+
+  /** Label that replaces the reset button after data is reset. */
+  resetDoneVisible: boolean = false;
 }
 
 // ── Component ───────────────────────────────────────────────────────────────────
@@ -160,5 +193,38 @@ export class TitleScreenHud extends Component {
     this.viewModel.visible = false;
     // Always fire StartGame which transitions to Overworld
     EventService.sendLocally(Events.StartGame, new Events.StartGamePayload());
+  }
+
+  // ── Reset save data ──────────────────────────────────────────────────────────
+
+  @subscribe(resetTapEvent, { execution: ExecuteOn.Owner })
+  onResetTap(_payload: TitleScreenResetTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    // Show the confirmation popup
+    this.viewModel.resetPopupVisible = true;
+    console.log('[TitleScreenHud] Reset button tapped — showing confirmation popup');
+  }
+
+  @subscribe(resetConfirmEvent, { execution: ExecuteOn.Owner })
+  onResetConfirm(_payload: TitleScreenResetConfirmPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    // Perform the reset
+    SaveService.get().resetSaveData();
+    // Hide popup, hide reset button, show "data reset" label
+    this.viewModel.resetPopupVisible = false;
+    this.viewModel.resetButtonVisible = false;
+    this.viewModel.resetDoneVisible = true;
+    console.log('[TitleScreenHud] Save data reset confirmed');
+  }
+
+  @subscribe(resetCancelEvent, { execution: ExecuteOn.Owner })
+  onResetCancel(_payload: TitleScreenResetCancelPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    // Just close the popup
+    this.viewModel.resetPopupVisible = false;
+    console.log('[TitleScreenHud] Reset cancelled');
   }
 }

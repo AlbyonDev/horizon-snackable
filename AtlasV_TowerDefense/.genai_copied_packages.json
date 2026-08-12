@@ -60,6 +60,12 @@
       "name": "a_walk_in_the_forest_QZAAJ1902071",
       "version": "0.0.1"
     },
+    "meta/fire_intense_loop/0.0.2": {
+      "author": "meta",
+      "folderName": "popcornfx/fire_intense_loop",
+      "name": "fire_intense_loop",
+      "version": "0.0.2"
+    },
     "meta/human_jog_masculine_forward/0.0.6": {
       "author": "meta",
       "folderName": "human_jog_masculine_forward",
@@ -70,6 +76,12 @@
       "author": "meta",
       "folderName": "human_locomotion_firstperson_forward",
       "name": "human_locomotion_firstperson_forward",
+      "version": "0.0.6"
+    },
+    "meta/human_walk_masculine_forward/0.0.6": {
+      "author": "meta",
+      "folderName": "RetrievedAnimations/male/human_walk_masculine_forward",
+      "name": "human_walk_masculine_forward",
       "version": "0.0.6"
     },
     "meta/human_walk_short_left/0.0.6": {

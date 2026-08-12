@@ -2,30 +2,14 @@
     "version": 6,
     "entities": [
         {
-            "id": "d998bd5b-74b4-4d12-8d20-fe857533e0d4",
-            "name": "EnemyBoss",
+            "id": "769ca641-6584-4a2f-b396-b4b890df380e",
+            "name": "EnemyFireball",
             "components": [
                 {
                     "data": {
                         "class": "horizon::platform_api::TransformPlatformComponent",
                         "version": 3,
-                        "data": {
-                            "localPosition": {
-                                "x": 0.0,
-                                "y": 0.0,
-                                "z": 0.0
-                            },
-                            "localRotation": {
-                                "x": -0.0,
-                                "y": 0.0,
-                                "z": 0.0
-                            },
-                            "localScale": {
-                                "x": 1.0,
-                                "y": 1.0,
-                                "z": 1.0
-                            }
-                        }
+                        "data": {}
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 },
@@ -38,8 +22,8 @@
                             "targetId": "4237980480"
                         },
                         "data": {
-                            "bodyPivot": "4333e211-245c-4e59-84c7-8a649194fea0",
-                            "shadow": "274e5d7b-99b0-4242-8a95-38240b11c5f1"
+                            "bodyPivot": "f72f8886-82ca-4537-a3f5-1cf3b2f37666",
+                            "shadow": "9bafefeb-7074-4b41-b1b0-9bd318938fbd"
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -48,7 +32,7 @@
             "attributes": []
         },
         {
-            "id": "4333e211-245c-4e59-84c7-8a649194fea0",
+            "id": "f72f8886-82ca-4537-a3f5-1cf3b2f37666",
             "name": "Pivot",
             "components": [
                 {
@@ -62,7 +46,7 @@
                                 "z": 0.0
                             },
                             "localRotation": {
-                                "x": 0.7853981852531433,
+                                "x": 0.0,
                                 "y": 0.0,
                                 "z": 0.0
                             },
@@ -79,8 +63,8 @@
             "attributes": []
         },
         {
-            "id": "db6e8798-639a-478c-80e1-7eec250ad0be",
-            "name": "OgreBoss",
+            "id": "1efdf9b8-adfb-4309-9971-da79c6cf8a50",
+            "name": "Fireball",
             "components": [
                 {
                     "data": {
@@ -88,14 +72,19 @@
                         "version": 3,
                         "data": {
                             "localPosition": {
-                                "x": 0.0,
-                                "y": 0.5,
-                                "z": 0.0
+                                "x": -1.4922861293301549e-15,
+                                "y": 0.6390709280967712,
+                                "z": -2.261547749071724e-8
                             },
                             "localRotation": {
-                                "x": 0.0,
-                                "y": 3.1415927410125734,
+                                "x": -0.0,
+                                "y": -3.141592502593994,
                                 "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 0.800000011920929,
+                                "y": 0.800000011920929,
+                                "z": 0.800000011920929
                             }
                         }
                     },
@@ -108,27 +97,8 @@
                         "data": {
                             "mesh": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "11151013609253344472",
-                                "targetId": "2053450167"
-                            }
-                        }
-                    },
-                    "dataType": "horizon::DataDefinitionAsset"
-                },
-                {
-                    "data": {
-                        "class": "horizon::platform_api::AnimatorPlatformComponent",
-                        "version": 10,
-                        "data": {
-                            "animGraph": {
-                                "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "9454567114451969194",
-                                "targetId": "44653426"
-                            },
-                            "skeleton": {
-                                "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "11151013609253344472",
-                                "targetId": "1672658995"
+                                "ingestionId": "17131662777158464276",
+                                "targetId": "481548839"
                             }
                         }
                     },
@@ -153,6 +123,27 @@
                     "data": {
                         "class": "horizon::platform_api::MaterialPlatformComponent",
                         "version": 2,
+                        "data": {
+                            "materials": [
+                                {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "17131662777158464276",
+                                    "targetId": "1604685701"
+                                }
+                            ],
+                            "perPartInstancedConstantParameterLists": []
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "FireballAnimator",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "13917722286048451452",
+                            "targetId": "4237980480"
+                        },
                         "data": {}
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -161,7 +152,36 @@
             "attributes": []
         },
         {
-            "id": "274e5d7b-99b0-4242-8a95-38240b11c5f1",
+            "id": "c031f234-2fc3-4d07-b144-e7cb244c7b85",
+            "name": "FireVFX",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::VfxPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "vfxAsset": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "8605226590476714173",
+                                "targetId": "1153353245"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "9bafefeb-7074-4b41-b1b0-9bd318938fbd",
             "name": "shadow",
             "components": [
                 {
@@ -236,18 +256,23 @@
     "relationships": [
         {
             "relationshipType": "RelationChildOf",
-            "source": "4333e211-245c-4e59-84c7-8a649194fea0",
-            "destination": "d998bd5b-74b4-4d12-8d20-fe857533e0d4"
+            "source": "f72f8886-82ca-4537-a3f5-1cf3b2f37666",
+            "destination": "769ca641-6584-4a2f-b396-b4b890df380e"
         },
         {
             "relationshipType": "RelationChildOf",
-            "source": "db6e8798-639a-478c-80e1-7eec250ad0be",
-            "destination": "4333e211-245c-4e59-84c7-8a649194fea0"
+            "source": "1efdf9b8-adfb-4309-9971-da79c6cf8a50",
+            "destination": "f72f8886-82ca-4537-a3f5-1cf3b2f37666"
         },
         {
             "relationshipType": "RelationChildOf",
-            "source": "274e5d7b-99b0-4242-8a95-38240b11c5f1",
-            "destination": "d998bd5b-74b4-4d12-8d20-fe857533e0d4"
+            "source": "c031f234-2fc3-4d07-b144-e7cb244c7b85",
+            "destination": "1efdf9b8-adfb-4309-9971-da79c6cf8a50"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "9bafefeb-7074-4b41-b1b0-9bd318938fbd",
+            "destination": "769ca641-6584-4a2f-b396-b4b890df380e"
         }
     ]
 }

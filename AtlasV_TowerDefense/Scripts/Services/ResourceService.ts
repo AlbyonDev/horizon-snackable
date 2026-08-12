@@ -81,6 +81,12 @@ export class ResourceService extends Service {
     this._notify();
   }
 
+  /** Set lives to 0 immediately (e.g. cave boss instant kill). */
+  loseAllLives(): void {
+    this._lives = 0;
+    this._notify();
+  }
+
   @subscribe(Events.CoinCollected)
   onCoinCollected(p: Events.CoinCollectedPayload): void {
     this.earn(p.amount);

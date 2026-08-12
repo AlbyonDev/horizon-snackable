@@ -64,6 +64,7 @@ export class WaveBannerHud extends Component {
 
   // Boss-level FTUE delay state
   private _isBossLevel: boolean = false;
+  private _isBossLevelKnown: boolean = false; // true once onLevelSelected has run for this game
   private _ftueDelayWaiting: boolean = false;
   private _ftueDelayTimer: number = 0;
 
@@ -72,6 +73,12 @@ export class WaveBannerHud extends Component {
 
   // Snow FTUE deferral state
   private _snowFtueDeferred: boolean = false;
+
+  // Boss FTUE deferral state
+  private _bossFtueDeferred: boolean = false;
+
+  // Deferred FTUE hint: when FtueHint fires before LevelSelected sets _isBossLevel
+  private _pendingFtueHint: boolean = false;
 
   // Lifecycle
 
@@ -109,11 +116,18 @@ export class WaveBannerHud extends Component {
    * On boss levels, delay by BOSS_FTUE_DELAY so the boss warning banner finishes first.
    * On volcano biome when FTUE popup hasn't been dismissed yet, defer until VolcanoFtueDismissed.
    * On snow biome when FTUE popup hasn't been dismissed yet, defer until SnowFtueDismissed.
+   * On boss levels when FTUE popup hasn't been dismissed yet, defer until BossFtueDismissed.
+   *
+   * IMPORTANT: Uses p.nodeType (passed through from GameManager via WaveService) instead of
+   * this._isBossLevel to avoid a race condition where this handler fires before onLevelSelected
+   * has set _isBossLevel (nested event delivery within LevelSelected dispatch).
    */
   @subscribe(Events.FtueHint, { execution: ExecuteOn.Owner })
-  onFtueHint(_p: Events.FtueHintPayload): void {
+  onFtueHint(p: Events.FtueHintPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+
+    const isBossLevel = p.nodeType === 'boss';
 
     // Check if volcano FTUE popup is about to show (biome is volcano and not yet seen)
     const save = SaveService.get();
@@ -136,8 +150,18 @@ export class WaveBannerHud extends Component {
       return;
     }
 
-    if (this._isBossLevel) {
-      // Delay showing until boss banner has dismissed
+    // Check if boss FTUE popup is about to show (boss level and not yet seen)
+    const bossFtuePending = isBossLevel && !save.getBossFtueSeen();
+
+    if (bossFtuePending) {
+      // Defer until the boss FTUE popup is dismissed
+      console.log('[WaveBannerHud] Boss FTUE pending, deferring build-phase hint');
+      this._bossFtueDeferred = true;
+      return;
+    }
+
+    if (isBossLevel) {
+      // Boss FTUE already seen — delay showing until boss warning banner has dismissed
       console.log('[WaveBannerHud] Boss level detected, delaying FTUE hint by ~3.2s');
       this._ftueDelayWaiting = true;
       this._ftueDelayTimer = 0;
@@ -183,6 +207,21 @@ export class WaveBannerHud extends Component {
     } else {
       this._showFtueHint();
     }
+  }
+
+  /**
+   * When the boss FTUE popup is dismissed, show the deferred build-phase hint.
+   * No additional delay needed — the boss warning banner has already finished
+   * by the time the player presses "Got it!".
+   */
+  @subscribe(Events.BossFtueDismissed, { execution: ExecuteOn.Owner })
+  onBossFtueDismissed(_p: Events.BossFtueDismissedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this._bossFtueDeferred) return;
+
+    console.log('[WaveBannerHud] Boss FTUE dismissed, showing build-phase hint now');
+    this._bossFtueDeferred = false;
+    this._showFtueHint();
   }
 
   private _showFtueHint(): void {
@@ -237,6 +276,7 @@ export class WaveBannerHud extends Component {
     this._ftueDelayTimer = 0;
     this._volcanoFtueDeferred = false;
     this._snowFtueDeferred = false;
+    this._bossFtueDeferred = false;
     this.viewModel.visible = false;
     this.viewModel.opacity = 0;
     this.viewModel.waveText = '';

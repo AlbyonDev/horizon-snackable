@@ -59,7 +59,7 @@ export const WAVES_LEVEL_0: IWaveDef[] = [
   // ── Act 2 ──────────────────────────────────────────────────────────────────
 
   // W6 — Premier Boss : immune slow, quelques Basics pour distraire. Introduction douce.
-  { groups: [{ enemyId: 'basic', count: 8 }, { enemyId: 'boss', count: 1 }] },
+  { groups: [{ enemyId: 'basic', count: 8 }, { enemyId: 'charger', count: 1 }] },
 
   // W7 — SKILL CHECK "Tank Wall" : 8 Tanks consécutifs, regen 8/s chacun.
   //   Frost net DPS négatif sur Tank. Arrow seul tient juste. Laser/Cannon upgradé = confort.
@@ -69,7 +69,7 @@ export const WAVES_LEVEL_0: IWaveDef[] = [
   { groups: [{ enemyId: 'fast', count: 14 }, { enemyId: 'basic', count: 6 }] },
 
   // W9 — Boss + Tank escort : immune slow + regen simultanément. Frost contre-productif sur les deux.
-  { groups: [{ enemyId: 'boss', count: 2 }, { enemyId: 'tank', count: 5 }, { enemyId: 'basic', count: 8 }] },
+  { groups: [{ enemyId: 'charger', count: 2 }, { enemyId: 'tank', count: 5 }, { enemyId: 'basic', count: 8 }] },
 
   // W10 — SKILL CHECK "Speed Run" : 25 Fast, dodge 15%. Pas de Boss ni Tank.
   //   Pression pure couverture + volume tirs. Cannon (0.6/s) souvent dodgé, laisse passer.
@@ -85,7 +85,7 @@ export const WAVES_LEVEL_0: IWaveDef[] = [
 
   // W13 — "Boss Escort" : Boss immune slow + Fast dodge = Frost inutile sur les deux.
   //   Vague signature pour le joueur Frost-centrique.
-  { groups: [{ enemyId: 'boss', count: 3 }, { enemyId: 'fast', count: 15 }] },
+  { groups: [{ enemyId: 'charger', count: 3 }, { enemyId: 'fast', count: 15 }] },
 
   // W14 — Tank tide : 10 Tanks simultanément, regen brutal sans DPS soutenu.
   //   Tours cheap non upgradées commencent à saturer.
@@ -93,7 +93,7 @@ export const WAVES_LEVEL_0: IWaveDef[] = [
 
   // W15 — SKILL CHECK "Double Menace" : Boss + Tank en grand nombre, pas de réponse unique.
   //   Laser pour les Tanks, DPS pur pour les Boss, Frost quasi inutile sur les deux.
-  { groups: [{ enemyId: 'boss', count: 3 }, { enemyId: 'tank', count: 8 }, { enemyId: 'basic', count: 10 }] },
+  { groups: [{ enemyId: 'charger', count: 3 }, { enemyId: 'tank', count: 8 }, { enemyId: 'basic', count: 10 }] },
 
   // ── Act 4 ──────────────────────────────────────────────────────────────────
 
@@ -102,17 +102,17 @@ export const WAVES_LEVEL_0: IWaveDef[] = [
 
   // W17 — SKILL CHECK "Boss Rush" : 6 Boss immune slow, HP ×3.4 (wave 17).
   //   ~2040 HP/Boss — seul Laser ou Cannon tier 2 les enchaîne. Vague la plus mémorable.
-  { groups: [{ enemyId: 'boss', count: 6 }, { enemyId: 'fast', count: 10 }] },
+  { groups: [{ enemyId: 'charger', count: 6 }, { enemyId: 'fast', count: 10 }] },
 
   // W18 — Récupération tendue : volume élevé sans Boss ni Tank. Tenir pour aborder W19–20 intact.
   { groups: [{ enemyId: 'basic', count: 25 }, { enemyId: 'fast', count: 20 }] },
 
   // W19 — "Mur d'Acier" : Tank tide massive + Boss en soutien. Regen brutal à HP ×3.7.
-  { groups: [{ enemyId: 'tank', count: 15 }, { enemyId: 'boss', count: 3 }, { enemyId: 'basic', count: 10 }] },
+  { groups: [{ enemyId: 'tank', count: 15 }, { enemyId: 'charger', count: 3 }, { enemyId: 'basic', count: 10 }] },
 
   // W20 — Finale : tout à la fois. Économie bien gérée = on finit proprement.
   //   Économie gaspillée = on finit mais avec des vies perdues.
-  { groups: [{ enemyId: 'boss', count: 5 }, { enemyId: 'tank', count: 12 }, { enemyId: 'fast', count: 20 }, { enemyId: 'basic', count: 15 }] },
+  { groups: [{ enemyId: 'charger', count: 5 }, { enemyId: 'tank', count: 12 }, { enemyId: 'fast', count: 20 }, { enemyId: 'basic', count: 15 }] },
 ];
 
 export const LEVEL_DEFS: ILevelDef[] = [

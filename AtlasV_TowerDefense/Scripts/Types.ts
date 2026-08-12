@@ -111,6 +111,10 @@ export interface IEnemyDef {
   shield?: number;
   blizzardSpeedBoost?: number;
   biomeExclusive?: string;
+  /** If true, enemy moves in a straight line toward the base instead of following the path. */
+  straightLine?: boolean;
+  /** If true, enemy follows the winding path. If false, moves in a straight line to the base. Defaults to true. */
+  followPath?: boolean;
 
 }
 
@@ -270,7 +274,10 @@ export namespace Events {
   export const TowerPlaced = new LocalEvent<TowerPlacedPayload>('EvTowerPlaced', TowerPlacedPayload);
 
   // Fired by WaveService to show the FTUE "place your first tower" hint
-  export class FtueHintPayload {}
+  // nodeType is passed through the call chain from GameManager.onLevelSelected
+  // to avoid a race condition where WaveBannerHud.onLevelSelected hasn't set
+  // _isBossLevel yet when FtueHint fires (nested inside LevelSelected delivery).
+  export class FtueHintPayload { nodeType: string = 'combat'; }
   export const FtueHint = new LocalEvent<FtueHintPayload>('EvFtueHint', FtueHintPayload);
 
   // Fired by MagmaFtueHud when the volcano FTUE popup is dismissed
@@ -280,6 +287,10 @@ export namespace Events {
   // Fired by SnowFtueHud when the snow/blizzard FTUE popup is dismissed
   export class SnowFtueDismissedPayload {}
   export const SnowFtueDismissed = new LocalEvent<SnowFtueDismissedPayload>('EvSnowFtueDismissed', SnowFtueDismissedPayload);
+
+  // Fired by BossFtueHud when the boss FTUE popup is dismissed
+  export class BossFtueDismissedPayload {}
+  export const BossFtueDismissed = new LocalEvent<BossFtueDismissedPayload>('EvBossFtueDismissed', BossFtueDismissedPayload);
 
   // Relic choice flow
   export class ShowRelicChoicePayload {}
@@ -424,6 +435,9 @@ export namespace UiEvents {
 
   @serializable() export class SnowFtueGotItPayload { readonly parameter: string = ''; }
   export const snowFtueGotIt = new UiEvent('SnowFtueViewModel-onGotIt', SnowFtueGotItPayload);
+
+  @serializable() export class BossFtueGotItPayload { readonly parameter: string = ''; }
+  export const bossFtueGotIt = new UiEvent('BossFtueViewModel-onGotIt', BossFtueGotItPayload);
 
   @serializable() export class OverworldFtueNextPayload { readonly parameter: string = ''; }
   export const overworldFtueNext = new UiEvent('OverworldFtueViewModel-onNext', OverworldFtueNextPayload);

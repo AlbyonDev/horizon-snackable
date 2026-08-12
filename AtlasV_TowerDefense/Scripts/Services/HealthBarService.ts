@@ -42,6 +42,15 @@ export class HealthBarService extends Service {
 
   @subscribe(Events.RestartGame)
   onRestart(_p: Events.RestartGamePayload): void {
+    this._parkAll();
+  }
+
+  @subscribe(Events.LevelSelected)
+  onLevelSelected(_p: Events.LevelSelectedPayload): void {
+    this._parkAll();
+  }
+
+  private _parkAll(): void {
     for (const bar of this._active.values()) {
       EventService.sendLocally(Events.ParkHealthBar, new Events.ParkHealthBarPayload(), { eventTarget: bar });
       this._free.push(bar);

@@ -68,4 +68,9 @@ if (this._pool.length === 0) return;
   onRestart(_p: Events.RestartGamePayload): void {
     this._index = 0;
   }
+
+  @subscribe(Events.LevelSelected)
+  onLevelSelected(_p: Events.LevelSelectedPayload): void {
+    this._index = 0;
+  }
 }

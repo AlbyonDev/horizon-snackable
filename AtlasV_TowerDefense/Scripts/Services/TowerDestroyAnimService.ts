@@ -61,6 +61,35 @@ export class TowerDestroyAnimService extends Service {
   private _anims: ITowerDestroyAnim[] = [];
 
   /**
+   * Begin the animated destruction of a tower (collapse only — no meteor projectile).
+   * Immediately shakes and scales the tower to 0, then destroys it.
+   * Does NOT call removeTowerAt — caller must handle tower unregistration beforehand.
+   */
+  beginCollapseOnly(towerEntity: Entity): void {
+    const towerTransform = towerEntity.getComponent(TransformComponent);
+    if (!towerTransform) {
+      towerEntity.destroy();
+      return;
+    }
+
+    const pos = towerTransform.worldPosition;
+    const anim: ITowerDestroyAnim = {
+      phase: AnimPhase.Shake,
+      elapsed: 0,
+      projectileEntity: null,
+      startPos: pos,
+      targetPos: pos,
+      towerEntity,
+      col: -1,
+      row: -1,
+      towerBaseScale: towerTransform.localScale,
+      shakeOriginalPos: pos,
+    };
+    this._anims.push(anim);
+    console.log(`[TowerDestroyAnimService] Starting collapse-only anim`);
+  }
+
+  /**
    * Begin the animated destruction of a tower.
    * Call this instead of immediately destroying the entity.
    */
@@ -216,7 +245,10 @@ export class TowerDestroyAnimService extends Service {
   private _finalize(anim: ITowerDestroyAnim): void {
     console.log(`[TowerDestroyAnimService] Finalized destruction at col=${anim.col}, row=${anim.row}`);
     anim.towerEntity.destroy();
-    TowerService.get().removeTowerAt(anim.col, anim.row);
+    // col/row = -1 means collapse-only mode (caller already removed tower from service)
+    if (anim.col >= 0 && anim.row >= 0) {
+      TowerService.get().removeTowerAt(anim.col, anim.row);
+    }
   }
 
   @subscribe(Events.RestartGame)
