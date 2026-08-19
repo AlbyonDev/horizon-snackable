@@ -25,7 +25,7 @@
     </Page.Resources>
 
     <!-- Main Layout - Full width bar at bottom with overflow for cards -->
-    <Grid ClipToBounds="False" VerticalAlignment="Bottom" Height="800">
+    <Grid ClipToBounds="False" VerticalAlignment="Bottom" Height="920">
         <Grid.Visibility>
             <Binding Path="visible">
                 <Binding.Converter>
@@ -36,7 +36,7 @@
 
         <!-- Medieval wood/leather background bar -->
         <Border VerticalAlignment="Bottom"
-                CornerRadius="38,38,0,0" Height="400" d:IsLocked="True">
+                CornerRadius="38,38,0,0" Height="660" d:IsLocked="True">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                     <GradientStop Color="#F02a1a0e" Offset="0"/>
@@ -53,7 +53,7 @@
 
         <!-- ========== HEADER BAR: "Close" button ========== -->
         <Grid HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="100"
-              Margin="40,0,40,340">
+              Margin="40,0,40,360">
 
             <!-- "Close" text button on the right -->
             <Border HorizontalAlignment="Right" VerticalAlignment="Center"
@@ -78,7 +78,7 @@
         <StackPanel Orientation="Horizontal" 
                     HorizontalAlignment="Center" 
                     VerticalAlignment="Bottom"
-                    ClipToBounds="False" Margin="0,0,0,15">
+                    ClipToBounds="False" Margin="0,0,0,20">
 
             <!-- Info Panel (always visible) -->
             <Grid Width="350" Height="350" Margin="30,0,30,0" VerticalAlignment="Bottom">
@@ -134,7 +134,7 @@
                 <StackPanel x:Name="CardsPanel" 
                             Orientation="Horizontal" 
                             ClipToBounds="False"
-                            RenderTransformOrigin="0.5,1.0" Margin="0,0,0,-150">
+                            RenderTransformOrigin="0.5,1.0" Margin="0,0,0,0">
                     <StackPanel.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform/>

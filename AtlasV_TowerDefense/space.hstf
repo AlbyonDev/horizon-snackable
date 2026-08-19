@@ -1147,7 +1147,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1283,7 +1283,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1326,7 +1326,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1368,7 +1368,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
@@ -1410,7 +1410,7 @@
                 {
                     "data": {
                         "class": "horizon::platform_api::SoundPlatformComponent",
-                        "version": 15,
+                        "version": 16,
                         "data": {
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {

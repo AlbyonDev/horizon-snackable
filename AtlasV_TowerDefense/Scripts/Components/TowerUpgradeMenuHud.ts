@@ -135,8 +135,8 @@ export class TowerUpgradeMenuHud extends Component {
     this.uiComponent = this.entity.getComponent(CustomUiComponent);
     if (!this.uiComponent) return;
 
-    // Hide the native panel immediately to prevent XAML binding race
-    // (unresolved bindings default to Visible, covering the screen)
+    // DISABLED: TowerShopHud now handles tower management via MANAGE tab.
+    // Keep component hidden permanently.
     this.uiComponent.isVisible = false;
 
     this.viewModel = new TowerUpgradeMenuViewModel();
@@ -145,32 +145,9 @@ export class TowerUpgradeMenuHud extends Component {
   }
 
   @subscribe(Events.TowerSelected, { execution: ExecuteOn.Owner })
-  onTowerSelected(payload: Events.TowerSelectedPayload): void {
-    if (NetworkingService.get().isServerContext()) return;
-    if (!this.viewModel) return;
-
-    const wasAlreadyVisible = this.viewModel.visible && this.viewModel.card1Visible;
-
-    this.selectedCol     = payload.col;
-    this.selectedRow     = payload.row;
-    this.selectedDefId   = payload.defId;
-    this.selectedChoices = payload.choices;
-
-    if (wasAlreadyVisible) {
-      this.viewModel.card1Visible = false;
-      this.viewModel.card2Visible = false;
-      setTimeout(() => {
-        this._applyTowerData(payload);
-        this.viewModel!.card1Visible = true;
-        setTimeout(() => { this.viewModel!.card2Visible = true; }, TowerUpgradeMenuHud.CARD_STAGGER_MS);
-      }, TowerUpgradeMenuHud.SLIDE_IN_MS);
-    } else {
-      this._applyTowerData(payload);
-      if (this.uiComponent) this.uiComponent.isVisible = true;
-      this.viewModel.visible = true;
-      this.viewModel.card1Visible = true;
-      setTimeout(() => { this.viewModel!.card2Visible = true; }, TowerUpgradeMenuHud.CARD_STAGGER_MS);
-    }
+  onTowerSelected(_payload: Events.TowerSelectedPayload): void {
+    // DISABLED: TowerShopHud now handles tower management via its MANAGE tab.
+    return;
   }
 
   /** Populates ViewModel with tower data from selection payload. */

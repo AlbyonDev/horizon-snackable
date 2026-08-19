@@ -451,6 +451,25 @@ export namespace UiEvents {
   @serializable() export class OverworldFtue4NextPayload { readonly parameter: string = ''; }
   export const overworldFtue4Next = new UiEvent('OverworldFtue4ViewModel-onNext', OverworldFtue4NextPayload);
 
+  // Tower shop manage tab events
+  @serializable() export class ManageTabTapPayload { readonly parameter: string = ''; }
+  export const manageTabTap = new UiEvent('TowerShopViewModel-onManageTabTap', ManageTabTapPayload);
+
+  @serializable() export class TowersTabTapPayload { readonly parameter: string = ''; }
+  export const towersTabTap = new UiEvent('TowerShopViewModel-onTowersTabTap', TowersTabTapPayload);
+
+  @serializable() export class ManageUpgradeButtonTapPayload { readonly parameter: string = ''; }
+  export const manageUpgradeButtonTap = new UiEvent('TowerShopViewModel-onManageUpgradeButtonTap', ManageUpgradeButtonTapPayload);
+
+  @serializable() export class ManageSellButtonTapPayload { readonly parameter: string = ''; }
+  export const manageSellButtonTap = new UiEvent('TowerShopViewModel-onManageSellButtonTap', ManageSellButtonTapPayload);
+
+  @serializable() export class ManageUpgradeChoiceTapPayload { readonly parameter: string = ''; }
+  export const manageUpgradeChoiceTap = new UiEvent('TowerShopViewModel-onManageUpgradeChoiceTap', ManageUpgradeChoiceTapPayload);
+
+  @serializable() export class ManageBackButtonTapPayload { readonly parameter: string = ''; }
+  export const manageBackButtonTap = new UiEvent('TowerShopViewModel-onManageBackButtonTap', ManageBackButtonTapPayload);
+
   @serializable() export class BiomeArrowTapPayload { readonly parameter: string = ''; }
   export const biomeArrowTap = new UiEvent('OverworldViewModel-onBiomeArrowTap', BiomeArrowTapPayload);
 

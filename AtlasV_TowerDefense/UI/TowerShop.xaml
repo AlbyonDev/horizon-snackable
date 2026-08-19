@@ -17,6 +17,9 @@
         <SolidColorBrush x:Key="GoldDarkBrush" Color="#FFc9a000"/>
         <SolidColorBrush x:Key="WoodBrush" Color="#FF2a1a0e"/>
 
+        <!-- BooleanToVisibilityConverter -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+
         <!-- Horizontal Panel Template -->
         <ItemsPanelTemplate x:Key="HorizontalPanel">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" ClipToBounds="False"/>
@@ -32,7 +35,6 @@
             <DataTemplate.Resources>
                 <!-- Select Animation Storyboard -->
                 <Storyboard x:Key="SelectAnimation">
-                    <!-- TranslateTransform.Y to -50 -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardTranslate"
                                                     Storyboard.TargetProperty="Y">
                         <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="-50">
@@ -41,7 +43,6 @@
                             </EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
-                    <!-- ScaleTransform.ScaleX to 1.2 -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
                                                     Storyboard.TargetProperty="ScaleX">
                         <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.2">
@@ -50,7 +51,6 @@
                             </EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
-                    <!-- ScaleTransform.ScaleY to 1.2 -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
                                                     Storyboard.TargetProperty="ScaleY">
                         <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.2">
@@ -63,8 +63,6 @@
 
                 <!-- Deselect Animation Storyboard -->
                 <Storyboard x:Key="DeselectAnimation">
-
-                    <!-- TranslateTransform.Y back to 0 -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardTranslate"
                                                     Storyboard.TargetProperty="Y">
                         <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="0">
@@ -73,7 +71,6 @@
                             </EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
-                    <!-- ScaleTransform.ScaleX back to 1.0 -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
                                                     Storyboard.TargetProperty="ScaleX">
                         <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.0">
@@ -82,7 +79,6 @@
                             </EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
-                    <!-- ScaleTransform.ScaleY back to 1.0 -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
                                                     Storyboard.TargetProperty="ScaleY">
                         <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.0">
@@ -93,7 +89,7 @@
                     </DoubleAnimationUsingKeyFrames>
                 </Storyboard>
 
-                <!-- Affordable Breathing Pulse Animation (1.0 → 1.06 → 1.0 loop) -->
+                <!-- Affordable Breathing Pulse Animation -->
                 <Storyboard x:Key="BreathingPulseAnimation" RepeatBehavior="Forever">
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BreathScale"
                                                     Storyboard.TargetProperty="ScaleX">
@@ -125,66 +121,49 @@
                     </DoubleAnimationUsingKeyFrames>
                 </Storyboard>
 
-                <!-- Biome Arrow Bobbing Animation - continuous vertical oscillation -->
+                <!-- Biome Arrow Bobbing Animation -->
                 <Storyboard x:Key="BiomeArrowBobAnimation" RepeatBehavior="Forever">
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowTranslate"
                                                     Storyboard.TargetProperty="Y">
                         <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0"/>
                         <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="-5">
-                            <EasingDoubleKeyFrame.EasingFunction>
-                                <SineEase EasingMode="EaseInOut"/>
-                            </EasingDoubleKeyFrame.EasingFunction>
+                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                         <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="0">
-                            <EasingDoubleKeyFrame.EasingFunction>
-                                <SineEase EasingMode="EaseInOut"/>
-                            </EasingDoubleKeyFrame.EasingFunction>
+                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                         <EasingDoubleKeyFrame KeyTime="0:0:0.9" Value="5">
-                            <EasingDoubleKeyFrame.EasingFunction>
-                                <SineEase EasingMode="EaseInOut"/>
-                            </EasingDoubleKeyFrame.EasingFunction>
+                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                         <EasingDoubleKeyFrame KeyTime="0:0:1.2" Value="0">
-                            <EasingDoubleKeyFrame.EasingFunction>
-                                <SineEase EasingMode="EaseInOut"/>
-                            </EasingDoubleKeyFrame.EasingFunction>
+                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
-                    <!-- Scale pulse (breathing effect 0.95 to 1.1) -->
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowScale"
                                                     Storyboard.TargetProperty="ScaleX">
                         <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1.0"/>
                         <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="1.1">
-                            <EasingDoubleKeyFrame.EasingFunction>
-                                <SineEase EasingMode="EaseInOut"/>
-                            </EasingDoubleKeyFrame.EasingFunction>
+                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                         <EasingDoubleKeyFrame KeyTime="0:0:1.2" Value="0.95">
-                            <EasingDoubleKeyFrame.EasingFunction>
-                                <SineEase EasingMode="EaseInOut"/>
-                            </EasingDoubleKeyFrame.EasingFunction>
+                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BiomeArrowScale"
                                                     Storyboard.TargetProperty="ScaleY">
                         <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1.0"/>
                         <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="1.1">
-                            <EasingDoubleKeyFrame.EasingFunction>
-                                <SineEase EasingMode="EaseInOut"/>
-                            </EasingDoubleKeyFrame.EasingFunction>
+                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                         <EasingDoubleKeyFrame KeyTime="0:0:1.2" Value="0.95">
-                            <EasingDoubleKeyFrame.EasingFunction>
-                                <SineEase EasingMode="EaseInOut"/>
-                            </EasingDoubleKeyFrame.EasingFunction>
+                            <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
                 </Storyboard>
             </DataTemplate.Resources>
 
             <!-- Card container with TransformGroup for animated selection -->
-            <Grid x:Name="CardContainer" RenderTransformOrigin="0.5,1.0" ClipToBounds="False" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,0,10,0">
+            <Grid x:Name="CardContainer" RenderTransformOrigin="0.5,1.0" ClipToBounds="False" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="10,0,10,80">
                 <Grid.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform x:Name="CardScale" ScaleX="1.0" ScaleY="1.0"/>
@@ -192,7 +171,7 @@
                     </TransformGroup>
                 </Grid.RenderTransform>
 
-                <!-- Main Card - 340x530 always fully visible -->
+                <!-- Main Card - 340x530 -->
                 <Grid x:Name="CardGrid" Width="340" Height="530" ClipToBounds="False" RenderTransformOrigin="0.5,0.5">
                     <Grid.RenderTransform>
                         <ScaleTransform x:Name="BreathScale" ScaleX="1.0" ScaleY="1.0"/>
@@ -233,57 +212,22 @@
                                         <ImageBrush Viewbox="0,0.2,1,0" ImageSource="{Binding Path=icon}" Stretch="Uniform"/>
                                     </Border.Background>
 
-                                    <!-- Semi-transparent overlay for text readability -->
                                     <Border ClipToBounds="False" CornerRadius="50,50,50,50">
-
                                     <Grid Margin="20,20,20,20">
                                         <Grid.RowDefinitions>
-                                            <!-- Row 0: Price at top (Auto) -->
                                             <RowDefinition Height="Auto"/>
-                                            <!-- Row 1: Empty space showing background image (*) -->
                                             <RowDefinition Height="*"/>
                                         </Grid.RowDefinitions>
 
-                                        <!-- Corner Ornaments (span all rows) -->
-                                        <!-- Top Left -->
-                                        <Ellipse Grid.RowSpan="2" Width="22" Height="22" 
-                                                 Fill="{StaticResource GoldBrush}"
-                                                 HorizontalAlignment="Left" VerticalAlignment="Top"
-                                                 Margin="6,6,0,0"/>
-                                        <Ellipse Grid.RowSpan="2" Width="14" Height="14" 
-                                                 Fill="{StaticResource GoldDarkBrush}"
-                                                 HorizontalAlignment="Left" VerticalAlignment="Top"
-                                                 Margin="10,10,0,0"/>
-
-                                        <!-- Top Right -->
-                                        <Ellipse Grid.RowSpan="2" Width="22" Height="22" 
-                                                 Fill="{StaticResource GoldBrush}"
-                                                 HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                 Margin="0,6,6,0"/>
-                                        <Ellipse Grid.RowSpan="2" Width="14" Height="14" 
-                                                 Fill="{StaticResource GoldDarkBrush}"
-                                                 HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                 Margin="0,10,10,0"/>
-
-                                        <!-- Bottom Left -->
-                                        <Ellipse Grid.Row="1" Width="22" Height="22" 
-                                                 Fill="{StaticResource GoldBrush}"
-                                                 HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                                                 Margin="6,0,0,6"/>
-                                        <Ellipse Grid.Row="1" Width="14" Height="14" 
-                                                 Fill="{StaticResource GoldDarkBrush}"
-                                                 HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                                                 Margin="10,0,0,10"/>
-
-                                        <!-- Bottom Right -->
-                                        <Ellipse Grid.Row="1" Width="22" Height="22" 
-                                                 Fill="{StaticResource GoldBrush}"
-                                                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                                 Margin="0,0,6,6"/>
-                                        <Ellipse Grid.Row="1" Width="14" Height="14" 
-                                                 Fill="{StaticResource GoldDarkBrush}"
-                                                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                                 Margin="0,0,10,10"/>
+                                        <!-- Corner Ornaments -->
+                                        <Ellipse Grid.RowSpan="2" Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6,6,0,0"/>
+                                        <Ellipse Grid.RowSpan="2" Width="14" Height="14" Fill="{StaticResource GoldDarkBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
+                                        <Ellipse Grid.RowSpan="2" Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,6,0"/>
+                                        <Ellipse Grid.RowSpan="2" Width="14" Height="14" Fill="{StaticResource GoldDarkBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0"/>
+                                        <Ellipse Grid.Row="1" Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,6"/>
+                                        <Ellipse Grid.Row="1" Width="14" Height="14" Fill="{StaticResource GoldDarkBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,10"/>
+                                        <Ellipse Grid.Row="1" Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,6,6"/>
+                                        <Ellipse Grid.Row="1" Width="14" Height="14" Fill="{StaticResource GoldDarkBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10"/>
                                     </Grid>
                                     </Border>
                                 </Border>
@@ -291,11 +235,11 @@
                         </Border>
                     </Border>
 
-                    <!-- Selection Glow Border (brighter when selected) -->
+                    <!-- Selection Glow Border -->
                 </Grid>
                 <Border x:Name="Disabled" CornerRadius="50,50,50,50" BorderThickness="10,10,10,10" Background="#AF000000" Visibility="Collapsed" IsEnabled="False"/>
 
-                <!-- Biome Modifier Arrow Indicator - top-right corner -->
+                <!-- Biome Modifier Arrow Indicator -->
                 <Image x:Name="BiomeArrow" Width="80" Height="80"
                        HorizontalAlignment="Right" VerticalAlignment="Top"
                        Margin="0,10,30,0"
@@ -311,12 +255,9 @@
                     </Image.RenderTransform>
                 </Image>
 
-                <!-- Ribbon Banner - OUTSIDE the border chain to avoid CornerRadius clipping -->
-                <Grid VerticalAlignment="Top" 
-                      IsHitTestVisible="False"
-                      ClipToBounds="False" Width="340" IsEnabled="False" Height="130" Margin="0,110,0,0">
+                <!-- Ribbon Banner -->
+                <Grid VerticalAlignment="Top" IsHitTestVisible="False" ClipToBounds="False" Width="340" IsEnabled="False" Height="130" Margin="0,110,0,0">
                     <Image Source="/Root;component/Textures/WoodPlank.png" HorizontalAlignment="Center" Stretch="Fill" Width="260" VerticalAlignment="Center"/>
-
                     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" Margin="-3,0,0,0" IsHitTestVisible="False" FontSize="50" Text="{Binding Path=name, FallbackValue=test}"/>
                         <TextBlock Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" IsHitTestVisible="False" FontSize="50" Text="{Binding Path=name, FallbackValue=test}" Margin="2,0,-1,0"/>
@@ -341,7 +282,6 @@
 
             <!-- DataTriggers for state-based styling -->
             <DataTemplate.Triggers>
-                <!-- Affordable state - full opacity, gold cost text, breathing pulse -->
                 <DataTrigger Binding="{Binding state}" Value="affordable">
                     <Setter TargetName="CardContainer" Property="Opacity" Value="1.0"/>
                     <Setter TargetName="CostText" Property="Foreground" Value="{StaticResource GoldBrush}"/>
@@ -354,13 +294,11 @@
                     </DataTrigger.ExitActions>
                 </DataTrigger>
 
-                <!-- Too expensive state - red cost text (no opacity change) -->
                 <DataTrigger Binding="{Binding state}" Value="too_expensive">
                     <Setter TargetName="CostText" Property="Foreground" Value="{StaticResource RedBrush}"/>
                     <Setter TargetName="Disabled" Property="Visibility" Value="Visible"/>
                 </DataTrigger>
 
-                <!-- Selected state - animate glow, scale, and rise using Storyboard -->
                 <DataTrigger Binding="{Binding selected}" Value="True">
                     <DataTrigger.EnterActions>
                         <BeginStoryboard Storyboard="{StaticResource SelectAnimation}"/>
@@ -370,7 +308,6 @@
                     </DataTrigger.ExitActions>
                 </DataTrigger>
 
-                <!-- Biome Arrow visible when biomeArrowVisible is True + start bobbing -->
                 <DataTrigger Binding="{Binding biomeArrowVisible}" Value="True">
                     <Setter TargetName="BiomeArrow" Property="Visibility" Value="Visible"/>
                     <DataTrigger.EnterActions>
@@ -381,19 +318,15 @@
         </DataTemplate>
     </Page.Resources>
 
-    <!-- Main Layout - Full width bar at bottom with negative top margin for overflow -->
-    <Grid ClipToBounds="False" VerticalAlignment="Bottom" Height="800">
-        <Grid.Visibility>
-            <Binding Path="visible">
-                <Binding.Converter>
-                    <BooleanToVisibilityConverter/>
-                </Binding.Converter>
-            </Binding>
-        </Grid.Visibility>
+    <!-- Main Layout - Full width bar at bottom with slide animation -->
+    <Grid ClipToBounds="False" VerticalAlignment="Bottom" Height="1200">
+        <Grid.RenderTransform>
+            <TranslateTransform Y="{Binding slideOffsetY}"/>
+        </Grid.RenderTransform>
 
-        <!-- Medieval wood/leather background bar (purely decorative, no children that clip) -->
+        <!-- Medieval wood/leather background bar -->
         <Border VerticalAlignment="Bottom"
-                CornerRadius="40,40,0,0" Height="400" d:IsLocked="True">
+                CornerRadius="40,40,0,0" Height="630" d:IsLocked="True">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                     <GradientStop Color="#F02a1a0e" Offset="0"/>
@@ -401,67 +334,526 @@
                     <GradientStop Color="#FF0a0500" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
-
-            <!-- Decorative gold top border line only -->
             <Border BorderThickness="0,6,0,0" BorderBrush="#FF553B14" CornerRadius="40,40,0,0"/>
         </Border>
 
-        <!-- Tower Items List - Horizontally scrollable with smooth animated offset -->
-        <!-- Uses Canvas+Canvas.Left pattern instead of TranslateTransform to avoid
-             MHS XAML render-culling of items laid out beyond the clip bounds -->
-        <ItemsControl ItemsSource="{Binding items}"
-                      ItemsPanel="{StaticResource HorizontalPanel}"
-                      ItemTemplate="{StaticResource TowerCardTemplate}"
-                      ItemContainerStyle="{StaticResource TowerItemContainerStyle}"
-                      Margin="0,0,0,-650">
-            <ItemsControl.Template>
-                <ControlTemplate TargetType="ItemsControl">
-                    <Grid ClipToBounds="True">
-                        <Canvas Width="1080" Height="800">
-                            <ItemsPresenter Width="{Binding contentWidth}" Height="800"
-                                            Canvas.Left="{Binding contentOffsetX}"/>
-                        </Canvas>
-                        <!-- Transparent Slider overlay for touch/drag scrolling input.
-                             IsMoveToPointEnabled makes the thumb jump to the touch point immediately.
-                             Value (0-1 normalized) tracks horizontal finger position. -->
-                        <Slider x:Name="DragSlider" Orientation="Horizontal"
-                                Minimum="0" Maximum="1"
-                                Value="{Binding dragNormalized, Mode=TwoWay}"
-                                IsMoveToPointEnabled="True"
-                                Width="1080" Height="800"
-                                VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
-                                Opacity="0" Focusable="False">
-                            <Slider.Template>
-                                <ControlTemplate TargetType="Slider">
-                                    <Track x:Name="PART_Track">
-                                        <Track.DecreaseRepeatButton>
-                                            <RepeatButton>
-                                                <RepeatButton.Template>
-                                                    <ControlTemplate TargetType="RepeatButton">
-                                                        <Border Background="#00FFFFFF"/>
-                                                    </ControlTemplate>
-                                                </RepeatButton.Template>
-                                            </RepeatButton>
-                                        </Track.DecreaseRepeatButton>
-                                        <Track.IncreaseRepeatButton>
-                                            <RepeatButton>
-                                                <RepeatButton.Template>
-                                                    <ControlTemplate TargetType="RepeatButton">
-                                                        <Border Background="#00FFFFFF"/>
-                                                    </ControlTemplate>
-                                                </RepeatButton.Template>
-                                            </RepeatButton>
-                                        </Track.IncreaseRepeatButton>
-                                        <Track.Thumb>
-                                            <Thumb Width="0" Height="0"/>
-                                        </Track.Thumb>
-                                    </Track>
-                                </ControlTemplate>
-                            </Slider.Template>
-                        </Slider>
+        <!-- ========== TOWERS TAB CONTENT (visible when activeTab=towers) ========== -->
+        <Grid x:Name="TowersContent" Visibility="{Binding showTowersContent, Converter={StaticResource BoolToVisConverter}}">
+            <!-- Tower Items List -->
+            <ItemsControl ItemsSource="{Binding items}"
+                          ItemsPanel="{StaticResource HorizontalPanel}"
+                          ItemTemplate="{StaticResource TowerCardTemplate}"
+                          ItemContainerStyle="{StaticResource TowerItemContainerStyle}"
+                          Margin="0,0,0,0">
+                <ItemsControl.Template>
+                    <ControlTemplate TargetType="ItemsControl">
+                        <Grid ClipToBounds="True">
+                            <Canvas Width="1080" Height="1200">
+                                <ItemsPresenter Width="{Binding contentWidth}" Height="1200"
+                                                Canvas.Left="{Binding contentOffsetX}"/>
+                            </Canvas>
+                            <Slider x:Name="DragSlider" Orientation="Horizontal"
+                                    Minimum="0" Maximum="1"
+                                    Value="{Binding dragNormalized, Mode=TwoWay}"
+                                    IsMoveToPointEnabled="True"
+                                    Width="1080" Height="1200"
+                                    VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                    Opacity="0" Focusable="False">
+                                <Slider.Template>
+                                    <ControlTemplate TargetType="Slider">
+                                        <Track x:Name="PART_Track">
+                                            <Track.DecreaseRepeatButton>
+                                                <RepeatButton>
+                                                    <RepeatButton.Template>
+                                                        <ControlTemplate TargetType="RepeatButton">
+                                                            <Border Background="#00FFFFFF"/>
+                                                        </ControlTemplate>
+                                                    </RepeatButton.Template>
+                                                </RepeatButton>
+                                            </Track.DecreaseRepeatButton>
+                                            <Track.IncreaseRepeatButton>
+                                                <RepeatButton>
+                                                    <RepeatButton.Template>
+                                                        <ControlTemplate TargetType="RepeatButton">
+                                                            <Border Background="#00FFFFFF"/>
+                                                        </ControlTemplate>
+                                                    </RepeatButton.Template>
+                                                </RepeatButton>
+                                            </Track.IncreaseRepeatButton>
+                                            <Track.Thumb>
+                                                <Thumb Width="0" Height="0"/>
+                                            </Track.Thumb>
+                                        </Track>
+                                    </ControlTemplate>
+                                </Slider.Template>
+                            </Slider>
+                        </Grid>
+                    </ControlTemplate>
+                </ItemsControl.Template>
+            </ItemsControl>
+        </Grid>
+
+        <!-- ========== MANAGE TAB CONTENT (visible when activeTab=manage) ========== -->
+        <Grid x:Name="ManageContent" Visibility="{Binding showManageContent, Converter={StaticResource BoolToVisConverter}}">
+
+            <!-- STATE: prompt - "Click on a placed tower" -->
+            <Grid x:Name="ManagePrompt" Visibility="{Binding showManagePrompt, Converter={StaticResource BoolToVisConverter}}"
+                  VerticalAlignment="Bottom" Height="630">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,80">
+                    <TextBlock Text="Click on a placed tower" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="56" Margin="-2,0,0,0"/>
+                    <TextBlock Text="Click on a placed tower" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="56" Margin="2,0,0,0"/>
+                    <TextBlock Text="Click on a placed tower" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="56" Margin="0,-2,0,0"/>
+                    <TextBlock Text="Click on a placed tower" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="56" Margin="0,2,0,0"/>
+                    <TextBlock Text="Click on a placed tower" FontWeight="Bold" FontFamily="Anton" FontSize="56" Foreground="#FFf5c518"/>
+                </Grid>
+            </Grid>
+
+            <!-- STATE: actions - Upgrade / Sell buttons -->
+            <Grid x:Name="ManageActions" Visibility="{Binding showManageActions, Converter={StaticResource BoolToVisConverter}}"
+                  VerticalAlignment="Bottom" Height="630">
+
+                <!-- Tower Name Title -->
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,30,0,0">
+                    <TextBlock Text="{Binding manageTowerName}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="48" Margin="-2,0,0,0"/>
+                    <TextBlock Text="{Binding manageTowerName}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="48" Margin="2,0,0,0"/>
+                    <TextBlock Text="{Binding manageTowerName}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="48" Margin="0,-2,0,0"/>
+                    <TextBlock Text="{Binding manageTowerName}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="48" Margin="0,2,0,0"/>
+                    <TextBlock Text="{Binding manageTowerName}" FontWeight="Bold" FontFamily="Anton" FontSize="48" Foreground="#FFF5E6C8"/>
+                </Grid>
+
+                <!-- Large Upgrade and Sell buttons -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,40,0,30">
+
+                    <!-- UPGRADE Button -->
+                    <Border Width="340" Height="320" Margin="0,0,40,0" CornerRadius="24" BorderThickness="5" BorderBrush="{StaticResource GoldBrush}">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="#FF1a4a1a" Offset="0"/>
+                                <GradientStop Color="#FF0a2a0a" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger EventName="MouseLeftButtonUp">
+                                <b:InvokeCommandAction Command="{Binding events.manageUpgradeButtonTap}"/>
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="&#x2B06;" FontSize="80" Foreground="#FF2ecc71" HorizontalAlignment="Center"/>
+                            <TextBlock Text="UPGRADE" FontFamily="Anton" FontSize="52" Foreground="#FFF5E6C8" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- SELL Button -->
+                    <Border Width="340" Height="320" CornerRadius="24" BorderThickness="5" BorderBrush="#FFe74c3c">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="#FF5a1a1a" Offset="0"/>
+                                <GradientStop Color="#FF2a0a0a" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger EventName="MouseLeftButtonUp">
+                                <b:InvokeCommandAction Command="{Binding events.manageSellButtonTap}"/>
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="&#x1F4B0;" FontSize="80" Foreground="#FFe74c3c" HorizontalAlignment="Center"/>
+                            <TextBlock Text="SELL" FontFamily="Anton" FontSize="52" Foreground="#FFF5E6C8" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
+                                <Image Source="/Root;component/Textures/gold_icon.png" Width="36" Height="36" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding manageSellValue, StringFormat=F0}" Foreground="{StaticResource GoldBrush}" FontWeight="Bold" FontFamily="Anton" FontSize="36" TextAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Back button at bottom-left -->
+                <Border VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="30,0,0,30" CornerRadius="12" Padding="24,16,24,16">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop Color="#FF3a2a1a" Offset="0"/>
+                            <GradientStop Color="#FF1a0a00" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonUp">
+                            <b:InvokeCommandAction Command="{Binding events.manageBackButtonTap}"/>
+                        </b:EventTrigger>
+                    </b:Interaction.Triggers>
+                    <TextBlock Text="&#x2190; Back" FontFamily="Anton" FontSize="40" Foreground="#FFF5E6C8"/>
+                </Border>
+            </Grid>
+
+            <!-- STATE: skill tree - full upgrade tree view (3-column layout with arrows) -->
+            <Grid x:Name="ManageTree" Visibility="{Binding showManageTree, Converter={StaticResource BoolToVisConverter}}"
+                  VerticalAlignment="Bottom" Height="630">
+
+
+
+                <!-- Upgrade tree layout with Sell button, centered -->
+                <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,10,0,20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Tier Headers Row -->
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="I" FontFamily="Anton" FontSize="52" Foreground="#B0F5E6C8" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="II" FontFamily="Anton" FontSize="52" Foreground="#B0F5E6C8" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                    <TextBlock Grid.Row="0" Grid.Column="5" Text="III" FontFamily="Anton" FontSize="52" Foreground="#B0F5E6C8" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+
+                    <!-- SELL Button (left of Rank I card) -->
+                    <Border Grid.Row="1" Grid.Column="0" Width="280" Height="480"
+                            Margin="0,0,100,0" CornerRadius="18" BorderThickness="5" BorderBrush="#FFe74c3c"
+                            VerticalAlignment="Center"
+                            RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform>
+                            <ScaleTransform ScaleX="{Binding sellButtonScale}" ScaleY="{Binding sellButtonScale}"/>
+                        </Border.RenderTransform>
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="#FF5a1a1a" Offset="0"/>
+                                <GradientStop Color="#FF2a0a0a" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger EventName="MouseLeftButtonUp">
+                                <b:InvokeCommandAction Command="{Binding events.manageSellButtonTap}"/>
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+                        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,40,0,0">
+                            <TextBlock Text="&#x1F4B0;" FontSize="96" Foreground="#FFe74c3c" HorizontalAlignment="Center" TextAlignment="Center"/>
+                            <TextBlock Text="SELL" FontFamily="Anton" FontSize="72" Foreground="#FFF5E6C8" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,6,0,0"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
+                                <Image Source="/Root;component/Textures/gold_icon.png" Width="48" Height="48" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding manageSellValue, StringFormat=F0}" Foreground="{StaticResource GoldBrush}" FontWeight="Bold" FontFamily="Anton" FontSize="56" TextAlignment="Center" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- RANK I: Tower Card Column -->
+                    <Border Grid.Row="1" Grid.Column="1" Width="280" Height="480" CornerRadius="50" BorderThickness="8" BorderBrush="{StaticResource GoldBrush}">
+                        <Border.Background>
+                            <RadialGradientBrush>
+                                <GradientStop Color="#00000000" Offset="0"/>
+                                <GradientStop Offset="1" Color="{Binding Path=manageTowerColor, FallbackValue=#3a3a5a}"/>
+                            </RadialGradientBrush>
+                        </Border.Background>
+                        <Grid>
+                            <!-- Inner tower color border -->
+                            <Border CornerRadius="42,42,42,42" BorderThickness="10" Margin="0">
+                                <Border.BorderBrush>
+                                    <SolidColorBrush Color="{Binding Path=manageTowerSecondaryColor, FallbackValue=#FFFFFF}"/>
+                                </Border.BorderBrush>
+                                <!-- Tower icon as background -->
+                                <Border CornerRadius="34,34,34,34">
+                                    <Border.Background>
+                                        <ImageBrush Viewbox="0,0.2,1,0" ImageSource="{Binding Path=manageTowerIcon}" Stretch="Uniform"/>
+                                    </Border.Background>
+                                    <Grid Margin="16,16,16,16">
+                                        <!-- Corner Ornaments -->
+                                        <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6,6,0,0"/>
+                                        <Ellipse Width="14" Height="14" Fill="{StaticResource GoldDarkBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
+                                        <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,6,6,0"/>
+                                        <Ellipse Width="14" Height="14" Fill="{StaticResource GoldDarkBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0"/>
+                                        <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,6"/>
+                                        <Ellipse Width="14" Height="14" Fill="{StaticResource GoldDarkBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,10"/>
+                                        <Ellipse Width="22" Height="22" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,6,6"/>
+                                        <Ellipse Width="14" Height="14" Fill="{StaticResource GoldDarkBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10"/>
+                                    </Grid>
+                                </Border>
+                            </Border>
+                            <!-- Ribbon Banner with tower name -->
+                            <Grid VerticalAlignment="Top" IsHitTestVisible="False" ClipToBounds="False" Width="280" Height="110" Margin="0,90,0,0">
+                                <Image Source="/Root;component/Textures/WoodPlank.png" HorizontalAlignment="Center" Stretch="Fill" Width="220" VerticalAlignment="Center"/>
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" Margin="-3,0,0,0" FontSize="38" Text="{Binding Path=manageTowerName, FallbackValue=Tower}"/>
+                                    <TextBlock Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" Margin="2,0,-1,0" FontSize="38" Text="{Binding Path=manageTowerName, FallbackValue=Tower}"/>
+                                    <TextBlock Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" Margin="0,-3,1,0" FontSize="38" Text="{Binding Path=manageTowerName, FallbackValue=Tower}"/>
+                                    <TextBlock Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" Margin="0,3,0,0" FontSize="38" Text="{Binding Path=manageTowerName, FallbackValue=Tower}"/>
+                                    <TextBlock FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" FontFamily="Anton" Text="{Binding Path=manageTowerName, FallbackValue=Tower}" FontSize="38" Foreground="#FFF5E6C8"/>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <!-- ARROW: Rank I → Rank II -->
+                    <Grid Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Margin="14,0,14,0">
+                        <TextBlock Text="&#x25B6;" FontFamily="Anton" FontSize="48" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
-                </ControlTemplate>
-            </ItemsControl.Template>
-        </ItemsControl>
+
+                    <!-- RANK II Column (2 wide nodes stacked) -->
+                    <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Vertical" VerticalAlignment="Center">
+
+                        <!-- T2A Node -->
+                        <Border x:Name="NodeT2A" Width="420" Height="230" Margin="0,0,0,20" CornerRadius="18" RenderTransformOrigin="0.5,0.5"
+                                Opacity="{Binding treeT2AOpacity}">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="NodeT2AScale" ScaleX="{Binding treeT2AScale}" ScaleY="{Binding treeT2AScale}"/>
+                            </Border.RenderTransform>
+                            <Border.Background>
+                                <SolidColorBrush Color="{Binding treeT2ABackgroundColor}"/>
+                            </Border.Background>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="MouseLeftButtonUp">
+                                    <b:InvokeCommandAction Command="{Binding events.manageUpgradeChoiceTap}" CommandParameter="t2a"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Grid>
+                                <Border BorderThickness="4" CornerRadius="18">
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="{Binding treeT2ABorderColor}"/>
+                                    </Border.BorderBrush>
+                                </Border>
+                                <!-- Purchased green tint background -->
+                                <Border CornerRadius="18" Background="#302ecc71"
+                                        Visibility="{Binding treeT2ABoughtBgVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding treeT2AName}" FontWeight="Bold" FontFamily="Anton" FontSize="62" Foreground="#FFF5E6C8" VerticalAlignment="Center" TextAlignment="Center"/>
+                                    <TextBlock Text=" — " FontFamily="Anton" FontSize="58" Foreground="#80F5E6C8" VerticalAlignment="Center"
+                                               Visibility="{Binding treeT2ACostVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <Image Source="/Root;component/Textures/gold_icon.png" Width="40" Height="40" Margin="0,0,6,0" VerticalAlignment="Center"
+                                           Visibility="{Binding treeT2ACostVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <TextBlock Text="{Binding treeT2ACost, StringFormat=F0}" FontWeight="Bold" FontFamily="Anton" FontSize="62" VerticalAlignment="Center" TextAlignment="Center"
+                                               Visibility="{Binding treeT2ACostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                        <TextBlock.Foreground>
+                                            <SolidColorBrush Color="{Binding treeT2ACostColor}"/>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                </StackPanel>
+                                <!-- Blocked/Locked overlay -->
+                                <Border CornerRadius="18" Background="#D0000000" IsHitTestVisible="False"
+                                        Visibility="{Binding treeT2AOverlayVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                <!-- Purchased badge -->
+                                <Border CornerRadius="10" Background="#FF2ecc71" Padding="16,8,16,8" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,12,12,0"
+                                        Visibility="{Binding treeT2ACheckVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <TextBlock Text="OWNED" FontFamily="Anton" FontSize="42" Foreground="#FF0a2a0a" FontWeight="Bold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- T2B Node -->
+                        <Border x:Name="NodeT2B" Width="420" Height="230" Margin="0,0,0,0" CornerRadius="18" RenderTransformOrigin="0.5,0.5"
+                                Opacity="{Binding treeT2BOpacity}">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="NodeT2BScale" ScaleX="{Binding treeT2BScale}" ScaleY="{Binding treeT2BScale}"/>
+                            </Border.RenderTransform>
+                            <Border.Background>
+                                <SolidColorBrush Color="{Binding treeT2BBackgroundColor}"/>
+                            </Border.Background>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="MouseLeftButtonUp">
+                                    <b:InvokeCommandAction Command="{Binding events.manageUpgradeChoiceTap}" CommandParameter="t2b"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Grid>
+                                <Border BorderThickness="4" CornerRadius="18">
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="{Binding treeT2BBorderColor}"/>
+                                    </Border.BorderBrush>
+                                </Border>
+                                <Border CornerRadius="18" Background="#302ecc71"
+                                        Visibility="{Binding treeT2BBoughtBgVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding treeT2BName}" FontWeight="Bold" FontFamily="Anton" FontSize="62" Foreground="#FFF5E6C8" VerticalAlignment="Center" TextAlignment="Center"/>
+                                    <TextBlock Text=" — " FontFamily="Anton" FontSize="58" Foreground="#80F5E6C8" VerticalAlignment="Center"
+                                               Visibility="{Binding treeT2BCostVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <Image Source="/Root;component/Textures/gold_icon.png" Width="40" Height="40" Margin="0,0,6,0" VerticalAlignment="Center"
+                                           Visibility="{Binding treeT2BCostVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <TextBlock Text="{Binding treeT2BCost, StringFormat=F0}" FontWeight="Bold" FontFamily="Anton" FontSize="62" VerticalAlignment="Center" TextAlignment="Center"
+                                               Visibility="{Binding treeT2BCostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                        <TextBlock.Foreground>
+                                            <SolidColorBrush Color="{Binding treeT2BCostColor}"/>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                </StackPanel>
+                                <Border CornerRadius="18" Background="#D0000000" IsHitTestVisible="False"
+                                        Visibility="{Binding treeT2BOverlayVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                <Border CornerRadius="10" Background="#FF2ecc71" Padding="16,8,16,8" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,12,12,0"
+                                        Visibility="{Binding treeT2BCheckVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <TextBlock Text="OWNED" FontFamily="Anton" FontSize="42" Foreground="#FF0a2a0a" FontWeight="Bold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ARROW: Rank II → Rank III -->
+                    <Grid Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Margin="14,0,14,0">
+                        <TextBlock Text="&#x25B6;" FontFamily="Anton" FontSize="48" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- RANK III Column (2 wide nodes stacked) -->
+                    <StackPanel Grid.Row="1" Grid.Column="5" Orientation="Vertical" VerticalAlignment="Center">
+
+                        <!-- T3A Node -->
+                        <Border x:Name="NodeT3A" Width="420" Height="230" Margin="0,0,0,20" CornerRadius="18" RenderTransformOrigin="0.5,0.5"
+                                Opacity="{Binding treeT3AOpacity}">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="NodeT3AScale" ScaleX="{Binding treeT3AScale}" ScaleY="{Binding treeT3AScale}"/>
+                            </Border.RenderTransform>
+                            <Border.Background>
+                                <SolidColorBrush Color="{Binding treeT3ABackgroundColor}"/>
+                            </Border.Background>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="MouseLeftButtonUp">
+                                    <b:InvokeCommandAction Command="{Binding events.manageUpgradeChoiceTap}" CommandParameter="t3a"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Grid>
+                                <Border BorderThickness="4" CornerRadius="18">
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="{Binding treeT3ABorderColor}"/>
+                                    </Border.BorderBrush>
+                                </Border>
+                                <Border CornerRadius="18" Background="#302ecc71"
+                                        Visibility="{Binding treeT3ABoughtBgVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                <!-- Normal content (name + cost) -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                            Visibility="{Binding treeT3AContentVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <TextBlock Text="{Binding treeT3AName}" FontWeight="Bold" FontFamily="Anton" FontSize="62" Foreground="#FFF5E6C8" VerticalAlignment="Center" TextAlignment="Center"/>
+                                    <TextBlock Text=" — " FontFamily="Anton" FontSize="58" Foreground="#80F5E6C8" VerticalAlignment="Center"
+                                               Visibility="{Binding treeT3ACostVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <Image Source="/Root;component/Textures/gold_icon.png" Width="40" Height="40" Margin="0,0,6,0" VerticalAlignment="Center"
+                                           Visibility="{Binding treeT3ACostVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <TextBlock Text="{Binding treeT3ACost, StringFormat=F0}" FontWeight="Bold" FontFamily="Anton" FontSize="62" VerticalAlignment="Center" TextAlignment="Center"
+                                               Visibility="{Binding treeT3ACostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                        <TextBlock.Foreground>
+                                            <SolidColorBrush Color="{Binding treeT3ACostColor}"/>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                </StackPanel>
+                                <!-- Mystery "?" placeholder (shown when state=mystery) -->
+                                <TextBlock Text="?" FontFamily="Anton" FontSize="100" Foreground="#80F5E6C8" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="{Binding treeT3AMysteryVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                <Border CornerRadius="18" Background="#D0000000" IsHitTestVisible="False"
+                                        Visibility="{Binding treeT3AOverlayVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                <Border CornerRadius="10" Background="#FF2ecc71" Padding="16,8,16,8" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,12,12,0"
+                                        Visibility="{Binding treeT3ACheckVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <TextBlock Text="OWNED" FontFamily="Anton" FontSize="42" Foreground="#FF0a2a0a" FontWeight="Bold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- T3B Node -->
+                        <Border x:Name="NodeT3B" Width="420" Height="230" Margin="0,0,0,0" CornerRadius="18" RenderTransformOrigin="0.5,0.5"
+                                Opacity="{Binding treeT3BOpacity}">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="NodeT3BScale" ScaleX="{Binding treeT3BScale}" ScaleY="{Binding treeT3BScale}"/>
+                            </Border.RenderTransform>
+                            <Border.Background>
+                                <SolidColorBrush Color="{Binding treeT3BBackgroundColor}"/>
+                            </Border.Background>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger EventName="MouseLeftButtonUp">
+                                    <b:InvokeCommandAction Command="{Binding events.manageUpgradeChoiceTap}" CommandParameter="t3b"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+                            <Grid>
+                                <Border BorderThickness="4" CornerRadius="18">
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="{Binding treeT3BBorderColor}"/>
+                                    </Border.BorderBrush>
+                                </Border>
+                                <Border CornerRadius="18" Background="#302ecc71"
+                                        Visibility="{Binding treeT3BBoughtBgVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                            Visibility="{Binding treeT3BContentVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <TextBlock Text="{Binding treeT3BName}" FontWeight="Bold" FontFamily="Anton" FontSize="62" Foreground="#FFF5E6C8" VerticalAlignment="Center" TextAlignment="Center"/>
+                                    <TextBlock Text=" — " FontFamily="Anton" FontSize="58" Foreground="#80F5E6C8" VerticalAlignment="Center"
+                                               Visibility="{Binding treeT3BCostVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <Image Source="/Root;component/Textures/gold_icon.png" Width="40" Height="40" Margin="0,0,6,0" VerticalAlignment="Center"
+                                           Visibility="{Binding treeT3BCostVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <TextBlock Text="{Binding treeT3BCost, StringFormat=F0}" FontWeight="Bold" FontFamily="Anton" FontSize="62" VerticalAlignment="Center" TextAlignment="Center"
+                                               Visibility="{Binding treeT3BCostVisible, Converter={StaticResource BoolToVisConverter}}">
+                                        <TextBlock.Foreground>
+                                            <SolidColorBrush Color="{Binding treeT3BCostColor}"/>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                </StackPanel>
+                                <TextBlock Text="?" FontFamily="Anton" FontSize="100" Foreground="#80F5E6C8" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Visibility="{Binding treeT3BMysteryVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                <Border CornerRadius="18" Background="#D0000000" IsHitTestVisible="False"
+                                        Visibility="{Binding treeT3BOverlayVisible, Converter={StaticResource BoolToVisConverter}}"/>
+                                <Border CornerRadius="10" Background="#FF2ecc71" Padding="16,8,16,8" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,12,12,0"
+                                        Visibility="{Binding treeT3BCheckVisible, Converter={StaticResource BoolToVisConverter}}">
+                                    <TextBlock Text="OWNED" FontFamily="Anton" FontSize="42" Foreground="#FF0a2a0a" FontWeight="Bold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+
+            </Grid>
+        </Grid>
+
+        <!-- ========== TABS ROW ========== -->
+        <!-- TOWERS Tab -->
+        <Border x:Name="TowersTab" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                Height="130" Width="420" Margin="40,0,0,630"
+                CornerRadius="20,20,0,0" IsHitTestVisible="True">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <GradientStop Color="#FF3d2a14" Offset="0"/>
+                    <GradientStop Color="#FF2a1a0e" Offset="0.6"/>
+                    <GradientStop Color="#FF1a0a00" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="MouseLeftButtonUp">
+                    <b:InvokeCommandAction Command="{Binding events.towersTabTap}"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
+            <Grid>
+                <Border BorderThickness="0,4,0,0" BorderBrush="{StaticResource GoldBrush}" CornerRadius="20,20,0,0"
+                        Visibility="{Binding towersTabActive, Converter={StaticResource BoolToVisConverter}}"/>
+                <Border BorderThickness="0,3,0,0" BorderBrush="#FF553B14" CornerRadius="20,20,0,0"
+                        Visibility="{Binding showManageContent, Converter={StaticResource BoolToVisConverter}}"/>
+                <TextBlock x:Name="TowersTabText" Text="&#x2694; TOWERS" FontFamily="Anton" FontSize="52" FontWeight="Bold"
+                           Foreground="#FFf5c518" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Margin="0,6,0,6"/>
+                <!-- Dim overlay when inactive -->
+                <Border CornerRadius="20,20,0,0" Background="#80000000" IsHitTestVisible="False"
+                        Visibility="{Binding manageTabActive, Converter={StaticResource BoolToVisConverter}}"/>
+            </Grid>
+        </Border>
+
+        <!-- MANAGE Tab -->
+        <Border x:Name="ManageTab" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                Height="130" Width="420" Margin="470,0,0,630"
+                CornerRadius="20,20,0,0" IsHitTestVisible="True">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <GradientStop Color="#FF3d2a14" Offset="0"/>
+                    <GradientStop Color="#FF2a1a0e" Offset="0.6"/>
+                    <GradientStop Color="#FF1a0a00" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="MouseLeftButtonUp">
+                    <b:InvokeCommandAction Command="{Binding events.manageTabTap}"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
+            <Grid>
+                <Border BorderThickness="0,4,0,0" BorderBrush="{StaticResource GoldBrush}" CornerRadius="20,20,0,0"
+                        Visibility="{Binding manageTabActive, Converter={StaticResource BoolToVisConverter}}"/>
+                <Border BorderThickness="0,3,0,0" BorderBrush="#FF553B14" CornerRadius="20,20,0,0"
+                        Visibility="{Binding showTowersContent, Converter={StaticResource BoolToVisConverter}}"/>
+                <TextBlock x:Name="ManageTabText" Text="&#x2699; MANAGE" FontFamily="Anton" FontSize="52" FontWeight="Bold"
+                           Foreground="#FFf5c518" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Margin="0,6,0,6"/>
+                <!-- Dim overlay when inactive -->
+                <Border CornerRadius="20,20,0,0" Background="#80000000" IsHitTestVisible="False"
+                        Visibility="{Binding towersTabActive, Converter={StaticResource BoolToVisConverter}}"/>
+            </Grid>
+        </Border>
     </Grid>
 </Page>
