@@ -171,6 +171,8 @@ export class EnemyController extends Component {
     this._transform.localScale = new Vec3(startScale, startScale, startScale);
   }
 
+  private static readonly PILLAR_BOSS_DAMAGE_CAP = 20;
+
   @subscribe(Events.TakeDamage)
   onTakeDamage(p: Events.TakeDamagePayload): void {
     if (!this._alive || p.enemyId !== this._enemyId) return;
@@ -181,11 +183,21 @@ export class EnemyController extends Component {
       return;
     }
 
+    // Cap pillar (singleUse) damage against boss enemies
+    let damage = p.damage;
+    if (p.props.singleUse === true) {
+      const def = EnemyService.get().find(this._defId);
+      if (def && def.isBoss) {
+        damage = Math.min(damage, EnemyController.PILLAR_BOSS_DAMAGE_CAP);
+        console.log(`[EnemyController] Pillar damage capped to ${damage} for boss ${this._defId}`);
+      }
+    }
+
     this._hitFlashTimer = EnemyController.HIT_FLASH_DURATION;
     this._squashTimer = EnemyController.SQUASH_DURATION;
     this._applyColor(EnemyController.HIT_COLOR);
 
-    this._hp -= p.damage;
+    this._hp -= damage;
     const pos = this._transform.worldPosition;
     EnemyService.get().update(this._enemyId, pos.x, pos.z, PathService.get().getGlobalT(this._wpIndex, this._subT), this._hp);
 

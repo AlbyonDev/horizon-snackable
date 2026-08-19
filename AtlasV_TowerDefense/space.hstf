@@ -613,7 +613,7 @@
                         "version": 3,
                         "data": {
                             "localPosition": {
-                                "x": 0.800000011920929,
+                                "x": 1.0,
                                 "y": -0.019999999552965165,
                                 "z": 0.0
                             },
@@ -625,7 +625,7 @@
                             "localScale": {
                                 "x": 10.0,
                                 "y": 1.0,
-                                "z": 15.359999656677246
+                                "z": 18.0
                             }
                         }
                     },
@@ -2005,6 +2005,53 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "8046a753-d50c-403b-bc85-ee9a5bc284e2",
+            "name": "SurfaceObjects",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "17861c10-2050-4962-8d2b-c68f68777990",
+            "name": "Teepee",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "7041591097923354931",
+                "targetId": "2719744159"
+            },
+            "deltas": [
+                {
+                    "sourceId": "8de147e7-c62e-414c-afb4-93136e8f7c90",
+                    "components": [
+                        {
+                            "dataType": "horizon::DataDefinitionAsset",
+                            "data": {
+                                "class": "horizon::platform_api::TransformPlatformComponent",
+                                "version": 3,
+                                "data": {
+                                    "localPosition": {
+                                        "x": -7.0,
+                                        "y": 0.0,
+                                        "z": -3.0
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "attributes": []
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -2206,6 +2253,16 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "76af8d59-d766-48b3-88cb-78bc4935a629",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "8046a753-d50c-403b-bc85-ee9a5bc284e2",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "17861c10-2050-4962-8d2b-c68f68777990",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

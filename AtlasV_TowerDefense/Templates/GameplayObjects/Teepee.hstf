@@ -1,0 +1,151 @@
+{
+    "version": 6,
+    "entities": [
+        {
+            "id": "8de147e7-c62e-414c-afb4-93136e8f7c90",
+            "name": "Teepee",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localRotation": {
+                                "x": -0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 1.0,
+                                "y": 1.0,
+                                "z": 1.0
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::PhysicsBodyPlatformComponent",
+                        "version": 11,
+                        "data": {
+                            "type": "StaticCollision",
+                            "useGravity": false
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::NetworkSettingsPlatformComponent",
+                        "version": 1,
+                        "data": {
+                            "isAttainable": true
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": [
+                {
+                    "class": "horizon::NetworkableTemplateEntityAttribute",
+                    "data": {
+                        "isNetworkable": true
+                    }
+                }
+            ]
+        },
+        {
+            "id": "c559721d-2f59-4e0b-8082-3fa8dae9db28",
+            "name": "Visuals",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MeshPlatformComponent",
+                        "version": 11,
+                        "data": {
+                            "mesh": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "4846971258903731883",
+                                "targetId": "481548839"
+                            },
+                            "shadowParams": {
+                                "class": "horizon::platform_api::ShadowParams",
+                                "data": {
+                                    "castsShadows": true
+                                }
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MaterialPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "materials": [
+                                {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "10763373113842054995",
+                                    "targetId": "157013062"
+                                }
+                            ],
+                            "perPartInstancedConstantParameterLists": []
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "d5c9c855-1a93-4812-9f6d-e9b01aff3e03",
+            "name": "Collider",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::ColliderBoxPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "c559721d-2f59-4e0b-8082-3fa8dae9db28",
+            "destination": "8de147e7-c62e-414c-afb4-93136e8f7c90"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "d5c9c855-1a93-4812-9f6d-e9b01aff3e03",
+            "destination": "8de147e7-c62e-414c-afb4-93136e8f7c90"
+        }
+    ]
+}

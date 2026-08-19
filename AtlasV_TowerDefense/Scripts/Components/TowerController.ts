@@ -84,6 +84,7 @@ export class TowerController extends Component {
   @property() modelTier1: Maybe<Entity> = null;
   @property() modelTier2: Maybe<Entity> = null;
   @property() modelTier3: Maybe<Entity> = null;
+  @property() glowRing: Maybe<Entity> = null;
   private _shadowColor: Color = new Color(0, 0, 0, 0.4);
   private _currentTier: number = 0;
   // Adjust if barrel mesh is not aligned: 180 = mesh forward is +Z (default for this project)
@@ -101,6 +102,7 @@ export class TowerController extends Component {
     this._setVisible(this.modelTier1, false);
     this._setVisible(this.modelTier2, false);
     this._setVisible(this.modelTier3, false);
+    this._setVisible(this.glowRing, false);
   }
 
   @subscribe(Events.InitTower)
@@ -422,8 +424,11 @@ export class TowerController extends Component {
   private _applyTierModel(): void {
     const tiers: Array<Maybe<Entity>> = [this.modelTier1, this.modelTier2, this.modelTier3];
     for (let i = 0; i < tiers.length; i++) {
-      this._setVisible(tiers[i], i === this._currentTier);
+      // Badges visible only at tier >= 1 (no badge at tier 0)
+      this._setVisible(tiers[i], i === this._currentTier && this._currentTier >= 1);
     }
+    // Gold glow ring: visible only at max tier (tier >= 2)
+    this._setVisible(this.glowRing, this._currentTier >= 2);
   }
 
   private _setShadowAlpha(alpha: number): void {

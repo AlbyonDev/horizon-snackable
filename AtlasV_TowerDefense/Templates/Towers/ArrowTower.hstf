@@ -28,7 +28,8 @@
                             "modelTier1": "a1fa733e-caed-4561-a39d-546af87cc7a9/df2c9483-57a3-4f62-9b9b-4f9f19f0958f",
                             "modelTier2": "a1fa733e-caed-4561-a39d-546af87cc7a9/36438361-f302-4e7a-abf1-b34ce45e71a2",
                             "modelTier3": "a1fa733e-caed-4561-a39d-546af87cc7a9/96384f29-549f-4631-84f7-59bbe1c273f7",
-                            "barrelForwardOffsetDeg": 0.0
+                            "barrelForwardOffsetDeg": 0.0,
+                            "glowRing": "c7a10001-aaaa-4001-b001-aabbccddeef1"
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -266,6 +267,85 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "c7a10001-aaaa-4001-b001-aabbccddeef1",
+            "name": "GlowRing",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": 0.019999999552965164,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 0.6000000238418579,
+                                "y": 0.6000000238418579,
+                                "z": 0.6000000238418579
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MeshPlatformComponent",
+                        "version": 11,
+                        "data": {
+                            "mesh": {
+                                "packageOrRemoteId": "24407058055595655",
+                                "ingestionId": "7277538467424364748",
+                                "targetId": "2768521373"
+                            },
+                            "isVisibleSelf": false,
+                            "lightingParams": {
+                                "class": "horizon::platform_api::LightingParams",
+                                "data": {
+                                    "diffuseGISource": "Unlit",
+                                    "contributeToGI": false
+                                }
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::ColorPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "color": {
+                                "r": 1.0,
+                                "g": 0.8500000238418579,
+                                "b": 0.20000000298023225,
+                                "a": 0.699999988079071
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MaterialPlatformComponent",
+                        "version": 1,
+                        "data": {
+                            "materials": [
+                                {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "5091805501382695214",
+                                    "targetId": "157013062"
+                                }
+                            ]
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -298,6 +378,11 @@
             "relationshipType": "RelationChildOf",
             "source": "6d057240-aa02-43cd-a8c8-d173520a400f",
             "destination": "43aa10be-d17a-4b28-a3ec-a43d7bb58669"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "c7a10001-aaaa-4001-b001-aabbccddeef1",
+            "destination": "b568d258-4773-4744-bcd1-b1788f701013"
         }
     ]
 }

@@ -115,7 +115,8 @@ export interface IEnemyDef {
   straightLine?: boolean;
   /** If true, enemy follows the winding path. If false, moves in a straight line to the base. Defaults to true. */
   followPath?: boolean;
-
+  /** If true, this enemy is a boss and receives capped damage from pillar towers. */
+  isBoss?: boolean;
 }
 
 export interface IWaveGroup {
