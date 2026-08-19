@@ -1962,6 +1962,49 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "76af8d59-d766-48b3-88cb-78bc4935a629",
+            "name": "TowerActionSfx",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "TowerActionSfxService",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "18220924152228834417",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "towerPlacedSound": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "10655843997009205346",
+                                "targetId": "1366267635"
+                            },
+                            "towerUpgradedSound": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "4771268713077660171",
+                                "targetId": "1366267635"
+                            },
+                            "towerSoldSound": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "12600411927475145396",
+                                "targetId": "1366267635"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
         }
     ],
     "relationships": [
@@ -2158,6 +2201,11 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "28eb5606-42a4-4c2c-b4d5-6fad9a7813c2",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "76af8d59-d766-48b3-88cb-78bc4935a629",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

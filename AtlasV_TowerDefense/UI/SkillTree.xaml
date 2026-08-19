@@ -552,14 +552,73 @@
 
             <!-- DEBUG BUTTONS removed from Grid.Row=2, moved to header -->
 
-            <!-- ═══ CLOSE BUTTON ═══ -->
-            <Button Grid.Row="2" Command="{Binding Path=events.closeTap}" CommandParameter="close"
-                    Background="{StaticResource TransparentBrush}" BorderThickness="0"
-                    HorizontalAlignment="Center" Margin="0,10,0,20">
-                <Border Background="#CC1A1420" BorderBrush="{StaticResource CreamPathBrush}" BorderThickness="3" CornerRadius="30" Padding="60,16,60,16">
-                    <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="52" FontWeight="Bold" Foreground="#FFF5E6D0" HorizontalAlignment="Center"/>
-                </Border>
-            </Button>
+            <!-- ═══ CLOSE BUTTON with breathing pulse ═══ -->
+            <Grid Grid.Row="2" HorizontalAlignment="Center" Margin="0,10,0,20" RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                <Grid.RenderTransform>
+                    <ScaleTransform x:Name="SkCloseScale" ScaleX="1" ScaleY="1"/>
+                </Grid.RenderTransform>
+                <Grid.Resources>
+                    <Storyboard x:Key="SkClosePulseAnim" RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetName="SkCloseScale"
+                                         Storyboard.TargetProperty="ScaleX"
+                                         From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="SkCloseScale"
+                                         Storyboard.TargetProperty="ScaleY"
+                                         From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="SkCloseGlow"
+                                         Storyboard.TargetProperty="Opacity"
+                                         From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                    </Storyboard>
+                    <Storyboard x:Key="SkClosePressAnim">
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkCloseScale" Storyboard.TargetProperty="ScaleX">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
+                                <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
+                            </EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                                <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
+                            </EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkCloseScale" Storyboard.TargetProperty="ScaleY">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
+                                <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
+                            </EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                                <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
+                            </EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                    </Storyboard>
+                </Grid.Resources>
+                <b:Interaction.Triggers>
+                    <b:EventTrigger>
+                        <b:ControlStoryboardAction Storyboard="{StaticResource SkClosePulseAnim}"/>
+                    </b:EventTrigger>
+                    <b:EventTrigger EventName="MouseLeftButtonDown">
+                        <b:ControlStoryboardAction Storyboard="{StaticResource SkClosePressAnim}"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+
+                <!-- Outer glow border (pulsing gold shimmer) -->
+                <Border x:Name="SkCloseGlow" Opacity="0"
+                        Background="Transparent"
+                        BorderBrush="#AAf5c518"
+                        BorderThickness="10"
+                        CornerRadius="38"
+                        Margin="-8,-8,-8,-8"
+                        IsHitTestVisible="False"/>
+
+                <Button Command="{Binding Path=events.closeTap}" CommandParameter="close"
+                        Background="{StaticResource TransparentBrush}" BorderThickness="0">
+                    <Border Background="#CC1A1420" BorderBrush="{StaticResource CreamPathBrush}" BorderThickness="3" CornerRadius="30" Padding="60,16,60,16">
+                        <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="52" FontWeight="Bold" Foreground="#FFF5E6D0" HorizontalAlignment="Center"/>
+                    </Border>
+                </Button>
+            </Grid>
         </Grid>
         </Viewbox>
 
@@ -611,26 +670,114 @@
 
                     <!-- Buttons row -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <!-- RETURN button -->
-                        <Button Command="{Binding Path=events.returnTap}" CommandParameter="return"
-                                Background="{StaticResource TransparentBrush}" BorderThickness="0" Margin="0,0,40,0">
-                            <Border Background="#CC1A1420" BorderBrush="{StaticResource CreamPathBrush}" BorderThickness="7"
-                                    CornerRadius="30" Padding="70,28,70,28">
-                                <TextBlock Text="RETURN" FontFamily="Anton" FontSize="82" FontWeight="Bold"
-                                           Foreground="#FFF5E6D0" HorizontalAlignment="Center"/>
-                            </Border>
-                        </Button>
+                        <!-- RETURN button with breathing pulse -->
+                        <Grid RenderTransformOrigin="0.5,0.5" ClipToBounds="False" Margin="0,0,40,0">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="SkReturnScale" ScaleX="1" ScaleY="1"/>
+                            </Grid.RenderTransform>
+                            <Grid.Resources>
+                                <Storyboard x:Key="SkReturnPulseAnim" RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="SkReturnScale" Storyboard.TargetProperty="ScaleX"
+                                                     From="1.0" To="1.01" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="SkReturnScale" Storyboard.TargetProperty="ScaleY"
+                                                     From="1.0" To="1.01" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="SkReturnGlow" Storyboard.TargetProperty="Opacity"
+                                                     From="0.0" To="0.2" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                                <Storyboard x:Key="SkReturnPressAnim">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkReturnScale" Storyboard.TargetProperty="ScaleX">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkReturnScale" Storyboard.TargetProperty="ScaleY">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </Grid.Resources>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger>
+                                    <b:ControlStoryboardAction Storyboard="{StaticResource SkReturnPulseAnim}"/>
+                                </b:EventTrigger>
+                                <b:EventTrigger EventName="MouseLeftButtonDown">
+                                    <b:ControlStoryboardAction Storyboard="{StaticResource SkReturnPressAnim}"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
 
-                        <!-- BUY button (hidden if already bought or cannot buy) -->
-                        <Button Command="{Binding Path=events.buyTap}" CommandParameter="buy"
-                                Background="{StaticResource TransparentBrush}" BorderThickness="0"
-                                Visibility="{Binding popupBuyVisible, Converter={StaticResource BoolToVisConverter}}">
-                            <Border Background="#CC1A1420" BorderBrush="{StaticResource GoldBrush}" BorderThickness="7"
-                                    CornerRadius="30" Padding="70,28,70,28">
-                                <TextBlock Text="BUY" FontFamily="Anton" FontSize="82" FontWeight="Bold"
-                                           Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
-                            </Border>
-                        </Button>
+                            <Border x:Name="SkReturnGlow" Opacity="0" Background="Transparent"
+                                    BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="38"
+                                    Margin="-8,-8,-8,-8" IsHitTestVisible="False"/>
+
+                            <Button Command="{Binding Path=events.returnTap}" CommandParameter="return"
+                                    Background="{StaticResource TransparentBrush}" BorderThickness="0">
+                                <Border Background="#CC1A1420" BorderBrush="{StaticResource CreamPathBrush}" BorderThickness="7"
+                                        CornerRadius="30" Padding="70,28,70,28">
+                                    <TextBlock Text="RETURN" FontFamily="Anton" FontSize="82" FontWeight="Bold"
+                                               Foreground="#FFF5E6D0" HorizontalAlignment="Center"/>
+                                </Border>
+                            </Button>
+                        </Grid>
+
+                        <!-- BUY button with breathing pulse (hidden if already bought or cannot buy) -->
+                        <Grid RenderTransformOrigin="0.5,0.5" ClipToBounds="False"
+                              Visibility="{Binding popupBuyVisible, Converter={StaticResource BoolToVisConverter}}">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="SkBuyScale" ScaleX="1" ScaleY="1"/>
+                            </Grid.RenderTransform>
+                            <Grid.Resources>
+                                <Storyboard x:Key="SkBuyPulseAnim" RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="SkBuyScale" Storyboard.TargetProperty="ScaleX"
+                                                     From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="SkBuyScale" Storyboard.TargetProperty="ScaleY"
+                                                     From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="SkBuyGlow" Storyboard.TargetProperty="Opacity"
+                                                     From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                                <Storyboard x:Key="SkBuyPressAnim">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkBuyScale" Storyboard.TargetProperty="ScaleX">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SkBuyScale" Storyboard.TargetProperty="ScaleY">
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </Grid.Resources>
+                            <b:Interaction.Triggers>
+                                <b:EventTrigger>
+                                    <b:ControlStoryboardAction Storyboard="{StaticResource SkBuyPulseAnim}"/>
+                                </b:EventTrigger>
+                                <b:EventTrigger EventName="MouseLeftButtonDown">
+                                    <b:ControlStoryboardAction Storyboard="{StaticResource SkBuyPressAnim}"/>
+                                </b:EventTrigger>
+                            </b:Interaction.Triggers>
+
+                            <Border x:Name="SkBuyGlow" Opacity="0" Background="Transparent"
+                                    BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="38"
+                                    Margin="-8,-8,-8,-8" IsHitTestVisible="False"/>
+
+                            <Button Command="{Binding Path=events.buyTap}" CommandParameter="buy"
+                                    Background="{StaticResource TransparentBrush}" BorderThickness="0">
+                                <Border Background="#CC1A1420" BorderBrush="{StaticResource GoldBrush}" BorderThickness="7"
+                                        CornerRadius="30" Padding="70,28,70,28">
+                                    <TextBlock Text="BUY" FontFamily="Anton" FontSize="82" FontWeight="Bold"
+                                               Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                                </Border>
+                            </Button>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Border>

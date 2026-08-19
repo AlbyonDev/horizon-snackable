@@ -232,8 +232,15 @@ export class LevelGeneratorService extends Service {
   // ——— Wave generation (wave pack system) ————————————————————————————————————
 
   private _generateWaves(levelIndex: number, _totalLevels: number): IWaveDef[] {
-    // Clamp level index to available tier patterns
-    const patternIdx = Math.min(levelIndex, LEVEL_TIER_PATTERNS.length - 1);
+    // Compute combat-order index by counting only preceding Combat nodes
+    // (skips minigame and boss nodes so combat tier matches combat order)
+    let combatIndex = 0;
+    for (let i = 0; i < levelIndex; i++) {
+      if (this._nodeTypes[i] === OverworldNodeType.Combat) {
+        combatIndex++;
+      }
+    }
+    const patternIdx = Math.min(combatIndex, LEVEL_TIER_PATTERNS.length - 1);
     const tierPattern = LEVEL_TIER_PATTERNS[patternIdx];
 
     // Use biome-aware pack pools so snow biome includes yeti packs

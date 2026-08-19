@@ -514,7 +514,7 @@ Enemy (root)                         ← TransformComponent + EnemyController
 
 #### Straight-line boss mode
 
-When an enemy def has `straightLine: true`, the EnemyController bypasses PathService waypoint following and instead moves in a straight line along the -X axis (toward the player's base). Each frame it checks the grid cell it occupies and destroys any tower found there via `TowerService.removeTowerAt()`. The boss remains targetable by towers through the normal EnemyService registry. A 3D cave entrance mesh is placed at the spawn point as a visual origin for the boss.
+When an enemy def has `straightLine: true`, the EnemyController bypasses PathService waypoint following and instead moves in a straight line along the -X axis (toward the player's base). Each frame it checks the grid cell it occupies and destroys any tower found there via `TowerService.removeTowerAt()`. The boss remains targetable by towers through the normal EnemyService registry. A 3D cave entrance mesh is placed at the spawn point as a visual origin for the boss. On boss levels (nodeType === 'boss'), the cave material is swapped to a darker reddish-purple variant (`Models/Cave/BossCaveEntrance.material`) for a more menacing look; normal levels use the standard cave material.
 
 #### Authoring rules for new enemies
 

@@ -56,6 +56,8 @@ export namespace Assets {
 
 export namespace Materials {
   export const MagmaTile = new MaterialAsset('@Materials/MagmaTile.material');
+  export const BossCaveEntrance = new MaterialAsset('@Models/Cave/BossCaveEntrance.material');
+  export const CaveEntrance = new MaterialAsset('@Models/Cave/CaveEntrance (2).material');
 }
 
 export namespace TowerIcons {

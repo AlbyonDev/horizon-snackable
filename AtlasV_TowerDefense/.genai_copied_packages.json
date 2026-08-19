@@ -6,6 +6,12 @@
       "name": "DesertGateRed",
       "version": "0.0.2"
     },
+    "meta/FBsfx_Coins_SingleCoinsCountChange_01/0.0.1": {
+      "author": "meta",
+      "folderName": "FBsfx_Coins_SingleCoinsCountChange_01",
+      "name": "FBsfx_Coins_SingleCoinsCountChange_01",
+      "version": "0.0.1"
+    },
     "meta/GreenFlag/0.0.2": {
       "author": "meta",
       "folderName": "GreenFlag",
@@ -60,11 +66,23 @@
       "name": "a_walk_in_the_forest_QZAAJ1902071",
       "version": "0.0.1"
     },
+    "meta/dark_electronic_dance_QZAAJ2410700/0.0.1": {
+      "author": "meta",
+      "folderName": "dark_electronic_dance_QZAAJ2410700",
+      "name": "dark_electronic_dance_QZAAJ2410700",
+      "version": "0.0.1"
+    },
     "meta/fire_intense_loop/0.0.2": {
       "author": "meta",
       "folderName": "popcornfx/fire_intense_loop",
       "name": "fire_intense_loop",
       "version": "0.0.2"
+    },
+    "meta/gui_level_up_1/0.0.1": {
+      "author": "meta",
+      "folderName": "gui_level_up_1",
+      "name": "gui_level_up_1",
+      "version": "0.0.1"
     },
     "meta/human_jog_masculine_forward/0.0.6": {
       "author": "meta",
@@ -114,11 +132,23 @@
       "name": "phantoms_fantasies_QZAAJ2000898",
       "version": "0.0.1"
     },
+    "meta/sewers_loop_epic_1/0.0.3": {
+      "author": "meta",
+      "folderName": "sewers_loop_epic_1",
+      "name": "sewers_loop_epic_1",
+      "version": "0.0.3"
+    },
     "meta/sfxlib_elc_LiveWireElectricityPowerOn_01/0.0.1": {
       "author": "meta",
       "folderName": "sfxlib_elc_LiveWireElectricityPowerOn_01",
       "name": "sfxlib_elc_LiveWireElectricityPowerOn_01",
       "version": "0.0.1"
+    },
+    "meta/sfxlib_nww_blocksbuild_01/0.0.2": {
+      "author": "meta",
+      "folderName": "sfxlib_nww_blocksbuild_01",
+      "name": "sfxlib_nww_blocksbuild_01",
+      "version": "0.0.2"
     },
     "meta/sfxlib_ui_MagicalConfirm_01/0.0.1": {
       "author": "meta",
@@ -143,6 +173,12 @@
       "folderName": "popcornfx/snow_blizzard_local",
       "name": "snow_blizzard_local",
       "version": "0.0.3"
+    },
+    "meta/the_shadows_in_the_forest_QZAAJ2204625/0.0.1": {
+      "author": "meta",
+      "folderName": "the_shadows_in_the_forest_QZAAJ2204625",
+      "name": "the_shadows_in_the_forest_QZAAJ2204625",
+      "version": "0.0.1"
     },
     "meta/through_the_trees_loop_QZAAJ2101882/0.0.1": {
       "author": "meta",

@@ -38,6 +38,10 @@
         {
             "name": "meta/assistant_experimental",
             "version": "*"
+        },
+        {
+            "name": "meta/the_shadows_in_the_forest_QZAAJ2204625",
+            "version": "0.0.1"
         }
     ]
 }

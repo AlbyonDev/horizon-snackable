@@ -227,7 +227,10 @@ export class PlacementService extends Service {
 
   @subscribe(Events.TowerUpgraded)
   onTowerUpgraded(p: Events.TowerUpgradedPayload): void {
-    // Range indicator intentionally not shown in upgrade mode
+    // Refresh the range indicator if the upgraded tower is currently selected
+    if (this._selectionActive) {
+      this._showRangeForSelected(p.col, p.row);
+    }
   }
 
   @subscribe(Events.TowerSold)
@@ -239,7 +242,7 @@ export class PlacementService extends Service {
 
   private _enterSelection(col: number, row: number): void {
     this._selectionActive = true;
-    // Range indicator intentionally not shown in upgrade mode
+    this._showRangeForSelected(col, row);
 
     const rec = TowerService.get().getAt(col, row);
     if (!rec) return;

@@ -50,7 +50,7 @@ const GRID_CENTER = new Vec3(0, 0.5, 0); // center of the 11x14 grid, slightly a
 const FREEZE_DURATION = 6.0; // seconds towers are frozen during intense burst
 
 // SoundAsset for cold wind gust
-const WIND_GUST_SOUND = new SoundAsset('@sfxlib_wnd_coldGust_01/sfxlib_wnd_coldGust_01.wav:sound');
+const WIND_GUST_SOUND = new SoundAsset('@SFX/sfxlib_wnd_coldGust_01.wav:sound');
 
 // Template for the blizzard VFX entity
 const BLIZZARD_VFX_TEMPLATE = new TemplateAsset('@Templates/VFX/BlizzardVfx.hstf');

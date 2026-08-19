@@ -28,6 +28,7 @@ import {
 import type { Maybe } from 'meta/worlds';
 
 import { Events, GamePhase } from '../Types';
+import { OverworldNodeType } from '../Defs/NodeDefs';
 import { playLoopingSound, stopLoopingSound } from '../Audio/AudioManager';
 
 // --- Sound Assets (static string literals) ---
@@ -50,6 +51,12 @@ const VOLCANO_WAVE_MUSIC: SoundAsset = new SoundAsset(
 // Snow biome wave music: Mister Mystery (dark/mysterious electronic, ~105 BPM)
 const SNOW_WAVE_MUSIC: SoundAsset = new SoundAsset(
   '@Music/mister_mystery.wav:sound',
+);
+
+// Boss level music: Sewers Loop Epic 1 (dark aggressive orchestral, heavy percussion + brass, full energy from first beat)
+// Overrides normal wave music on boss levels across all biomes
+const BOSS_WAVE_MUSIC: SoundAsset = new SoundAsset(
+  '@Music/Sewers_Loop_EPIC_1.wav:sound',
 );
 
 // --- Per-biome music configuration ---
@@ -81,7 +88,8 @@ const BIOME_MUSIC: Record<string, IBiomeMusicConfig> = {
   },
 };
 
-const MUSIC_VOLUME = 1;
+const MUSIC_VOLUME = 1.2;
+const BOSS_MUSIC_VOLUME = 2.8;
 
 @component()
 export class BiomeMusicController extends Component {
@@ -95,6 +103,9 @@ export class BiomeMusicController extends Component {
 
   /** Whether the game is currently in wave phase */
   private isWavePhase: boolean = false;
+
+  /** Whether the current level is a boss level */
+  private isBossLevel: boolean = false;
 
   /** Looping sound ID for the overworld music (-1 = not playing) */
   private overworldMusicId: number = -1;
@@ -204,6 +215,13 @@ export class BiomeMusicController extends Component {
     this._stopWaveMusic();
   }
 
+  @subscribe(Events.LevelSelected, { execution: ExecuteOn.Owner })
+  onLevelSelected(payload: Events.LevelSelectedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    this.isBossLevel = payload.nodeType === OverworldNodeType.Boss;
+    console.log(`[BiomeMusicController] Level selected, isBoss=${this.isBossLevel}`);
+  }
+
   @subscribe(Events.BiomeChanged, { execution: ExecuteOn.Owner })
   onBiomeChanged(payload: Events.BiomeChangedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -289,8 +307,9 @@ export class BiomeMusicController extends Component {
     if (this.waveMusicId !== -1 || this.waveStarting) return;
 
     this.waveStarting = true;
-    const sound = config.wave;
-    const vol = MUSIC_VOLUME;
+    // Use boss music override if this is a boss level
+    const sound = this.isBossLevel ? BOSS_WAVE_MUSIC : config.wave;
+    const vol = this.isBossLevel ? BOSS_MUSIC_VOLUME : MUSIC_VOLUME;
 
     const doStart = async (): Promise<number> => {
       if (this.waveStopPromise) {
@@ -311,10 +330,13 @@ export class BiomeMusicController extends Component {
     doStart()
       .then(id => {
         this.waveStarting = false;
-        const stillShouldPlay = this.isWavePhase && BIOME_MUSIC[this.activeBiomeId]?.wave === sound;
+        // Check if we should still be playing: must be in wave phase AND the
+        // expected sound for the current state matches what we started
+        const expectedSound = this.isBossLevel ? BOSS_WAVE_MUSIC : BIOME_MUSIC[this.activeBiomeId]?.wave;
+        const stillShouldPlay = this.isWavePhase && expectedSound === sound;
         if (stillShouldPlay) {
           this.waveMusicId = id;
-          console.log(`[BiomeMusicController] Wave music started (id=${id})`);
+          console.log(`[BiomeMusicController] Wave music started (id=${id}, boss=${this.isBossLevel})`);
         } else {
           console.log('[BiomeMusicController] Wave music resolved but no longer needed, stopping');
           stopLoopingSound(id);
