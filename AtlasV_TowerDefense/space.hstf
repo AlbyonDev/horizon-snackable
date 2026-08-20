@@ -1482,9 +1482,10 @@
                         "data": {
                             "lossSfx": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "13876289382887807935",
+                                "ingestionId": "9178760663125433198",
                                 "targetId": "1366267635"
-                            }
+                            },
+                            "volume": 0.55
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"

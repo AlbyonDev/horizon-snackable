@@ -1,5 +1,17 @@
 {
   "packages": {
+    "meta/CrossHair_CriticalHit/0.0.1": {
+      "author": "meta",
+      "folderName": "CrossHair_CriticalHit",
+      "name": "CrossHair_CriticalHit",
+      "version": "0.0.1"
+    },
+    "meta/CrossHair_Damage/0.0.1": {
+      "author": "meta",
+      "folderName": "CrossHair_Damage",
+      "name": "CrossHair_Damage",
+      "version": "0.0.1"
+    },
     "meta/DesertGateRed/0.0.2": {
       "author": "meta",
       "folderName": "DesertGateRed",
@@ -10,6 +22,18 @@
       "author": "meta",
       "folderName": "FBsfx_Coins_SingleCoinsCountChange_01",
       "name": "FBsfx_Coins_SingleCoinsCountChange_01",
+      "version": "0.0.1"
+    },
+    "meta/FGHTClth_Leather_Hit_Cloth_Impact_001_PSE_GACM_5lsT9/0.0.1": {
+      "author": "meta",
+      "folderName": "FGHTClth_Leather_Hit_Cloth_Impact_001_PSE_GACM_5lsT9",
+      "name": "FGHTClth_Leather_Hit_Cloth_Impact_001_PSE_GACM_5lsT9",
+      "version": "0.0.1"
+    },
+    "meta/FGHTClth_Nylon_Hit_Cloth_Impact_001_PSE_GACM_yzNgr/0.0.1": {
+      "author": "meta",
+      "folderName": "FGHTClth_Nylon_Hit_Cloth_Impact_001_PSE_GACM_yzNgr",
+      "name": "FGHTClth_Nylon_Hit_Cloth_Impact_001_PSE_GACM_yzNgr",
       "version": "0.0.1"
     },
     "meta/GreenFlag/0.0.2": {
@@ -42,16 +66,40 @@
       "name": "MUS_sting_victory_orch_01",
       "version": "0.0.1"
     },
+    "meta/Player_Body_Impact_01/0.0.1": {
+      "author": "meta",
+      "folderName": "Player_Body_Impact_01",
+      "name": "Player_Body_Impact_01",
+      "version": "0.0.1"
+    },
     "meta/SFX_Coin_Collect_01/0.0.1": {
       "author": "meta",
       "folderName": "SFX_Coin_Collect_01",
       "name": "SFX_Coin_Collect_01",
       "version": "0.0.1"
     },
+    "meta/SFX_Gameplay_ErrorInitialShort_02/0.0.1": {
+      "author": "meta",
+      "folderName": "SFX_Gameplay_ErrorInitialShort_02",
+      "name": "SFX_Gameplay_ErrorInitialShort_02",
+      "version": "0.0.1"
+    },
+    "meta/SFX_Weapon_ArrowImpact_03/0.0.1": {
+      "author": "meta",
+      "folderName": "SFX_Weapon_ArrowImpact_03",
+      "name": "SFX_Weapon_ArrowImpact_03",
+      "version": "0.0.1"
+    },
     "meta/SFX_impact_punch_regular_01/0.0.1": {
       "author": "meta",
       "folderName": "SFX_impact_punch_regular_01",
       "name": "SFX_impact_punch_regular_01",
+      "version": "0.0.1"
+    },
+    "meta/ShopWindow_Break/0.0.1": {
+      "author": "meta",
+      "folderName": "ShopWindow_Break",
+      "name": "ShopWindow_Break",
       "version": "0.0.1"
     },
     "meta/VEGETree_Branches_Movement_Foliage_Rustling_PSE_GACA_0AguG/0.0.1": {
@@ -154,6 +202,12 @@
       "author": "meta",
       "folderName": "phantoms_fantasies_QZAAJ2000898",
       "name": "phantoms_fantasies_QZAAJ2000898",
+      "version": "0.0.1"
+    },
+    "meta/player_death_1/0.0.1": {
+      "author": "meta",
+      "folderName": "player_death_1",
+      "name": "player_death_1",
       "version": "0.0.1"
     },
     "meta/purple_glow_with_sparkles/0.0.3": {
