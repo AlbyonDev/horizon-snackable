@@ -115,6 +115,7 @@ export class MagmaTileService extends Service {
         if (row === GRID_ROWS - 1) continue;
         if (pathSvc.isPathCell(col, row)) continue;
         if (pathSvc.isCaveBlockedCell(col, row)) continue;
+        if (pathSvc.isTeepeeBlockedCell(col, row)) continue;
         totalAvailableCells++;
       }
     }
@@ -216,6 +217,7 @@ export class MagmaTileService extends Service {
         if (row === GRID_ROWS - 1) continue;
         if (pathSvc.isPathCell(col, row)) continue;
         if (pathSvc.isCaveBlockedCell(col, row)) continue;
+        if (pathSvc.isTeepeeBlockedCell(col, row)) continue;
         const isAdjacentToPath =
           pathSvc.isPathCell(col - 1, row) ||
           pathSvc.isPathCell(col + 1, row) ||
@@ -321,6 +323,7 @@ export class MagmaTileService extends Service {
       if (LOCKED_COLS.includes(col)) return null;
       if (pathSvc.isPathCell(col, row)) return null;
       if (pathSvc.isCaveBlockedCell(col, row)) return null;
+      if (pathSvc.isTeepeeBlockedCell(col, row)) return null;
       if (occupied.has(`${col},${row}`)) return null;
 
       // Check path adjacency for this cell

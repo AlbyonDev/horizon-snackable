@@ -1470,6 +1470,24 @@
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "LifeLossSfxService",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "17432721813827709167",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "lossSfx": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "13876289382887807935",
+                                "targetId": "1366267635"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
                 }
             ],
             "attributes": []
@@ -1577,7 +1595,7 @@
                         "data": {
                             "victorySfx": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "9775269606772516455",
+                                "ingestionId": "369972582743863594",
                                 "targetId": "1366267635"
                             },
                             "defeatSfx": {

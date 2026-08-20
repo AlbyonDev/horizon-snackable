@@ -44,7 +44,7 @@ export class GameEndSfxService extends Component {
     if (payload.won) {
       if (this.victorySfx) {
         console.log('[GameEndSfxService] Playing victory SFX');
-        playSound2D(this.victorySfx, { playVolume: 0.7 });
+        playSound2D(this.victorySfx, { playVolume: 0.468 });
       }
     } else {
       if (this.defeatSfx) {

@@ -82,10 +82,30 @@ export class TowerService extends Service {
 
     const base: ITowerStats = def.stats;
 
+    // If no upgrade tree, just return base stats with multipliers
+    if (!def.upgrades) {
+      const relics = RelicService.get();
+      const skills = SkillTreeService.get();
+      const fireRateMult = relics.getFireRateMultiplier() * skills.getFireRateMultiplier();
+      const rangeMult = relics.getRangeMultiplier() * skills.getRangeMultiplier();
+      let damageMult = skills.getDamageMultiplier();
+      const biomeMultiplier = getBiomeDamageMultiplier(rec.defId, SaveService.get().activeBiome);
+      damageMult *= biomeMultiplier;
+      if (fireRateMult !== 1 || rangeMult !== 1 || damageMult !== 1) {
+        return {
+          ...base,
+          damage: Math.round(base.damage * damageMult),
+          fireRate: base.fireRate * fireRateMult,
+          range: base.range * rangeMult,
+        };
+      }
+      return base;
+    }
+
     let node: IUpgradeNode | undefined = undefined;
     const upgraded = rec.choices.reduce<ITowerStats>((stats, choice) => {
       node = node === undefined
-        ? def.upgrades[choice]
+        ? def.upgrades![choice]
         : node.next?.[choice];
       if (!node) return stats;
       return node.apply(stats);
@@ -118,7 +138,7 @@ export class TowerService extends Service {
     const rec = this.getAt(col, row);
     if (!rec) return undefined;
     const def = this._defs.get(rec.defId);
-    if (!def) return undefined;
+    if (!def || !def.upgrades) return undefined;
 
     if (rec.choices.length === 0) return def.upgrades;
 
@@ -231,6 +251,7 @@ export class TowerService extends Service {
     if (LOCKED_COLS.includes(col)) return;
     if (PathService.get().isPathCell(col, row)) return;
     if (PathService.get().isCaveBlockedCell(col, row)) return;
+    if (PathService.get().isTeepeeBlockedCell(col, row)) return;
     if (MagmaTileService.get().isMagmaCell(col, row)) return;
     if (this.isOccupied(col, row)) return;
     if (!ResourceService.get().canAfford(def.cost)) return;

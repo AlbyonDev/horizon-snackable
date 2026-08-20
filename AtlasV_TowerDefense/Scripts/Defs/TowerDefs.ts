@@ -91,7 +91,7 @@ export const TOWER_DEFS: ITowerDef[] = [
   {
     id: 'lightning', name: 'Lightning', cost: 300,
     stats: { damage: 15, range: 2.00, fireRate: 2.0, projectileSpeed: 10,
-      props: { chainCount: 2, chainRange: 2.5, chainDamageFalloff: 0.5,
+      props: { chainCount: 5, chainRange: 10, chainDamageFalloff: 0.5,
                projectileColor: { r: 0.3, g: 0.7, b: 1.0 }, projectileScale: 0.08, arcHeight: 0.2 } },
     template: Assets.Lightning,
     upgrades: tree(
@@ -118,13 +118,9 @@ export const TOWER_DEFS: ITowerDef[] = [
   // Single-use trap. Tips over onto the first enemy in range, instant-killing it,
   // then self-destructs. No projectile, no upgrades (consumed on use).
   {
-    id: 'pillar', name: 'Pillar', cost: 30,
+    id: 'pillar', name: 'Pillar', cost: 20,
     stats: { damage: 99999, range: 2.0, fireRate: 1.0, projectileSpeed: 0,
       props: { singleUse: true } },
     template: Assets.Pillar,
-    upgrades: tree(
-      [Upg.damage(9999), Upg.damage(9999)],
-      [[Upg.damage(9999), Upg.damage(9999)], [Upg.damage(9999), Upg.damage(9999)]],
-    ),
   },
 ];

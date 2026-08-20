@@ -506,9 +506,12 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Tier Headers Row -->
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="I" FontFamily="Anton" FontSize="52" Foreground="#B0F5E6C8" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                    <TextBlock Grid.Row="0" Grid.Column="3" Text="II" FontFamily="Anton" FontSize="52" Foreground="#B0F5E6C8" HorizontalAlignment="Center" Margin="0,0,0,12"/>
-                    <TextBlock Grid.Row="0" Grid.Column="5" Text="III" FontFamily="Anton" FontSize="52" Foreground="#B0F5E6C8" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="I" FontFamily="Anton" FontSize="52" Foreground="#B0F5E6C8" HorizontalAlignment="Center" Margin="0,0,0,12"
+                               Visibility="{Binding hasUpgrades, Converter={StaticResource BoolToVisConverter}}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="II" FontFamily="Anton" FontSize="52" Foreground="#B0F5E6C8" HorizontalAlignment="Center" Margin="0,0,0,12"
+                               Visibility="{Binding hasUpgrades, Converter={StaticResource BoolToVisConverter}}"/>
+                    <TextBlock Grid.Row="0" Grid.Column="5" Text="III" FontFamily="Anton" FontSize="52" Foreground="#B0F5E6C8" HorizontalAlignment="Center" Margin="0,0,0,12"
+                               Visibility="{Binding hasUpgrades, Converter={StaticResource BoolToVisConverter}}"/>
 
                     <!-- SELL Button (left of Rank I card) -->
                     <Border Grid.Row="1" Grid.Column="0" Width="280" Height="480"
@@ -586,12 +589,14 @@
                     </Border>
 
                     <!-- ARROW: Rank I → Rank II -->
-                    <Grid Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Margin="14,0,14,0">
+                    <Grid Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Margin="14,0,14,0"
+                          Visibility="{Binding hasUpgrades, Converter={StaticResource BoolToVisConverter}}">
                         <TextBlock Text="&#x25B6;" FontFamily="Anton" FontSize="48" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
 
                     <!-- RANK II Column (2 wide nodes stacked) -->
-                    <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Vertical" VerticalAlignment="Center">
+                    <StackPanel Grid.Row="1" Grid.Column="3" Orientation="Vertical" VerticalAlignment="Center"
+                                Visibility="{Binding hasUpgrades, Converter={StaticResource BoolToVisConverter}}">
 
                         <!-- T2A Node -->
                         <Border x:Name="NodeT2A" Width="420" Height="230" Margin="0,0,0,20" CornerRadius="18" RenderTransformOrigin="0.5,0.5"
@@ -686,12 +691,14 @@
                     </StackPanel>
 
                     <!-- ARROW: Rank II → Rank III -->
-                    <Grid Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Margin="14,0,14,0">
+                    <Grid Grid.Row="1" Grid.Column="4" VerticalAlignment="Center" Margin="14,0,14,0"
+                          Visibility="{Binding hasUpgrades, Converter={StaticResource BoolToVisConverter}}">
                         <TextBlock Text="&#x25B6;" FontFamily="Anton" FontSize="48" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
 
                     <!-- RANK III Column (2 wide nodes stacked) -->
-                    <StackPanel Grid.Row="1" Grid.Column="5" Orientation="Vertical" VerticalAlignment="Center">
+                    <StackPanel Grid.Row="1" Grid.Column="5" Orientation="Vertical" VerticalAlignment="Center"
+                                Visibility="{Binding hasUpgrades, Converter={StaticResource BoolToVisConverter}}">
 
                         <!-- T3A Node -->
                         <Border x:Name="NodeT3A" Width="420" Height="230" Margin="0,0,0,20" CornerRadius="18" RenderTransformOrigin="0.5,0.5"

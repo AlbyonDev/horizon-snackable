@@ -47,7 +47,7 @@
                         "data": {
                             "localPosition": {
                                 "x": 0.17556771636009217,
-                                "y": 0.3522694408893585,
+                                "y": 0.0,
                                 "z": -0.007565915584564209
                             },
                             "localRotation": {
@@ -133,7 +133,7 @@
                         "data": {
                             "mesh": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "17121457147937258874",
+                                "ingestionId": "17498805051459751967",
                                 "targetId": "481548839"
                             }
                         }
@@ -148,7 +148,7 @@
                             "materials": [
                                 {
                                     "packageOrRemoteId": "26631398616455768",
-                                    "ingestionId": "57175089389361703",
+                                    "ingestionId": "9454427175081839435",
                                     "targetId": "157013062"
                                 }
                             ]
@@ -205,6 +205,7 @@
             ],
             "attributes": []
         },
+
         {
             "id": "9997e5f8-1116-4422-951b-9d035ad4202f",
             "name": "CanonLvl1",
@@ -243,7 +244,7 @@
                                 "ingestionId": "4855175550601653276",
                                 "targetId": "1158271707"
                             },
-                            "isVisibleSelf": true
+                            "isVisibleSelf": false
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -391,6 +392,7 @@
             "source": "f4e2eacc-8f30-4240-a008-30357d89d5fd",
             "destination": "71060885-4dfb-4234-a589-ce6e84bc010b"
         },
+
         {
             "relationshipType": "RelationChildOf",
             "source": "9997e5f8-1116-4422-951b-9d035ad4202f",

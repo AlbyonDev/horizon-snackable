@@ -283,18 +283,18 @@ export class TowerUpgradeMenuHud extends Component {
   private _updateUpgradeInfo(def: ITowerDef, tier: number, choices: number[]): void {
     if (!this.viewModel) return;
 
-    // Set maxed state
-    const maxed = tier >= 2;
+    // Set maxed state (towers with no upgrades are always "maxed")
+    const maxed = tier >= 2 || !def.upgrades;
     this.viewModel.isMaxed = maxed;
     this.viewModel.showUpgrades = !maxed;
 
     // Build upgrade history labels by walking the tree
     this._updateUpgradeHistory(def, choices);
 
-    const options = tier === 0
+    const options = !def.upgrades ? undefined : tier === 0
       ? def.upgrades
       : (() => {
-          let node = def.upgrades[choices[0]];
+          let node = def.upgrades![choices[0]];
           for (let i = 1; i < choices.length; i++) {
             if (node.next) node = node.next[choices[i]];
           }
@@ -331,7 +331,7 @@ export class TowerUpgradeMenuHud extends Component {
     if (!this.viewModel) return;
 
     const labels: string[] = [];
-    if (choices.length > 0) {
+    if (choices.length > 0 && def.upgrades) {
       labels.push(def.upgrades[choices[0]].label);
       let node = def.upgrades[choices[0]];
       for (let i = 1; i < choices.length; i++) {

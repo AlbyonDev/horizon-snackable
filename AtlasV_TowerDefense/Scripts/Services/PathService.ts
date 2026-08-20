@@ -37,6 +37,8 @@ export class PathService extends Service {
   private _pathCells:  Set<number> = new Set();
   /** Cells adjacent to the cave entrance (first waypoint col±1) blocked from towers & magma. */
   private _caveBlockedCells: Set<number> = new Set();
+  /** Cells adjacent to the teepee (last waypoint col±1) blocked from towers & magma. */
+  private _teepeeBlockedCells: Set<number> = new Set();
 
   @subscribe(OnServiceReadyEvent)
   onReady(): void {
@@ -100,6 +102,11 @@ export class PathService extends Service {
     return this._caveBlockedCells.has(col * 100 + row);
   }
 
+  /** Returns true if this cell is blocked by the teepee (col±1 of last waypoint). */
+  isTeepeeBlockedCell(col: number, row: number): boolean {
+    return this._teepeeBlockedCells.has(col * 100 + row);
+  }
+
   // col → Z axis, row → X axis (row 0 = top)
   cellToWorld(col: number, row: number): Vec3 {
     return new Vec3(
@@ -115,6 +122,7 @@ export class PathService extends Service {
     this._subPaths  = [];
     this._pathCells = new Set();
     this._caveBlockedCells = new Set();
+    this._teepeeBlockedCells = new Set();
 
     // Compute cave-blocked cells: col-1 and col+1 of the first waypoint's column, same row
     if (this._waypoints.length > 0) {
@@ -128,6 +136,21 @@ export class PathService extends Service {
       if (rightCol >= 0 && rightCol < GRID_COLS) {
         this._caveBlockedCells.add(rightCol * 100 + firstRow);
         console.log(`[PathService] Cave-blocked cell: col=${rightCol}, row=${firstRow}`);
+      }
+    }
+
+    // Compute teepee-blocked cells: col-1 and col+1 of the last waypoint's column, same row
+    if (this._waypoints.length > 0) {
+      const [lastCol, lastRow] = this._waypoints[this._waypoints.length - 1];
+      const leftCol = lastCol - 1;
+      const rightCol = lastCol + 1;
+      if (leftCol >= 0 && leftCol < GRID_COLS) {
+        this._teepeeBlockedCells.add(leftCol * 100 + lastRow);
+        console.log(`[PathService] Teepee-blocked cell: col=${leftCol}, row=${lastRow}`);
+      }
+      if (rightCol >= 0 && rightCol < GRID_COLS) {
+        this._teepeeBlockedCells.add(rightCol * 100 + lastRow);
+        console.log(`[PathService] Teepee-blocked cell: col=${rightCol}, row=${lastRow}`);
       }
     }
 

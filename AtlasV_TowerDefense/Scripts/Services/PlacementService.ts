@@ -306,6 +306,7 @@ export class PlacementService extends Service {
         if (LOCKED_COLS.includes(col)) continue;
         if (PathService.get().isPathCell(col, row)) continue;
         if (PathService.get().isCaveBlockedCell(col, row)) continue;
+        if (PathService.get().isTeepeeBlockedCell(col, row)) continue;
         if (MagmaTileService.get().isMagmaCell(col, row)) continue;
         if (TowerService.get().isOccupied(col, row)) continue;
         if (idx >= this._cellMarkerPool.length) break;
@@ -485,6 +486,7 @@ export class PlacementService extends Service {
     if (LOCKED_COLS.includes(col)) return false;
     if (PathService.get().isPathCell(col, row)) return false;
     if (PathService.get().isCaveBlockedCell(col, row)) return false;
+    if (PathService.get().isTeepeeBlockedCell(col, row)) return false;
     if (MagmaTileService.get().isMagmaCell(col, row)) return false;
     return true;
   }

@@ -92,7 +92,7 @@ export interface ITowerDef {
   stats: ITowerStats;
 
   template: TemplateAsset;
-  upgrades: readonly [IUpgradeNode, IUpgradeNode];
+  upgrades?: readonly [IUpgradeNode, IUpgradeNode];
   /** If set, this tower only appears in the shop when the active biome matches. */
   biomeExclusive?: string;
 }

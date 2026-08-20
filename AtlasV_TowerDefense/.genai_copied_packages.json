@@ -36,10 +36,22 @@
       "name": "MUS_sting_loss_electric_01",
       "version": "0.0.1"
     },
+    "meta/MUS_sting_victory_orch_01/0.0.1": {
+      "author": "meta",
+      "folderName": "MUS_sting_victory_orch_01",
+      "name": "MUS_sting_victory_orch_01",
+      "version": "0.0.1"
+    },
     "meta/SFX_Coin_Collect_01/0.0.1": {
       "author": "meta",
       "folderName": "SFX_Coin_Collect_01",
       "name": "SFX_Coin_Collect_01",
+      "version": "0.0.1"
+    },
+    "meta/SFX_impact_punch_regular_01/0.0.1": {
+      "author": "meta",
+      "folderName": "SFX_impact_punch_regular_01",
+      "name": "SFX_impact_punch_regular_01",
       "version": "0.0.1"
     },
     "meta/VEGETree_Branches_Movement_Foliage_Rustling_PSE_GACA_0AguG/0.0.1": {
@@ -71,6 +83,18 @@
       "folderName": "dark_electronic_dance_QZAAJ2410700",
       "name": "dark_electronic_dance_QZAAJ2410700",
       "version": "0.0.1"
+    },
+    "meta/electric_lighting_arcs/0.0.3": {
+      "author": "meta",
+      "folderName": "popcornfx/electric_lighting_arcs1",
+      "name": "electric_lighting_arcs",
+      "version": "0.0.3"
+    },
+    "meta/electric_sparks/0.0.3": {
+      "author": "meta",
+      "folderName": "popcornfx/electric_sparks",
+      "name": "electric_sparks",
+      "version": "0.0.3"
     },
     "meta/fire_intense_loop/0.0.2": {
       "author": "meta",
@@ -131,6 +155,12 @@
       "folderName": "phantoms_fantasies_QZAAJ2000898",
       "name": "phantoms_fantasies_QZAAJ2000898",
       "version": "0.0.1"
+    },
+    "meta/purple_glow_with_sparkles/0.0.3": {
+      "author": "meta",
+      "folderName": "popcornfx/purple_glow_with_sparkles",
+      "name": "purple_glow_with_sparkles",
+      "version": "0.0.3"
     },
     "meta/sewers_loop_epic_1/0.0.3": {
       "author": "meta",

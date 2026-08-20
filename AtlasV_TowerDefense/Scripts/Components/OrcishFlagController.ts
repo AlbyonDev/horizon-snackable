@@ -1,7 +1,7 @@
 /**
  * OrcishFlagController — Repositions the OrcishFlag to the first waypoint of
- * the procedurally generated path whenever a level is selected, and swaps
- * its mesh/material to match the active biome.
+ * the procedurally generated path (the path start) whenever a level is
+ * selected, and swaps its mesh/material to match the active biome.
  *
  * Component Attachment: Scene Entity (OrcishFlag in space.hstf)
  * Component Networking: Local (game runs client-side)
@@ -10,6 +10,8 @@
  * Listens to Events.LevelSelected, reads the generated path from
  * LevelGeneratorService, converts the first [col,row] waypoint to world
  * coordinates via PathService.cellToWorld, and moves the flag there.
+ *
+ * The first waypoint is where enemies spawn / begin their march.
  *
  * Listens to Events.BiomeChanged and swaps the Visuals child's mesh and
  * material to the biome-specific flag variant defined in BIOME_DEFS.
@@ -37,8 +39,7 @@ import { BIOME_DEFS } from '../Defs/BiomeDefs';
 
 /**
  * Offset applied to the flag's X position relative to the first waypoint.
- * In world space -X = "up on screen" (one row before the path starts).
- * Adjust this value to move the flag closer to or further from the path entrance.
+ * Adjust this value to move the flag closer to or further from the path start.
  */
 const FLAG_X_OFFSET_FROM_PATH_START = 0;
 

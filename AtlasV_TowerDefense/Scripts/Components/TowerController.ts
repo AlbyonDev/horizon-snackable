@@ -352,7 +352,7 @@ export class TowerController extends Component {
       return;
     }
 
-    if (this.barrel) {
+    if (this.barrel && this._defId !== 'lightning') {
       const target = EnemyService.get().get(targetId);
       if (target) {
         const barrelT = this.barrel.getComponent(TransformComponent);
@@ -395,7 +395,9 @@ export class TowerController extends Component {
         }
       }
     }
-    this._recoilElapsed = 0;
+    if (this._defId !== 'lightning') {
+      this._recoilElapsed = 0;
+    }
 
     const spawnPos = this.spawnPoint
       ? (this.spawnPoint.getComponent(TransformComponent)?.worldPosition ?? pos)

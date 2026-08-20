@@ -214,6 +214,9 @@ export class TowerShopViewModel extends UiViewModel {
 
   // Sell button breathing pulse
   sellButtonScale: number = 1.0;
+
+  // Whether the selected tower has an upgrade tree (hides arrows/tier labels when false)
+  hasUpgrades: boolean = true;
 }
 
 // Scroll constants
@@ -833,6 +836,24 @@ export class TowerShopHud extends Component {
     if (!this.viewModel) return;
     const def = TowerService.get().find(this.manageSelectedDefId);
     if (!def) return;
+
+    // Set hasUpgrades for XAML visibility bindings
+    this.viewModel.hasUpgrades = !!def.upgrades;
+
+    // Towers with no upgrade tree (e.g. Pillar): hide all nodes
+    if (!def.upgrades) {
+      this.viewModel.treeT2AOpacity = 0;
+      this.viewModel.treeT2BOpacity = 0;
+      this.viewModel.treeT3AOpacity = 0;
+      this.viewModel.treeT3BOpacity = 0;
+      this.viewModel.treeT2ACostVisible = false;
+      this.viewModel.treeT2BCostVisible = false;
+      this.viewModel.treeT3ACostVisible = false;
+      this.viewModel.treeT3BCostVisible = false;
+      this.viewModel.treeT3AContentVisible = false;
+      this.viewModel.treeT3BContentVisible = false;
+      return;
+    }
 
     const tier = this.manageSelectedTier;
     const choices = this.manageSelectedChoices;
