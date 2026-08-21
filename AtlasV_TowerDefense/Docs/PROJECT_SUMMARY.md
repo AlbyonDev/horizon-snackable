@@ -434,6 +434,32 @@ Title Screen → [BiomeSelect bypassed, auto-selects "grass"] → Overworld (Lev
 
 ---
 
+## Leaderboard System
+
+Cross-player persistent leaderboards tracking boss kills per biome. Uses MHS `LeaderboardsService` for global score persistence.
+
+| Leaderboard | API Name | Sort Order |
+|-------------|----------|------------|
+| Grass Boss Kills | `grass-boss-kills` | higher_is_better |
+| Snow Boss Kills | `snow-boss-kills` | higher_is_better |
+| Volcano Boss Kills | `volcano-boss-kills` | higher_is_better |
+
+### Architecture
+
+- **3 LeaderboardsManager entities** (GrassBossTracker, SnowBossTracker, VolcanoBossTracker) — each tracks one biome's boss kills via `LeaderboardsService`.
+- **BossKillLeaderboardRelay** (networkable entity) — client detects boss kills from `LevelCompleted` (bossSkullReward > 0), sends NetworkEvent to server, server increments the matching leaderboard score.
+- **LeaderboardPanelHud** (ScreenSpace CustomUI, `isBlocking=false`, `renderOrderOffset=0`, always-visible panel with `<Page>` root XAML and BooleanToVisibilityConverter on outer Grid bound to `visible`) — full-screen panel with radial gradient background, 3 biome tabs (Grass/Snow/Volcano), BACK button. Content shown/hidden via `viewModel.visible` toggle; `uiComponent.isVisible` stays `true` at all times. Fetches top 10 entries from `LeaderboardsService.fetchEntries()` per active tab. Player names from platform alias (`playerAlias`).
+
+### UI Flow
+
+Title Screen → "Leaderboard" button (between Play and Reset) → hides title screen, fires `ShowLeaderboard` → LeaderboardPanelHud shows panel → tab switching fetches entries per biome → Close button fires `ShowTitleScreen` → returns to title screen.
+
+### Limitation
+
+MHS XAML does not support text input fields. Player names are their platform display names (`playerAlias` from `LeaderboardEntry`). Custom name setting is not possible in current MHS.
+
+---
+
 ## Events Reference
 
 | Event | Key payload fields | Primary consumers |

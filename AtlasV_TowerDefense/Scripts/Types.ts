@@ -342,6 +342,10 @@ export namespace Events {
   export class AchievementRewardClaimedPayload { groupId: string = ''; tierIndex: number = 0; reward: number = 0; }
   export const AchievementRewardClaimed = new LocalEvent<AchievementRewardClaimedPayload>('EvAchievementRewardClaimed', AchievementRewardClaimedPayload);
 
+  // Show leaderboard panel (fired by title screen)
+  export class ShowLeaderboardPayload {}
+  export const ShowLeaderboard = new LocalEvent<ShowLeaderboardPayload>('EvShowLeaderboard', ShowLeaderboardPayload);
+
   // Blizzard freeze (towers stop firing during intense blizzard burst)
   export class BlizzardFreezePayload { active: boolean = false; }
   export const BlizzardFreeze = new LocalEvent<BlizzardFreezePayload>('EvBlizzardFreeze', BlizzardFreezePayload);
@@ -500,6 +504,9 @@ export namespace UiEvents {
 
   @serializable() export class SkillTreeButtonTapPayload { readonly parameter: string = ''; }
   export const skillTreeButtonTap = new UiEvent('OverworldViewModel-onSkillTreeButtonTap', SkillTreeButtonTapPayload);
+
+  @serializable() export class ReturnToTitleTapPayload { readonly parameter: string = ''; }
+  export const returnToTitleTap = new UiEvent('OverworldViewModel-onReturnToTitleTap', ReturnToTitleTapPayload);
 
   @serializable() export class SkullInfoCloseTapPayload { readonly parameter: string = ''; }
   export const skullInfoCloseTap = new UiEvent('OverworldViewModel-onSkullInfoCloseTap', SkullInfoCloseTapPayload);

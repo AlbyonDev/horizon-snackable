@@ -999,6 +999,105 @@
             </Grid>
         </Grid>
 
+        <!-- Title Navigation Arrow - LEFT (return to title, vertically centered, visible only on grass) -->
+        <Grid HorizontalAlignment="Left" VerticalAlignment="Center" Margin="40,0,0,0">
+            <Grid.Visibility>
+                <Binding Path="titleButtonVisible">
+                    <Binding.Converter>
+                        <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                </Binding>
+            </Grid.Visibility>
+
+            <Grid RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                <Grid.RenderTransform><ScaleTransform x:Name="TitleArrowScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                <Grid.Resources>
+                    <Storyboard x:Key="TitleArrowPulseAnim" RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetName="TitleArrowScaleTransform"
+                                         Storyboard.TargetProperty="ScaleX"
+                                         From="1.0" To="1.08" Duration="0:0:0.9" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="TitleArrowScaleTransform"
+                                         Storyboard.TargetProperty="ScaleY"
+                                         From="1.0" To="1.08" Duration="0:0:0.9" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="TitleArrowGlowBorder"
+                                         Storyboard.TargetProperty="Opacity"
+                                         From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                    </Storyboard>
+                    <Storyboard x:Key="TitleArrowPressAnim">
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TitleArrowScaleTransform" Storyboard.TargetProperty="ScaleX">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TitleArrowScaleTransform" Storyboard.TargetProperty="ScaleY">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                    </Storyboard>
+                </Grid.Resources>
+                <b:Interaction.Triggers>
+                    <b:EventTrigger>
+                        <b:ControlStoryboardAction Storyboard="{StaticResource TitleArrowPulseAnim}"/>
+                    </b:EventTrigger>
+                    <b:EventTrigger EventName="MouseLeftButtonDown">
+                        <b:ControlStoryboardAction Storyboard="{StaticResource TitleArrowPressAnim}"/>
+                    </b:EventTrigger>
+                </b:Interaction.Triggers>
+
+                <Border x:Name="TitleArrowGlowBorder" Opacity="0"
+                        Background="Transparent"
+                        BorderBrush="#AAf5c518"
+                        BorderThickness="10"
+                        CornerRadius="24"
+                        Margin="-8,-8,-8,-8"/>
+
+                <Border BorderBrush="#FFFDBA12"
+                        BorderThickness="5"
+                        CornerRadius="18"
+                        Padding="24,40,24,40">
+                    <Border.Background>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#FF000000" Offset="0"/>
+                            <GradientStop Color="#FF3D2407" Offset="1"/>
+                        </RadialGradientBrush>
+                    </Border.Background>
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonUp">
+                            <b:InvokeCommandAction Command="{Binding events.returnToTitleTap}" CommandParameter="title"/>
+                        </b:EventTrigger>
+                    </b:Interaction.Triggers>
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <!-- Home icon in purple -->
+                        <Viewbox Width="96" Height="96" Margin="0,0,0,12" HorizontalAlignment="Center">
+                            <Grid Width="24" Height="24">
+                                <Path Fill="#FDBA12" Data="M12 3 L2 12 L5 12 L5 21 L10 21 L10 15 L14 15 L14 21 L19 21 L19 12 L22 12 Z"/>
+                            </Grid>
+                        </Viewbox>
+                        <!-- TITLE label with outline -->
+                        <Grid HorizontalAlignment="Center">
+                            <TextBlock Text="TITLE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="-2,0,0,0"/>
+                            <TextBlock Text="TITLE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="2,0,0,0"/>
+                            <TextBlock Text="TITLE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,-2,0,0"/>
+                            <TextBlock Text="TITLE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="Black" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                            <TextBlock Text="TITLE" FontFamily="Anton" FontSize="48" FontWeight="Bold" Foreground="#FDBA12" HorizontalAlignment="Center"/>
+                        </Grid>
+                        <!-- Left-pointing arrow chevron -->
+                        <Viewbox Width="72" Height="72" Margin="0,8,0,0" HorizontalAlignment="Center">
+                            <Grid Width="24" Height="24">
+                                <Path Stroke="#FDBA12" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Data="M16 12 L8 12 M12 8 L8 12 L12 16"/>
+                            </Grid>
+                        </Viewbox>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
         <!-- Biome Navigation Arrow - LEFT (previous biome, vertically centered) -->
         <Grid HorizontalAlignment="Left" VerticalAlignment="Center" Margin="40,0,0,0">
             <Grid.Visibility>

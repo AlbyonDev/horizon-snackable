@@ -67,6 +67,13 @@ export class TitleScreenResetCancelPayload {
 
 const resetCancelEvent = new UiEvent('TitleScreenViewModel-onResetCancel', TitleScreenResetCancelPayload);
 
+@serializable()
+export class TitleScreenLeaderboardTapPayload {
+  readonly parameter: string = '';
+}
+
+const leaderboardTapEvent = new UiEvent('TitleScreenViewModel-onLeaderboardTap', TitleScreenLeaderboardTapPayload);
+
 // ── ViewModel ───────────────────────────────────────────────────────────────────
 
 @uiViewModel()
@@ -76,6 +83,7 @@ export class TitleScreenViewModel extends UiViewModel {
     resetTap: resetTapEvent,
     resetConfirm: resetConfirmEvent,
     resetCancel: resetCancelEvent,
+    leaderboardTap: leaderboardTapEvent,
   };
 
   visible: boolean = true;
@@ -196,6 +204,19 @@ export class TitleScreenHud extends Component {
   }
 
   // ── Reset save data ──────────────────────────────────────────────────────────
+
+  // ── Leaderboard ────────────────────────────────────────────────────────────────
+
+  @subscribe(leaderboardTapEvent, { execution: ExecuteOn.Owner })
+  onLeaderboardTap(_payload: TitleScreenLeaderboardTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    if (!this.viewModel.visible) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+    this.viewModel.visible = false;
+    EventService.sendLocally(Events.ShowLeaderboard, new Events.ShowLeaderboardPayload());
+    console.log('[TitleScreenHud] Leaderboard button tapped');
+  }
 
   @subscribe(resetTapEvent, { execution: ExecuteOn.Owner })
   onResetTap(_payload: TitleScreenResetTapPayload): void {

@@ -180,6 +180,7 @@ export class OverworldViewModel extends UiViewModel {
     lockedBiomeReturnTap: UiEvents.lockedBiomeReturnTap,
     lockedBiomeSkillTreeTap: UiEvents.lockedBiomeSkillTreeTap,
     skillTreeButtonTap: UiEvents.skillTreeButtonTap,
+    returnToTitleTap: UiEvents.returnToTitleTap,
     skullInfoCloseTap: UiEvents.skullInfoCloseTap,
     skullInfoRewardsTap: UiEvents.skullInfoRewardsTap,
     skullInfoSkillTreeTap: UiEvents.skullInfoSkillTreeTap,
@@ -202,6 +203,9 @@ export class OverworldViewModel extends UiViewModel {
   relicPulseActive: boolean = false;
   /** Skull metaprogression currency count */
   skullCount: number = 0;
+
+  // Title button (visible only on grass biome, acts as "biome 0" navigation)
+  titleButtonVisible: boolean = true;
 
   // Biome navigation arrows
   /** Whether the right (next) biome arrow is visible (false only at last biome boundary) */
@@ -563,6 +567,25 @@ export class OverworldHud extends Component {
     console.log('[OverworldHud] Skull section tapped, showing skull info popup');
   }
 
+  @subscribe(UiEvents.returnToTitleTap, { execution: ExecuteOn.Owner })
+  onReturnToTitleTap(_payload: UiEvents.ReturnToTitleTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    if (!this.viewModel.visible) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+
+    // Dismiss relic carousel if open
+    this.viewModel.carouselVisible = false;
+
+    // Hide overworld UI
+    this.viewModel.visible = false;
+    if (this.uiComponent) this.uiComponent.isVisible = false;
+
+    // Fire ShowTitleScreen event (TitleScreenHud subscribes and shows itself)
+    EventService.sendLocally(Events.ShowTitleScreen, new Events.ShowTitleScreenPayload());
+    console.log('[OverworldHud] Return to Title button tapped, navigating to title screen');
+  }
+
   @subscribe(UiEvents.skillTreeButtonTap, { execution: ExecuteOn.Owner })
   onSkillTreeButtonTap(_payload: UiEvents.SkillTreeButtonTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -809,7 +832,7 @@ export class OverworldHud extends Component {
   /** Update header bar: run label, relic count, and levels beaten */
   private _updateRunLabel(): void {
     if (!this.viewModel) return;
-    this.viewModel.runLabel = `BOSS KILLED ${LevelGeneratorService.get().runCount}`;
+    this.viewModel.runLabel = `BOSS KILLED ${LevelGeneratorService.get().runCount - 1}`;
     // Relic count
     const activeRelics = RelicService.get().getActiveRelicIds();
     this.viewModel.relicCount = activeRelics.length;
@@ -1483,7 +1506,10 @@ export class OverworldHud extends Component {
       this.viewModel.biomeArrowLeftOpacity = 1.0;
     }
 
-    console.log(`[OverworldHud] Arrow states: rightVisible=${this.viewModel.biomeArrowVisible} (label=${this.viewModel.biomeArrowLabel}, locked=${this.viewModel.biomeArrowRightLocked}), leftVisible=${this.viewModel.biomeArrowLeftVisible} (label=${this.viewModel.biomeArrowLeftLabel}, locked=${this.viewModel.biomeArrowLeftLocked})`);
+    // Title button: visible only on grass (first biome)
+    this.viewModel.titleButtonVisible = currentIdx === 0;
+
+    console.log(`[OverworldHud] Arrow states: rightVisible=${this.viewModel.biomeArrowVisible} (label=${this.viewModel.biomeArrowLabel}, locked=${this.viewModel.biomeArrowRightLocked}), leftVisible=${this.viewModel.biomeArrowLeftVisible} (label=${this.viewModel.biomeArrowLeftLabel}, locked=${this.viewModel.biomeArrowLeftLocked}), titleVisible=${this.viewModel.titleButtonVisible}`);
   }
 
 

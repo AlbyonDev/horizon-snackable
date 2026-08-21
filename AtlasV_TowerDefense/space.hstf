@@ -2071,6 +2071,176 @@
                 }
             ],
             "attributes": []
+        },
+        {
+            "id": "59ccd94d-e88f-41f0-ab60-e10cfe539194",
+            "name": "GrassBossTracker",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "LeaderboardsManager",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "13541483214653399858",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "leaderboardApiName": "grass-boss-kills",
+                            "numEntries": 10.0
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "10994ea1-972b-4347-960e-f21a41be649d",
+            "name": "SnowBossTracker",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "LeaderboardsManager",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "13541483214653399858",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "leaderboardApiName": "snow-boss-kills",
+                            "numEntries": 10.0
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "11a484b7-cbca-473c-8958-940a21be3b8f",
+            "name": "LeaderboardPanel",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::CustomUiPlatformComponent",
+                        "version": 16,
+                        "data": {
+                            "customUiType": "ScreenSpace",
+                            "xaml": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "9232952599611581923",
+                                "targetId": "2149638574"
+                            },
+                            "panelVisibility": false,
+                            "isInteractable": true,
+                            "isBlocking": false,
+                            "renderOrderOffset": 0
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "LeaderboardPanelHud",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "7500769753875942269",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "e88f20d8-c808-4fce-aaa1-0d3f08db50d9",
+            "name": "VolcanoBossTracker",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "LeaderboardsManager",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "13541483214653399858",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "leaderboardApiName": "volcano-boss-kills",
+                            "numEntries": 10.0
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "b67782c6-5784-486e-bcdf-fe2a019529aa",
+            "name": "LeaderboardRelay",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "BossKillLeaderboardRelay",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "18200836748839813039",
+                            "targetId": "4237980480"
+                        },
+                        "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": [
+                {
+                    "class": "horizon::NetworkableTemplateEntityAttribute",
+                    "data": {
+                        "isNetworkable": true
+                    }
+                }
+            ]
         }
     ],
     "relationships": [
@@ -2282,6 +2452,31 @@
         {
             "relationshipType": "RelationChildOf",
             "source": "17861c10-2050-4962-8d2b-c68f68777990",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "59ccd94d-e88f-41f0-ab60-e10cfe539194",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "10994ea1-972b-4347-960e-f21a41be649d",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "11a484b7-cbca-473c-8958-940a21be3b8f",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "e88f20d8-c808-4fce-aaa1-0d3f08db50d9",
+            "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "b67782c6-5784-486e-bcdf-fe2a019529aa",
             "destination": "82caeea0-b9be-4add-af69-8e4af059d43e"
         }
     ]

@@ -1,8 +1,8 @@
 {
     "class": "horizon::AssetMetadata",
-    "version": 1,
+    "version": 2,
     "data": {
-        "id": "292045479064271239",
+        "id": "12385799092147795765",
         "pipelineVersion": 1,
         "docMeta": {
             "class": "horizon::DocMetadata",

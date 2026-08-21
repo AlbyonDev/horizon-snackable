@@ -192,10 +192,13 @@ export class GameManager extends Component {
     if (won) {
       const lcp = new Events.LevelCompletedPayload();
       lcp.levelIndex = this._currentLevelIndex;
-      // Pass the boss skull reward from the level def so SaveService doesn't need to import LevelGeneratorService
-      const levelDef = LevelGeneratorService.get().getLevelDef(this._currentLevelIndex);
-      const baseSkullReward = levelDef.bossSkullReward ?? 3;
-      lcp.bossSkullReward = Math.round(baseSkullReward * SkillTreeService.get().getSkullEarnRateMultiplier());
+      // Only set bossSkullReward for actual boss victories so the leaderboard
+      // relay (which gates on bossSkullReward > 0) doesn't fire on normal levels.
+      if (p.isBossVictory) {
+        const levelDef = LevelGeneratorService.get().getLevelDef(this._currentLevelIndex);
+        const baseSkullReward = levelDef.bossSkullReward ?? 3;
+        lcp.bossSkullReward = Math.round(baseSkullReward * SkillTreeService.get().getSkullEarnRateMultiplier());
+      }
       EventService.sendLocally(Events.LevelCompleted, lcp);
       console.log(`[GameManager] Level ${this._currentLevelIndex + 1} completed, firing LevelCompleted (isBoss=${p.isBossVictory})`);
 
