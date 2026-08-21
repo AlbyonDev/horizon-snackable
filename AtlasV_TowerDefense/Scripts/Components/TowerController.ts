@@ -302,7 +302,7 @@ export class TowerController extends Component {
         const dmgPayload = new Events.TakeDamagePayload();
         dmgPayload.enemyId = this._fallTargetId;
         dmgPayload.damage = this._stats.damage * BossModifierService.get().damageMultiplier;
-        dmgPayload.props = this._stats.props;
+        dmgPayload.props = { ...this._stats.props, towerDefId: this._defId };
         dmgPayload.originX = pos2.x;
         dmgPayload.originZ = pos2.z;
         const enemyData = EnemyService.get().get(this._fallTargetId);
@@ -411,7 +411,7 @@ export class TowerController extends Component {
     initP.targetEnemyId = targetId;
     initP.damage        = this._stats.damage * BossModifierService.get().damageMultiplier;
     initP.speed         = this._stats.projectileSpeed;
-    initP.props         = this._stats.props;
+    initP.props         = { ...this._stats.props, towerDefId: this._defId };
     initP.originX       = pos.x;
     initP.originZ       = pos.z;
     EventService.sendLocally(Events.InitProjectile, initP, { eventTarget: entity });

@@ -1,6 +1,15 @@
 tasks: []
 
 done:
+  - Double Biome-Exclusive Relics -- Harvest (grass), Frostbite (snow), Eruption (volcano)
+
+done:
+  - Rename Ember Harvest to Bonfire -- display name updated in RelicDefs + CoinService
+  - Permafrost relic snow-biome exclusive -- added biomeExclusive field
+  - Biome badges on relic cards -- shows emoji tag for biome-exclusive relics
+  - Fire Exclusive badge red color scheme -- volcano badge uses red/orange styling
+
+done:
   - Lightning & Poison Towers -- two new towers added to shop with unique mechanics
 
 done:

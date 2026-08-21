@@ -150,7 +150,7 @@ Scripts/
     WavePackDefs.ts — Wave pack definitions (T1/T2/T3/T4/Boss packs + snow biome T1/T2/T3 packs + volcano biome T1/T2/T3/Boss packs) and tier slot patterns per level; used by LevelGeneratorService for procedural wave composition; T4 packs feature the Charger enemy as a mini-boss mixed with other enemies; T1 packs include ShamanRaid (3 basic + 2 shaman); snow T1 packs include frost goblin enemies; snow Boss packs use Yeti Berserker as the biome-specific boss; volcano T1/T2/T3 packs include fire goblin enemies; volcano Boss packs use Fire Golem as the biome-specific boss; grass Boss packs use Giant Goblin as the biome-specific boss; Boss packs include CaveBossWave (1 caveBoss + 5 basic + 3 fast) which randomly appears as the final wave of the last level in any non-volcano biome; T3 packs include FireballBarrage (4 fireball + 3 fast) and FireballRush (3 fireball + 5 basic) mixing the Fireball enemy into late-game general waves
     UpgradeDefs.ts  — Upg atoms catalog + tree() builder
     BiomeDefs.ts    — BIOME_DEFS: IBiomeDef[] (3 biomes: grass, snow, volcano)
-    RelicDefs.ts    — RELIC_DEFS: IRelicDef[] (6 relics: gold, damage, speed, range, lives, slow)
+    RelicDefs.ts    — RELIC_DEFS: IRelicDef[] (15 relics: gold, damage, speed, range, lives, slow, bonfire, harvest, frostbite, eruption + 5 general: ward_breaker, glacial_lens, iron_will, swift_quiver, bounty_mark); IRelicDef has optional `biomeExclusive` field to restrict a relic to a specific biome
     NodeDefs.ts     — NODE_TYPE_DEFS: Record<OverworldNodeType, INodeTypeDef> (3 node types: combat, boss, minigame)
     NodeDefs.ts     — NODE_TYPE_DEFS: Record<OverworldNodeType, INodeTypeDef> (3 types: combat, boss, minigame with sprite paths)
     SkillTreeDefs.ts — SKILL_NODES + SKILL_CONNECTIONS: explicit graph-based skill tree (1 root node + 9 branch nodes with directed edge connections defining prerequisites; supports lateral cross-branch links)
@@ -312,6 +312,12 @@ Relics are persistent modifiers that buff gameplay systems when activated. After
 | `range` | Range Relic | `rangeMultiplier: 1.15` | All towers have 1.15× range (via TowerService) |
 | `lives` | Fortification Relic | `bonusLives: 5` | +5 starting lives on level reset |
 | `slow` | Permafrost Relic | `slowDurationMultiplier: 1.3` | Slow effects last 1.3× longer (via HitService pipeline) |
+| `ember_harvest` | Ember Harvest | `fireCannonGoldMultiplier: 2.0` | Enemies killed by Fire Cannon towers drop double gold (volcano biome exclusive; implemented via `CoinService` + `killerTowerDefId` kill-credit chain) |
+| `ward_breaker` | Ward Breaker | `wardBreaker: 1` | Instantly destroys shaman shields when a shaman is targeted |
+| `glacial_lens` | Glacial Lens | `fireballSpeedReduction: 0.4` | Slows down incoming fireballs by 40% |
+| `iron_will` | Iron Will | `towerDefenseMultiplier: 1.2` | Increases all tower damage by 20% |
+| `swift_quiver` | Swift Quiver | `fireRateMultiplier: 1.15` | Increases all tower attack speed by 15% |
+| `bounty_mark` | Bounty Mark | `eliteKillGoldBonus: 5` | Grants +5 bonus gold when elite enemies are defeated |
 
 ### Integration points
 
@@ -319,6 +325,7 @@ Relics are persistent modifiers that buff gameplay systems when activated. After
 - **TowerService.getEffectiveStats()**: applies `fireRateMultiplier` and `rangeMultiplier` after upgrade tree walk.
 - **ResourceService.reset()**: applies `goldMultiplier` (floor) and `bonusLives` to starting values.
 - **GameManager._startGame()**: force-instantiates `RelicService` to ensure hit modifier registers before combat.
+- **CoinService.onEnemyDied()**: checks `isActive('ember_harvest')` and doubles coin reward when `killerTowerDefId === 'fire_cannon'` (towerDefId is injected into projectile/damage props by `TowerController` and carried through `EnemyController._lastHitTowerDefId` → `EnemyDiedPayload.killerTowerDefId`).
 
 ---
 

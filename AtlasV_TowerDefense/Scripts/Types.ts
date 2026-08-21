@@ -167,7 +167,7 @@ export namespace Events {
   export class ParkHealthBarPayload {}
   export const ParkHealthBar = new LocalEvent<ParkHealthBarPayload>('EvParkHealthBar', ParkHealthBarPayload);
 
-  export class EnemyDiedPayload { enemyId: number = 0; reward: number = 0; worldX: number = 0; worldZ: number = 0; }
+  export class EnemyDiedPayload { enemyId: number = 0; reward: number = 0; worldX: number = 0; worldZ: number = 0; killerTowerDefId: string = ''; defId: string = ''; }
   export const EnemyDied = new LocalEvent<EnemyDiedPayload>('EvEnemyDied', EnemyDiedPayload);
 
   export class ActivateCoinPayload { worldX: number = 0; worldZ: number = 0; amount: number = 0; }
@@ -489,6 +489,9 @@ export namespace UiEvents {
 
   @serializable() export class AchievementClaimTapPayload { readonly parameter: string = ''; }
   export const achievementClaimTap = new UiEvent('AchievementViewModel-onClaimTap', AchievementClaimTapPayload);
+
+  @serializable() export class RelicInfoGotItPayload { readonly parameter: string = ''; }
+  export const relicInfoGotIt = new UiEvent('OverworldViewModel-onRelicInfoGotIt', RelicInfoGotItPayload);
 
   @serializable() export class BossInfoTapPayload { readonly parameter: string = ''; }
   export const bossInfoTap = new UiEvent('OverworldViewModel-onBossInfoTap', BossInfoTapPayload);

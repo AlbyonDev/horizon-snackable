@@ -78,6 +78,7 @@ const RELIC_ICON_SPEED = new TextureAsset('@sprites/relic_speed.png');
 const RELIC_ICON_RANGE = new TextureAsset('@sprites/relic_range.png');
 const RELIC_ICON_LIVES = new TextureAsset('@sprites/relic_fortification.png');
 const RELIC_ICON_SLOW = new TextureAsset('@sprites/relic_permafrost.png');
+const RELIC_ICON_BONFIRE = new TextureAsset('@sprites/relic_bonfire.png');
 
 const RELIC_ICONS: Record<string, TextureAsset> = {
   gold: RELIC_ICON_GOLD,
@@ -86,6 +87,7 @@ const RELIC_ICONS: Record<string, TextureAsset> = {
   range: RELIC_ICON_RANGE,
   lives: RELIC_ICON_LIVES,
   slow: RELIC_ICON_SLOW,
+  bonfire: RELIC_ICON_BONFIRE,
 };
 
 // -- Level Node sub-ViewModel --
@@ -184,6 +186,7 @@ export class OverworldViewModel extends UiViewModel {
     skullInfoCloseTap: UiEvents.skullInfoCloseTap,
     skullInfoRewardsTap: UiEvents.skullInfoRewardsTap,
     skullInfoSkillTreeTap: UiEvents.skullInfoSkillTreeTap,
+    relicInfoGotIt: UiEvents.relicInfoGotIt,
   };
 
   visible: boolean = false;
@@ -253,6 +256,9 @@ export class OverworldViewModel extends UiViewModel {
 
   // Locked biome popup state
   lockedBiomePopupVisible: boolean = false;
+
+  // Relic info popup state
+  relicInfoPopupVisible: boolean = false;
 }
 
 // -- Component --
@@ -1162,6 +1168,12 @@ export class OverworldHud extends Component {
   private _cardTargetOpacity: number[] = [];
   private _cardTargetZIndex: number[] = [];
 
+  // Carousel card breathing pulse
+  private _cardPulseTimer: number = 0;
+  private readonly _cardPulseHalfCycle: number = 0.8; // seconds
+  private readonly _cardPulseMin: number = 1.0;
+  private readonly _cardPulseMax: number = 1.05;
+
   // Carousel layout constants (larger cards)
   private readonly _carouselCanvasW: number = 1800;
   private readonly _carouselCanvasH: number = 1800;
@@ -1171,8 +1183,27 @@ export class OverworldHud extends Component {
   @subscribe(OnWorldUpdateEvent, { execution: ExecuteOn.Owner })
   onCarouselUpdate(payload: OnWorldUpdateEventPayload): void {
     if (NetworkingService.get().isServerContext()) return;
-    if (!this._carouselAnimating) return;
     if (!this.viewModel || !this.viewModel.carouselVisible) return;
+
+    // Breathing pulse for relic cards (runs when NOT animating a swipe)
+    if (!this._carouselAnimating) {
+      const dt = payload.deltaTime;
+      this._cardPulseTimer += dt;
+      const fullCycle = this._cardPulseHalfCycle * 2;
+      const t = (this._cardPulseTimer % fullCycle) / fullCycle;
+      const sinVal = Math.sin(t * Math.PI);
+      const pulse = this._cardPulseMin + (this._cardPulseMax - this._cardPulseMin) * sinVal;
+      // Apply pulse multiplier to current card scales and push to VM
+      const count = this._carouselRelics.length;
+      if (count > 0) {
+        for (let i = 0; i < count; i++) {
+          this._cardCurrentScaleX[i] = this._cardTargetScaleX[i] * pulse;
+          this._cardCurrentScaleY[i] = this._cardTargetScaleY[i] * pulse;
+        }
+        this._pushCarouselToViewModel();
+      }
+      return;
+    }
 
     const dt = payload.deltaTime;
     const speed = this._carouselAnimSpeed;
@@ -1242,6 +1273,18 @@ export class OverworldHud extends Component {
     this.viewModel.carouselCards = cards;
   }
 
+  @subscribe(UiEvents.overworldRelicIconTap, { execution: ExecuteOn.Owner })
+  onRelicIconTap(_payload: UiEvents.OverworldRelicIconTapPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    if (!this.viewModel.visible) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+
+    // Open the relic carousel directly
+    this._openCarousel();
+    console.log('[OverworldHud] Your Relics button tapped, opening carousel directly');
+  }
+
   @subscribe(UiEvents.relicCarouselTap, { execution: ExecuteOn.Owner })
   onRelicCarouselTap(payload: UiEvents.RelicCarouselTapPayload): void {
     if (NetworkingService.get().isServerContext()) return;
@@ -1251,12 +1294,29 @@ export class OverworldHud extends Component {
     const cmd = payload.parameter;
 
     if (cmd === 'open') {
+      // Direct carousel open (used by other code paths)
       this._openCarousel();
+      console.log('[OverworldHud] Carousel opened via relicCarouselTap');
     } else if (cmd === 'close') {
       this.viewModel.carouselVisible = false;
       this._carouselAnimating = false;
       console.log('[OverworldHud] Carousel closed');
+    } else if (cmd === 'info') {
+      // Show relic info popup (triggered from YOUR RELICS title inside carousel)
+      this.viewModel.relicInfoPopupVisible = true;
+      console.log('[OverworldHud] YOUR RELICS title tapped, showing relic info popup');
     }
+  }
+
+  @subscribe(UiEvents.relicInfoGotIt, { execution: ExecuteOn.Owner })
+  onRelicInfoGotIt(_payload: UiEvents.RelicInfoGotItPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+
+    // Hide the relic info popup (carousel is already open behind it)
+    this.viewModel.relicInfoPopupVisible = false;
+    console.log('[OverworldHud] Relic info popup dismissed, returning to carousel');
   }
 
   /** Swipe zone index where the finger went down (-1 = no active drag) */
@@ -1348,6 +1408,7 @@ export class OverworldHud extends Component {
     if (this._carouselRelics.length === 0) return;
 
     this._carouselIndex = 0;
+    this._cardPulseTimer = 0;
 
     // Initialize animation arrays
     const count = this._carouselRelics.length;

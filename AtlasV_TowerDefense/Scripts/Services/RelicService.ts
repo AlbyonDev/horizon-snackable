@@ -141,6 +141,41 @@ export class RelicService extends Service {
     return this._getModifierValue('bonusLives', 0);
   }
 
+  /** Returns the flat kill gold bonus from active relics. Default 0. */
+  getKillGoldBonus(): number {
+    return this._getModifierValue('killGoldBonus', 0);
+  }
+
+  /** Returns the cumulative projectile speed multiplier from active relics. Default 1. */
+  getProjectileSpeedMultiplier(): number {
+    return this._getModifierValue('projectileSpeedMultiplier', 1);
+  }
+
+  /** Returns the cumulative splash radius multiplier from active relics. Default 1. */
+  getSplashRadiusMultiplier(): number {
+    return this._getModifierValue('splashRadiusMultiplier', 1);
+  }
+
+  /** Returns 1 if Ward Breaker is active (destroys shaman shields on target). Default 0. */
+  getWardBreaker(): number {
+    return this._getModifierValue('wardBreaker', 0);
+  }
+
+  /** Returns the fireball speed reduction factor from active relics. Default 0. */
+  getFireballSpeedReduction(): number {
+    return this._getModifierValue('fireballSpeedReduction', 0);
+  }
+
+  /** Returns the cumulative tower defense/damage multiplier from active relics. Default 1. */
+  getTowerDefenseMultiplier(): number {
+    return this._getModifierValue('towerDefenseMultiplier', 1);
+  }
+
+  /** Returns the flat elite kill gold bonus from active relics. Default 0. */
+  getEliteKillGoldBonus(): number {
+    return this._getModifierValue('eliteKillGoldBonus', 0);
+  }
+
   // ── Private ─────────────────────────────────────────────────────────────────
 
   /** Compute the effective value for a modifier key across all active relics.

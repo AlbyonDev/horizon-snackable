@@ -27,6 +27,7 @@ import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { SkillTreeService } from '../Services/SkillTreeService';
 import { TowerService } from '../Services/TowerService';
 import { TowerDestroyAnimService } from '../Services/TowerDestroyAnimService';
+import { RelicService } from '../Services/RelicService';
 import { Assets } from '../Assets';
 
 @component()
@@ -49,6 +50,7 @@ export class EnemyController extends Component {
   private _deathTimer: number = 0;
   private _baseScale: number = 1;
 
+  private _lastHitTowerDefId: string = '';
   private _colorComponents: ColorComponent[] = [];
   private _baseColor: Color = new Color(1, 1, 1, 1);
   private _persistentTint: Color | null = null; // e.g. slow tint, survives hit flash
@@ -124,6 +126,15 @@ export class EnemyController extends Component {
     this._maxHp       = this._hp;
     this._regenPerSec = def.regenPerSec ?? 0;
     this._speed       = def.speed * bossMods.speedMultiplier * runSpeedMult;
+
+    // Glacial Lens relic: reduce fireball speed by 40%
+    if (this._defId === 'fireball') {
+      const fireballReduction = RelicService.get().getFireballSpeedReduction();
+      if (fireballReduction > 0) {
+        this._speed *= (1 - fireballReduction);
+        console.log(`[EnemyController] Glacial Lens reduced fireball speed by ${(fireballReduction * 100).toFixed(0)}%`);
+      }
+    }
     this._reward      = Math.round(def.reward * runRewardMult);
     this._wpIndex = 0;
     this._subT    = 0;
@@ -177,8 +188,14 @@ export class EnemyController extends Component {
   onTakeDamage(p: Events.TakeDamagePayload): void {
     if (!this._alive || p.enemyId !== this._enemyId) return;
 
-    // Shield blocks all damage while active
-    if (this._shieldActive) {
+    // Ward Breaker relic: instantly destroy shield on hit
+    if (this._shieldActive && RelicService.get().getWardBreaker() > 0) {
+      this._shieldActive = false;
+      EnemyService.get().setShieldActive(this._enemyId, false);
+      this._destroyShieldVisual();
+      console.log(`[EnemyController] Ward Breaker destroyed shield on enemy ${this._enemyId}`);
+      // Damage passes through below
+    } else if (this._shieldActive) {
       console.log(`[EnemyController] Shield blocked ${p.damage} damage on enemy ${this._enemyId}`);
       return;
     }
@@ -193,6 +210,7 @@ export class EnemyController extends Component {
       }
     }
 
+    this._lastHitTowerDefId = (p.props.towerDefId as string) ?? '';
     this._hitFlashTimer = EnemyController.HIT_FLASH_DURATION;
     this._squashTimer = EnemyController.SQUASH_DURATION;
     this._applyColor(EnemyController.HIT_COLOR);
@@ -418,6 +436,8 @@ export class EnemyController extends Component {
     p.reward  = this._reward + SkillTreeService.get().getGoldPerKillBonus();
     p.worldX  = pos.x;
     p.worldZ  = pos.z;
+    p.killerTowerDefId = this._lastHitTowerDefId;
+    p.defId = this._defId;
     EventService.sendLocally(Events.EnemyDied, p);
   }
 

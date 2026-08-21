@@ -37,7 +37,10 @@
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
             <!-- Relic Card 1 -->
-            <Grid Margin="0,0,30,0">
+            <Grid Margin="0,0,30,0" RenderTransformOrigin="0.5,0.5">
+              <Grid.RenderTransform>
+                <ScaleTransform ScaleX="{Binding Path=card1ScaleX}" ScaleY="{Binding Path=card1ScaleY}"/>
+              </Grid.RenderTransform>
               <Button Command="{Binding Path=events.relicCardTap}"
                       CommandParameter="{Binding Path=relic1Id}"
                       Background="Transparent"
@@ -105,10 +108,74 @@
                   </Grid>
                 </Border>
               </Button>
+              <!-- Floating Biome Badge (Animated) -->
+              <Grid HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-32,0,0"
+                    RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                <Grid.Visibility>
+                  <Binding Path="relic1BiomeTagVisible">
+                    <Binding.Converter>
+                      <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                  </Binding>
+                </Grid.Visibility>
+                <Grid.RenderTransform>
+                  <TransformGroup>
+                    <RotateTransform Angle="-8"/>
+                    <ScaleTransform x:Name="Badge1Scale" ScaleX="1" ScaleY="1"/>
+                  </TransformGroup>
+                </Grid.RenderTransform>
+                <Grid.Resources>
+                  <Storyboard x:Key="Badge1PulseAnim" RepeatBehavior="Forever">
+                    <DoubleAnimation Storyboard.TargetName="Badge1Scale"
+                                     Storyboard.TargetProperty="ScaleX"
+                                     To="1.08" Duration="0:0:1.0" AutoReverse="True">
+                      <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="Badge1Scale"
+                                     Storyboard.TargetProperty="ScaleY"
+                                     To="1.08" Duration="0:0:1.0" AutoReverse="True">
+                      <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                  </Storyboard>
+                </Grid.Resources>
+                <b:Interaction.Triggers>
+                  <b:EventTrigger EventName="Loaded">
+                    <b:ControlStoryboardAction Storyboard="{StaticResource Badge1PulseAnim}"/>
+                  </b:EventTrigger>
+                </b:Interaction.Triggers>
+                <Border CornerRadius="12" Background="{Binding Path=relic1BadgeBg}" Padding="28,16"
+                        BorderThickness="4" BorderBrush="{Binding Path=relic1BadgeBorder}">
+                  <Grid HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding Path=relic1BiomeTag}"
+                               FontSize="38" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A0A"
+                               HorizontalAlignment="Center" Margin="-2,0,0,0"/>
+                    <TextBlock Text="{Binding Path=relic1BiomeTag}"
+                               FontSize="38" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A0A"
+                               HorizontalAlignment="Center" Margin="2,0,0,0"/>
+                    <TextBlock Text="{Binding Path=relic1BiomeTag}"
+                               FontSize="38" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A0A"
+                               HorizontalAlignment="Center" Margin="0,-2,0,0"/>
+                    <TextBlock Text="{Binding Path=relic1BiomeTag}"
+                               FontSize="38" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A0A"
+                               HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                    <TextBlock Text="{Binding Path=relic1BiomeTag}"
+                               FontSize="38" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="{Binding Path=relic1BadgeText}"
+                               HorizontalAlignment="Center"/>
+                  </Grid>
+                </Border>
+              </Grid>
             </Grid>
 
             <!-- Relic Card 2 -->
-            <Grid Margin="30,0,0,0">
+            <Grid Margin="30,0,0,0" RenderTransformOrigin="0.5,0.5">
+              <Grid.RenderTransform>
+                <ScaleTransform ScaleX="{Binding Path=card2ScaleX}" ScaleY="{Binding Path=card2ScaleY}"/>
+              </Grid.RenderTransform>
               <Button Command="{Binding Path=events.relicCardTap}"
                       CommandParameter="{Binding Path=relic2Id}"
                       Background="Transparent"
@@ -176,6 +243,67 @@
                   </Grid>
                 </Border>
               </Button>
+              <!-- Floating Biome Badge (Animated) -->
+              <Grid HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-32,0,0"
+                    RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                <Grid.Visibility>
+                  <Binding Path="relic2BiomeTagVisible">
+                    <Binding.Converter>
+                      <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                  </Binding>
+                </Grid.Visibility>
+                <Grid.RenderTransform>
+                  <TransformGroup>
+                    <RotateTransform Angle="-8"/>
+                    <ScaleTransform x:Name="Badge2Scale" ScaleX="1" ScaleY="1"/>
+                  </TransformGroup>
+                </Grid.RenderTransform>
+                <Grid.Resources>
+                  <Storyboard x:Key="Badge2PulseAnim" RepeatBehavior="Forever">
+                    <DoubleAnimation Storyboard.TargetName="Badge2Scale"
+                                     Storyboard.TargetProperty="ScaleX"
+                                     To="1.08" Duration="0:0:1.0" AutoReverse="True">
+                      <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="Badge2Scale"
+                                     Storyboard.TargetProperty="ScaleY"
+                                     To="1.08" Duration="0:0:1.0" AutoReverse="True">
+                      <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                  </Storyboard>
+                </Grid.Resources>
+                <b:Interaction.Triggers>
+                  <b:EventTrigger EventName="Loaded">
+                    <b:ControlStoryboardAction Storyboard="{StaticResource Badge2PulseAnim}"/>
+                  </b:EventTrigger>
+                </b:Interaction.Triggers>
+                <Border CornerRadius="12" Background="{Binding Path=relic2BadgeBg}" Padding="28,16"
+                        BorderThickness="4" BorderBrush="{Binding Path=relic2BadgeBorder}">
+                  <Grid HorizontalAlignment="Center">
+                    <TextBlock Text="{Binding Path=relic2BiomeTag}"
+                               FontSize="38" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A0A"
+                               HorizontalAlignment="Center" Margin="-2,0,0,0"/>
+                    <TextBlock Text="{Binding Path=relic2BiomeTag}"
+                               FontSize="38" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A0A"
+                               HorizontalAlignment="Center" Margin="2,0,0,0"/>
+                    <TextBlock Text="{Binding Path=relic2BiomeTag}"
+                               FontSize="38" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A0A"
+                               HorizontalAlignment="Center" Margin="0,-2,0,0"/>
+                    <TextBlock Text="{Binding Path=relic2BiomeTag}"
+                               FontSize="38" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="#FF1A1A0A"
+                               HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                    <TextBlock Text="{Binding Path=relic2BiomeTag}"
+                               FontSize="38" FontWeight="Bold"
+                               FontFamily="Anton" Foreground="{Binding Path=relic2BadgeText}"
+                               HorizontalAlignment="Center"/>
+                  </Grid>
+                </Border>
+              </Grid>
             </Grid>
 
           </StackPanel>

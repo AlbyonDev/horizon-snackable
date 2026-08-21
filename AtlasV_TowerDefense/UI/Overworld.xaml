@@ -857,7 +857,7 @@
                                 BorderThickness="4" CornerRadius="16" Padding="24,10,24,10">
                             <b:Interaction.Triggers>
                                 <b:EventTrigger EventName="MouseLeftButtonUp">
-                                    <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="open"/>
+                                    <b:InvokeCommandAction Command="{Binding events.relicIconTap}" CommandParameter="open"/>
                                 </b:EventTrigger>
                             </b:Interaction.Triggers>
                             <Grid>
@@ -911,7 +911,7 @@
                                 BorderThickness="4" CornerRadius="16" Padding="24,10,24,10">
                             <b:Interaction.Triggers>
                                 <b:EventTrigger EventName="MouseLeftButtonUp">
-                                    <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="open"/>
+                                    <b:InvokeCommandAction Command="{Binding events.relicIconTap}" CommandParameter="open"/>
                                 </b:EventTrigger>
                             </b:Interaction.Triggers>
                             <Grid>
@@ -1518,6 +1518,8 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="0.02*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="0.01*"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="0.08*"/>
                 </Grid.RowDefinitions>
 
@@ -1574,34 +1576,7 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <!-- Title "YOUR RELICS" - below dots, styled panel -->
-                <Border Grid.Row="5" HorizontalAlignment="Center"
-                        Background="#CC1a1a2e"
-                        BorderBrush="{StaticResource GoldBrush}"
-                        BorderThickness="5"
-                        CornerRadius="18"
-                        Padding="48,14,48,14">
-                    <Grid>
-                        <!-- Corner Ornaments -->
-                        <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
-                        <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
-                        <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
-                        <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
-                        <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
-                        <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
-                        <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
-                        <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
-                        <!-- Text with outline -->
-                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32,8,32,8">
-                            <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
-                            <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0" HorizontalAlignment="Center"/>
-                            <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
-                            <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0" HorizontalAlignment="Center"/>
-                            <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
-                        </Grid>
-                    </Grid>
-                </Border>
-
+                <!-- Title "YOUR RELICS" removed from here - now a direct child of carousel root Grid with high ZIndex for clickability -->
 
             </Grid>
 
@@ -1703,16 +1678,81 @@
                 </Border>
             </Grid>
 
-            <!-- Close X button - renders ABOVE swipe grid, guaranteed visible and clickable -->
-            <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,120"
-                    CornerRadius="52" Background="#FF1a1a2e" BorderBrush="{StaticResource GoldBrush}" BorderThickness="6" Width="120" Height="120" Panel.ZIndex="200">
+            <!-- YOUR RELICS title - direct child of carousel root Grid so ZIndex beats the swipe grid (clickable to show info popup) -->
+            <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,700" Panel.ZIndex="100"
+                    Background="#CC1a1a2e"
+                    BorderBrush="{StaticResource GoldBrush}"
+                    BorderThickness="5"
+                    CornerRadius="18"
+                    Padding="48,14,48,14">
                 <b:Interaction.Triggers>
                     <b:EventTrigger EventName="MouseLeftButtonUp">
-                        <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="close"/>
+                        <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="info"/>
                     </b:EventTrigger>
                 </b:Interaction.Triggers>
-                <TextBlock Text="X" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Grid>
+                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32,8,32,8">
+                        <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock Text="YOUR RELICS" FontFamily="Anton" FontSize="88" FontWeight="Bold" Foreground="{StaticResource GoldBrush}" HorizontalAlignment="Center"/>
+                    </Grid>
+                </Grid>
             </Border>
+
+            <!-- Close button - moved to be a direct child of carousel root Grid so its ZIndex beats the swipe grid -->
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,300"
+                  RenderTransformOrigin="0.5,0.5" ClipToBounds="False" Panel.ZIndex="200">
+                <Grid.RenderTransform><ScaleTransform x:Name="CarouselCloseScaleTransform" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                <Grid.Resources>
+                    <Storyboard x:Key="CarouselClosePulseAnim" RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetName="CarouselCloseScaleTransform" Storyboard.TargetProperty="ScaleX" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="CarouselCloseScaleTransform" Storyboard.TargetProperty="ScaleY" From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="CarouselCloseGlowBorder" Storyboard.TargetProperty="Opacity" From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                    </Storyboard>
+                    <Storyboard x:Key="CarouselClosePressAnim">
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CarouselCloseScaleTransform" Storyboard.TargetProperty="ScaleX">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CarouselCloseScaleTransform" Storyboard.TargetProperty="ScaleY">
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90"><EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0"><EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                        </DoubleAnimationUsingKeyFrames>
+                    </Storyboard>
+                </Grid.Resources>
+                <b:Interaction.Triggers>
+                    <b:EventTrigger><b:ControlStoryboardAction Storyboard="{StaticResource CarouselClosePulseAnim}"/></b:EventTrigger>
+                    <b:EventTrigger EventName="MouseLeftButtonDown"><b:ControlStoryboardAction Storyboard="{StaticResource CarouselClosePressAnim}"/></b:EventTrigger>
+                </b:Interaction.Triggers>
+                <Border x:Name="CarouselCloseGlowBorder" Opacity="0" Background="Transparent" BorderBrush="#AAf5c518" BorderThickness="10" CornerRadius="24" Margin="-8,-8,-8,-8"/>
+                <Border Background="#CC1a1a2e" BorderBrush="{StaticResource GoldBrush}" BorderThickness="5" CornerRadius="18">
+                    <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonUp">
+                            <b:InvokeCommandAction Command="{Binding events.relicCarouselTap}" CommandParameter="close"/>
+                        </b:EventTrigger>
+                    </b:Interaction.Triggers>
+                    <Grid>
+                        <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8,8,0,0"/>
+                        <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,11,0,0"/>
+                        <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                        <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,11,11,0"/>
+                        <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8,0,0,8"/>
+                        <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,11"/>
+                        <Ellipse Width="18" Height="18" Fill="{StaticResource GoldBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8"/>
+                        <Ellipse Width="12" Height="12" Fill="#FFc9a000" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,11,11"/>
+                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="52,20,52,20">
+                            <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="-2,0,0,0"/>
+                            <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="2,0,0,0"/>
+                            <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="0,-2,0,0"/>
+                            <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="Black" Margin="0,2,0,0"/>
+                            <TextBlock Text="CLOSE" FontFamily="Anton" FontSize="64" FontWeight="Bold" Foreground="{StaticResource TextLightBrush}"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+
         </Grid>
 
         <!-- Boss Info Popup Overlay (fullscreen) -->
@@ -2308,6 +2348,131 @@
                             </Border>
                         </Grid>
                     </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+        <!-- Relic Info Popup Overlay (fullscreen) -->
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid.Visibility>
+                <Binding Path="relicInfoPopupVisible">
+                    <Binding.Converter>
+                        <BooleanToVisibilityConverter/>
+                    </Binding.Converter>
+                </Binding>
+            </Grid.Visibility>
+
+            <!-- Dimmed background -->
+            <Border Background="#CC000000"/>
+
+            <!-- Centered panel with green border -->
+            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="#EE1a1a2e" BorderBrush="#4CAF50"
+                    BorderThickness="8" CornerRadius="36"
+                    Padding="80,60,80,60" MaxWidth="1600">
+                <StackPanel HorizontalAlignment="Center">
+                    <!-- Title with gold outline -->
+                    <Grid HorizontalAlignment="Center" Margin="0,0,0,28">
+                        <TextBlock Text="YOUR RELICS" FontFamily="Anton"
+                                   FontSize="120" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="YOUR RELICS" FontFamily="Anton"
+                                   FontSize="120" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="YOUR RELICS" FontFamily="Anton"
+                                   FontSize="120" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="YOUR RELICS" FontFamily="Anton"
+                                   FontSize="120" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="YOUR RELICS" FontFamily="Anton"
+                                   FontSize="120" FontWeight="Bold" Foreground="#f5c518"
+                                   HorizontalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Body text -->
+                    <TextBlock Text="Relics are powerful passive bonuses you collect after beating a level. Each relic gives you a unique advantage for the rest of your run. Biome-exclusive relics only appear in their matching biome!"
+                               FontFamily="Almendra" FontSize="72"
+                               Foreground="#dddddd"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap" TextAlignment="Center"
+                               Margin="0,12,0,48"/>
+
+                    <!-- Got it! button with breathing pulse animation -->
+                    <Grid HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" ClipToBounds="False">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="RelicInfoGotItBtnScale" ScaleX="1" ScaleY="1"/>
+                        </Grid.RenderTransform>
+                        <Grid.Resources>
+                            <Storyboard x:Key="RelicInfoGotItPulseAnim" RepeatBehavior="Forever">
+                                <DoubleAnimation Storyboard.TargetName="RelicInfoGotItBtnScale"
+                                                 Storyboard.TargetProperty="ScaleX"
+                                                 From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="RelicInfoGotItBtnScale"
+                                                 Storyboard.TargetProperty="ScaleY"
+                                                 From="1.0" To="1.06" Duration="0:0:0.9" AutoReverse="True">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetName="RelicInfoGotItGlow"
+                                                 Storyboard.TargetProperty="Opacity"
+                                                 From="0.0" To="1.0" Duration="0:0:0.9" AutoReverse="True">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                            <Storyboard x:Key="RelicInfoGotItPressAnim">
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RelicInfoGotItBtnScale" Storyboard.TargetProperty="ScaleX">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
+                                        <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
+                                    </EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                                        <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
+                                    </EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RelicInfoGotItBtnScale" Storyboard.TargetProperty="ScaleY">
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
+                                        <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
+                                    </EasingDoubleKeyFrame>
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                                        <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
+                                    </EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </Grid.Resources>
+                        <b:Interaction.Triggers>
+                            <b:EventTrigger>
+                                <b:ControlStoryboardAction Storyboard="{StaticResource RelicInfoGotItPulseAnim}"/>
+                            </b:EventTrigger>
+                            <b:EventTrigger EventName="MouseLeftButtonDown">
+                                <b:ControlStoryboardAction Storyboard="{StaticResource RelicInfoGotItPressAnim}"/>
+                            </b:EventTrigger>
+                        </b:Interaction.Triggers>
+
+                        <!-- Outer glow border (pulsing green shimmer) -->
+                        <Border x:Name="RelicInfoGotItGlow" Opacity="0"
+                                Background="Transparent"
+                                BorderBrush="#AA4CAF50"
+                                BorderThickness="10"
+                                CornerRadius="24"
+                                Margin="-8,-8,-8,-8"
+                                IsHitTestVisible="False"/>
+
+                        <Button Command="{Binding events.relicInfoGotIt}"
+                                HorizontalAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Padding="0"
+                                Margin="0,4,0,0">
+                            <Border Background="#4CAF50"
+                                    CornerRadius="24"
+                                    Padding="80,24,80,24">
+                                <TextBlock Text="Got it!" FontFamily="Anton"
+                                           FontSize="80" FontWeight="Bold"
+                                           Foreground="#1a1a2e"
+                                           HorizontalAlignment="Center"/>
+                            </Border>
+                        </Button>
+                    </Grid>
                 </StackPanel>
             </Border>
         </Grid>

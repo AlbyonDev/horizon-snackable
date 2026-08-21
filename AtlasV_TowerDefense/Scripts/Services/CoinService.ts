@@ -13,6 +13,7 @@ import { service, subscribe } from 'meta/worlds';
 import type { Entity } from 'meta/worlds';
 import { Assets } from '../Assets';
 import { Events } from '../Types';
+import { RelicService } from './RelicService';
 
 const COIN_POOL_SIZE = 75;
 const COINS_MIN = 3; // minimum coins regardless of reward
@@ -48,10 +49,30 @@ export class CoinService extends Service {
 
   @subscribe(Events.EnemyDied)
   onEnemyDied(p: Events.EnemyDiedPayload): void {
-if (this._pool.length === 0) return;
-    const count = Math.min(Math.max(COINS_MIN, Math.floor(p.reward / COINS_PER_REWARD_UNIT)), MAX_COINS_PER_KILL);
-    const amountPerCoin = Math.floor(p.reward / count);
-    const remainder = p.reward - amountPerCoin * count;
+    if (this._pool.length === 0) return;
+    // Bonfire relic: double gold if killed by fire_cannon
+    let reward = p.reward;
+    if (RelicService.get().isActive('bonfire') && p.killerTowerDefId === 'fire_cannon') {
+      reward *= 2;
+      console.log(`[CoinService] Bonfire doubled reward: ${p.reward} -> ${reward}`);
+    }
+    // Harvest relic: flat bonus gold per kill
+    const killGoldBonus = RelicService.get().getKillGoldBonus();
+    if (killGoldBonus > 0) {
+      reward += killGoldBonus;
+    }
+    // Bounty Mark relic: bonus gold when tank, charger, or giantGoblin is defeated
+    const eliteBonus = RelicService.get().getEliteKillGoldBonus();
+    if (eliteBonus > 0 && p.defId) {
+      const BOUNTY_MARK_TARGETS = ['tank', 'charger', 'giantGoblin'];
+      if (BOUNTY_MARK_TARGETS.includes(p.defId)) {
+        reward += eliteBonus;
+        console.log(`[CoinService] Bounty Mark: +${eliteBonus} gold for elite kill (${p.defId})`);
+      }
+    }
+    const count = Math.min(Math.max(COINS_MIN, Math.floor(reward / COINS_PER_REWARD_UNIT)), MAX_COINS_PER_KILL);
+    const amountPerCoin = Math.floor(reward / count);
+    const remainder = reward - amountPerCoin * count;
     for (let i = 0; i < count; i++) {
       const entity = this._pool[this._index];
       this._index = (this._index + 1) % this._pool.length;

@@ -23,6 +23,7 @@ import { HitService } from '../Services/HitService';
 import { ProjectilePool, POOL_PARK_POSITION } from '../Services/ProjectilePool';
 import { VfxService } from '../Services/VfxService';
 import { SkillTreeService } from '../Services/SkillTreeService';
+import { RelicService } from '../Services/RelicService';
 
 @component()
 export class ProjectileController extends Component {
@@ -52,7 +53,7 @@ export class ProjectileController extends Component {
   onInit(p: Events.InitProjectilePayload): void {
     this._targetId = p.targetEnemyId;
     this._damage = p.damage;
-    this._speed = p.speed * SkillTreeService.get().getProjectileSpeedMultiplier();
+    this._speed = p.speed * SkillTreeService.get().getProjectileSpeedMultiplier() * RelicService.get().getProjectileSpeedMultiplier();
     this._props = p.props;
     this._originX = p.originX;
     this._originY = this._transform.worldPosition.y;

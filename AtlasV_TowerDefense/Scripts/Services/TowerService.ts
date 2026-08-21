@@ -91,6 +91,7 @@ export class TowerService extends Service {
       let damageMult = skills.getDamageMultiplier();
       const biomeMultiplier = getBiomeDamageMultiplier(rec.defId, SaveService.get().activeBiome);
       damageMult *= biomeMultiplier;
+      damageMult *= relics.getTowerDefenseMultiplier(); // Iron Will relic: +20% tower damage
       if (fireRateMult !== 1 || rangeMult !== 1 || damageMult !== 1) {
         return {
           ...base,
@@ -121,6 +122,7 @@ export class TowerService extends Service {
     // Apply biome damage modifier (buff/debuff based on active biome)
     const biomeMultiplier = getBiomeDamageMultiplier(rec.defId, SaveService.get().activeBiome);
     damageMult *= biomeMultiplier;
+    damageMult *= relics.getTowerDefenseMultiplier(); // Iron Will relic: +20% tower damage
 
     if (fireRateMult !== 1 || rangeMult !== 1 || damageMult !== 1) {
       return {

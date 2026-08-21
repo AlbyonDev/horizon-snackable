@@ -12,6 +12,7 @@ import { OnServiceReadyEvent } from 'meta/worlds';
 import { HitService } from './HitService';
 import { TargetingService } from './TargetingService';
 import { SkillTreeService } from './SkillTreeService';
+import { RelicService } from './RelicService';
 
 @service()
 export class SplashSystem extends Service {
@@ -24,7 +25,7 @@ export class SplashSystem extends Service {
     this._hitService.register((ctx) => {
       const baseSplashRadius = ctx.props['splashRadius'] as number | undefined;
       if (!baseSplashRadius || baseSplashRadius <= 0) return ctx;
-      const splashRadius = baseSplashRadius * SkillTreeService.get().getSplashRadiusMultiplier();
+      const splashRadius = baseSplashRadius * SkillTreeService.get().getSplashRadiusMultiplier() * RelicService.get().getSplashRadiusMultiplier();
       const targets = this._targetingService?.getEnemiesInRadius(ctx.originX, ctx.originZ, splashRadius);
       if (!targets) return ctx;
       return { ...ctx, targets };

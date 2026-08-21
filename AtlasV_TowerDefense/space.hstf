@@ -2233,14 +2233,7 @@
                     "dataType": "horizon::DataDefinitionAsset"
                 }
             ],
-            "attributes": [
-                {
-                    "class": "horizon::NetworkableTemplateEntityAttribute",
-                    "data": {
-                        "isNetworkable": true
-                    }
-                }
-            ]
+            "attributes": []
         }
     ],
     "relationships": [
