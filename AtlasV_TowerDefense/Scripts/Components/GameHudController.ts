@@ -28,6 +28,7 @@ import { EnemyService } from '../Services/EnemyService';
 import { LevelGeneratorService } from '../Services/LevelGeneratorService';
 import { START_GOLD, START_LIVES } from '../Constants';
 
+
 @uiViewModel()
 export class GameHudViewModel extends UiViewModel {
   visible: boolean = false;

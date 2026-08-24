@@ -60,6 +60,29 @@ import { OpenSkillTreeEvent, OpenSkillTreePayload } from './SkillTreeHudControll
 import { OpenAchievementsEvent, OpenAchievementsPayload } from './AchievementHudController';
 import { SkillTreeService } from '../Services/SkillTreeService';
 
+/** Biome-specific path color palettes for the overworld S-curve trail. */
+const BIOME_PATH_COLORS: Record<string, {
+  shadow: string; outer: string; main: string;
+  mortar: string; mortarLight: string; mortarFar: string;
+  highlight: string; innerHighlight: string;
+}> = {
+  grass: {
+    shadow: '#FF1A0E05', outer: '#FF9A7B30', main: '#FFC4A44A',
+    mortar: '#FF6B4F1A', mortarLight: '#FF7A5A20', mortarFar: '#FF8B6828',
+    highlight: '#44FFFFFF', innerHighlight: '#33FFE8B0',
+  },
+  snow: {
+    shadow: '#FF0A1520', outer: '#FF5A7080', main: '#FF8AAAB8',
+    mortar: '#FF3A5060', mortarLight: '#FF4A6070', mortarFar: '#FF5A7585',
+    highlight: '#44FFFFFF', innerHighlight: '#33C8E0F0',
+  },
+  volcano: {
+    shadow: '#FF0A0505', outer: '#FF3A2018', main: '#FF5A3A2A',
+    mortar: '#FF8B2500', mortarLight: '#FFA03010', mortarFar: '#FFB84020',
+    highlight: '#33FF6030', innerHighlight: '#33FF8040',
+  },
+};
+
 // Pre-defined TextureAssets for each biome background (must be static string literals)
 const BG_GRASS = new TextureAsset('@sprites/overworld_background-grass.png');
 const BG_SNOW = new TextureAsset('@sprites/overworld_background-snow.png');
@@ -79,6 +102,14 @@ const RELIC_ICON_RANGE = new TextureAsset('@sprites/relic_range.png');
 const RELIC_ICON_LIVES = new TextureAsset('@sprites/relic_fortification.png');
 const RELIC_ICON_SLOW = new TextureAsset('@sprites/relic_permafrost.png');
 const RELIC_ICON_BONFIRE = new TextureAsset('@sprites/relic_bonfire.png');
+const RELIC_ICON_HARVEST = new TextureAsset('@sprites/relic_harvest.png');
+const RELIC_ICON_FROSTBITE = new TextureAsset('@sprites/relic_frostbite.png');
+const RELIC_ICON_ERUPTION = new TextureAsset('@sprites/relic_eruption.png');
+const RELIC_ICON_WARD_BREAKER = new TextureAsset('@sprites/relic_ward_breaker.png');
+const RELIC_ICON_GLACIAL_LENS = new TextureAsset('@sprites/relic_glacial_lens.png');
+const RELIC_ICON_IRON_WILL = new TextureAsset('@sprites/relic_iron_will.png');
+const RELIC_ICON_SWIFT_QUIVER = new TextureAsset('@sprites/relic_swift_quiver.png');
+const RELIC_ICON_BOUNTY_MARK = new TextureAsset('@sprites/relic_bounty_mark.png');
 
 const RELIC_ICONS: Record<string, TextureAsset> = {
   gold: RELIC_ICON_GOLD,
@@ -88,6 +119,14 @@ const RELIC_ICONS: Record<string, TextureAsset> = {
   lives: RELIC_ICON_LIVES,
   slow: RELIC_ICON_SLOW,
   bonfire: RELIC_ICON_BONFIRE,
+  harvest: RELIC_ICON_HARVEST,
+  frostbite: RELIC_ICON_FROSTBITE,
+  eruption: RELIC_ICON_ERUPTION,
+  ward_breaker: RELIC_ICON_WARD_BREAKER,
+  glacial_lens: RELIC_ICON_GLACIAL_LENS,
+  iron_will: RELIC_ICON_IRON_WILL,
+  swift_quiver: RELIC_ICON_SWIFT_QUIVER,
+  bounty_mark: RELIC_ICON_BOUNTY_MARK,
 };
 
 // -- Level Node sub-ViewModel --
@@ -196,6 +235,16 @@ export class OverworldViewModel extends UiViewModel {
   pathData: string = '';
   canvasHeight: number = 800;
   backgroundImage: Maybe<TextureAsset> = null;
+
+  // Path colors (biome-aware)
+  pathShadowColor: string = '#FF1A0E05';
+  pathOuterColor: string = '#FF9A7B30';
+  pathMainColor: string = '#FFC4A44A';
+  pathMortarColor: string = '#FF6B4F1A';
+  pathMortarLightColor: string = '#FF7A5A20';
+  pathMortarFarColor: string = '#FF8B6828';
+  pathHighlightColor: string = '#44FFFFFF';
+  pathInnerHighlightColor: string = '#33FFE8B0';
 
   // Header bar data
   relicCount: number = 0;
@@ -338,6 +387,7 @@ export class OverworldHud extends Component {
     this._refreshRelicIcons();
     this._updateRunLabel();
     this._updateBiomeArrow();
+    this._updatePathColors();
 
     // Apply any buffered progress that arrived before initialization
     if (this.pendingBeatenLevels) {
@@ -501,6 +551,7 @@ export class OverworldHud extends Component {
     if (bgTexture) {
       this.viewModel.backgroundImage = bgTexture;
     }
+    this._updatePathColors();
   }
 
   @subscribe(UiEvents.overworldLevelTap, { execution: ExecuteOn.Owner })
@@ -761,6 +812,7 @@ export class OverworldHud extends Component {
       this.viewModel.backgroundImage = bgTexture;
       console.log(`[OverworldHud] Background set directly to ${nextBiomeId}`);
     }
+    this._updatePathColors();
 
     // Restore the run count from the new biome's save so the run label is correct
     const restoredRunCount = SaveService.get().getRunCount() + 1;
@@ -1497,6 +1549,22 @@ export class OverworldHud extends Component {
       dots.push(dot);
     }
     this.viewModel.carouselDots = dots;
+  }
+
+  /** Update the path color properties on the ViewModel to match the active biome. */
+  private _updatePathColors(): void {
+    if (!this.viewModel) return;
+    const biomeId = SaveService.get().activeBiome;
+    const palette = BIOME_PATH_COLORS[biomeId] || BIOME_PATH_COLORS['grass'];
+    this.viewModel.pathShadowColor = palette.shadow;
+    this.viewModel.pathOuterColor = palette.outer;
+    this.viewModel.pathMainColor = palette.main;
+    this.viewModel.pathMortarColor = palette.mortar;
+    this.viewModel.pathMortarLightColor = palette.mortarLight;
+    this.viewModel.pathMortarFarColor = palette.mortarFar;
+    this.viewModel.pathHighlightColor = palette.highlight;
+    this.viewModel.pathInnerHighlightColor = palette.innerHighlight;
+    console.log(`[OverworldHud] Path colors updated for biome: ${biomeId}`);
   }
 
   /** Biome-specific arrow colors: main color and glow (with alpha). */
