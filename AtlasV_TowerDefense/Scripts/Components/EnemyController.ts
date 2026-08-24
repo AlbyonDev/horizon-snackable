@@ -68,8 +68,12 @@ export class EnemyController extends Component {
   // Spawn scale-up animation
   private _spawnScaleTimer: number = 0;
   private _spawnScaling: boolean = false;
-  private static readonly SPAWN_SCALE_DURATION = 0.8; // seconds to grow to full size
-  private static readonly SPAWN_SCALE_START = 0.25; // fraction of _baseScale to start at
+  private _spawnScaleDuration: number = 1; // computed per-enemy based on speed
+  private static readonly SPAWN_SCALE_BASE_SPEED = 1.0;
+  private static readonly SPAWN_SCALE_BASE_DURATION = 1.7;
+  private static readonly SPAWN_SCALE_MIN_DURATION = 0.1;
+  private static readonly SPAWN_SCALE_MAX_DURATION = 6.0;
+  private static readonly SPAWN_SCALE_START = 0; // fraction of _baseScale to start at
 
   private _wpIndex: number = 0;
   private _subT: number = 0;
@@ -175,6 +179,17 @@ export class EnemyController extends Component {
       this._shieldActive = false;
     }
 
+    // Compute spawn scale duration: inversely proportional to speed
+    // Slower enemies (e.g. 0.35) get longer duration (~2s), faster enemies (e.g. 2.5) get shorter (~0.4s)
+    this._spawnScaleDuration = Math.min(
+      EnemyController.SPAWN_SCALE_MAX_DURATION,
+      Math.max(
+        EnemyController.SPAWN_SCALE_MIN_DURATION,
+        EnemyController.SPAWN_SCALE_BASE_DURATION * (EnemyController.SPAWN_SCALE_BASE_SPEED / this._speed)
+      )
+    );
+    console.log(`[EnemyController] Enemy ${this._defId} speed=${this._speed.toFixed(2)} spawnScaleDuration=${this._spawnScaleDuration.toFixed(2)}s`);
+
     // Start spawn scale-up animation
     this._spawnScaling = true;
     this._spawnScaleTimer = 0;
@@ -245,7 +260,7 @@ export class EnemyController extends Component {
     // Spawn scale-up animation (ease-out)
     if (this._spawnScaling) {
       this._spawnScaleTimer += p.deltaTime;
-      const t = Math.min(this._spawnScaleTimer / EnemyController.SPAWN_SCALE_DURATION, 1.0);
+      const t = Math.min(this._spawnScaleTimer / this._spawnScaleDuration, 1.0);
       // Ease-out: 1 - (1-t)^2
       const eased = 1 - (1 - t) * (1 - t);
       const scale = this._baseScale * (EnemyController.SPAWN_SCALE_START + (1 - EnemyController.SPAWN_SCALE_START) * eased);
@@ -259,7 +274,7 @@ export class EnemyController extends Component {
     // Shield sphere scale-up animation (matches enemy spawn grow)
     if (this._shieldScaling && this._shieldEntity) {
       this._shieldScaleTimer += p.deltaTime;
-      const t = Math.min(this._shieldScaleTimer / EnemyController.SPAWN_SCALE_DURATION, 1.0);
+      const t = Math.min(this._shieldScaleTimer / this._spawnScaleDuration, 1.0);
       const eased = 1 - (1 - t) * (1 - t);
       const fraction = EnemyController.SPAWN_SCALE_START + (1 - EnemyController.SPAWN_SCALE_START) * eased;
       const shieldTransform = this._shieldEntity.getComponent(TransformComponent);

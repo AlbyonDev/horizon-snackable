@@ -10,6 +10,7 @@
 import { Service } from 'meta/worlds';
 import { service } from 'meta/worlds';
 import { EnemyService } from './EnemyService';
+import { VISIBLE_GRID_TOP_X } from '../Constants';
 
 @service()
 export class TargetingService extends Service {
@@ -21,6 +22,8 @@ export class TargetingService extends Service {
     let bestPathT = -1;
 
     for (const [id, rec] of registry.getAll()) {
+      // Skip enemies still in the spawn offset area (above the visible grid)
+      if (rec.worldX > VISIBLE_GRID_TOP_X) continue;
       // Skip shielded enemies — towers should not waste shots on them
       if (rec.shieldActive) continue;
 
@@ -43,6 +46,8 @@ export class TargetingService extends Service {
     const result: number[] = [];
 
     for (const [id, rec] of registry.getAll()) {
+      // Skip enemies still in the spawn offset area (above the visible grid)
+      if (rec.worldX > VISIBLE_GRID_TOP_X) continue;
       const dx = rec.worldX - worldX;
       const dz = rec.worldZ - worldZ;
       if (Math.sqrt(dx * dx + dz * dz) <= radius) {

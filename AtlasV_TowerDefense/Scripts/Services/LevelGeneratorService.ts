@@ -29,7 +29,7 @@ import type { IWaveDef, IWaveGroup } from '../Types';
 import type { ILevelDef } from '../Defs/LevelDefs';
 import { OverworldNodeType } from '../Defs/NodeDefs';
 import { SaveService } from './SaveService';
-import { TOTAL_LEVELS, START_GOLD, START_LIVES, GRID_COLS, GRID_ROWS, LOCKED_COLS } from '../Constants';
+import { TOTAL_LEVELS, START_GOLD, START_LIVES, GRID_COLS, GRID_ROWS, LOCKED_COLS, PATH_SPAWN_ROW_OFFSET } from '../Constants';
 import { LEVEL_TIER_PATTERNS, getPackPoolForTier, getPackPoolForTierAndBiome } from '../Defs/WavePackDefs';
 import type { IWavePack } from '../Defs/WavePackDefs';
 
@@ -343,9 +343,12 @@ export class LevelGeneratorService extends Service {
 
     const waypoints: Array<readonly [number, number]> = [];
 
-    // Start at random column within unlocked range
+    // Start off-screen above the visible grid so enemies walk in from beyond the top edge
     let col = minCol + Math.floor(this._rng() * colRange);
-    let row = 0;
+    let row = PATH_SPAWN_ROW_OFFSET;
+    waypoints.push([col, row] as const);
+    // Add an entry waypoint at the top of the visible grid (row 0)
+    row = 0;
     waypoints.push([col, row] as const);
 
     // Generate zigzag segments moving downward

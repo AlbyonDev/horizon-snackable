@@ -13,6 +13,7 @@
 //   row 17: ▼
 
 export const PATH_WAYPOINTS_LEVEL_0: ReadonlyArray<readonly [number, number]> = [
+  [ 3, -2],
   [ 3,  0],
   [ 3,  2],
   [ 0,  2],

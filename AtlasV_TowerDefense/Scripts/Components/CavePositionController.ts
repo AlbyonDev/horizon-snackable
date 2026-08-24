@@ -54,6 +54,11 @@ export class CavePositionController extends Component {
     this.materialComp = this.entity.getComponent(MaterialComponent);
     this.meshComp = this.entity.getComponent(MeshComponent);
 
+    // Default to hidden — only boss levels show the cave/igloo
+    if (this.meshComp) {
+      this.meshComp.isVisibleSelf = false;
+    }
+
     // Pre-load material variants
     void Material.loadAsset(Materials.CaveEntrance).then((mat) => {
       this.normalMaterial = mat;
@@ -71,7 +76,10 @@ export class CavePositionController extends Component {
     if (NetworkingService.get().isServerContext()) return;
     this._currentBiome = payload.biomeId;
     console.log(`[CavePositionController] BiomeChanged received, biomeId=${payload.biomeId}`);
-    void this._updateVisuals();
+    // Only update visuals if we're on a boss level; non-boss levels keep mesh hidden
+    if (this._isBossLevel) {
+      void this._updateVisuals();
+    }
   }
 
   @subscribe(Events.LevelSelected, { execution: ExecuteOn.Everywhere })
@@ -100,15 +108,29 @@ export class CavePositionController extends Component {
     const firstWaypointZ = GRID_ORIGIN_Z + col * CELL_HEIGHT;
 
     // Position cave 1 cell behind the first waypoint (higher X = behind enemy travel direction)
-    const caveX = firstWaypointX + 1.2;
+    const caveX = firstWaypointX + 0.9;
     // Offset 0.1 of a cell to the left (screen-left = -Z in world space)
-    const caveZ = firstWaypointZ - 0.1;
+    const caveZ = firstWaypointZ - 0.08;
 
     this.transform.worldPosition = new Vec3(caveX, GROUND_Y, caveZ);
     console.log(`[CavePositionController] Cave moved to (${caveX}, ${GROUND_Y}, ${caveZ}) — first waypoint col=${col} row=${row}`);
 
     // Track boss status and update visuals
     this._isBossLevel = p.nodeType === OverworldNodeType.Boss;
+
+    if (!this._isBossLevel) {
+      // Non-boss level: hide the cave/igloo entirely
+      if (this.meshComp) {
+        this.meshComp.isVisibleSelf = false;
+      }
+      console.log('[CavePositionController] Non-boss level — cave/igloo hidden');
+      return;
+    }
+
+    // Boss level: show the mesh and update visuals
+    if (this.meshComp) {
+      this.meshComp.isVisibleSelf = true;
+    }
     void this._updateVisuals();
   }
 
@@ -158,20 +180,19 @@ export class CavePositionController extends Component {
         this.transform.localScale = new Vec3(1, 1, 1);
       }
       if (this.materialComp) {
-        const isBoss = this._isBossLevel;
-        let mat = isBoss ? this.bossMaterial : this.normalMaterial;
+        // Always use normal cave material (boss cave entrance material kept but unused for now)
+        let mat = this.normalMaterial;
         if (!mat) {
-          const matAsset = isBoss ? Materials.BossCaveEntrance : Materials.CaveEntrance;
           try {
-            mat = await Material.loadAsset(matAsset);
-            if (isBoss) { this.bossMaterial = mat; } else { this.normalMaterial = mat; }
+            mat = await Material.loadAsset(Materials.CaveEntrance);
+            this.normalMaterial = mat;
           } catch (e) {
-            console.log(`[CavePositionController] Failed to load cave material (boss=${isBoss})`);
+            console.log('[CavePositionController] Failed to load cave material');
             return;
           }
         }
         this.materialComp.setPartMaterial(0, mat);
-        console.log(`[CavePositionController] Material swapped to ${isBoss ? 'boss' : 'normal'} cave`);
+        console.log('[CavePositionController] Material swapped to normal cave');
       }
     }
   }

@@ -6,7 +6,11 @@
  * Also exports hexColor() utility for converting CSS hex strings to normalized RGB.
  */
 
-// ─── Grid ─────────────────────────────────────────────────────────────────────
+// ─── Grid ───────────────────────────────────────────────────────────
+
+// How many rows above the visible grid (row 0) the path starts and enemies spawn.
+// Negative value = above the screen. -1 means 1 world unit off-screen at the top.
+export const PATH_SPAWN_ROW_OFFSET = -1;
 
 export const GRID_COLS = 11;
 export const GRID_ROWS = 14;
@@ -20,6 +24,10 @@ export const CELL_HEIGHT = 1; // world units per cell along Z axis (cols)
 // row → X axis (vertical, top/bottom on screen)
 export const GRID_ORIGIN_X = -((GRID_ROWS - 1) / 2) * CELL_WIDTH;  // top row X
 export const GRID_ORIGIN_Z = -((GRID_COLS - 1) / 2) * CELL_HEIGHT; // left col Z
+
+// World-X threshold: enemies with worldX > this value are still in the spawn
+// offset area (above the visible grid) and should NOT be targetable by towers.
+export const VISIBLE_GRID_TOP_X = GRID_ORIGIN_X + (GRID_ROWS - 1) * CELL_WIDTH;
 
 // Y position for ground-level entities (towers, enemies, tiles)
 export const GROUND_Y = 0;

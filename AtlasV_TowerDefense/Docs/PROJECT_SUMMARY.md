@@ -349,9 +349,9 @@ Both arrows cycle through `BIOME_ORDER = ['grass', 'snow', 'volcano']`. The swit
 
 | Biome | Ground Material | Overworld Background | Path Texture | Flag Mesh | Spawn Point |
 |-------|----------------|---------------------|--------------|-----------|-------------|
-| Grass (default) | `Models/Environment/Grass.material` | `sprites/overworld_background.png` | `Textures/path_tiles_cobblestone.png` | `Models/GameplayObjects/GrassFlag/GrassFlag.fbx` (orc/goblin war banner) | Cave (`Models/Cave/CaveEntrance (2).fbx`) |
-| Snow | `Models/Environment/Snow.material` | `sprites/overworld_background-snow.png` | `Textures/path_tiles_ice.png` | `Models/GameplayObjects/SnowFlag/SnowFlag.fbx` (icy/frost war banner) | Igloo (`Models/Igloo/Igloo (2).fbx`) |
-| Volcano | `Models/Environment/Volcano.material` | `sprites/overworld_background-volcano.png` | `Textures/path_tiles_lava.png` | `Models/GameplayObjects/VolcanoFlag/VolcanoFlag.fbx` (charred/fiery war banner) | Cave (`Models/Cave/CaveEntrance (2).fbx`) |
+| Grass (default) | `Models/Environment/Grass.material` | `sprites/overworld_background.png` | `Textures/path_tiles_cobblestone.png` | `Models/GameplayObjects/GrassFlag/GrassFlag.fbx` (orc/goblin war banner) | Cave (`Models/Cave/CaveEntrance (2).fbx`) — boss only |
+| Snow | `Models/Environment/Snow.material` | `sprites/overworld_background-snow.png` | `Textures/path_tiles_ice.png` | `Models/GameplayObjects/SnowFlag/SnowFlag.fbx` (icy/frost war banner) | Igloo (`Models/Igloo/Igloo (2).fbx`) — boss only |
+| Volcano | `Models/Environment/Volcano.material` | `sprites/overworld_background-volcano.png` | `Textures/path_tiles_lava.png` | `Models/GameplayObjects/VolcanoFlag/VolcanoFlag.fbx` (charred/fiery war banner) | Cave (`Models/Cave/CaveEntrance (2).fbx`) — boss only |
 
 ### Runtime Integration
 
@@ -548,7 +548,14 @@ Enemy (root)                         ← TransformComponent + EnemyController
 
 #### Straight-line boss mode
 
-When an enemy def has `straightLine: true`, the EnemyController bypasses PathService waypoint following and instead moves in a straight line along the -X axis (toward the player's base). Each frame it checks the grid cell it occupies and destroys any tower found there via `TowerService.removeTowerAt()`. The boss remains targetable by towers through the normal EnemyService registry. A 3D cave entrance mesh is placed at the spawn point as a visual origin for the boss. On boss levels (nodeType === 'boss'), the cave material is swapped to a darker reddish-purple variant (`Models/Cave/BossCaveEntrance.material`) for a more menacing look; normal levels use the standard cave material. In the snow biome, the cave is replaced with a chunky cartoony igloo mesh (`Models/Igloo/Igloo (2).fbx`) and igloo material; for grass/volcano biomes the regular cave is shown. This swap is handled by `CavePositionController`.
+When an enemy def has `straightLine: true`, the EnemyController bypasses PathService waypoint following and instead moves in a straight line along the -X axis (toward the player's base). Each frame it checks the grid cell it occupies and destroys any tower found there via `TowerService.removeTowerAt()`. The boss remains targetable by towers through the normal EnemyService registry.
+
+**Cave entrances are restricted to boss encounters only.** No caves appear outside of boss levels in any biome. The spawn-point visual per biome on boss levels:
+- **Grass biome**: Cave entrance (`Models/Cave/CaveEntrance (2).fbx`) with standard cave material
+- **Snow biome**: Igloo (`Models/Igloo/Igloo (2).fbx`) with igloo material
+- **Volcano biome**: Cave entrance (`Models/Cave/CaveEntrance (2).fbx`) with standard cave material
+
+This swap is handled by `CavePositionController`, which only spawns the entrance mesh on boss-node levels (`nodeType === 'boss'`).
 
 #### Authoring rules for new enemies
 
@@ -639,6 +646,8 @@ For each cell along the path waypoints, [PathTileService.prewarm()](../Scripts/S
 - If `inDir !== outDir` → it's a **corner**: pick one of the 4 pre-rotated corner templates based on the `(fromDir, toDir)` pair. No runtime rotation.
 
 All tiles spawn at `(GRID_ORIGIN_X + row, GROUND_Y + 0.01, GRID_ORIGIN_Z + col)` with `NetworkMode.LocalOnly`.
+
+**Off-screen path extension:** The top of the path extends beyond the visible screen boundary so it doesn't appear cut off. Enemy spawn points are positioned 2 rows above the grid (`PATH_SPAWN_ROW_OFFSET = -2`). Enemies are non-targetable while in this spawn offset zone (above the visible grid) and become targetable once they enter the playable area.
 
 #### The shader: `Shaders/PathTile.surface`
 
