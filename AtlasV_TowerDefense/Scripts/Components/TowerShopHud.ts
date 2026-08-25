@@ -217,6 +217,11 @@ export class TowerShopViewModel extends UiViewModel {
 
   // Whether the selected tower has an upgrade tree (hides arrows/tier labels when false)
   hasUpgrades: boolean = true;
+
+  // Placement mode label
+  placingTowerName: string = '';
+  isPlacingTower: boolean = false;
+
 }
 
 // Scroll constants
@@ -423,6 +428,25 @@ export class TowerShopHud extends Component {
     console.log('[TowerShopHud] TOWERS tab tapped');
     EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
 
+    // If in placement mode, cancel placement and restore panel
+    if (this.viewModel.selectedTowerId !== '') {
+      console.log('[TowerShopHud] Cancelling placement from TOWERS tab tap');
+      this.viewModel.selectedTowerId = '';
+      this.viewModel.selectedCardIndex = -1;
+      this.viewModel.isPlacingTower = false;
+      this.viewModel.placingTowerName = '';
+      for (const item of this.itemVMs) {
+        if (item.selected) item.selected = false;
+      }
+      EventService.sendLocally(Events.TowerDeselected, new Events.TowerDeselectedPayload());
+      this.isManuallyHidden = false;
+      this.slideTarget = 0;
+      this.isSlideAnimating = true;
+      this.hideOnSlideComplete = false;
+      this._switchToTowersTab();
+      return;
+    }
+
     // If panel is hidden, show it in towers mode
     if (this.isManuallyHidden) {
       this.isManuallyHidden = false;
@@ -455,6 +479,25 @@ export class TowerShopHud extends Component {
     if (!this.viewModel) return;
     console.log('[TowerShopHud] MANAGE tab tapped');
     EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+
+    // If in placement mode, cancel placement and restore panel
+    if (this.viewModel.selectedTowerId !== '') {
+      console.log('[TowerShopHud] Cancelling placement from MANAGE tab tap');
+      this.viewModel.selectedTowerId = '';
+      this.viewModel.selectedCardIndex = -1;
+      this.viewModel.isPlacingTower = false;
+      this.viewModel.placingTowerName = '';
+      for (const item of this.itemVMs) {
+        if (item.selected) item.selected = false;
+      }
+      EventService.sendLocally(Events.TowerDeselected, new Events.TowerDeselectedPayload());
+      this.isManuallyHidden = false;
+      this.slideTarget = 0;
+      this.isSlideAnimating = true;
+      this.hideOnSlideComplete = false;
+      this._switchToManageTab('prompt');
+      return;
+    }
 
     // If panel is hidden, show it in manage mode
     if (this.isManuallyHidden) {
@@ -688,6 +731,8 @@ export class TowerShopHud extends Component {
     if (this.uiComponent) this.uiComponent.isVisible = false;
     this.viewModel.selectedTowerId = '';
     this.viewModel.selectedCardIndex = -1;
+    this.viewModel.isPlacingTower = false;
+    this.viewModel.placingTowerName = '';
     for (const item of this.itemVMs) item.selected = false;
     this.scrollTarget = -CARD_EDGE_MARGIN;
     this.scrollCurrent = -CARD_EDGE_MARGIN;
@@ -718,6 +763,8 @@ export class TowerShopHud extends Component {
       console.log(`[TowerShopHud] Same card tapped again (${towerId}), deselecting`);
       this.viewModel.selectedTowerId = '';
       this.viewModel.selectedCardIndex = -1;
+      this.viewModel.isPlacingTower = false;
+      this.viewModel.placingTowerName = '';
       for (const item of this.itemVMs) {
         if (item.selected) item.selected = false;
       }
@@ -764,8 +811,17 @@ export class TowerShopHud extends Component {
     p.towerId = towerId;
     EventService.sendLocally(Events.TowerShopSelected, p);
 
-    // Slide-hide shop panel so the full grid is tappable during placement mode
-    this._slideHide();
+    // Show placement label
+    const def = TowerService.get().find(towerId);
+    if (this.viewModel && def) {
+      this.viewModel.placingTowerName = def.name;
+      this.viewModel.isPlacingTower = true;
+    }
+
+    // Slide panel to partial-hide (tab still visible/tappable) during placement mode
+    this.slideTarget = MANUAL_HIDE_SLIDE_DISTANCE;
+    this.isSlideAnimating = true;
+    this.hideOnSlideComplete = false;
   }
 
   @subscribe(tabToggleEvent, { execution: ExecuteOn.Owner })
@@ -794,6 +850,8 @@ export class TowerShopHud extends Component {
     this._slideShow();
     this.viewModel.selectedTowerId = '';
     this.viewModel.selectedCardIndex = -1;
+    this.viewModel.isPlacingTower = false;
+    this.viewModel.placingTowerName = '';
     for (const item of this.itemVMs) {
       if (item.selected) item.selected = false;
     }
@@ -1146,6 +1204,13 @@ export class TowerShopHud extends Component {
   }
 
   private _handleDragTap(cardIndex: number): void {
+    // Guard: ignore drag-taps while panel is animating back into view (slideTarget 0 = showing)
+    // This prevents the DragSlider from parasitically re-selecting a tower card
+    // when the cancel button is tapped (both receive the same touch event)
+    if (this.isSlideAnimating && this.slideTarget < this.slideCurrent) {
+      console.log('[TowerShopHud] Drag-tap ignored — panel is sliding into view');
+      return;
+    }
     if (cardIndex < 0 || cardIndex >= this.itemVMs.length) return;
     const towerId = this.itemVMs[cardIndex].towerId;
     console.log(`[TowerShopHud] Drag-tap detected on card index=${cardIndex}, towerId=${towerId}`);
@@ -1163,6 +1228,8 @@ export class TowerShopHud extends Component {
       console.log(`[TowerShopHud] Drag-tap same card (${towerId}), deselecting`);
       this.viewModel.selectedTowerId = '';
       this.viewModel.selectedCardIndex = -1;
+      this.viewModel.isPlacingTower = false;
+      this.viewModel.placingTowerName = '';
       for (const item of this.itemVMs) {
         if (item.selected) item.selected = false;
       }
@@ -1202,7 +1269,16 @@ export class TowerShopHud extends Component {
     p.towerId = towerId;
     EventService.sendLocally(Events.TowerShopSelected, p);
 
-    if (this.viewModel) this.viewModel.visible = false;
-    this._slideHide();
+    // Show placement label
+    const dragDef = TowerService.get().find(towerId);
+    if (this.viewModel && dragDef) {
+      this.viewModel.placingTowerName = dragDef.name;
+      this.viewModel.isPlacingTower = true;
+    }
+
+    // Slide panel to partial-hide (tab still visible/tappable) during placement mode
+    this.slideTarget = MANUAL_HIDE_SLIDE_DISTANCE;
+    this.isSlideAnimating = true;
+    this.hideOnSlideComplete = false;
   }
 }

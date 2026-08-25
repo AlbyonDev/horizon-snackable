@@ -33,19 +33,16 @@
         <!-- Tower Card Item Template -->
         <DataTemplate x:Key="TowerCardTemplate">
             <DataTemplate.Resources>
-                <!-- Select Animation Storyboard -->
+                <!-- Select Animation Storyboard (scale-down pulse, no translate) -->
                 <Storyboard x:Key="SelectAnimation">
-                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardTranslate"
-                                                    Storyboard.TargetProperty="Y">
-                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="-50">
+                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
+                                                    Storyboard.TargetProperty="ScaleX">
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.1" Value="0.95">
                             <EasingDoubleKeyFrame.EasingFunction>
                                 <QuadraticEase EasingMode="EaseOut"/>
                             </EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
-                    </DoubleAnimationUsingKeyFrames>
-                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
-                                                    Storyboard.TargetProperty="ScaleX">
-                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.2">
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.25" Value="1.0">
                             <EasingDoubleKeyFrame.EasingFunction>
                                 <QuadraticEase EasingMode="EaseOut"/>
                             </EasingDoubleKeyFrame.EasingFunction>
@@ -53,7 +50,12 @@
                     </DoubleAnimationUsingKeyFrames>
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
                                                     Storyboard.TargetProperty="ScaleY">
-                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.2">
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.1" Value="0.95">
+                            <EasingDoubleKeyFrame.EasingFunction>
+                                <QuadraticEase EasingMode="EaseOut"/>
+                            </EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.25" Value="1.0">
                             <EasingDoubleKeyFrame.EasingFunction>
                                 <QuadraticEase EasingMode="EaseOut"/>
                             </EasingDoubleKeyFrame.EasingFunction>
@@ -61,19 +63,11 @@
                     </DoubleAnimationUsingKeyFrames>
                 </Storyboard>
 
-                <!-- Deselect Animation Storyboard -->
+                <!-- Deselect Animation Storyboard (reset scale, no translate) -->
                 <Storyboard x:Key="DeselectAnimation">
-                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardTranslate"
-                                                    Storyboard.TargetProperty="Y">
-                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="0">
-                            <EasingDoubleKeyFrame.EasingFunction>
-                                <QuadraticEase EasingMode="EaseOut"/>
-                            </EasingDoubleKeyFrame.EasingFunction>
-                        </EasingDoubleKeyFrame>
-                    </DoubleAnimationUsingKeyFrames>
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
                                                     Storyboard.TargetProperty="ScaleX">
-                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.0">
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.15" Value="1.0">
                             <EasingDoubleKeyFrame.EasingFunction>
                                 <QuadraticEase EasingMode="EaseOut"/>
                             </EasingDoubleKeyFrame.EasingFunction>
@@ -81,7 +75,7 @@
                     </DoubleAnimationUsingKeyFrames>
                     <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
                                                     Storyboard.TargetProperty="ScaleY">
-                        <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.0">
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.15" Value="1.0">
                             <EasingDoubleKeyFrame.EasingFunction>
                                 <QuadraticEase EasingMode="EaseOut"/>
                             </EasingDoubleKeyFrame.EasingFunction>
@@ -117,6 +111,28 @@
                             <EasingDoubleKeyFrame.EasingFunction>
                                 <SineEase EasingMode="EaseInOut"/>
                             </EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                    </DoubleAnimationUsingKeyFrames>
+                </Storyboard>
+
+                <!-- Press Animation (instant tactile feedback on MouseLeftButtonDown) -->
+                <Storyboard x:Key="PressAnimation">
+                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
+                                                    Storyboard.TargetProperty="ScaleX">
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
+                            <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                            <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                    </DoubleAnimationUsingKeyFrames>
+                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="CardScale"
+                                                    Storyboard.TargetProperty="ScaleY">
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.08" Value="0.90">
+                            <EasingDoubleKeyFrame.EasingFunction><PowerEase EasingMode="EaseOut" Power="2"/></EasingDoubleKeyFrame.EasingFunction>
+                        </EasingDoubleKeyFrame>
+                        <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                            <EasingDoubleKeyFrame.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="1" Springiness="4"/></EasingDoubleKeyFrame.EasingFunction>
                         </EasingDoubleKeyFrame>
                     </DoubleAnimationUsingKeyFrames>
                 </Storyboard>
@@ -177,6 +193,9 @@
                         <ScaleTransform x:Name="BreathScale" ScaleX="1.0" ScaleY="1.0"/>
                     </Grid.RenderTransform>
                     <b:Interaction.Triggers>
+                        <b:EventTrigger EventName="MouseLeftButtonDown">
+                            <b:ControlStoryboardAction Storyboard="{StaticResource PressAnimation}"/>
+                        </b:EventTrigger>
                         <b:EventTrigger EventName="MouseLeftButtonUp">
                             <b:InvokeCommandAction Command="{Binding DataContext.events.towerTap, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                    CommandParameter="{Binding towerId}"/>
@@ -317,6 +336,9 @@
             </DataTemplate.Triggers>
         </DataTemplate>
     </Page.Resources>
+
+    <!-- Outer wrapper: holds both the sliding shop panel and the cancel button -->
+    <Grid VerticalAlignment="Bottom" Height="1920">
 
     <!-- Main Layout - Full width bar at bottom with slide animation -->
     <Grid ClipToBounds="False" VerticalAlignment="Bottom" Height="1200">
@@ -802,6 +824,16 @@
             </Grid>
         </Grid>
 
+        <!-- ========== PLACEMENT MODE TOWER NAME LABEL ========== -->
+        <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="40,0,0,770"
+              Visibility="{Binding isPlacingTower, Converter={StaticResource BoolToVisConverter}}">
+            <TextBlock Text="{Binding placingTowerName}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="64" Margin="-2,0,0,0" IsHitTestVisible="False"/>
+            <TextBlock Text="{Binding placingTowerName}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="64" Margin="2,0,0,0" IsHitTestVisible="False"/>
+            <TextBlock Text="{Binding placingTowerName}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="64" Margin="0,-2,0,0" IsHitTestVisible="False"/>
+            <TextBlock Text="{Binding placingTowerName}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="64" Margin="0,2,0,0" IsHitTestVisible="False"/>
+            <TextBlock Text="{Binding placingTowerName}" FontWeight="Bold" FontFamily="Anton" FontSize="64" Foreground="#FFF5E6C8" IsHitTestVisible="False"/>
+        </Grid>
+
         <!-- ========== TABS ROW ========== -->
         <!-- TOWERS Tab -->
         <Border x:Name="TowersTab" VerticalAlignment="Bottom" HorizontalAlignment="Left"
@@ -862,5 +894,7 @@
                         Visibility="{Binding towersTabActive, Converter={StaticResource BoolToVisConverter}}"/>
             </Grid>
         </Border>
+    </Grid>
+
     </Grid>
 </Page>
