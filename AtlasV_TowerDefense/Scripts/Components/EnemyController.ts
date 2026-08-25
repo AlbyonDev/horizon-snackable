@@ -86,6 +86,7 @@ export class EnemyController extends Component {
   private _lastCheckedCol: number = -1;
   private _lastCheckedRow: number = -1;
 
+
   // Shield mechanic
   private _shieldTimer: number = 0;
   private _shieldActive: boolean = false;
@@ -148,6 +149,7 @@ export class EnemyController extends Component {
     const startPos = PathService.get().getWorldPositionInSubPath(0, 0);
     this._transform.worldPosition = startPos;
     this._enemyId = EnemyService.get().register(this.entity, this._defId, this._hp, startPos.x, startPos.z);
+
 
     // Straight-line mode (followPath: false or legacy straightLine: true)
     this._straightLine = def.followPath === false || (def.straightLine ?? false);
@@ -304,6 +306,7 @@ export class EnemyController extends Component {
 
     const dt = p.deltaTime;
 
+
     // Shield countdown + flicker during last 2 seconds
     if (this._shieldActive) {
       this._shieldTimer -= dt;
@@ -336,7 +339,7 @@ export class EnemyController extends Component {
       const pos = this._transform.worldPosition;
       // Move along -X axis (toward base, which is lower X)
       const newX = pos.x - moveAmount;
-      this._transform.worldPosition = new Vec3(newX, pos.y, pos.z);
+      this._transform.worldPosition = new Vec3(newX, 0, pos.z);
 
       // Check grid cell for tower destruction
       const col = Math.round((pos.z - GRID_ORIGIN_Z) / CELL_HEIGHT);
@@ -358,14 +361,14 @@ export class EnemyController extends Component {
       EnemyService.get().update(this._enemyId, newX, pos.z, 0, this._hp);
 
       // Face toward -X (forward movement direction)
-      const ahead = new Vec3(newX - 1, pos.y, pos.z);
+      const ahead = new Vec3(newX - 1, 0, pos.z);
       this._transform.lookAt(ahead, Vec3.up);
 
       // Update shield sphere position
       if (this._shieldEntity) {
         const shieldTransform = this._shieldEntity.getComponent(TransformComponent);
         if (shieldTransform) {
-          shieldTransform.worldPosition = new Vec3(newX, pos.y, pos.z);
+          shieldTransform.worldPosition = new Vec3(newX, 0, pos.z);
         }
       }
 

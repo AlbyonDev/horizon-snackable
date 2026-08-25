@@ -97,11 +97,11 @@ const COLOR_TEXT_LOCKED = '#44AAAAAA';
 const COLOR_ICON_LOCKED = '#44777788';
 const COLOR_COST_LOCKED = '#44777788';
 
-// BOUGHT — solid gray, desaturated (clearly "done/grayed out" but fully visible)
-const COLOR_BORDER_BOUGHT = '#FF888888';
-const COLOR_TEXT_BOUGHT = '#FF666666';
-const COLOR_ICON_BOUGHT = '#FF777777';
-const COLOR_COST_BOUGHT = '#FF666666';
+// BOUGHT — heavily dimmed/desaturated (clearly spent/inactive, full opacity)
+const COLOR_BORDER_BOUGHT = '#FF2A2A2A';
+const COLOR_TEXT_BOUGHT = '#FF222222';
+const COLOR_ICON_BOUGHT = '#FF2A2A2A';
+const COLOR_COST_BOUGHT = '#FF222222';
 
 // UNAFFORDABLE — prereqs met but not enough skulls (cost shown in red)
 const COLOR_COST_UNAFFORDABLE = '#FFFF3333';
@@ -120,20 +120,20 @@ const COLOR_ROOT_BORDER_BUYABLE = '#FFf5c518';
 const COLOR_ROOT_RUNE_BUYABLE = '#FFf5c518';
 const COLOR_ROOT_BORDER_LOCKED = '#44777788';
 const COLOR_ROOT_RUNE_LOCKED = '#33f5c518';
-const COLOR_ROOT_BORDER_BOUGHT = '#FF888888';
-const COLOR_ROOT_RUNE_BOUGHT = '#FF777777';
+const COLOR_ROOT_BORDER_BOUGHT = '#FF2A2A2A';
+const COLOR_ROOT_RUNE_BOUGHT = '#FF2A2A2A';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 
 const CANVAS_WIDTH = 1080;
-const CANVAS_HEIGHT = 3090; // 10 tiers at 270px spacing + root/header/padding
+const CANVAS_HEIGHT = 3790; // 10 tiers at 270px spacing + root/header/padding + 350 top/bottom scroll padding
 
 const NODE_HALF_W = 150;
 const NODE_HALF_H = 65;
 
 // Tier vertical spacing
-const ROOT_Y = 30;
-const TIER_START_Y = 410;
+const ROOT_Y = 380;
+const TIER_START_Y = 760;
 const TIER_SPACING = 270;
 
 // Branch X positions (War=left, Fortify=center, Fortune=right)
@@ -183,9 +183,9 @@ function computeNodePositions(): [number, number][] {
 const NODE_POSITIONS: readonly [number, number][] = computeNodePositions();
 
 // Branch header positions
-const WAR_HEADER: [number, number] = [120, 270];
-const FORTIFY_HEADER: [number, number] = [440, 300];
-const FORTUNE_HEADER: [number, number] = [760, 270];
+const WAR_HEADER: [number, number] = [120, 620];
+const FORTIFY_HEADER: [number, number] = [440, 650];
+const FORTUNE_HEADER: [number, number] = [760, 620];
 
 // ── Connection rendering ─────────────────────────────────────────────────────
 
@@ -273,6 +273,9 @@ export class SkillTreeViewModel extends UiViewModel {
   skullCount: number = 0;
   canvasHeight: number = CANVAS_HEIGHT;
   debugVisible: boolean = false;
+
+  // Scroll indicator arrow
+  scrollArrowVisible: boolean = true;
 
   // Popup state
   popupVisible: boolean = false;
@@ -603,21 +606,37 @@ export class SkillTreeViewModel extends UiViewModel {
   node39Text: string = COLOR_TEXT_LOCKED; node39Label: string = getNodeLabel(39);
   node39Cost: string = `${getNodeCost(39)}`; node39CostVisible: boolean = false; node39CostColor: string = COLOR_COST_LOCKED;
 
-  // Per-node icon opacity 0.05 when bought/grayed, 1.0 otherwise)
-  node0IconOpacity: number = 1; node1IconOpacity: number = 1; node2IconOpacity: number = 1;
-  node3IconOpacity: number = 1; node4IconOpacity: number = 1; node5IconOpacity: number = 1;
-  node6IconOpacity: number = 1; node7IconOpacity: number = 1; node8IconOpacity: number = 1;
-  node9IconOpacity: number = 1; node10IconOpacity: number = 1; node11IconOpacity: number = 1;
-  node12IconOpacity: number = 1; node13IconOpacity: number = 1; node14IconOpacity: number = 1;
-  node15IconOpacity: number = 1; node16IconOpacity: number = 1; node17IconOpacity: number = 1;
-  node18IconOpacity: number = 1; node19IconOpacity: number = 1; node20IconOpacity: number = 1;
-  node21IconOpacity: number = 1; node22IconOpacity: number = 1; node23IconOpacity: number = 1;
-  node24IconOpacity: number = 1; node25IconOpacity: number = 1; node26IconOpacity: number = 1;
-  node27IconOpacity: number = 1; node28IconOpacity: number = 1; node29IconOpacity: number = 1;
-  node30IconOpacity: number = 1; node31IconOpacity: number = 1; node32IconOpacity: number = 1;
-  node33IconOpacity: number = 1; node34IconOpacity: number = 1; node35IconOpacity: number = 1;
-  node36IconOpacity: number = 1; node37IconOpacity: number = 1; node38IconOpacity: number = 1;
-  node39IconOpacity: number = 1;
+  // Per-node gray overlay opacity (0.88 when bought/grayed out, 0 otherwise — fully opaque node with dark overlay)
+  node0IconOpacity: number = 0; node1IconOpacity: number = 0; node2IconOpacity: number = 0;
+  node3IconOpacity: number = 0; node4IconOpacity: number = 0; node5IconOpacity: number = 0;
+  node6IconOpacity: number = 0; node7IconOpacity: number = 0; node8IconOpacity: number = 0;
+  node9IconOpacity: number = 0; node10IconOpacity: number = 0; node11IconOpacity: number = 0;
+  node12IconOpacity: number = 0; node13IconOpacity: number = 0; node14IconOpacity: number = 0;
+  node15IconOpacity: number = 0; node16IconOpacity: number = 0; node17IconOpacity: number = 0;
+  node18IconOpacity: number = 0; node19IconOpacity: number = 0; node20IconOpacity: number = 0;
+  node21IconOpacity: number = 0; node22IconOpacity: number = 0; node23IconOpacity: number = 0;
+  node24IconOpacity: number = 0; node25IconOpacity: number = 0; node26IconOpacity: number = 0;
+  node27IconOpacity: number = 0; node28IconOpacity: number = 0; node29IconOpacity: number = 0;
+  node30IconOpacity: number = 0; node31IconOpacity: number = 0; node32IconOpacity: number = 0;
+  node33IconOpacity: number = 0; node34IconOpacity: number = 0; node35IconOpacity: number = 0;
+  node36IconOpacity: number = 0; node37IconOpacity: number = 0; node38IconOpacity: number = 0;
+  node39IconOpacity: number = 0;
+
+  // Per-node scale (0.8 when bought, 1.0 otherwise)
+  node0Scale: number = 1; node1Scale: number = 1; node2Scale: number = 1;
+  node3Scale: number = 1; node4Scale: number = 1; node5Scale: number = 1;
+  node6Scale: number = 1; node7Scale: number = 1; node8Scale: number = 1;
+  node9Scale: number = 1; node10Scale: number = 1; node11Scale: number = 1;
+  node12Scale: number = 1; node13Scale: number = 1; node14Scale: number = 1;
+  node15Scale: number = 1; node16Scale: number = 1; node17Scale: number = 1;
+  node18Scale: number = 1; node19Scale: number = 1; node20Scale: number = 1;
+  node21Scale: number = 1; node22Scale: number = 1; node23Scale: number = 1;
+  node24Scale: number = 1; node25Scale: number = 1; node26Scale: number = 1;
+  node27Scale: number = 1; node28Scale: number = 1; node29Scale: number = 1;
+  node30Scale: number = 1; node31Scale: number = 1; node32Scale: number = 1;
+  node33Scale: number = 1; node34Scale: number = 1; node35Scale: number = 1;
+  node36Scale: number = 1; node37Scale: number = 1; node38Scale: number = 1;
+  node39Scale: number = 1;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -652,6 +671,7 @@ export class SkillTreeHudController extends Component {
     if (!this.viewModel) return;
 
     this.viewModel.debugVisible = this.isDebug;
+    this.viewModel.scrollArrowVisible = true;
     this._refreshAllNodes();
     this.viewModel.visible = true;
     if (this.uiComponent) this.uiComponent.isVisible = true;
@@ -666,6 +686,11 @@ export class SkillTreeHudController extends Component {
 
     const skillIndex = parseInt(payload.parameter, 10);
     if (isNaN(skillIndex) || skillIndex < 0 || skillIndex >= TOTAL_SKILLS) return;
+
+    // Hide scroll arrow once user taps a node in the lower half of the tree
+    if (skillIndex >= 15 && this.viewModel.scrollArrowVisible) {
+      this.viewModel.scrollArrowVisible = false;
+    }
 
     const service = SkillTreeService.get();
     const node = SKILL_NODES.find(n => n.index === skillIndex);
@@ -834,7 +859,8 @@ export class SkillTreeHudController extends Component {
       this.viewModel.node0CostVisible = false;
       this.viewModel.node0CostColor = COLOR_COST_BUYABLE;
       this.viewModel.node0PulseVisible = false;
-      this.viewModel.node0IconOpacity = 0.05;
+      this.viewModel.node0IconOpacity = 0.88;
+      this.viewModel.node0Scale = 0.8;
     } else if (service.canPurchase(ROOT_SKILL_INDEX)) {
       this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_BUYABLE;
       this.viewModel.node0RuneColor = COLOR_ROOT_RUNE_BUYABLE;
@@ -844,7 +870,8 @@ export class SkillTreeHudController extends Component {
       this.viewModel.node0CostVisible = true;
       this.viewModel.node0CostColor = COLOR_COST_BUYABLE;
       this.viewModel.node0PulseVisible = true;
-      this.viewModel.node0IconOpacity = 1;
+      this.viewModel.node0IconOpacity = 0;
+      this.viewModel.node0Scale = 1;
     } else if (service.hasPrerequisitesMet(ROOT_SKILL_INDEX)) {
       // Root prereqs always met — this means can't afford
       this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_BUYABLE;
@@ -855,7 +882,8 @@ export class SkillTreeHudController extends Component {
       this.viewModel.node0CostVisible = true;
       this.viewModel.node0CostColor = COLOR_COST_UNAFFORDABLE;
       this.viewModel.node0PulseVisible = false;
-      this.viewModel.node0IconOpacity = 1;
+      this.viewModel.node0IconOpacity = 0;
+      this.viewModel.node0Scale = 1;
     } else {
       this.viewModel.node0BorderColor = COLOR_ROOT_BORDER_LOCKED;
       this.viewModel.node0RuneColor = COLOR_ROOT_RUNE_LOCKED;
@@ -865,7 +893,8 @@ export class SkillTreeHudController extends Component {
       this.viewModel.node0CostVisible = true;
       this.viewModel.node0CostColor = COLOR_COST_LOCKED;
       this.viewModel.node0PulseVisible = false;
-      this.viewModel.node0IconOpacity = 1;
+      this.viewModel.node0IconOpacity = 0;
+      this.viewModel.node0Scale = 1;
     }
   }
 
@@ -956,6 +985,8 @@ export class SkillTreeHudController extends Component {
     vm[`node${index}CostColor`] = costColor;
     vm[`node${index}PulseVisible`] = pulseVisible;
     // Infinite nodes keep full opacity even when owned
-    vm[`node${index}IconOpacity`] = (service.isUnlocked(index) && !isInfinite) ? 0.05 : 1;
+    vm[`node${index}IconOpacity`] = (service.isUnlocked(index) && !isInfinite) ? 0.88 : 0;
+    // Bought (non-infinite) nodes render at 80% scale
+    vm[`node${index}Scale`] = (service.isUnlocked(index) && !isInfinite) ? 0.8 : 1;
   }
 }

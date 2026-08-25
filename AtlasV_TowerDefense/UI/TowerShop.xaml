@@ -894,6 +894,30 @@
                         Visibility="{Binding towersTabActive, Converter={StaticResource BoolToVisConverter}}"/>
             </Grid>
         </Border>
+
+        <!-- TOGGLE (Hide/Show) Tab -->
+        <Border x:Name="ToggleTab" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                Height="130" Width="130" Margin="900,0,0,630"
+                CornerRadius="20,20,0,0" IsHitTestVisible="True">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <GradientStop Color="#FF3d2a14" Offset="0"/>
+                    <GradientStop Color="#FF2a1a0e" Offset="0.6"/>
+                    <GradientStop Color="#FF1a0a00" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <b:Interaction.Triggers>
+                <b:EventTrigger EventName="MouseLeftButtonUp">
+                    <b:InvokeCommandAction Command="{Binding events.tabToggle}"/>
+                </b:EventTrigger>
+            </b:Interaction.Triggers>
+            <Grid>
+                <Border BorderThickness="0,4,0,0" BorderBrush="{StaticResource GoldBrush}" CornerRadius="20,20,0,0"/>
+                <TextBlock Text="{Binding toggleArrowText}" FontFamily="Anton" FontSize="52" FontWeight="Bold"
+                           Foreground="#FFf5c518" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Margin="0,6,0,6"/>
+            </Grid>
+        </Border>
     </Grid>
 
     </Grid>

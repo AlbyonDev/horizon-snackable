@@ -222,6 +222,9 @@ export class TowerShopViewModel extends UiViewModel {
   placingTowerName: string = '';
   isPlacingTower: boolean = false;
 
+  // Toggle arrow tab text (▼ = expanded, ▲ = collapsed)
+  toggleArrowText: string = '▼';
+
 }
 
 // Scroll constants
@@ -440,6 +443,7 @@ export class TowerShopHud extends Component {
       }
       EventService.sendLocally(Events.TowerDeselected, new Events.TowerDeselectedPayload());
       this.isManuallyHidden = false;
+      this._syncToggleArrow();
       this.slideTarget = 0;
       this.isSlideAnimating = true;
       this.hideOnSlideComplete = false;
@@ -450,6 +454,7 @@ export class TowerShopHud extends Component {
     // If panel is hidden, show it in towers mode
     if (this.isManuallyHidden) {
       this.isManuallyHidden = false;
+      this._syncToggleArrow();
       this._switchToTowersTab();
       this.slideTarget = 0;
       this.isSlideAnimating = true;
@@ -462,6 +467,7 @@ export class TowerShopHud extends Component {
     if (this.viewModel.towersTabActive) {
       console.log('[TowerShopHud] Same tab tapped (TOWERS), hiding panel');
       this.isManuallyHidden = true;
+      this._syncToggleArrow();
       this.slideTarget = MANUAL_HIDE_SLIDE_DISTANCE;
       this.isSlideAnimating = true;
       this.hideOnSlideComplete = false;
@@ -492,6 +498,7 @@ export class TowerShopHud extends Component {
       }
       EventService.sendLocally(Events.TowerDeselected, new Events.TowerDeselectedPayload());
       this.isManuallyHidden = false;
+      this._syncToggleArrow();
       this.slideTarget = 0;
       this.isSlideAnimating = true;
       this.hideOnSlideComplete = false;
@@ -502,6 +509,7 @@ export class TowerShopHud extends Component {
     // If panel is hidden, show it in manage mode
     if (this.isManuallyHidden) {
       this.isManuallyHidden = false;
+      this._syncToggleArrow();
       this._switchToManageTab('prompt');
       this.slideTarget = 0;
       this.isSlideAnimating = true;
@@ -513,6 +521,7 @@ export class TowerShopHud extends Component {
     if (this.viewModel.manageTabActive) {
       console.log('[TowerShopHud] Same tab tapped (MANAGE), hiding panel');
       this.isManuallyHidden = true;
+      this._syncToggleArrow();
       this.slideTarget = MANUAL_HIDE_SLIDE_DISTANCE;
       this.isSlideAnimating = true;
       this.hideOnSlideComplete = false;
@@ -822,6 +831,8 @@ export class TowerShopHud extends Component {
     this.slideTarget = MANUAL_HIDE_SLIDE_DISTANCE;
     this.isSlideAnimating = true;
     this.hideOnSlideComplete = false;
+    // Sync arrow to reflect panel is hidden
+    if (this.viewModel) this.viewModel.toggleArrowText = '▲';
   }
 
   @subscribe(tabToggleEvent, { execution: ExecuteOn.Owner })
@@ -829,7 +840,27 @@ export class TowerShopHud extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
 
+    // If in placement mode, cancel placement and bring panel back up
+    if (this.viewModel.selectedTowerId !== '') {
+      console.log('[TowerShopHud] Tab toggled during placement mode — cancelling placement');
+      this.viewModel.selectedTowerId = '';
+      this.viewModel.selectedCardIndex = -1;
+      this.viewModel.isPlacingTower = false;
+      this.viewModel.placingTowerName = '';
+      for (const item of this.itemVMs) {
+        if (item.selected) item.selected = false;
+      }
+      EventService.sendLocally(Events.TowerDeselected, new Events.TowerDeselectedPayload());
+      this.isManuallyHidden = false;
+      this._syncToggleArrow();
+      this.slideTarget = 0;
+      this.isSlideAnimating = true;
+      this.hideOnSlideComplete = false;
+      return;
+    }
+
     this.isManuallyHidden = !this.isManuallyHidden;
+    this._syncToggleArrow();
     console.log(`[TowerShopHud] Tab toggled, isManuallyHidden=${this.isManuallyHidden}`);
 
     if (this.isManuallyHidden) {
@@ -847,6 +878,9 @@ export class TowerShopHud extends Component {
   onTowerPlaced(_payload: Events.TowerPlacedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this.viewModel) return;
+    // Ensure panel comes back fully visible after placement
+    this.isManuallyHidden = false;
+    this._syncToggleArrow();
     this._slideShow();
     this.viewModel.selectedTowerId = '';
     this.viewModel.selectedCardIndex = -1;
@@ -1203,6 +1237,11 @@ export class TowerShopHud extends Component {
     this.hideOnSlideComplete = false;
   }
 
+  private _syncToggleArrow(): void {
+    if (!this.viewModel) return;
+    this.viewModel.toggleArrowText = this.isManuallyHidden ? '▲' : '▼';
+  }
+
   private _handleDragTap(cardIndex: number): void {
     // Guard: ignore drag-taps while panel is animating back into view (slideTarget 0 = showing)
     // This prevents the DragSlider from parasitically re-selecting a tower card
@@ -1280,5 +1319,7 @@ export class TowerShopHud extends Component {
     this.slideTarget = MANUAL_HIDE_SLIDE_DISTANCE;
     this.isSlideAnimating = true;
     this.hideOnSlideComplete = false;
+    // Sync arrow to reflect panel is hidden
+    if (this.viewModel) this.viewModel.toggleArrowText = '▲';
   }
 }
