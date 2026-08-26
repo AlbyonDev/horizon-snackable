@@ -13,7 +13,7 @@ import { Assets } from '../Assets';
 export const ENEMY_DEFS: IEnemyDef[] = [
   { id: 'basic', name: 'Basic', hp: 70,  speed: 1.25, reward: 5,  color: { r: 0.94, g: 0.27, b: 0.27 }, template: Assets.EnemyBasic, shield: 0, followPath: true },
   { id: 'fast',  name: 'Fast',  hp: 55,  speed: 2.50, reward: 8,  color: { r: 0.98, g: 0.80, b: 0.08 }, template: Assets.EnemyFast,  dodgeChance: 0.15, shield: 0, followPath: true },
-  { id: 'shaman', name: 'Shaman', hp: 55, speed: 1.75, reward: 7, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyShaman, shield: 4, followPath: true },
+  { id: 'shaman', name: 'Shaman', hp: 55, speed: 1.75, reward: 7, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyShaman, shield: 7, followPath: true },
   { id: 'frostGoblin', name: 'Frost Goblin', hp: 66, speed: 1.25, reward: 5, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyFrostGoblin, biomeExclusive: 'snow', shield: 0, followPath: true },
   { id: 'fireGoblin', name: 'Fire Goblin', hp: 90, speed: 0.5, reward: 7, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyFireGoblin, biomeExclusive: 'volcano', shield: 0, followPath: true },
   { id: 'tank',  name: 'Tank',  hp: 300, speed: 0.75, reward: 15, color: { r: 0.23, g: 0.51, b: 0.96 }, template: Assets.EnemyTank,  regenPerSec: 8, shield: 0, followPath: true },

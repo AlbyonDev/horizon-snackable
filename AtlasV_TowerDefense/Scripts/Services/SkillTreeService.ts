@@ -20,33 +20,12 @@ import {
   TOTAL_SKILLS,
   ROOT_SKILL_INDEX,
   INFINITE_SKILL_NODES,
+  SkillTag,
   getNodeDef,
   getPrerequisites,
+  getIndexForTag,
+  getNodeByTag,
 } from '../Defs/SkillTreeDefs';
-
-/** Skill node index that unlocks the Laser tower in the shop. */
-export const LASER_UNLOCK_NODE_INDEX = 8;
-
-/** Skill node index that unlocks the Snow biome. */
-export const SNOW_UNLOCK_NODE_INDEX = 15;
-
-/** Skill node index that unlocks the Volcano biome. */
-export const VOLCANO_UNLOCK_NODE_INDEX = 20;
-
-/** Skill node index that unlocks the Fire Cannon tower for all biomes. */
-export const FIRE_CANNON_UNLOCK_NODE_INDEX = 16;
-
-/** Skill node index that unlocks the Frost tower for all biomes. */
-export const FROST_UNLOCK_NODE_INDEX = 19;
-
-/** Skill node index that unlocks the Poison tower. */
-export const POISON_UNLOCK_NODE_INDEX = 10;
-
-/** Skill node index that unlocks the Lightning tower. */
-export const LIGHTNING_UNLOCK_NODE_INDEX = 18;
-
-/** Skill node index that unlocks the Pillar tower. */
-export const PILLAR_UNLOCK_NODE_INDEX = 9;
 import type { ISkillNodeDef } from '../Defs/SkillTreeDefs';
 import { Events } from '../Types';
 import { SaveService } from './SaveService';
@@ -125,44 +104,44 @@ export class SkillTreeService extends Service {
     return this._unlocked.has(ROOT_SKILL_INDEX);
   }
 
-  /** Check if the Laser tower has been unlocked via the skill tree (node index 8). */
+  /** Check if the Laser tower has been unlocked via the skill tree. */
   isLaserUnlocked(): boolean {
-    return this._unlocked.has(LASER_UNLOCK_NODE_INDEX);
+    return this._hasTag(SkillTag.UnlockLaser);
   }
 
-  /** Check if the Snow biome has been unlocked via the skill tree (node index 14). */
+  /** Check if the Snow biome has been unlocked via the skill tree. */
   isSnowUnlocked(): boolean {
-    return this._unlocked.has(SNOW_UNLOCK_NODE_INDEX);
+    return this._hasTag(SkillTag.UnlockSnowBiome);
   }
 
-  /** Check if the Volcano biome has been unlocked via the skill tree (node index 20). */
+  /** Check if the Volcano biome has been unlocked via the skill tree. */
   isVolcanoUnlocked(): boolean {
-    return this._unlocked.has(VOLCANO_UNLOCK_NODE_INDEX);
+    return this._hasTag(SkillTag.UnlockVolcanoBiome);
   }
 
-  /** Check if the Fire Cannon tower has been unlocked for all biomes (node index 17). */
+  /** Check if the Fire Cannon tower has been unlocked for all biomes. */
   isFireCannonUnlocked(): boolean {
-    return this._unlocked.has(FIRE_CANNON_UNLOCK_NODE_INDEX);
+    return this._hasTag(SkillTag.UnlockFireCannon);
   }
 
-  /** Check if the Frost tower has been unlocked for all biomes (node index 19). */
+  /** Check if the Frost tower has been unlocked for all biomes. */
   isFrostUnlocked(): boolean {
-    return this._unlocked.has(FROST_UNLOCK_NODE_INDEX);
+    return this._hasTag(SkillTag.UnlockFrost);
   }
 
-  /** Check if the Poison tower has been unlocked via the skill tree (node index 10). */
+  /** Check if the Poison tower has been unlocked via the skill tree. */
   isPoisonUnlocked(): boolean {
-    return this._unlocked.has(POISON_UNLOCK_NODE_INDEX);
+    return this._hasTag(SkillTag.UnlockPoison);
   }
 
-  /** Check if the Lightning tower has been unlocked via the skill tree (node index 18). */
+  /** Check if the Lightning tower has been unlocked via the skill tree. */
   isLightningUnlocked(): boolean {
-    return this._unlocked.has(LIGHTNING_UNLOCK_NODE_INDEX);
+    return this._hasTag(SkillTag.UnlockLightning);
   }
 
-  /** Check if the Pillar tower has been unlocked via the skill tree (node index 8). */
+  /** Check if the Pillar tower has been unlocked via the skill tree. */
   isPillarUnlocked(): boolean {
-    return this._unlocked.has(PILLAR_UNLOCK_NODE_INDEX);
+    return this._hasTag(SkillTag.UnlockPillar);
   }
 
   /**
@@ -245,31 +224,19 @@ export class SkillTreeService extends Service {
   // Each getter accumulates bonuses from ALL relevant unlocked nodes in a branch.
   // Multiple tiers of the same bonus type stack additively.
 
-  /** War branch: total bonus damage multiplier (stacks: T1 +10%, T5 +20%, T9 +30%). */
+  /** War branch: total bonus damage multiplier (stacks DamageT1/T2/T3; T3 is infinite). */
   getDamageMultiplier(): number {
-    let bonus = 0;
-    if (this._unlocked.has(1)) bonus += 0.05;
-    if (this._unlocked.has(13)) bonus += 0.20;
-    // Node 25 is infinite: stacks per purchase count
-    if (this._unlocked.has(25)) bonus += 0.05 * Math.max(1, this._infiniteCounts.get(25) ?? 1);
-    return 1.0 + bonus;
+    return 1.0 + this._tagBonus(SkillTag.DamageT1) + this._tagBonus(SkillTag.DamageT2) + this._tagBonus(SkillTag.DamageT3);
   }
 
-  /** War branch: total fire rate multiplier (stacks: T2 +15%, T6 +25%, T10 +35%). */
+  /** War branch: total fire rate multiplier (stacks FireRateT1/T2; T2 is infinite). */
   getFireRateMultiplier(): number {
-    let bonus = 0;
-    if (this._unlocked.has(4)) bonus += 0.15;
-    if (this._unlocked.has(17)) bonus += 0.25;
-    // Node 28 is infinite: stacks per purchase count
-    if (this._unlocked.has(28)) bonus += 0.35 * Math.max(1, this._infiniteCounts.get(28) ?? 1);
-    return 1.0 + bonus;
+    return 1.0 + this._tagBonus(SkillTag.FireRateT1) + this._tagBonus(SkillTag.FireRateT2);
   }
 
-  /** War branch: total crit chance bonus (stacks: T3 +25%). */
+  /** War branch: total crit chance bonus. */
   getCritChanceBonus(): number {
-    let bonus = 0;
-    if (this._unlocked.has(7)) bonus += 0.25;
-    return bonus;
+    return this._tagBonus(SkillTag.CritChanceT1);
   }
 
   /** War branch: crit damage multiplier (no longer has dedicated nodes after tree rework). */
@@ -277,147 +244,115 @@ export class SkillTreeService extends Service {
     return 1.0;
   }
 
-  /** War branch: total splash radius bonus (stacks: T8 +30%). */
+  /** War branch: total splash radius bonus. */
   getSplashRadiusMultiplier(): number {
-    let bonus = 0;
-    if (this._unlocked.has(22)) bonus += 0.30;
-    return 1.0 + bonus;
+    return 1.0 + this._tagBonus(SkillTag.SplashRadiusT1);
   }
 
   /** Fortify T1: +2 starting lives */
   getBonusLivesTier1(): number {
-    return this._unlocked.has(2) ? 2 : 0;
+    return this._tagBonus(SkillTag.LivesT1);
   }
 
-  /** Fortify branch: tower range multiplier (stacks: T2 +5%, T10 +40%). */
+  /** Fortify branch: tower range multiplier (stacks RangeT1/T2). */
   getRangeMultiplier(): number {
-    let bonus = 0;
-    if (this._unlocked.has(5)) bonus += 0.05;
-    if (this._unlocked.has(29)) bonus += 0.40;
-    return 1.0 + bonus;
-  }
-
-  /** Fortify T3: +5 starting lives */
-  getBonusLivesTier3(): number {
-    return this._unlocked.has(8) ? 5 : 0;
+    return 1.0 + this._tagBonus(SkillTag.RangeT1) + this._tagBonus(SkillTag.RangeT2);
   }
 
   /** Total bonus lives from skill tree (all fortify life nodes). */
   getTotalBonusLives(): number {
-    let lives = 0;
-    if (this._unlocked.has(2)) lives += 2;   // T1
-    if (this._unlocked.has(8)) lives += 5;   // T3
-    return lives;
+    return this._tagBonus(SkillTag.LivesT1) + this._tagBonus(SkillTag.LivesT2);
   }
 
-  /** Fortify branch: slow duration bonus (stacks: T4 +15%, T8 +25%). */
+  /** Fortify branch: slow duration bonus (stacks SlowDurationT1/T2). */
   getSlowDurationMultiplier(): number {
-    let bonus = 0;
-    if (this._unlocked.has(11)) bonus += 0.15;
-    if (this._unlocked.has(23)) bonus += 0.25;
-    return 1.0 + bonus;
+    return 1.0 + this._tagBonus(SkillTag.SlowDurationT1) + this._tagBonus(SkillTag.SlowDurationT2);
   }
 
-  /** Fortify branch: tower HP bonus (stacks: T9 +40%). */
+  /** Fortify branch: tower HP bonus. */
   getTowerHpMultiplier(): number {
-    let bonus = 0;
-    if (this._unlocked.has(26)) bonus += 0.40;
-    return 1.0 + bonus;
+    return 1.0 + this._tagBonus(SkillTag.TowerHpT1);
   }
 
-  /** Fortune T1: +30 starting gold → flat bonus. */
+  /** Fortune branch: starting gold flat bonus (stacks StartingGoldT1/T2/T3). */
   getStartingGoldBonus(): number {
-    let bonus = 0;
-    if (this._unlocked.has(3)) bonus += 10;
-    if (this._unlocked.has(14)) bonus += 30;
-    if (this._unlocked.has(27)) bonus += 50;
-    return bonus;
+    return this._tagBonus(SkillTag.StartingGoldT1) + this._tagBonus(SkillTag.StartingGoldT2) + this._tagBonus(SkillTag.StartingGoldT3);
   }
 
-  /** Fortune branch: wave bonus gold multiplier (stacks: T2 +25%, T10 +60%). */
+  /** Fortune branch: wave bonus gold multiplier — disabled, no dedicated node. */
   getWaveBonusGoldMultiplier(): number {
-    let bonus = 0;
-    //if (this._unlocked.has(30)) bonus += 0.60;
-    return 1.0 + bonus;
+    return 1.0;
   }
 
-  /** Fortune branch: sell refund bonus (stacks: T7 +75%). */
+  /** Fortune branch: sell refund bonus (stacks SellRefundT1/T2). */
   getSellRefundBonus(): number {
-    let bonus = 0;
-    if (this._unlocked.has(6)) bonus += 0.25;
-    if (this._unlocked.has(21)) bonus += 0.75;
-    return bonus;
+    return this._tagBonus(SkillTag.SellRefundT1) + this._tagBonus(SkillTag.SellRefundT2);
   }
 
-  /** Fortune branch: interest rate bonus (stacks: T4 +20%, T8 +35%). */
+  /** Fortune branch: interest rate bonus. */
   getInterestRateBonus(): number {
-    let bonus = 0;
-    if (this._unlocked.has(12)) bonus += 0.20;
-    // Node 24 is infinite: stacks per purchase count
-    return bonus;
+    return this._tagBonus(SkillTag.InterestRateT1);
   }
 
   // ── NEW Bonus Getters (higher-tier secondary effects) ─────────────────────
 
-  /** War branch: projectile speed multiplier (secondary on fire rate nodes). */
+  /** War branch: projectile speed multiplier (secondary on the fire rate nodes). */
   getProjectileSpeedMultiplier(): number {
-    let bonus = 0;
-    if (this._unlocked.has(4)) bonus += 0.10;   // T2 fire rate node
-    if (this._unlocked.has(17)) bonus += 0.15;  // T6 fire rate node
-    // Node 28 is infinite: stacks per purchase count
-    if (this._unlocked.has(28)) bonus += 0.05 * Math.max(1, this._infiniteCounts.get(28) ?? 1);
-    return 1.0 + bonus;
+    return 1.0 + this._tagSecondaryBonus(SkillTag.FireRateT1) + this._tagSecondaryBonus(SkillTag.FireRateT2);
   }
 
-  /** War branch: crit multiplier escalation (secondary on damage nodes). */
+  /** War branch: crit multiplier escalation — disabled, no dedicated secondary. */
   getCritMultiplierBonus(): number {
-    let bonus = 0;
-    //if (this._unlocked.has(25)) bonus += 0.05 * Math.max(1, this._infiniteCounts.get(25) ?? 1);
-    return 1.0 + bonus;
+    return 1.0;
   }
 
-  /** Fortify branch: slow factor bonus — increases the magnitude of slow applied. */
+  /** Fortify branch: slow factor bonus — increases the magnitude of slow applied (secondary on the slow duration nodes). */
   getSlowFactorBonus(): number {
-    let bonus = 0;
-    if (this._unlocked.has(11)) bonus += 0.05;  // T4 slow duration node
-    if (this._unlocked.has(23)) bonus += 0.10;  // T8 slow duration node
-    if (this._unlocked.has(29)) bonus += 0.15;
-    return bonus;
+    return this._tagSecondaryBonus(SkillTag.SlowDurationT1) + this._tagSecondaryBonus(SkillTag.SlowDurationT2);
   }
 
-  /** Fortify branch: armor bonus — flat damage reduction per hit. */
+  /** Fortify branch: armor bonus — flat damage reduction per hit (secondary on the tower HP node). */
   getArmorBonus(): number {
-    let bonus = 0;
-    if (this._unlocked.has(26)) bonus += 2;   // T9 tower HP node
-    if (this._unlocked.has(29)) bonus += 3;
-    return bonus;
+    return this._tagSecondaryBonus(SkillTag.TowerHpT1);
   }
 
   /** Fortune branch: skull earn rate multiplier — bonus skulls earned per run. */
   getSkullEarnRateMultiplier(): number {
-    let bonus = 0;
-    // Node 24 is infinite: stacks per purchase count
-    if (this._unlocked.has(30)) bonus += 1.00;  // T10 wave bonus node
-    return 1.0 + bonus;
+    return 1.0 + this._tagBonus(SkillTag.SkullRewardDouble);
   }
 
-  /** Fortune branch: flat gold per kill bonus. */
+  /** Fortune branch: flat gold per kill bonus (infinite: stacks per purchase). */
   getGoldPerKillBonus(): number {
-    let bonus = 0;
-    if (this._unlocked.has(24)) bonus += 1 * Math.max(1, this._infiniteCounts.get(24) ?? 1);
-    return bonus;
+    return this._tagBonus(SkillTag.GoldPerEnemy);
   }
 
-  /** Fortune branch: income rate multiplier — passive gold per wave multiplier. */
+  /** Fortune branch: income rate multiplier — passive gold per wave multiplier (secondary on sell refund T2 and starting gold T3). */
   getIncomeRateMultiplier(): number {
-    let bonus = 0;
-    if (this._unlocked.has(15)) bonus += 0.15;  // T5 starting gold node
-    if (this._unlocked.has(21)) bonus += 0.20;  // T7 sell refund node
-    if (this._unlocked.has(27)) bonus += 0.25;  // T9 starting gold node
-    return 1.0 + bonus;
+    return 1.0 + this._tagSecondaryBonus(SkillTag.SellRefundT2) + this._tagSecondaryBonus(SkillTag.StartingGoldT3);
   }
 
   // ── Private ───────────────────────────────────────────────────────────────
+
+  /** Resolves a content tag to its current node index and checks if it's unlocked. */
+  private _hasTag(tag: SkillTag): boolean {
+    return this._unlocked.has(getIndexForTag(tag));
+  }
+
+  /** Primary bonus magnitude for a tag if unlocked (× purchase count for infinite nodes), else 0. */
+  private _tagBonus(tag: SkillTag): number {
+    const node = getNodeByTag(tag);
+    if (!this._unlocked.has(node.index)) return 0;
+    const count = this._infiniteCounts.get(node.index);
+    return node.value * (count ? Math.max(1, count) : 1);
+  }
+
+  /** Secondary bonus magnitude for a tag if unlocked (× purchase count for infinite nodes), else 0. */
+  private _tagSecondaryBonus(tag: SkillTag): number {
+    const node = getNodeByTag(tag);
+    if (!this._unlocked.has(node.index) || node.secondaryValue === undefined) return 0;
+    const count = this._infiniteCounts.get(node.index);
+    return node.secondaryValue * (count ? Math.max(1, count) : 1);
+  }
 
   private _meetsPrerequisites(skillIndex: number): boolean {
     if (skillIndex === ROOT_SKILL_INDEX) return true;
