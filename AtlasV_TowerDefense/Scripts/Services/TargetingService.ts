@@ -16,7 +16,7 @@ import { VISIBLE_GRID_TOP_X } from '../Constants';
 export class TargetingService extends Service {
   // Returns the id of the enemy with the highest pathT within range,
   // or -1 if none found. "Furthest along path" is the standard TD priority.
-  getBestTarget(worldX: number, worldZ: number, range: number): number {
+  getBestTarget(worldX: number, worldZ: number, range: number, exclude?: Set<number>): number {
     const registry = EnemyService.get();
     let bestId = -1;
     let bestPathT = -1;
@@ -26,6 +26,8 @@ export class TargetingService extends Service {
       if (rec.worldX > VISIBLE_GRID_TOP_X) continue;
       // Skip shielded enemies — towers should not waste shots on them
       if (rec.shieldActive) continue;
+      // Skip excluded enemies (e.g. already poisoned)
+      if (exclude && exclude.has(id)) continue;
 
       const dx = rec.worldX - worldX;
       const dz = rec.worldZ - worldZ;

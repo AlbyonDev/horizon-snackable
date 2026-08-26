@@ -172,7 +172,7 @@ export const LEVEL_TIER_PATTERNS: ReadonlyArray<ReadonlyArray<WavePackTier>> = [
   [WavePackTier.T1, WavePackTier.T2, WavePackTier.T3, WavePackTier.T2, WavePackTier.T2, WavePackTier.T2, WavePackTier.T3, WavePackTier.T3],
 
   // Level 5 (Boss): 10 waves — T1 → T2 → T3 → T4 → T3 → T4 → T3 → Boss
-  [WavePackTier.T1, WavePackTier.T1, WavePackTier.Projectile, WavePackTier.T3, WavePackTier.Projectile, WavePackTier.T2, WavePackTier.T3, WavePackTier.Projectile, WavePackTier.T3, WavePackTier.Boss],
+  [WavePackTier.T1, WavePackTier.T1, WavePackTier.Projectile, WavePackTier.T2, WavePackTier.T3, WavePackTier.T2, WavePackTier.T3, WavePackTier.Projectile, WavePackTier.T3, WavePackTier.Boss],
 ];
 
 // ─── Tier → pack pool lookup ────────────────────────────────────────────────────
@@ -229,15 +229,11 @@ export const SNOW_TIER_3_PACKS: ReadonlyArray<IWavePack> = [
 export const VOLCANO_TIER_1_PACKS: ReadonlyArray<IWavePack> = [
   {
     name: 'FirePatrol',
-    groups: [{ enemyId: 'fireGoblin', count: 5 }],
+    groups: [{ enemyId: 'fireGoblin', count: 6 }],
   },
   {
     name: 'FireScouts',
-    groups: [{ enemyId: 'fireGoblin', count: 3 }, { enemyId: 'basic', count: 2 }],
-  },
-  {
-    name: 'EmberPatrol',
-    groups: [{ enemyId: 'fireGoblin', count: 6 }],
+    groups: [{ enemyId: 'fireGoblin', count: 3 }, { enemyId: 'basic', count: 3 }],
   },
 ];
 
@@ -246,10 +242,6 @@ export const VOLCANO_TIER_2_PACKS: ReadonlyArray<IWavePack> = [
   {
     name: 'FireRaid',
     groups: [{ enemyId: 'fireGoblin', count: 4 }, { enemyId: 'fast', count: 2 }],
-  },
-  {
-    name: 'FireSwarm',
-    groups: [{ enemyId: 'fireGoblin', count: 6 }],
   },
   {
     name: 'MagmaRush',

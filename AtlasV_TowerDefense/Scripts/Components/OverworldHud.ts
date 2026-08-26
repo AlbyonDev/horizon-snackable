@@ -724,7 +724,7 @@ export class OverworldHud extends Component {
     // Populate popup
     this.viewModel.bossPopupModifierName = BOSS_MODIFIER_LABELS[levelDef.bossModifier];
     this.viewModel.bossPopupModifierDescription = BOSS_MODIFIER_DESCRIPTIONS[levelDef.bossModifier];
-    const reward = levelDef.bossSkullReward ?? 3;
+    const reward = LevelGeneratorService.get().getBossSkullReward(levelIndex);
     this.viewModel.bossPopupRewardText = `+${reward}`;
     this.viewModel.bossPopupVisible = true;
     console.log(`[OverworldHud] Boss info popup opened for level ${levelIndex}: ${BOSS_MODIFIER_LABELS[levelDef.bossModifier]}, reward=${reward}`);
@@ -951,8 +951,7 @@ export class OverworldHud extends Component {
       // Show skull reward badge on boss nodes that aren't beaten
       if (src.nodeType === OverworldNodeType.Boss) {
         node.showSkullReward = state !== OverworldNodeState.Beaten;
-        const levelDef = LevelGeneratorService.get().getLevelDef(i);
-        const reward = levelDef.bossSkullReward ?? 3;
+        const reward = LevelGeneratorService.get().getBossSkullReward(i);
         node.skullRewardText = `+${reward}`;
         node.showSkullMultiplier = SkillTreeService.get().getSkullEarnRateMultiplier() > 1.0;
       }
@@ -1178,7 +1177,7 @@ export class OverworldHud extends Component {
         node.modifierOffsetX = size + 50;
         // Show skull reward badge on boss nodes that aren't beaten
         node.showSkullReward = state !== OverworldNodeState.Beaten;
-        const reward = levelDef.bossSkullReward ?? 3;
+        const reward = LevelGeneratorService.get().getBossSkullReward(i);
         node.skullRewardText = `+${reward}`;
         node.showSkullMultiplier = SkillTreeService.get().getSkullEarnRateMultiplier() > 1.0;
       } else {

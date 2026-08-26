@@ -106,7 +106,7 @@ export const TOWER_DEFS: ITowerDef[] = [
   {
     id: 'poison', name: 'Poison', cost: 90,
     stats: { damage: 0, range: 2.00, fireRate: 1.2, projectileSpeed: 6,
-      props: { dotDamage: 1, dotDuration: 15, dotTickRate: 1.0,
+      props: { dotDamage: 3, dotDuration: 15, dotTickRate: 0.5,
                projectileColor: { r: 0.2, g: 0.8, b: 0.1 }, projectileScale: 0.12, arcHeight: 1.0 } },
     template: Assets.Poison,
     upgrades: tree(

@@ -29,7 +29,7 @@ import type { IWaveDef, IWaveGroup } from '../Types';
 import type { ILevelDef } from '../Defs/LevelDefs';
 import { OverworldNodeType } from '../Defs/NodeDefs';
 import { SaveService } from './SaveService';
-import { TOTAL_LEVELS, START_GOLD, START_LIVES, GRID_COLS, GRID_ROWS, LOCKED_COLS, PATH_SPAWN_ROW_OFFSET } from '../Constants';
+import { TOTAL_LEVELS, START_GOLD, START_LIVES, GRID_COLS, GRID_ROWS, LOCKED_COLS, PATH_SPAWN_ROW_OFFSET, RUN_BOSS_SKULL_BONUS } from '../Constants';
 import { LEVEL_TIER_PATTERNS, getPackPoolForTier, getPackPoolForTierAndBiome } from '../Defs/WavePackDefs';
 import type { IWavePack } from '../Defs/WavePackDefs';
 
@@ -178,6 +178,12 @@ export class LevelGeneratorService extends Service {
 
   /** Total number of generated levels */
   get levelCount(): number { return this._levels.length; }
+
+  /** Boss skull reward for a level, including the +1-per-run bonus (not the skill-tree earn-rate multiplier — apply that separately). */
+  getBossSkullReward(levelIndex: number): number {
+    const levelDef = this.getLevelDef(levelIndex);
+    return (levelDef.bossSkullReward ?? 3) + (this._runCount - 1) * RUN_BOSS_SKULL_BONUS;
+  }
 
   /** Fall back to the saved run's seed if a getter is called before StartGame. */
   private _ensureGenerated(): void {

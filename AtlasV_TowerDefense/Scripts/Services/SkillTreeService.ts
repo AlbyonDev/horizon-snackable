@@ -30,6 +30,9 @@ import type { ISkillNodeDef } from '../Defs/SkillTreeDefs';
 import { Events } from '../Types';
 import { SaveService } from './SaveService';
 
+/** Growth factor applied to an infinite node's skull cost per purchase: cost(n) = ceil(baseCost * 1.10^n). */
+const INFINITE_COST_GROWTH = 1.10;
+
 @service()
 export class SkillTreeService extends Service {
   /** Set of unlocked skill indices (0-39). */
@@ -167,22 +170,23 @@ export class SkillTreeService extends Service {
       return false;
     }
 
+    const cost = this._costFor(nodeDef);
     const save = SaveService.get();
-    if (save.getSkullCount() < nodeDef.cost) {
-      console.log(`[SkillTreeService] Not enough skulls for skill ${skillIndex}: have ${save.getSkullCount()}, need ${nodeDef.cost}`);
+    if (save.getSkullCount() < cost) {
+      console.log(`[SkillTreeService] Not enough skulls for skill ${skillIndex}: have ${save.getSkullCount()}, need ${cost}`);
       return false;
     }
 
-    save.spendSkulls(nodeDef.cost);
+    save.spendSkulls(cost);
     this._unlocked.add(skillIndex);
 
     if (isInfinite) {
       const currentCount = this._infiniteCounts.get(skillIndex) ?? 0;
       this._infiniteCounts.set(skillIndex, currentCount + 1);
-      console.log(`[SkillTreeService] Purchased infinite skill ${skillIndex} (${nodeDef.label}) x${currentCount + 1} for ${nodeDef.cost} skulls`);
+      console.log(`[SkillTreeService] Purchased infinite skill ${skillIndex} (${nodeDef.label}) x${currentCount + 1} for ${cost} skulls`);
       save.setSkillTreeCounts(this.getInfiniteCountsRecord());
     } else {
-      console.log(`[SkillTreeService] Purchased skill ${skillIndex} (${nodeDef.label}) for ${nodeDef.cost} skulls`);
+      console.log(`[SkillTreeService] Purchased skill ${skillIndex} (${nodeDef.label}) for ${cost} skulls`);
     }
 
     save.setSkillTreeState(this.getUnlockedIndices());
@@ -207,7 +211,7 @@ export class SkillTreeService extends Service {
       if (!this._unlocked.has(skillIndex) && !this._meetsPrerequisites(skillIndex)) return false;
       const nodeDef = getNodeDef(skillIndex);
       if (!nodeDef) return false;
-      return SaveService.get().getSkullCount() >= nodeDef.cost;
+      return SaveService.get().getSkullCount() >= this._costFor(nodeDef);
     }
 
     if (this._unlocked.has(skillIndex)) return false;
@@ -218,6 +222,12 @@ export class SkillTreeService extends Service {
     if (!this._meetsPrerequisites(skillIndex)) return false;
 
     return SaveService.get().getSkullCount() >= nodeDef.cost;
+  }
+
+  /** Current skull cost to purchase this node — escalates for infinite nodes based on purchase count. */
+  getCurrentCost(skillIndex: number): number {
+    const nodeDef = getNodeDef(skillIndex);
+    return nodeDef ? this._costFor(nodeDef) : 0;
   }
 
   // ── Bonus Getters (consumed by gameplay services) ─────────────────────────
@@ -352,6 +362,13 @@ export class SkillTreeService extends Service {
     if (!this._unlocked.has(node.index) || node.secondaryValue === undefined) return 0;
     const count = this._infiniteCounts.get(node.index);
     return node.secondaryValue * (count ? Math.max(1, count) : 1);
+  }
+
+  /** Skull cost for a node — flat for one-time nodes, escalating per purchase for infinite nodes. */
+  private _costFor(nodeDef: ISkillNodeDef): number {
+    if (!INFINITE_SKILL_NODES.has(nodeDef.index)) return nodeDef.cost;
+    const count = this._infiniteCounts.get(nodeDef.index) ?? 0;
+    return Math.ceil(nodeDef.cost * Math.pow(INFINITE_COST_GROWTH, count));
   }
 
   private _meetsPrerequisites(skillIndex: number): boolean {

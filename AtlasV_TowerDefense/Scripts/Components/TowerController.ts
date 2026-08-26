@@ -72,6 +72,9 @@ export class TowerController extends Component {
   private _frozen: boolean = false; // true when blizzard freeze is active
 
   // ── Single-use fall state ──────────────────────────────────────────────────
+  // Poison tower: track enemies already hit so each is only targeted once
+  private _poisonedEnemies: Set<number> = new Set();
+
   private _singleUseFalling: boolean = false;
   private _fallElapsed: number = 0;
   private _fallTargetId: number = -1;
@@ -158,6 +161,21 @@ export class TowerController extends Component {
       this._applyTint(DEFAULT_TINT);
     }
     console.log(`[TowerController] Tower deselected at col=${this._col}, row=${this._row}`);
+  }
+
+  @subscribe(Events.EnemyDied)
+  onEnemyDiedPoisonCleanup(p: Events.EnemyDiedPayload): void {
+    this._poisonedEnemies.delete(p.enemyId);
+  }
+
+  @subscribe(Events.EnemyReachedEnd)
+  onEnemyReachedEndPoisonCleanup(p: Events.EnemyReachedEndPayload): void {
+    this._poisonedEnemies.delete(p.enemyId);
+  }
+
+  @subscribe(Events.RestartGame)
+  onRestartPoisonCleanup(_p: Events.RestartGamePayload): void {
+    this._poisonedEnemies.clear();
   }
 
   @subscribe(Events.BlizzardFreeze)
@@ -321,7 +339,9 @@ export class TowerController extends Component {
     // Skip targeting and firing while frozen by blizzard
     if (this._frozen) return;
 
-    const targetId = TargetingService.get().getBestTarget(pos.x, pos.z, this._stats.range);
+    const targetId = this._defId === 'poison'
+      ? TargetingService.get().getBestTarget(pos.x, pos.z, this._stats.range, this._poisonedEnemies)
+      : TargetingService.get().getBestTarget(pos.x, pos.z, this._stats.range);
     if (targetId === -1) return;
 
     // ── Single-use tower: start fall animation toward first target ────────────
@@ -352,7 +372,7 @@ export class TowerController extends Component {
       return;
     }
 
-    if (this.barrel && this._defId !== 'lightning') {
+    if (this.barrel && this._defId !== 'lightning' && this._defId !== 'poison') {
       const target = EnemyService.get().get(targetId);
       if (target) {
         const barrelT = this.barrel.getComponent(TransformComponent);
@@ -395,7 +415,7 @@ export class TowerController extends Component {
         }
       }
     }
-    if (this._defId !== 'lightning') {
+    if (this._defId !== 'lightning' && this._defId !== 'poison') {
       this._recoilElapsed = 0;
     }
 
@@ -415,6 +435,12 @@ export class TowerController extends Component {
     initP.originX       = pos.x;
     initP.originZ       = pos.z;
     EventService.sendLocally(Events.InitProjectile, initP, { eventTarget: entity });
+
+    // Poison tower: mark this enemy as already hit
+    if (this._defId === 'poison') {
+      this._poisonedEnemies.add(targetId);
+      console.log(`[TowerController] Poison tower marked enemy ${targetId} as poisoned`);
+    }
   }
 
   private _setVisible(entity: Maybe<Entity>, visible: boolean): void {

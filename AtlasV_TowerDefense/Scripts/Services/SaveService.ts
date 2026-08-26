@@ -345,7 +345,9 @@ export class SaveService extends Service {
     this._requestSave();
   }
 
-  /** Reset ALL save data to factory defaults and persist. Client-only. */
+  /** Reset ALL save data to factory defaults and persist. Client-only.
+   *  Fires SaveRestored + RunReset so in-memory listeners (SkillTreeService,
+   *  RelicService, etc.) clear their state immediately. */
   resetSaveData(): void {
     if (NetworkingService.get().isServerContext()) return;
     if (!this._loaded) return;
@@ -353,6 +355,18 @@ export class SaveService extends Service {
     this._activeBiome = 'grass';
     console.log('[SaveService] All save data reset to defaults');
     this._requestSave();
+
+    // Notify all listeners so in-memory state (skill tree, relics, etc.) resets
+    const restored = new Events.SaveRestoredPayload();
+    restored.seed = 0;
+    restored.runCount = 0;
+    restored.beaten = [];
+    restored.relics = [];
+    restored.skulls = 0;
+    restored.skillTree = [];
+    restored.skillTreeCounts = {};
+    EventService.sendLocally(Events.SaveRestored, restored);
+    EventService.sendLocally(Events.RunReset, new Events.RunResetPayload());
   }
 
   /** Update the skill tree unlock state and persist. Client-only. */

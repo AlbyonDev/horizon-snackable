@@ -33,6 +33,7 @@ import { SaveService } from '../Services/SaveService';
 @serializable()
 class BossKilledForLeaderboardPayload {
   @netProp({ maxLength: 20 }) readonly biomeId: string = '';
+  @netProp() readonly bossKillCount: number = 0;
 }
 
 const BossKilledForLeaderboardEvent = new NetworkEvent<BossKilledForLeaderboardPayload>(
@@ -74,9 +75,12 @@ export class BossKillLeaderboardRelay extends Component {
     if (p.bossSkullReward <= 0) return;
 
     const biome = SaveService.get().activeBiome;
-    console.log(`[BossKillLeaderboardRelay] Boss killed in biome: ${biome}, relaying to server`);
+    // getRunCount() returns completed runs (0-based). At this point markRunComplete()
+    // has NOT fired yet, so the actual boss kill count for this biome is runCount + 1.
+    const bossKillCount = SaveService.get().getRunCount() + 1;
+    console.log(`[BossKillLeaderboardRelay] Boss killed in biome: ${biome}, bossKillCount=${bossKillCount}, relaying to server`);
 
-    EventService.sendGlobally(BossKilledForLeaderboardEvent, { biomeId: biome });
+    EventService.sendGlobally(BossKilledForLeaderboardEvent, { biomeId: biome, bossKillCount: bossKillCount });
   }
 
   // ── Server: receive boss kill and increment leaderboard score ──────────────
@@ -95,7 +99,7 @@ export class BossKillLeaderboardRelay extends Component {
       return;
     }
 
-    console.log(`[BossKillLeaderboardRelay] Incrementing score for ${apiName}`);
+    console.log(`[BossKillLeaderboardRelay] Updating score for ${apiName} with bossKillCount=${p.bossKillCount}`);
 
     try {
       // Fetch current score
@@ -106,11 +110,17 @@ export class BossKillLeaderboardRelay extends Component {
       );
       const currentScore = currentEntry != null ? currentEntry.score : 0;
 
-      // Set new score (current + 1)
+      // Use Math.max to prevent exploitation via save resets — score can only go up
+      const newScore = Math.max(currentScore, p.bossKillCount);
+      if (newScore <= currentScore) {
+        console.log(`[BossKillLeaderboardRelay] Score ${currentScore} already >= reported ${p.bossKillCount}, skipping update`);
+        return;
+      }
+
       const newEntry = await LeaderboardsService.get().updateEntryForPlayer(
         this._player,
         apiName,
-        currentScore + 1,
+        newScore,
         {},
       );
 

@@ -52,9 +52,13 @@ export const INCOME_RATE = 0.15;   // 15% of gold on hand → bonus at wave end
 export const HP_SCALE_PER_WAVE = 0.15; // HP multiplier = 1 + waveIndex * HP_SCALE_PER_WAVE
 
 // Run-count scaling — applied per run beyond the first
-export const RUN_HP_SCALE     = 0.05; // +5% HP per run
+export const RUN_HP_SCALE     = 0.10; // +10% HP per run
 export const RUN_SPEED_SCALE  = 0.01; // +1% speed per run
-export const RUN_REWARD_SCALE = 0.05; // +5% gold reward per run
+export const RUN_REWARD_SCALE = 0.03; // +3% gold reward per run
+
+// Flat bonus skulls awarded per boss kill for each run beyond the first —
+// keeps skull income scaling alongside the harder enemies runs bring.
+export const RUN_BOSS_SKULL_BONUS = 1;
 
 // ─── Economy (continued) ──────────────────────────────────────────────────────
 

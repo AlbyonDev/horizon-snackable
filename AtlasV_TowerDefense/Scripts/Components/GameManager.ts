@@ -194,8 +194,7 @@ export class GameManager extends Component {
       // Only set bossSkullReward for actual boss victories so the leaderboard
       // relay (which gates on bossSkullReward > 0) doesn't fire on normal levels.
       if (p.isBossVictory) {
-        const levelDef = LevelGeneratorService.get().getLevelDef(this._currentLevelIndex);
-        const baseSkullReward = levelDef.bossSkullReward ?? 3;
+        const baseSkullReward = LevelGeneratorService.get().getBossSkullReward(this._currentLevelIndex);
         lcp.bossSkullReward = Math.round(baseSkullReward * SkillTreeService.get().getSkullEarnRateMultiplier());
       }
       EventService.sendLocally(Events.LevelCompleted, lcp);

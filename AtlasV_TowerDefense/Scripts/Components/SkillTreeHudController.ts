@@ -16,6 +16,7 @@ import {
   ExecuteOn,
   EventService,
   LocalEvent,
+  TextureAsset,
   component,
   property,
   subscribe,
@@ -36,7 +37,11 @@ import {
   TOTAL_SKILLS,
   ROOT_SKILL_INDEX,
   INFINITE_SKILL_NODES,
+  SkillIconType,
+  SkillTag,
 } from '../Defs/SkillTreeDefs';
+
+// Tower unlock node to texture path mapping (tags used for detection only)
 
 // ── Icon path helper ─────────────────────────────────────────────────────────
 
@@ -278,9 +283,6 @@ export class SkillTreeViewModel extends UiViewModel {
   canvasHeight: number = CANVAS_HEIGHT;
   debugVisible: boolean = false;
 
-  // Scroll indicator arrow
-  scrollArrowVisible: boolean = true;
-
   // Popup state
   popupVisible: boolean = false;
   popupDescription: string = '';
@@ -289,6 +291,11 @@ export class SkillTreeViewModel extends UiViewModel {
   popupCost: string = '';
   popupCostVisible: boolean = false;
   popupBuyVisible: boolean = true;
+
+  // Tower unlock popup (two-column layout)
+  popupIsTowerUnlock: boolean = false;
+  popupIsNotTowerUnlock: boolean = true;
+  popupTowerImage: Maybe<TextureAsset> = null;
 
   // Branch header positions
   warHeaderX: number = WAR_HEADER[0];
@@ -675,7 +682,6 @@ export class SkillTreeHudController extends Component {
     if (!this.viewModel) return;
 
     this.viewModel.debugVisible = this.isDebug;
-    this.viewModel.scrollArrowVisible = true;
     this._refreshAllNodes();
     this.viewModel.visible = true;
     if (this.uiComponent) this.uiComponent.isVisible = true;
@@ -691,11 +697,6 @@ export class SkillTreeHudController extends Component {
     const skillIndex = parseInt(payload.parameter, 10);
     if (isNaN(skillIndex) || skillIndex < 0 || skillIndex >= TOTAL_SKILLS) return;
 
-    // Hide scroll arrow once user taps a node in the lower half of the tree
-    if (skillIndex >= 15 && this.viewModel.scrollArrowVisible) {
-      this.viewModel.scrollArrowVisible = false;
-    }
-
     const service = SkillTreeService.get();
     const node = SKILL_NODES.find(n => n.index === skillIndex);
     if (!node) return;
@@ -704,6 +705,16 @@ export class SkillTreeHudController extends Component {
     const isBought = service.isUnlocked(skillIndex);
     const isInfinite = INFINITE_SKILL_NODES.has(skillIndex);
     const infiniteCount = service.getInfiniteCount(skillIndex);
+
+    // Detect tower-unlock nodes and set two-column popup layout
+    const isTowerUnlock = node.iconType === SkillIconType.TowerUnlock;
+    this.viewModel.popupIsTowerUnlock = isTowerUnlock;
+    this.viewModel.popupIsNotTowerUnlock = !isTowerUnlock;
+    if (isTowerUnlock) {
+      this.viewModel.popupTowerImage = this._getTowerTexture(node.tag);
+    } else {
+      this.viewModel.popupTowerImage = null;
+    }
 
     this.viewModel.popupDescription = node.label.toUpperCase();
     this.viewModel.popupInfiniteTextVisible = isInfinite;
@@ -714,10 +725,8 @@ export class SkillTreeHudController extends Component {
     }
     if (isBought && !isInfinite) {
       this.viewModel.popupCost = 'BOUGHT!';
-    } else if (service.hasPrerequisitesMet(skillIndex) || (isInfinite && isBought)) {
-      this.viewModel.popupCost = `\u{1F480} ${node.cost}`;
     } else {
-      this.viewModel.popupCost = `\u{1F480} ${node.cost}`;
+      this.viewModel.popupCost = `\u{1F480} ${service.getCurrentCost(skillIndex)}`;
     }
     this.viewModel.popupCostVisible = true;
     this.viewModel.popupBuyVisible = (isInfinite && (service.canPurchase(skillIndex))) || (!isBought && service.canPurchase(skillIndex));
@@ -918,6 +927,7 @@ export class SkillTreeHudController extends Component {
 
     const isInfinite = INFINITE_SKILL_NODES.has(index);
     const infiniteCount = service.getInfiniteCount(index);
+    const currentCost = service.getCurrentCost(index);
 
     if (isInfinite && service.isUnlocked(index)) {
       // Infinite node that has been purchased at least once — show as re-buyable
@@ -925,7 +935,7 @@ export class SkillTreeHudController extends Component {
         borderColor = COLOR_BORDER_INFINITE_BUYABLE;
         iconColor = COLOR_ICON_INFINITE;
         text = COLOR_TEXT_INFINITE;
-        cost = `${getNodeCost(index)}`;
+        cost = `${currentCost}`;
         costVisible = true;
         costColor = COLOR_COST_BUYABLE;
         label = `\u2713 x${infiniteCount}`;
@@ -935,7 +945,7 @@ export class SkillTreeHudController extends Component {
         borderColor = COLOR_BORDER_INFINITE_OWNED;
         iconColor = COLOR_ICON_INFINITE;
         text = COLOR_TEXT_INFINITE;
-        cost = `${getNodeCost(index)}`;
+        cost = `${currentCost}`;
         costVisible = true;
         costColor = COLOR_COST_UNAFFORDABLE;
         label = `\u2713 x${infiniteCount}`;
@@ -954,29 +964,29 @@ export class SkillTreeHudController extends Component {
       borderColor = isInfinite ? COLOR_BORDER_INFINITE_BUYABLE : COLOR_BORDER_BUYABLE;
       iconColor = isInfinite ? COLOR_ICON_INFINITE : COLOR_ICON_BUYABLE;
       text = isInfinite ? COLOR_TEXT_INFINITE : COLOR_TEXT_BUYABLE;
-      cost = `${getNodeCost(index)}`;
+      cost = `${currentCost}`;
       costVisible = true;
       costColor = COLOR_COST_BUYABLE;
-      label = `\u{1F480} ${getNodeCost(index)}`;
+      label = `\u{1F480} ${currentCost}`;
       pulseVisible = true;
     } else if (service.hasPrerequisitesMet(index)) {
       // Prereqs met but can't afford — show buyable appearance with RED cost
       borderColor = isInfinite ? COLOR_BORDER_INFINITE_BUYABLE : COLOR_BORDER_BUYABLE;
       iconColor = isInfinite ? COLOR_ICON_INFINITE : COLOR_ICON_BUYABLE;
       text = isInfinite ? COLOR_TEXT_INFINITE : COLOR_TEXT_BUYABLE;
-      cost = `${getNodeCost(index)}`;
+      cost = `${currentCost}`;
       costVisible = true;
       costColor = COLOR_COST_UNAFFORDABLE;
-      label = `\u{1F480} ${getNodeCost(index)}`;
+      label = `\u{1F480} ${currentCost}`;
       pulseVisible = false;
     } else {
       borderColor = COLOR_BORDER_LOCKED;
       iconColor = COLOR_ICON_LOCKED;
       text = COLOR_TEXT_LOCKED;
-      cost = `${getNodeCost(index)}`;
+      cost = `${currentCost}`;
       costVisible = true;
       costColor = COLOR_COST_LOCKED;
-      label = `\u{1F480} ${getNodeCost(index)}`;
+      label = `\u{1F480} ${currentCost}`;
       pulseVisible = false;
     }
 
@@ -992,5 +1002,18 @@ export class SkillTreeHudController extends Component {
     vm[`node${index}IconOpacity`] = (service.isUnlocked(index) && !isInfinite) ? 0.88 : 0;
     // Bought (non-infinite) nodes render at 80% scale
     vm[`node${index}Scale`] = (service.isUnlocked(index) && !isInfinite) ? 0.8 : 1;
+  }
+
+  /** Returns the correct TextureAsset for a tower-unlock node using static string literals. */
+  private _getTowerTexture(tag: SkillTag): TextureAsset | null {
+    switch (tag) {
+      case SkillTag.UnlockPoison: return new TextureAsset('@Textures/poison_tower.png');
+      case SkillTag.UnlockPillar: return new TextureAsset('@Textures/pillar_tower.png');
+      case SkillTag.UnlockLaser: return new TextureAsset('@Textures/laser_tower.png');
+      case SkillTag.UnlockFireCannon: return new TextureAsset('@Textures/fire_tower.png');
+      case SkillTag.UnlockLightning: return new TextureAsset('@Textures/lightning_tower.png');
+      case SkillTag.UnlockFrost: return new TextureAsset('@Textures/frost_tower.png');
+      default: return null;
+    }
   }
 }

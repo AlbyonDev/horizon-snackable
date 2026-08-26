@@ -193,7 +193,7 @@ export class GameOverScreenHud extends Component {
 
     // Skulls earned: modifier-dependent for boss victories (regular combat wins give no skulls)
     this.viewModel.showSkullsEarned = payload.won && payload.isBossVictory;
-    const bossSkullReward = LevelGeneratorService.get().getLevelDef(this._lastLevelIndex).bossSkullReward ?? 3;
+    const bossSkullReward = LevelGeneratorService.get().getBossSkullReward(this._lastLevelIndex);
     this.viewModel.skullsEarned = (payload.won && payload.isBossVictory) ? bossSkullReward : 0;
 
     // Show x2 multiplier indicator if skill tree skull earn rate is active

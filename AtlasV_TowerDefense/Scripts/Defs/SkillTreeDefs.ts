@@ -160,7 +160,7 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
   // Tier 6 (indices 16, 17, 18)
   { index: 16, tag: SkillTag.UnlockFireCannon, value: 0, label: 'Unlock Fire Cannon', cost: 20, branch: 'war', description: 'AoE fire damage with arc projectiles. Splash radius 0.6, 120g cost. Unlocked outside of volcano area.', iconType: SkillIconType.TowerUnlock },
   { index: 17, tag: SkillTag.FireRateT1, value: 0.25, secondaryValue: 0.15, label: '+25% Fire Rate',     cost: 28, branch: 'fortify', description: 'All towers fire 25% faster.', iconType: SkillIconType.Lightning },
-  { index: 18, tag: SkillTag.UnlockLightning, value: 0, label: 'Unlock Lightning Tower', cost: 29, branch: 'fortune', description: 'Unlocks the Lightning Tower for all biomes. Chain lightning multi-target tower, bolts chain to nearby enemies. 300g cost.', iconType: SkillIconType.TowerUnlock },
+  { index: 18, tag: SkillTag.TowerHpT1, value: 0.40, secondaryValue: 2, label: '+40% Tower HP',      cost: 40, branch: 'fortify', description: 'All towers gain 40% more hit points.', iconType: SkillIconType.Heart },
 
   // Tier 7 (indices 19, 20, 21)
   { index: 19, tag: SkillTag.UnlockFrost, value: 0, label: 'Unlock Frost Tower',     cost: 20, branch: 'war', description: 'Slows enemies by 50% for 1.5s. 80g cost. Unlocked outside of snow area.', iconType: SkillIconType.TowerUnlock },
@@ -168,13 +168,13 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
   { index: 21, tag: SkillTag.SellRefundT2, value: 0.75, secondaryValue: 0.20, label: '+75% Sell Refund',       cost: 17, branch: 'fortune', description: 'Refund 75% more gold when selling towers.', iconType: SkillIconType.Refund },
 
   // Tier 8 (indices 22, 23, 24)
-  { index: 22, tag: SkillTag.SplashRadiusT1, value: 0.30, label: '+30% Splash Radius', cost: 30, branch: 'war', description: 'All splash towers gain 30% larger area.', iconType: SkillIconType.Sword },
-  { index: 23, tag: SkillTag.SlowDurationT2, value: 0.25, secondaryValue: 0.10, label: '+25% Slow Duration', cost: 30, branch: 'fortify', description: 'Slow effects last 25% longer.', iconType: SkillIconType.Snow },
+  { index: 22, tag: SkillTag.SlowDurationT2, value: 0.25, secondaryValue: 0.10, label: '+25% Slow Duration', cost: 30, branch: 'fortify', description: 'Slow effects last 25% longer.', iconType: SkillIconType.Snow },
+  { index: 23, tag: SkillTag.SplashRadiusT1, value: 0.30, label: '+30% Splash Radius', cost: 30, branch: 'war', description: 'All splash towers gain 30% larger area.', iconType: SkillIconType.Sword },
   { index: 24, tag: SkillTag.GoldPerEnemy, value: 1, label: '+1 Gold per enemy', cost: 50, branch: 'fortune', description: 'Earn 1 more gold per enemy killed.', iconType: SkillIconType.Treasure },
 
   // Tier 9 (indices 25, 26, 27)
   { index: 25, tag: SkillTag.DamageT3, value: 0.05, label: '+5% Damage',        cost: 50, branch: 'war', description: 'All towers deal 5% more damage.', iconType: SkillIconType.Sword },
-  { index: 26, tag: SkillTag.TowerHpT1, value: 0.40, secondaryValue: 2, label: '+40% Tower HP',      cost: 40, branch: 'fortify', description: 'All towers gain 40% more hit points.', iconType: SkillIconType.Heart },
+  { index: 26, tag: SkillTag.UnlockLightning, value: 0, label: 'Unlock Lightning Tower', cost: 29, branch: 'fortune', description: 'Unlocks the Lightning Tower for all biomes. Chain lightning multi-target tower, bolts chain to nearby enemies. 300g cost.', iconType: SkillIconType.TowerUnlock },
   { index: 27, tag: SkillTag.StartingGoldT3, value: 50, secondaryValue: 0.25, label: '+80 Starting Gold',  cost: 40, branch: 'fortune', description: 'Begin each run with 50 extra gold.', iconType: SkillIconType.Coin },
 
   // Tier 10 (indices 28, 29, 30)
