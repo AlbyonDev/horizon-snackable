@@ -20,6 +20,6 @@ export const ENEMY_DEFS: IEnemyDef[] = [
   { id: 'charger',  name: 'Charger',  hp: 800, speed: 0.50, reward: 50, color: { r: 0.66, g: 0.33, b: 0.97 }, template: Assets.EnemyCharger,  slowImmune: true, shield: 0, followPath: true, isBoss: true },
   { id: 'giantGoblin', name: 'Giant Goblin', hp: 600, speed: 0.60, reward: 50, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyGiantGoblin, biomeExclusive: 'grass', slowImmune: true, shield: 0, followPath: true, isBoss: true },
   { id: 'yeti',  name: 'Yeti Berserker', hp: 1800, speed: 0.35, reward: 65, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyYetiBerserker, blizzardSpeedBoost: 1, biomeExclusive: 'snow', slowImmune: true, shield: 0, followPath: true, isBoss: true },
-  { id: 'fireGolem', name: 'Fire Golem', hp: 2800, speed: 0.20, reward: 60, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyFireGolem, biomeExclusive: 'volcano', slowImmune: true, shield: 0, followPath: true, isBoss: true },
+  { id: 'fireGolem', name: 'Fire Golem', hp: 2500, speed: 0.20, reward: 60, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyFireGolem, biomeExclusive: 'volcano', slowImmune: true, shield: 0, followPath: true, isBoss: true },
   { id: 'fireball', name: 'Fireball', hp: 20, speed: 1.5, reward: 10, color: { r: 1.0, g: 1.0, b: 1.0 }, template: Assets.EnemyFireball, slowImmune: true, shield: 0, followPath: false },
 ];

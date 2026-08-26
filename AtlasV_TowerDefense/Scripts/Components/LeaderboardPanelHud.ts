@@ -36,6 +36,16 @@ const BIOME_LEADERBOARD_MAP: Record<string, string> = {
   grass: 'grass-boss-kills',
   snow: 'snow-boss-kills',
   volcano: 'volcano-boss-kills',
+  gold: 'earned-gold',
+  enemies: 'killed-enemies',
+};
+
+const SCORE_COLUMN_LABELS: Record<string, string> = {
+  grass: 'Boss Killed Count',
+  snow: 'Boss Killed Count',
+  volcano: 'Boss Killed Count',
+  gold: 'Gold Earned',
+  enemies: 'Enemies Killed',
 };
 
 // ── Module-level UiEvent constants ───────────────────────────────────────────
@@ -48,6 +58,8 @@ class LeaderboardTabPayload {
 const grassTabEvent = new UiEvent('LeaderboardPanelViewModel-onGrassTab', LeaderboardTabPayload);
 const snowTabEvent = new UiEvent('LeaderboardPanelViewModel-onSnowTab', LeaderboardTabPayload);
 const volcanoTabEvent = new UiEvent('LeaderboardPanelViewModel-onVolcanoTab', LeaderboardTabPayload);
+const goldTabEvent = new UiEvent('LeaderboardPanelViewModel-onGoldTab', LeaderboardTabPayload);
+const enemyKillsTabEvent = new UiEvent('LeaderboardPanelViewModel-onEnemyKillsTab', LeaderboardTabPayload);
 const closeEvent = new UiEvent('LeaderboardPanelViewModel-onClose', LeaderboardTabPayload);
 
 // ── ViewModels ───────────────────────────────────────────────────────────────
@@ -65,6 +77,8 @@ class LeaderboardPanelViewModel extends UiViewModel {
     grassTab: grassTabEvent,
     snowTab: snowTabEvent,
     volcanoTab: volcanoTabEvent,
+    goldTab: goldTabEvent,
+    enemyKillsTab: enemyKillsTabEvent,
     close: closeEvent,
   };
 
@@ -77,9 +91,14 @@ class LeaderboardPanelViewModel extends UiViewModel {
   grassTabOpacity: number = 1.0;
   snowTabOpacity: number = 0.5;
   volcanoTabOpacity: number = 0.5;
+  goldTabOpacity: number = 0.5;
+  enemyKillsTabOpacity: number = 0.5;
 
   // Active biome label
   activeBiomeLabel: string = 'GRASS';
+
+  // Score column header (changes per tab)
+  scoreColumnLabel: string = 'Boss Killed Count';
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -162,6 +181,24 @@ export class LeaderboardPanelHud extends Component {
     this._fetchEntries();
   }
 
+  @subscribe(goldTabEvent, { execution: ExecuteOn.Owner })
+  onGoldTab(_p: LeaderboardTabPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+    this.activeBiome = 'gold';
+    this._updateTabVisuals();
+    this._fetchEntries();
+  }
+
+  @subscribe(enemyKillsTabEvent, { execution: ExecuteOn.Owner })
+  onEnemyKillsTab(_p: LeaderboardTabPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    EventService.sendLocally(Events.UiButtonClick, new Events.UiButtonClickPayload());
+    this.activeBiome = 'enemies';
+    this._updateTabVisuals();
+    this._fetchEntries();
+  }
+
   // ── Private helpers ────────────────────────────────────────────────────────
 
   private _updateTabVisuals(): void {
@@ -169,7 +206,10 @@ export class LeaderboardPanelHud extends Component {
     this.viewModel.grassTabOpacity = this.activeBiome === 'grass' ? 1.0 : 0.5;
     this.viewModel.snowTabOpacity = this.activeBiome === 'snow' ? 1.0 : 0.5;
     this.viewModel.volcanoTabOpacity = this.activeBiome === 'volcano' ? 1.0 : 0.5;
+    this.viewModel.goldTabOpacity = this.activeBiome === 'gold' ? 1.0 : 0.5;
+    this.viewModel.enemyKillsTabOpacity = this.activeBiome === 'enemies' ? 1.0 : 0.5;
     this.viewModel.activeBiomeLabel = this.activeBiome.toUpperCase();
+    this.viewModel.scoreColumnLabel = SCORE_COLUMN_LABELS[this.activeBiome] || 'Score';
   }
 
   private async _fetchEntries(): Promise<void> {

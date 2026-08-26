@@ -357,10 +357,10 @@
                   </b:EventTrigger>
                 </b:Interaction.Triggers>
 
-                <!-- Outer glow border (pulsing gold shimmer) -->
+                <!-- Outer glow border (pulsing green shimmer) -->
                 <Border x:Name="MgFtueGlow" Opacity="0"
                         Background="Transparent"
-                        BorderBrush="#AAf5c518"
+                        BorderBrush="#AA44cc44"
                         BorderThickness="10"
                         CornerRadius="24"
                         Margin="-8,-8,-8,-8"

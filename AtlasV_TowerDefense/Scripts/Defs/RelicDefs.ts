@@ -121,7 +121,7 @@ export const RELIC_DEFS: IRelicDef[] = [
   {
     id: 'ward_breaker',
     name: 'Ward Breaker',
-    description: 'Instantly destroys shaman shields when a shaman is targeted.',
+    description: 'Instantly destroys shaman shields when targeted.',
     modifierKey: 'wardBreaker',
     modifierValue: 1,
     iconPath: '@sprites/relic_ward_breaker.png',

@@ -26,15 +26,17 @@
             <Grid.RowDefinitions>
                 <!-- Row 0: Title -->
                 <RowDefinition Height="220"/>
-                <!-- Row 1: Tab buttons -->
+                <!-- Row 1: Biome Tab buttons -->
                 <RowDefinition Height="260"/>
-                <!-- Row 2: Divider -->
+                <!-- Row 2: Stats Tab buttons -->
+                <RowDefinition Height="200"/>
+                <!-- Row 3: Divider -->
                 <RowDefinition Height="12"/>
-                <!-- Row 3: Column Headers -->
+                <!-- Row 4: Column Headers -->
                 <RowDefinition Height="Auto"/>
-                <!-- Row 4: Entry list -->
+                <!-- Row 5: Entry list -->
                 <RowDefinition Height="*"/>
-                <!-- Row 5: Back button -->
+                <!-- Row 6: Back button -->
                 <RowDefinition Height="200"/>
             </Grid.RowDefinitions>
 
@@ -99,11 +101,44 @@
               </Button>
             </Grid>
 
-            <!-- Row 2: Divider line -->
-            <Rectangle Grid.Row="2" Fill="#44f5c518" Margin="24,0,24,0" Height="5"/>
+            <!-- Row 2: Stats Tab Buttons (Gold / Enemies) -->
+            <Grid Grid.Row="2" Margin="24,0,24,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+              </Grid.ColumnDefinitions>
 
-            <!-- Row 3: Column Headers -->
-            <Border Grid.Row="3" Margin="24,12,24,0" CornerRadius="10"
+              <!-- Gold Tab -->
+              <Button Grid.Column="0" Command="{Binding Path=events.goldTab}"
+                      Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                      Opacity="{Binding goldTabOpacity}">
+                <Border CornerRadius="16" BorderThickness="5" BorderBrush="#FFFFD700"
+                        Background="#33FFD700" Height="160" HorizontalAlignment="Stretch">
+                  <TextBlock Text="GOLD" FontSize="80" FontFamily="Anton"
+                             Foreground="#FFFFD700" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+              </Button>
+
+              <!-- Enemies Tab -->
+              <Button Grid.Column="2" Command="{Binding Path=events.enemyKillsTab}"
+                      Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                      Opacity="{Binding enemyKillsTabOpacity}">
+                <Border CornerRadius="16" BorderThickness="5" BorderBrush="#FFFF5252"
+                        Background="#33FF5252" Height="160" HorizontalAlignment="Stretch">
+                  <TextBlock Text="ENEMIES" FontSize="80" FontFamily="Anton"
+                             Foreground="#FFFF5252" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+              </Button>
+            </Grid>
+
+            <!-- Row 3: Divider line -->
+            <Rectangle Grid.Row="3" Fill="#44f5c518" Margin="24,0,24,0" Height="5"/>
+
+            <!-- Row 4: Column Headers -->
+            <Border Grid.Row="4" Margin="24,12,24,0" CornerRadius="10"
                     Background="#33f5c518" BorderThickness="0,0,0,3" BorderBrush="#55f5c518"
                     Padding="0,14,0,14">
                 <Grid Margin="24,0,24,0">
@@ -116,16 +151,16 @@
                                FontWeight="Bold" Foreground="#FFf5c518" VerticalAlignment="Center"/>
                     <TextBlock Grid.Column="1" Text="Name" FontSize="62" FontFamily="Anton"
                                FontWeight="Bold" Foreground="#FFf5c518" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="2" Text="Boss Killed Count" FontSize="62" FontFamily="Anton"
+                    <TextBlock Grid.Column="2" Text="{Binding scoreColumnLabel}" FontSize="62" FontFamily="Anton"
                                FontWeight="Bold" Foreground="#FFf5c518" VerticalAlignment="Center"
                                HorizontalAlignment="Right" TextAlignment="Right"/>
                 </Grid>
             </Border>
 
-            <!-- Row 4: Entries list -->
-            <Grid Grid.Row="4" Margin="24,20,24,0">
+            <!-- Row 5: Entries list -->
+            <Grid Grid.Row="5" Margin="24,20,24,0">
               <!-- Empty state text -->
-              <TextBlock Text="No boss kills yet"
+              <TextBlock Text="No entries yet"
                          Visibility="{Binding emptyStateVisibility}"
                          FontSize="72" FontFamily="Anton"
                          Foreground="#66FFFFFF"
@@ -171,8 +206,8 @@
               </ScrollViewer>
             </Grid>
 
-            <!-- Row 5: Back Button -->
-            <Grid Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <!-- Row 6: Back Button -->
+            <Grid Grid.Row="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Button Command="{Binding Path=events.close}"
                         Background="Transparent" BorderThickness="0"
                         Padding="0" Cursor="Hand">
