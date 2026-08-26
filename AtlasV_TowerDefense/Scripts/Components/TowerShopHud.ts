@@ -332,71 +332,84 @@ export class TowerShopHud extends Component {
 
     const dt = payload.deltaTime;
 
-    // --- Drag input processing ---
-    const currentDragNorm = this.viewModel.dragNormalized;
-    const dragDelta = currentDragNorm - this.lastDragNormalized;
-    const dragDeltaPx = dragDelta * VIEWPORT_WIDTH;
+    // --- Drag/scroll disabled when panel is hidden ---
+    const panelIsDown = this.isManuallyHidden || this.viewModel.isPlacingTower;
+    if (panelIsDown) {
+      // Kill any in-progress drag/momentum and keep lastDragNormalized in sync
+      if (this.isDragging) this.isDragging = false;
+      if (this.isMomentumActive) {
+        this.isMomentumActive = false;
+        this.momentumVelocity = 0;
+      }
+      this.isScrollAnimating = false;
+      this.lastDragNormalized = this.viewModel.dragNormalized;
+    } else {
+      // --- Drag input processing ---
+      const currentDragNorm = this.viewModel.dragNormalized;
+      const dragDelta = currentDragNorm - this.lastDragNormalized;
+      const dragDeltaPx = dragDelta * VIEWPORT_WIDTH;
 
-    if (Math.abs(dragDelta) > 0.0001) {
-      if (!this.isDragging) {
-        this.isDragging = true;
+      if (Math.abs(dragDelta) > 0.0001) {
+        if (!this.isDragging) {
+          this.isDragging = true;
+          this.dragFrameCount = 0;
+          this.dragTotalPixelsMoved = 0;
+          this.dragLastVelocity = 0;
+          this.isMomentumActive = false;
+          this.isScrollAnimating = false;
+        }
+        this.dragFrameCount++;
+
+        if (this.dragFrameCount > 1) {
+          this.scrollCurrent += dragDeltaPx;
+          this.scrollCurrent = this._clampOffset(this.scrollCurrent);
+          this.dragTotalPixelsMoved += Math.abs(dragDeltaPx);
+          if (dt > 0) {
+            this.dragLastVelocity = dragDeltaPx / dt;
+          }
+        }
+        this.lastDragNormalized = currentDragNorm;
+        this.viewModel.contentOffsetX = this.scrollCurrent;
+      } else if (this.isDragging) {
+        this.isDragging = false;
+
+        if (this.dragFrameCount <= 1 || this.dragTotalPixelsMoved < DRAG_TAP_THRESHOLD) {
+          const viewportX = currentDragNorm * VIEWPORT_WIDTH;
+          const contentX = viewportX - this.scrollCurrent;
+          const cardIndex = Math.max(0, Math.min(this.itemVMs.length - 1, Math.floor(contentX / CARD_SLOT_WIDTH)));
+          this._handleDragTap(cardIndex);
+        } else {
+          this.momentumVelocity = this.dragLastVelocity;
+          this.isMomentumActive = Math.abs(this.momentumVelocity) > DRAG_MOMENTUM_MIN_VELOCITY;
+        }
         this.dragFrameCount = 0;
         this.dragTotalPixelsMoved = 0;
-        this.dragLastVelocity = 0;
-        this.isMomentumActive = false;
-        this.isScrollAnimating = false;
       }
-      this.dragFrameCount++;
 
-      if (this.dragFrameCount > 1) {
-        this.scrollCurrent += dragDeltaPx;
+      // --- Momentum decay ---
+      if (this.isMomentumActive && !this.isDragging) {
+        this.scrollCurrent += this.momentumVelocity * dt;
         this.scrollCurrent = this._clampOffset(this.scrollCurrent);
-        this.dragTotalPixelsMoved += Math.abs(dragDeltaPx);
-        if (dt > 0) {
-          this.dragLastVelocity = dragDeltaPx / dt;
+        this.momentumVelocity *= Math.pow(DRAG_MOMENTUM_FRICTION, dt * 60);
+        if (Math.abs(this.momentumVelocity) < DRAG_MOMENTUM_MIN_VELOCITY) {
+          this.momentumVelocity = 0;
+          this.isMomentumActive = false;
         }
+        this.viewModel.contentOffsetX = this.scrollCurrent;
       }
-      this.lastDragNormalized = currentDragNorm;
-      this.viewModel.contentOffsetX = this.scrollCurrent;
-    } else if (this.isDragging) {
-      this.isDragging = false;
 
-      if (this.dragFrameCount <= 1 || this.dragTotalPixelsMoved < DRAG_TAP_THRESHOLD) {
-        const viewportX = currentDragNorm * VIEWPORT_WIDTH;
-        const contentX = viewportX - this.scrollCurrent;
-        const cardIndex = Math.max(0, Math.min(this.itemVMs.length - 1, Math.floor(contentX / CARD_SLOT_WIDTH)));
-        this._handleDragTap(cardIndex);
-      } else {
-        this.momentumVelocity = this.dragLastVelocity;
-        this.isMomentumActive = Math.abs(this.momentumVelocity) > DRAG_MOMENTUM_MIN_VELOCITY;
+      // --- Smooth scroll-to-card animation ---
+      if (this.isScrollAnimating && !this.isDragging) {
+        const t = 1 - Math.exp(-SCROLL_LERP_SPEED * dt);
+        this.scrollCurrent = this.scrollCurrent + (this.scrollTarget - this.scrollCurrent) * t;
+        this.scrollCurrent = this._clampOffset(this.scrollCurrent);
+
+        if (Math.abs(this.scrollTarget - this.scrollCurrent) < SCROLL_SNAP_THRESHOLD) {
+          this.scrollCurrent = this.scrollTarget;
+          this.isScrollAnimating = false;
+        }
+        this.viewModel.contentOffsetX = this.scrollCurrent;
       }
-      this.dragFrameCount = 0;
-      this.dragTotalPixelsMoved = 0;
-    }
-
-    // --- Momentum decay ---
-    if (this.isMomentumActive && !this.isDragging) {
-      this.scrollCurrent += this.momentumVelocity * dt;
-      this.scrollCurrent = this._clampOffset(this.scrollCurrent);
-      this.momentumVelocity *= Math.pow(DRAG_MOMENTUM_FRICTION, dt * 60);
-      if (Math.abs(this.momentumVelocity) < DRAG_MOMENTUM_MIN_VELOCITY) {
-        this.momentumVelocity = 0;
-        this.isMomentumActive = false;
-      }
-      this.viewModel.contentOffsetX = this.scrollCurrent;
-    }
-
-    // --- Smooth scroll-to-card animation ---
-    if (this.isScrollAnimating && !this.isDragging) {
-      const t = 1 - Math.exp(-SCROLL_LERP_SPEED * dt);
-      this.scrollCurrent = this.scrollCurrent + (this.scrollTarget - this.scrollCurrent) * t;
-      this.scrollCurrent = this._clampOffset(this.scrollCurrent);
-
-      if (Math.abs(this.scrollTarget - this.scrollCurrent) < SCROLL_SNAP_THRESHOLD) {
-        this.scrollCurrent = this.scrollTarget;
-        this.isScrollAnimating = false;
-      }
-      this.viewModel.contentOffsetX = this.scrollCurrent;
     }
 
     // --- Upgrade node pulse animation ---
