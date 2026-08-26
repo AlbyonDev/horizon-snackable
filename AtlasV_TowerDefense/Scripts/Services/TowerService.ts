@@ -283,6 +283,9 @@ export class TowerService extends Service {
     placedP.col   = col;
     placedP.row   = row;
     EventService.sendLocally(Events.TowerPlaced, placedP);
+
+    // Deactivate placement mode so the player must tap a card again
+    this._selectedId = '';
   }
 
   // ── Actions (called by UI) ───────────────────────────────────────────────────
