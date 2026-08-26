@@ -82,10 +82,9 @@ export class GameManager extends Component {
     if (NetworkingService.get().isServerContext()) return;
     if (this._running) return;
 
-    // Use the active biome from SaveService (persisted across sessions).
-    // Default is 'grass' for new players / first session.
-    const activeBiome = SaveService.get().activeBiome;
-    console.log(`[GameManager] StartGame received, using active biome: ${activeBiome}`);
+    // Always start on grass biome regardless of previous session.
+    const activeBiome = 'grass';
+    console.log(`[GameManager] StartGame received, starting on grass biome`);
     const bp = new Events.BiomeChangedPayload();
     bp.biomeId = activeBiome;
     EventService.sendLocally(Events.BiomeChanged, bp);

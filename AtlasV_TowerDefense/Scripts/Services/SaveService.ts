@@ -64,7 +64,6 @@ interface TdSaveDataV2 {
   v: 2;
   global: { sk: number; st: number[]; stc: Record<string, number>; ek: number; rg: number; ri: number; rv: number; tb: number; ts: number; pr: number; ge: number; ar: Record<string, number>; minigame_tutorial: number; volcano_tutorial: number; snow_tutorial: number; ft: number; ft2: number; ft3: number; ft4: number; bf: number };
   biomes: Record<string, TdBiomeSave>;
-  activeBiome: string;
 }
 
 // Legacy V1 shape (no `v` field) — used only for migration detection
@@ -82,7 +81,7 @@ function defaultBiomeSave(): TdBiomeSave {
 }
 
 function defaultSaveV2(): TdSaveDataV2 {
-  return { v: 2, global: { sk: 0, st: [], stc: {}, ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {}, minigame_tutorial: 0, volcano_tutorial: 0, snow_tutorial: 0, ft: 0, ft2: 0, ft3: 0, ft4: 0, bf: 0 }, biomes: {}, activeBiome: 'grass' };
+  return { v: 2, global: { sk: 0, st: [], stc: {}, ek: 0, rg: 0, ri: 0, rv: 0, tb: 0, ts: 0, pr: 0, ge: 0, ar: {}, minigame_tutorial: 0, volcano_tutorial: 0, snow_tutorial: 0, ft: 0, ft2: 0, ft3: 0, ft4: 0, bf: 0 }, biomes: {} };
 }
 
 @service()
@@ -487,7 +486,6 @@ export class SaveService extends Service {
     // (e.g. _updateBiomeArrow) see the correct biome even before the save
     // has finished loading from the server.
     this._activeBiome = targetBiomeId;
-    this._data.activeBiome = targetBiomeId;
 
     if (!this._loaded) {
       console.log('[SaveService] switchBiome: save not loaded yet — state updated but skipping events/persist');
@@ -656,7 +654,7 @@ export class SaveService extends Service {
     }
 
     this._data = this._decode(p.json);
-    this._activeBiome = this._data.activeBiome;
+    this._activeBiome = 'grass';
     this._loaded = true;
 
     const biome = this._biome();
@@ -804,8 +802,6 @@ export class SaveService extends Service {
   private _parseV2(raw: Record<string, unknown>): TdSaveDataV2 {
     const global = raw['global'] as { sk?: number; st?: number[]; stc?: Record<string, number>; ek?: number; rg?: number; ri?: number; rv?: number; tb?: number; ts?: number; pr?: number; ge?: number; ar?: Record<string, number>; minigame_tutorial?: number; mf?: number; vf?: number; volcano_tutorial?: number; snow_tutorial?: number; ft?: number; ft2?: number; ft3?: number; ft4?: number; bf?: number } | undefined;
     const biomes = raw['biomes'] as Record<string, Partial<TdBiomeSave>> | undefined;
-    const activeBiome = typeof raw['activeBiome'] === 'string' ? raw['activeBiome'] : 'grass';
-
     const result: TdSaveDataV2 = {
       v: 2,
       global: {
@@ -831,7 +827,6 @@ export class SaveService extends Service {
         bf: typeof global?.bf === 'number' ? global.bf : 0,
       },
       biomes: {},
-      activeBiome,
     };
 
     if (biomes && typeof biomes === 'object') {
@@ -886,7 +881,6 @@ export class SaveService extends Service {
         bf: 0,
       },
       biomes: { grass: grassBiome },
-      activeBiome: 'grass',
     };
   }
 }
