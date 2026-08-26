@@ -834,6 +834,35 @@
             <TextBlock Text="{Binding placingTowerName}" FontWeight="Bold" FontFamily="Anton" FontSize="64" Foreground="#FFF5E6C8" IsHitTestVisible="False"/>
         </Grid>
 
+        <!-- ========== RESOURCE INDICATORS (Gold + Lives) ========== -->
+        <Border VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                Height="130" Margin="0,0,40,630" CornerRadius="20" Padding="24,0,24,0"
+                IsHitTestVisible="False">
+            <Border.Background>
+                <SolidColorBrush Color="#CC1a0a00"/>
+            </Border.Background>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <!-- Gold display -->
+                <Image Source="/Root;component/Textures/gold_icon.png" Width="80" Height="80" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                <Grid VerticalAlignment="Center" Margin="0,0,30,0">
+                    <TextBlock Text="{Binding goldDisplay, StringFormat=F0}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="72" Margin="-2,0,0,0"/>
+                    <TextBlock Text="{Binding goldDisplay, StringFormat=F0}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="72" Margin="2,0,0,0"/>
+                    <TextBlock Text="{Binding goldDisplay, StringFormat=F0}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="72" Margin="0,-2,0,0"/>
+                    <TextBlock Text="{Binding goldDisplay, StringFormat=F0}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="72" Margin="0,2,0,0"/>
+                    <TextBlock Text="{Binding goldDisplay, StringFormat=F0}" Foreground="{StaticResource GoldBrush}" FontWeight="Bold" FontFamily="Anton" FontSize="72"/>
+                </Grid>
+                <!-- Lives display -->
+                <Image Source="/Root;component/sprites/skilltree/icon_heart.png" Width="80" Height="80" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                <Grid VerticalAlignment="Center">
+                    <TextBlock Text="{Binding livesDisplay}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="72" Margin="-2,0,0,0"/>
+                    <TextBlock Text="{Binding livesDisplay}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="72" Margin="2,0,0,0"/>
+                    <TextBlock Text="{Binding livesDisplay}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="72" Margin="0,-2,0,0"/>
+                    <TextBlock Text="{Binding livesDisplay}" Foreground="Black" FontWeight="Bold" FontFamily="Anton" FontSize="72" Margin="0,2,0,0"/>
+                    <TextBlock Text="{Binding livesDisplay}" Foreground="{StaticResource RedBrush}" FontWeight="Bold" FontFamily="Anton" FontSize="72"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
         <!-- ========== TABS ROW ========== -->
         <!-- TOWERS Tab -->
         <Border x:Name="TowersTab" VerticalAlignment="Bottom" HorizontalAlignment="Left"

@@ -126,6 +126,10 @@ export class TowerShopViewModel extends UiViewModel {
   slideOffsetY: number = 0;
   dragNormalized: number = 0;
 
+  // Resource display
+  goldDisplay: number = 0;
+  livesDisplay: number = 0;
+
   // Tab state
   showTowersContent: boolean = true;
   showManageContent: boolean = false;
@@ -310,6 +314,10 @@ export class TowerShopHud extends Component {
     this._populateTowers();
     this._updateAffordability(ResourceService.get().gold);
     this._updateBiomeArrows();
+
+    // Initialize resource displays
+    this.viewModel.goldDisplay = ResourceService.get().gold;
+    this.viewModel.livesDisplay = ResourceService.get().lives;
 
     // Initialize scroll flush with left edge
     this.scrollTarget = -CARD_EDGE_MARGIN;
@@ -621,6 +629,11 @@ export class TowerShopHud extends Component {
   onResourceChanged(payload: Events.ResourceChangedPayload): void {
     if (NetworkingService.get().isServerContext()) return;
     this._updateAffordability(payload.gold);
+    // Update resource displays
+    if (this.viewModel) {
+      this.viewModel.goldDisplay = payload.gold;
+      this.viewModel.livesDisplay = payload.lives;
+    }
     // Refresh tree node states when gold changes (affordability may change)
     if (this.viewModel && this.viewModel.showManageTree && this.manageSelectedDefId) {
       this._populateTreeNodes();

@@ -63,99 +63,11 @@
                         <GradientStop Color="#FF0a0500" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
-                <!-- Content: Three sections - left, center, and right aligned -->
+                <!-- Content: Wave text centered -->
                 <Grid Margin="80,30,80,30">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
 
-            <!-- LEFT SECTION: Lives Counter Panel -->
-            <Border Grid.Column="0" 
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    Background="#CC1a1a2e"
-                    BorderBrush="{StaticResource GoldBrush}"
-                    BorderThickness="6"
-                    CornerRadius="20"
-                    Padding="30,15,40,15">
-                <Grid>
-                    <!-- Corner Ornaments - Top Left -->
-                    <Ellipse Width="22" Height="22" 
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Top"
-                             Margin="-20,-8,0,0"/>
-                    <Ellipse Width="14" Height="14" 
-                             Fill="{StaticResource GoldDarkBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Top"
-                             Margin="-16,-4,0,0"/>
-                    <!-- Corner Ornaments - Top Right -->
-                    <Ellipse Width="22" Height="22" 
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-8,-20,0"/>
-                    <Ellipse Width="14" Height="14" 
-                             Fill="{StaticResource GoldDarkBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-4,-16,0"/>
-                    <!-- Corner Ornaments - Bottom Left -->
-                    <Ellipse Width="22" Height="22" 
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                             Margin="-20,0,0,-8"/>
-                    <Ellipse Width="14" Height="14" 
-                             Fill="{StaticResource GoldDarkBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                             Margin="-16,0,0,-4"/>
-                    <!-- Corner Ornaments - Bottom Right -->
-                    <Ellipse Width="22" Height="22" 
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                             Margin="0,0,-20,-8"/>
-                    <Ellipse Width="14" Height="14" 
-                             Fill="{StaticResource GoldDarkBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                             Margin="0,0,-16,-4"/>
-
-                    <!-- Lives Content -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Heart icon with gold outline stroke -->
-                        <Viewbox Width="120" Height="120" Margin="0,0,25,0">
-                            <Grid>
-                                <!-- Gold outline stroke (slightly larger) -->
-                                <Path Fill="{StaticResource GoldBrush}"
-                                      Data="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                                      RenderTransformOrigin="0.5,0.5">
-                                    <Path.RenderTransform>
-                                        <ScaleTransform ScaleX="1.15" ScaleY="1.15"/>
-                                    </Path.RenderTransform>
-                                </Path>
-                                <!-- Red heart fill -->
-                                <Path Fill="{StaticResource RedBrush}"
-                                      Data="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                            </Grid>
-                        </Viewbox>
-                        <!-- Lives value with outlined text -->
-                        <Grid VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Path=lives, StringFormat=F0}" 
-                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"/>
-                            <TextBlock Text="{Binding Path=lives, StringFormat=F0}" 
-                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"/>
-                            <TextBlock Text="{Binding Path=lives, StringFormat=F0}" 
-                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"/>
-                            <TextBlock Text="{Binding Path=lives, StringFormat=F0}" 
-                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"/>
-                            <TextBlock Text="{Binding Path=lives, StringFormat=F0}" 
-                                       FontSize="120" FontWeight="Bold" Foreground="{StaticResource CreamBrush}"/>
-                        </Grid>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- CENTER SECTION: Wave text in styled panel -->
-            <Border Grid.Column="1" 
-                    HorizontalAlignment="Center"
+            <!-- Wave text in styled panel -->
+            <Border HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Background="#CC1a1a2e"
                     BorderBrush="{StaticResource GoldBrush}"
@@ -219,79 +131,72 @@
                 </Grid>
             </Border>
 
-            <!-- RIGHT SECTION: Gold Counter Panel -->
-            <Border Grid.Column="2" 
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Background="#CC1a1a2e"
-                    BorderBrush="{StaticResource GoldBrush}"
-                    BorderThickness="6"
-                    CornerRadius="20"
-                    Padding="30,15,40,15">
-                <Grid>
-                    <!-- Corner Ornaments - Top Left -->
-                    <Ellipse Width="22" Height="22" 
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Top"
-                             Margin="-20,-8,0,0"/>
-                    <Ellipse Width="14" Height="14" 
-                             Fill="{StaticResource GoldDarkBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Top"
-                             Margin="-16,-4,0,0"/>
-                    <!-- Corner Ornaments - Top Right -->
-                    <Ellipse Width="22" Height="22" 
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-8,-20,0"/>
-                    <Ellipse Width="14" Height="14" 
-                             Fill="{StaticResource GoldDarkBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Margin="0,-4,-16,0"/>
-                    <!-- Corner Ornaments - Bottom Left -->
-                    <Ellipse Width="22" Height="22" 
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                             Margin="-20,0,0,-8"/>
-                    <Ellipse Width="14" Height="14" 
-                             Fill="{StaticResource GoldDarkBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                             Margin="-16,0,0,-4"/>
-                    <!-- Corner Ornaments - Bottom Right -->
-                    <Ellipse Width="22" Height="22" 
-                             Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                             Margin="0,0,-20,-8"/>
-                    <Ellipse Width="14" Height="14" 
-                             Fill="{StaticResource GoldDarkBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                             Margin="0,0,-16,-4"/>
 
-                    <!-- Gold Content -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Gold icon from image -->
-                        <Image Source="/Root;component/Textures/gold_icon.png" 
-                               Width="120" 
-                               Height="120" 
-                               Margin="0,0,25,0"
-                               VerticalAlignment="Center"/>
-                        <!-- Gold value with outlined text -->
-                        <Grid VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Path=gold, StringFormat=F0}" 
-                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="-4,0,0,0"/>
-                            <TextBlock Text="{Binding Path=gold, StringFormat=F0}" 
-                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="4,0,0,0"/>
-                            <TextBlock Text="{Binding Path=gold, StringFormat=F0}" 
-                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="0,-4,0,0"/>
-                            <TextBlock Text="{Binding Path=gold, StringFormat=F0}" 
-                                       FontSize="120" FontWeight="Bold" Foreground="Black" Margin="0,4,0,0"/>
-                            <TextBlock Text="{Binding Path=gold, StringFormat=F0}" 
-                                       FontSize="120" FontWeight="Bold" Foreground="{StaticResource GoldBrush}"/>
-                        </Grid>
-                    </StackPanel>
-                </Grid>
-            </Border>
         </Grid>
             </Border>
+        </Border>
+    </Grid>
+
+    <!-- Abandon button - right of header bar, placed outside IsHitTestVisible=False header Grid so it can receive taps -->
+    <Grid VerticalAlignment="Top" Height="280" IsHitTestVisible="True"
+          Visibility="{Binding showAbandon, Converter={StaticResource BoolToVisConverter}}">
+        <Border Margin="0,0,300,0" HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                IsHitTestVisible="True">
+            <Button Command="{Binding events.abandonLevelTap}" CommandParameter="abandon"
+                    Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand">
+                <Border Background="#CC1a1a2e"
+                        BorderBrush="{StaticResource GoldBrush}"
+                        BorderThickness="6"
+                        CornerRadius="20"
+                        Padding="30,15,30,15"
+                        MinHeight="150">
+                    <Grid>
+                        <!-- Corner Ornaments - Top Left -->
+                        <Ellipse Width="22" Height="22" 
+                                 Fill="{StaticResource GoldBrush}"
+                                 HorizontalAlignment="Left" VerticalAlignment="Top"
+                                 Margin="-20,-8,0,0"/>
+                        <Ellipse Width="14" Height="14" 
+                                 Fill="{StaticResource GoldDarkBrush}"
+                                 HorizontalAlignment="Left" VerticalAlignment="Top"
+                                 Margin="-16,-4,0,0"/>
+                        <!-- Corner Ornaments - Top Right -->
+                        <Ellipse Width="22" Height="22" 
+                                 Fill="{StaticResource GoldBrush}"
+                                 HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 Margin="0,-8,-20,0"/>
+                        <Ellipse Width="14" Height="14" 
+                                 Fill="{StaticResource GoldDarkBrush}"
+                                 HorizontalAlignment="Right" VerticalAlignment="Top"
+                                 Margin="0,-4,-16,0"/>
+                        <!-- Corner Ornaments - Bottom Left -->
+                        <Ellipse Width="22" Height="22" 
+                                 Fill="{StaticResource GoldBrush}"
+                                 HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                 Margin="-20,0,0,-8"/>
+                        <Ellipse Width="14" Height="14" 
+                                 Fill="{StaticResource GoldDarkBrush}"
+                                 HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                 Margin="-16,0,0,-4"/>
+                        <!-- Corner Ornaments - Bottom Right -->
+                        <Ellipse Width="22" Height="22" 
+                                 Fill="{StaticResource GoldBrush}"
+                                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                 Margin="0,0,-20,-8"/>
+                        <Ellipse Width="14" Height="14" 
+                                 Fill="{StaticResource GoldDarkBrush}"
+                                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                 Margin="0,0,-16,-4"/>
+
+                        <!-- Button content: flag icon only, left-aligned -->
+                        <Viewbox Width="100" Height="130" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            <Path Fill="{StaticResource CreamBrush}"
+                                  Data="M4 1h2v22H4V1zm3 2h12l-3 4 3 4H7V3z"/>
+                        </Viewbox>
+                    </Grid>
+                </Border>
+            </Button>
         </Border>
     </Grid>
 
@@ -365,52 +270,7 @@
         </Button>
     </Border>
 
-    <!-- Abandon Level Button - top-right, below the HUD bar -->
-    <Border HorizontalAlignment="Right" VerticalAlignment="Top"
-            Margin="0,300,80,0"
-            Visibility="{Binding showAbandon, Converter={StaticResource BoolToVisConverter}}">
-        <Button Command="{Binding events.abandonLevelTap}" CommandParameter="abandon"
-                Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand">
-            <Border Background="#CC1a1a2e"
-                    BorderBrush="{StaticResource GoldBrush}"
-                    BorderThickness="5"
-                    CornerRadius="18"
-                    Padding="32,16,32,16">
-                <Grid>
-                    <!-- Corner dots -->
-                    <Ellipse Width="16" Height="16" Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-14,-6,0,0"/>
-                    <Ellipse Width="16" Height="16" Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-6,-14,0"/>
-                    <Ellipse Width="16" Height="16" Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-14,0,0,-6"/>
-                    <Ellipse Width="16" Height="16" Fill="{StaticResource GoldBrush}"
-                             HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-14,-6"/>
-                    <!-- Button text -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <!-- X icon -->
-                        <Viewbox Width="50" Height="50" Margin="0,0,14,0">
-                            <Path Fill="{StaticResource RedBrush}"
-                                  Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                        </Viewbox>
-                        <!-- Text with outline -->
-                        <Grid>
-                            <TextBlock Text="ABANDON" FontFamily="Anton" FontSize="56" FontWeight="Bold"
-                                       Foreground="Black" Margin="-3,0,0,0"/>
-                            <TextBlock Text="ABANDON" FontFamily="Anton" FontSize="56" FontWeight="Bold"
-                                       Foreground="Black" Margin="3,0,0,0"/>
-                            <TextBlock Text="ABANDON" FontFamily="Anton" FontSize="56" FontWeight="Bold"
-                                       Foreground="Black" Margin="0,-3,0,0"/>
-                            <TextBlock Text="ABANDON" FontFamily="Anton" FontSize="56" FontWeight="Bold"
-                                       Foreground="Black" Margin="0,3,0,0"/>
-                            <TextBlock Text="ABANDON" FontFamily="Anton" FontSize="56" FontWeight="Bold"
-                                       Foreground="{StaticResource CreamBrush}"/>
-                        </Grid>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </Button>
-    </Border>
+
     <!-- Confirmation Popup Overlay -->
     <Grid Visibility="{Binding showConfirmPopup, Converter={StaticResource BoolToVisConverter}}">
         <!-- Semi-transparent dimmer background -->
@@ -429,15 +289,15 @@
                 <StackPanel HorizontalAlignment="Center">
                     <!-- Title text with outline -->
                     <Grid HorizontalAlignment="Center" Margin="0,0,0,40">
-                        <TextBlock Text="Are you sure?" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="-4,0,0,0"/>
-                        <TextBlock Text="Are you sure?" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="4,0,0,0"/>
-                        <TextBlock Text="Are you sure?" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="0,-4,0,0"/>
-                        <TextBlock Text="Are you sure?" FontFamily="Anton" FontSize="80" FontWeight="Bold"
-                                   Foreground="Black" Margin="0,4,0,0"/>
-                        <TextBlock Text="Are you sure?" FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                        <TextBlock FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Text="Surrender?" Margin="-4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Text="Surrender?" Margin="4,0,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Text="Surrender?" Margin="0,-4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock FontFamily="Anton" FontSize="80" FontWeight="Bold"
+                                   Foreground="Black" Text="Surrender?" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock FontFamily="Anton" FontSize="80" FontWeight="Bold" Text="Surrender?" HorizontalAlignment="Center"
                                    Foreground="{StaticResource CreamBrush}"/>
                     </Grid>
 

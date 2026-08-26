@@ -33,8 +33,8 @@ export const TOWER_DEFS: ITowerDef[] = [
   // Splash path → massive zone or rapid AoE
   {
     id: 'cannon', name: 'Cannon', cost: 100,
-    stats: { damage: 40, range: 2.10, fireRate: 0.6, projectileSpeed: 4.5,
-      props: { splashRadius: 0.5, projectileScale: 0.15, projectileColor: { r: 0.15, g: 0.18, b: 0.12 }, arcHeight: 1.5 } },
+    stats: { damage: 30, range: 2.10, fireRate: 0.6, projectileSpeed: 4.5,
+      props: { splashRadius: 0.4, projectileScale: 0.15, projectileColor: { r: 0.15, g: 0.18, b: 0.12 }, arcHeight: 1.5 } },
     template: Assets.Cannon,
     upgrades: tree(
       [Upg.damage(100),  Upg.splash(100)],
