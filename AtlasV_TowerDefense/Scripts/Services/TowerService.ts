@@ -235,6 +235,7 @@ export class TowerService extends Service {
 
   @subscribe(Events.TowerDeselected)
   onTowerDeselected(_p: Events.TowerDeselectedPayload): void {
+    this._selectedId = '';
     this._selectedCol = -1;
     this._selectedRow = -1;
   }

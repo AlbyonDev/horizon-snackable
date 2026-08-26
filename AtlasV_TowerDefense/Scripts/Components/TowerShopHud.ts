@@ -46,7 +46,6 @@ const TOWER_COLORS: Record<string, string> = {
   lightning: '#553d9bdb',
   poison: '#5527ae60',
   pillar: '#556b7040',
-  test:   '#55ff6b00',
 };
 
 const TOWER_SECONDARY_COLORS: Record<string, string> = {
@@ -58,7 +57,6 @@ const TOWER_SECONDARY_COLORS: Record<string, string> = {
   lightning: '#2a6b9e',
   poison: '#1a7a3e',
   pillar: '#4a5a38',
-  test:   '#b34700',
 };
 
 const BIOME_ARROW_BUFF_ICON = new TextureAsset('@sprites/biome_arrow_buff.png');
@@ -808,21 +806,6 @@ export class TowerShopHud extends Component {
     }
 
     if (!TowerService.get().find(towerId)) {
-      if (towerId === 'test') {
-        if (this.viewModel) {
-          this.viewModel.selectedTowerId = towerId;
-          const idx = this.itemVMs.findIndex(i => i.towerId === towerId);
-          if (idx >= 0) {
-            this.viewModel.selectedCardIndex = idx;
-            this._scrollToCard(idx);
-          }
-        }
-        for (const item of this.itemVMs) {
-          const shouldBeSelected = item.towerId === towerId;
-          if (item.selected !== shouldBeSelected) item.selected = shouldBeSelected;
-        }
-        return;
-      }
       return;
     }
 
@@ -1188,18 +1171,6 @@ export class TowerShopHud extends Component {
       return item;
     });
 
-    // Test card
-    const testCard = new TowerShopItemViewModel();
-    testCard.towerId = 'test';
-    testCard.name = 'Test';
-    testCard.cost = 999;
-    testCard.iconPath = '';
-    testCard.state = 'affordable';
-    testCard.selected = false;
-    testCard.towerColor = TOWER_COLORS['test'] ?? '#3a3a5a';
-    testCard.secondaryColor = TOWER_SECONDARY_COLORS['test'] ?? '#2a2a3a';
-    testCard.icon = TowerIcons.BallistaTower;
-    this.itemVMs.push(testCard);
 
     if (this.viewModel) {
       this.viewModel.contentWidth = this.itemVMs.length * CARD_SLOT_WIDTH;
@@ -1303,18 +1274,6 @@ export class TowerShopHud extends Component {
     }
 
     if (!TowerService.get().find(towerId)) {
-      if (towerId === 'test') {
-        if (this.viewModel) {
-          this.viewModel.selectedTowerId = towerId;
-          this.viewModel.selectedCardIndex = cardIndex;
-          this._scrollToCard(cardIndex);
-        }
-        for (const item of this.itemVMs) {
-          const shouldBeSelected = item.towerId === towerId;
-          if (item.selected !== shouldBeSelected) item.selected = shouldBeSelected;
-        }
-        return;
-      }
       return;
     }
 
