@@ -28,7 +28,7 @@ import {
 } from 'meta/worlds';
 import type { Maybe } from 'meta/worlds';
 
-import { Events } from '../Types';
+import { Events, GamePhase } from '../Types';
 import { SkillTreeService } from '../Services/SkillTreeService';
 import { SaveService } from '../Services/SaveService';
 import {
@@ -135,7 +135,7 @@ const COLOR_ROOT_RUNE_BOUGHT = '#FF2A2A2A';
 // ── Layout constants ─────────────────────────────────────────────────────────
 
 const CANVAS_WIDTH = 1080;
-const CANVAS_HEIGHT = 3790; // 10 tiers at 270px spacing + root/header/padding + 350 top/bottom scroll padding
+const CANVAS_HEIGHT = 4060; // 11 tiers at 270px spacing + root/header/padding + 350 top/bottom scroll padding
 
 const NODE_HALF_W = 150;
 const NODE_HALF_H = 65;
@@ -198,7 +198,7 @@ const FORTUNE_HEADER: [number, number] = [760, 620];
 
 // ── Connection rendering ─────────────────────────────────────────────────────
 
-const MAX_CONNECTIONS = 60;
+const MAX_CONNECTIONS = 65;
 
 function getNodeCenter(index: number): [number, number] {
   const pos = NODE_POSITIONS[index];
@@ -366,6 +366,11 @@ export class SkillTreeViewModel extends UiViewModel {
   conn57Data: string = ''; conn57Color: string = COLOR_CONNECTION_LOCKED;
   conn58Data: string = ''; conn58Color: string = COLOR_CONNECTION_LOCKED;
   conn59Data: string = ''; conn59Color: string = COLOR_CONNECTION_LOCKED;
+  conn60Data: string = ''; conn60Color: string = COLOR_CONNECTION_LOCKED;
+  conn61Data: string = ''; conn61Color: string = COLOR_CONNECTION_LOCKED;
+  conn62Data: string = ''; conn62Color: string = COLOR_CONNECTION_LOCKED;
+  conn63Data: string = ''; conn63Color: string = COLOR_CONNECTION_LOCKED;
+  conn64Data: string = ''; conn64Color: string = COLOR_CONNECTION_LOCKED;
   connectionCount: number = 0;
 
   // Per-node properties (40 nodes: positions, colors, labels, costs)
@@ -674,6 +679,18 @@ export class SkillTreeHudController extends Component {
     this.viewModel = new SkillTreeViewModel();
     this.uiComponent.dataContext = this.viewModel;
     this.viewModel.visible = false;
+  }
+
+  @subscribe(Events.GamePhaseChanged, { execution: ExecuteOn.Owner })
+  onPhaseChanged(payload: Events.GamePhaseChangedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel) return;
+    if (payload.phase !== GamePhase.Overworld) {
+      this.viewModel.visible = false;
+      this.viewModel.popupVisible = false;
+      if (this.uiComponent) this.uiComponent.isVisible = false;
+      console.log('[SkillTreeHud] Force-closed on phase change to ' + payload.phase);
+    }
   }
 
   @subscribe(OpenSkillTreeEvent, { execution: ExecuteOn.Owner })
@@ -1013,6 +1030,7 @@ export class SkillTreeHudController extends Component {
       case SkillTag.UnlockFireCannon: return new TextureAsset('@Textures/fire_tower.png');
       case SkillTag.UnlockLightning: return new TextureAsset('@Textures/lightning_tower.png');
       case SkillTag.UnlockFrost: return new TextureAsset('@Textures/frost_tower.png');
+      case SkillTag.UnlockSniper: return new TextureAsset('@Textures/sniper_tower.png');
       default: return null;
     }
   }

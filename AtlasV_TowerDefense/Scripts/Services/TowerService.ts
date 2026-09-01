@@ -87,7 +87,8 @@ export class TowerService extends Service {
       const relics = RelicService.get();
       const skills = SkillTreeService.get();
       const fireRateMult = relics.getFireRateMultiplier() * skills.getFireRateMultiplier();
-      const rangeMult = relics.getRangeMultiplier() * skills.getRangeMultiplier();
+      let rangeMult = relics.getRangeMultiplier() * skills.getRangeMultiplier();
+      if (rec.defId === 'lightning') rangeMult *= skills.getLightningRangeMultiplier();
       let damageMult = skills.getDamageMultiplier();
       const biomeMultiplier = getBiomeDamageMultiplier(rec.defId, SaveService.get().activeBiome);
       damageMult *= biomeMultiplier;
@@ -116,7 +117,8 @@ export class TowerService extends Service {
     const relics = RelicService.get();
     const skills = SkillTreeService.get();
     const fireRateMult = relics.getFireRateMultiplier() * skills.getFireRateMultiplier();
-    const rangeMult = relics.getRangeMultiplier() * skills.getRangeMultiplier();
+    let rangeMult = relics.getRangeMultiplier() * skills.getRangeMultiplier();
+    if (rec.defId === 'lightning') rangeMult *= skills.getLightningRangeMultiplier();
     let damageMult = skills.getDamageMultiplier();
 
     // Apply biome damage modifier (buff/debuff based on active biome)

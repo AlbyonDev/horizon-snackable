@@ -1,17 +1,5 @@
 {
   "packages": {
-    "meta/CrossHair_CriticalHit/0.0.1": {
-      "author": "meta",
-      "folderName": "CrossHair_CriticalHit",
-      "name": "CrossHair_CriticalHit",
-      "version": "0.0.1"
-    },
-    "meta/CrossHair_Damage/0.0.1": {
-      "author": "meta",
-      "folderName": "CrossHair_Damage",
-      "name": "CrossHair_Damage",
-      "version": "0.0.1"
-    },
     "meta/DesertGateRed/0.0.2": {
       "author": "meta",
       "folderName": "DesertGateRed",
@@ -210,6 +198,12 @@
       "name": "player_death_1",
       "version": "0.0.1"
     },
+    "meta/pop_teleport/0.0.2": {
+      "author": "meta",
+      "folderName": "SFX/pop_teleport",
+      "name": "pop_teleport",
+      "version": "0.0.2"
+    },
     "meta/purple_glow_with_sparkles/0.0.3": {
       "author": "meta",
       "folderName": "popcornfx/purple_glow_with_sparkles",
@@ -227,6 +221,12 @@
       "folderName": "sfxlib_elc_LiveWireElectricityPowerOn_01",
       "name": "sfxlib_elc_LiveWireElectricityPowerOn_01",
       "version": "0.0.1"
+    },
+    "meta/sfxlib_fun_appear_01/0.0.2": {
+      "author": "meta",
+      "folderName": "SFX/sfxlib_fun_appear_01",
+      "name": "sfxlib_fun_appear_01",
+      "version": "0.0.2"
     },
     "meta/sfxlib_nww_blocksbuild_01/0.0.2": {
       "author": "meta",

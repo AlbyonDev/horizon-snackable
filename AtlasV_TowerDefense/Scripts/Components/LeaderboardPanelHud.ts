@@ -108,6 +108,7 @@ export class LeaderboardPanelHud extends Component {
   private viewModel: Maybe<LeaderboardPanelViewModel> = null;
   private uiComponent: Maybe<CustomUiComponent> = null;
   private activeBiome: string = 'grass';
+  private _fetchGeneration: number = 0;
 
   @subscribe(OnEntityStartEvent, { execution: ExecuteOn.Owner })
   onStart(): void {
@@ -218,10 +219,17 @@ export class LeaderboardPanelHud extends Component {
     const apiName = BIOME_LEADERBOARD_MAP[this.activeBiome];
     if (!apiName) return;
 
-    console.log(`[LeaderboardPanelHud] Fetching entries for ${apiName}`);
+    const gen = ++this._fetchGeneration;
+    console.log(`[LeaderboardPanelHud] Fetching entries for ${apiName} (gen=${gen})`);
 
     try {
       const entries = await LeaderboardsService.get().fetchEntries(apiName, { numEntries: 10 });
+
+      // Discard stale results — user switched tabs while this fetch was in-flight
+      if (gen !== this._fetchGeneration) {
+        console.log(`[LeaderboardPanelHud] Discarding stale fetch (gen=${gen}, current=${this._fetchGeneration})`);
+        return;
+      }
 
       const newEntries: LeaderboardEntryRowViewModel[] = [];
       for (let i = 0; i < entries.length; i++) {
@@ -237,8 +245,10 @@ export class LeaderboardPanelHud extends Component {
       this.viewModel.emptyStateVisibility =
         newEntries.length === 0 ? Visibility.Visible : Visibility.Collapsed;
 
-      console.log(`[LeaderboardPanelHud] Loaded ${newEntries.length} entries`);
+      console.log(`[LeaderboardPanelHud] Loaded ${newEntries.length} entries for ${apiName}`);
     } catch (e) {
+      // Also guard the error path against staleness
+      if (gen !== this._fetchGeneration) return;
       console.log(`[LeaderboardPanelHud] Error fetching entries: ${e}`);
       this.viewModel.entries = [];
       this.viewModel.emptyStateVisibility = Visibility.Visible;

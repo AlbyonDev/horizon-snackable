@@ -89,8 +89,8 @@ export const TOWER_DEFS: ITowerDef[] = [
   // Damage path → heavier bolts, then faster zaps or extended reach
   // Range path → longer reach, then more chains or faster fire
   {
-    id: 'lightning', name: 'Lightning', cost: 300,
-    stats: { damage: 15, range: 2.00, fireRate: 2.0, projectileSpeed: 10,
+    id: 'lightning', name: 'Lightning', cost: 250,
+    stats: { damage: 25, range: 2.00, fireRate: 2.0, projectileSpeed: 10,
       props: { chainCount: 5, chainRange: 10, chainDamageFalloff: 0.5,
                projectileColor: { r: 0.3, g: 0.7, b: 1.0 }, projectileScale: 0.08, arcHeight: 0.2 } },
     template: Assets.Lightning,
@@ -104,7 +104,7 @@ export const TOWER_DEFS: ITowerDef[] = [
   // Damage path → more potent venom, then faster lobs or wider splash
   // Rate path → rapid lobbing, then bigger DoT or longer reach
   {
-    id: 'poison', name: 'Poison', cost: 90,
+    id: 'poison', name: 'Poison', cost: 70,
     stats: { damage: 0, range: 2.00, fireRate: 1.2, projectileSpeed: 6,
       props: { dotDamage: 3, dotDuration: 15, dotTickRate: 0.5,
                projectileColor: { r: 0.2, g: 0.8, b: 0.1 }, projectileScale: 0.12, arcHeight: 1.0 } },
@@ -122,5 +122,19 @@ export const TOWER_DEFS: ITowerDef[] = [
     stats: { damage: 99999, range: 2.0, fireRate: 1.0, projectileSpeed: 0,
       props: { singleUse: true } },
     template: Assets.Pillar,
+  },
+  // ── Sniper ────────────────────────────────────────────────────────────
+  // Global-range single-target. Massive damage, very slow fire rate.
+  // Damage path → heavier rounds, then faster cycling or even more damage
+  // Rate path → faster shots, then extended reach or heavier hits
+  {
+    id: 'sniper', name: 'Sniper', cost: 180,
+    stats: { damage: 80, range: 50, fireRate: 0.5, projectileSpeed: 10,
+      props: { projectileColor: { r: 0.3, g: 0.3, b: 0.3 }, projectileScale: 0.08, arcHeight: 0 } },
+    template: Assets.Sniper,
+    upgrades: tree(
+      [Upg.damage(150), Upg.rate(150)],
+      [[Upg.range(225), Upg.rate(225)],    [Upg.damage(225), Upg.range(225)]],
+    ),
   },
 ];

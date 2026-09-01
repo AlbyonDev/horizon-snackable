@@ -24,6 +24,7 @@ import { BossModifierService } from './BossModifierService';
 import { TowerService } from './TowerService';
 import { TowerDestroyAnimService } from './TowerDestroyAnimService';
 import { SkillTreeService } from './SkillTreeService';
+import './SplitterService';
 
 @service()
 export class WaveService extends Service {
@@ -133,9 +134,12 @@ export class WaveService extends Service {
     if (this._spawnQueue.length === 0) return;
     this._spawnTimer -= dt;
     if (this._spawnTimer > 0) return;
-    this._spawnTimer = ENEMY_SPAWN_INTERVAL;
 
     const enemyId = this._spawnQueue.shift()!;
+    // Use per-enemy spawn interval if defined (heavier enemies get bigger gaps)
+    const def = EnemyService.get().find(enemyId);
+    this._spawnTimer = def?.spawnInterval ?? ENEMY_SPAWN_INTERVAL;
+
     void EnemyService.get().spawn(enemyId, this._waveIndex);
     this._spawnedCount++;
   }
@@ -144,6 +148,7 @@ export class WaveService extends Service {
     if (this._phase !== GamePhase.Wave) return;
     if (this._spawnedCount < this._totalInWave) return; // still spawning
     if (EnemyService.get().count > 0) return;
+    if (EnemyService.get().pendingSpawns > 0) return; // split enemies still spawning
 
     const goldBeforeBonus = ResourceService.get().gold;
     const incomeMultiplier = BossModifierService.get().incomeMultiplier;
@@ -189,7 +194,9 @@ export class WaveService extends Service {
 
     const waveDef = LevelGeneratorService.get().getLevelDef(this._currentLevel).waves[this._waveIndex];
     this._spawnQueue = [];
+    const runCount = LevelGeneratorService.get().runCount;
     for (const group of waveDef.groups) {
+      if (group.minRun && group.minRun > runCount) continue;
       for (let i = 0; i < group.count; i++) {
         this._spawnQueue.push(group.enemyId);
       }

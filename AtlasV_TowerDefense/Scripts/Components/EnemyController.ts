@@ -95,6 +95,14 @@ export class EnemyController extends Component {
   private static readonly SHIELD_FLICKER_THRESHOLD = 2.0; // seconds before expiry to start flickering
   private _shieldFlickerAccum: number = 0; // accumulated phase for flicker oscillation
 
+  // Blink mechanic (Phase Shifter)
+  private _blinkTimer: number = 0;
+  private _blinkInterval: number = 0;
+  private _blinkCellsMin: number = 0;
+  private _blinkCellsMax: number = 0;
+  private _blinkVisualTimer: number = 0;
+  private static readonly BLINK_VISUAL_DURATION = 0.2;
+
   // Shield spawn scale-up animation (mirrors enemy spawn grow)
   private _shieldScaling: boolean = false;
   private _shieldScaleTimer: number = 0;
@@ -141,12 +149,12 @@ export class EnemyController extends Component {
       }
     }
     this._reward      = Math.round(def.reward * runRewardMult);
-    this._wpIndex = 0;
-    this._subT    = 0;
+    this._wpIndex = p.startWpIndex;
+    this._subT    = p.startSubT;
     this._alive   = true;
 
     this._baseScale = this._transform.localScale.x;
-    const startPos = PathService.get().getWorldPositionInSubPath(0, 0);
+    const startPos = PathService.get().getWorldPositionInSubPath(this._wpIndex, this._subT);
     this._transform.worldPosition = startPos;
     this._enemyId = EnemyService.get().register(this.entity, this._defId, this._hp, startPos.x, startPos.z);
 
@@ -179,6 +187,15 @@ export class EnemyController extends Component {
     } else {
       this._shieldTimer = 0;
       this._shieldActive = false;
+    }
+
+    // Blink mechanic initialization
+    if (def.blinkIntervalSec && def.blinkCells) {
+      this._blinkInterval = def.blinkIntervalSec;
+      this._blinkTimer = def.blinkIntervalSec;
+      this._blinkCellsMin = def.blinkCells[0];
+      this._blinkCellsMax = def.blinkCells[1];
+      console.log(`[EnemyController] Blink enabled: interval=${this._blinkInterval}s, cells=[${this._blinkCellsMin},${this._blinkCellsMax}]`);
     }
 
     // Compute spawn scale duration: inversely proportional to speed
@@ -402,6 +419,52 @@ export class EnemyController extends Component {
     this._transform.lookAt(ahead, Vec3.up);
     EnemyService.get().update(this._enemyId, pos.x, pos.z, pathService.getGlobalT(this._wpIndex, this._subT), this._hp);
 
+    // Blink mechanic: teleport forward along path every N seconds
+    if (this._blinkInterval > 0) {
+      this._blinkTimer -= dt;
+      if (this._blinkTimer <= 0) {
+        // Capture old position before blink
+        const oldPos = this._transform.worldPosition;
+        const oldWorldX = oldPos.x;
+        const oldWorldZ = oldPos.z;
+
+        const cells = this._blinkCellsMin + Math.floor(Math.random() * (this._blinkCellsMax - this._blinkCellsMin + 1));
+        for (let i = 0; i < cells && this._wpIndex < waypointCount - 1; i++) {
+          this._subT = 0;
+          this._wpIndex++;
+        }
+        if (this._wpIndex >= waypointCount - 1) {
+          this._reachEnd();
+          return;
+        }
+        const blinkPos = pathService.getWorldPositionInSubPath(this._wpIndex, this._subT);
+        this._transform.worldPosition = blinkPos;
+        EnemyService.get().update(this._enemyId, blinkPos.x, blinkPos.z, pathService.getGlobalT(this._wpIndex, this._subT), this._hp);
+        this._blinkTimer = this._blinkInterval;
+        this._blinkVisualTimer = EnemyController.BLINK_VISUAL_DURATION;
+        // Shrink to zero for blink telegraph
+        this._transform.localScale = new Vec3(0, 0, 0);
+
+        // Fire blink event for VFX/SFX
+        const blinkPayload = new Events.EnemyBlinkedPayload();
+        blinkPayload.oldWorldX = oldWorldX;
+        blinkPayload.oldWorldZ = oldWorldZ;
+        blinkPayload.newWorldX = blinkPos.x;
+        blinkPayload.newWorldZ = blinkPos.z;
+        EventService.sendLocally(Events.EnemyBlinked, blinkPayload);
+
+        console.log(`[EnemyController] Phase Shifter blinked forward ${cells} cells`);
+      }
+    }
+
+    // Blink visual recovery: scale back up after blink
+    if (this._blinkVisualTimer > 0) {
+      this._blinkVisualTimer -= dt;
+      if (this._blinkVisualTimer <= 0) {
+        this._transform.localScale = new Vec3(this._baseScale, this._baseScale, this._baseScale);
+      }
+    }
+
     // Update shield sphere position to follow enemy
     if (this._shieldEntity) {
       const shieldTransform = this._shieldEntity.getComponent(TransformComponent);
@@ -456,6 +519,8 @@ export class EnemyController extends Component {
     p.worldZ  = pos.z;
     p.killerTowerDefId = this._lastHitTowerDefId;
     p.defId = this._defId;
+    p.wpIndex = this._wpIndex;
+    p.subT = this._subT;
     EventService.sendLocally(Events.EnemyDied, p);
   }
 

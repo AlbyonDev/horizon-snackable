@@ -35,6 +35,7 @@ import { SaveService } from '../Services/SaveService';
 const FTUE4_STEPS: string[] = [
   'You defeated the Boss! A new run begins with fresh levels to conquer.',
   'Enemies will get stronger. Adapt your strategy!',
+  'You might also encounter new enemies!',
   'Your relics have been reset, but your Skill Tree upgrades are permanent!',
 ];
 

@@ -20,6 +20,8 @@ export interface IWavePack {
   readonly name: string;
   /** Enemy groups that compose this wave. */
   readonly groups: ReadonlyArray<IWaveGroup>;
+  /** Minimum run number required for this pack to appear in the pool. */
+  readonly minRun?: number;
 }
 
 // ─── Tier enum ──────────────────────────────────────────────────────────────────
@@ -48,6 +50,12 @@ export const TIER_1_PACKS: ReadonlyArray<IWavePack> = [
     name: 'Patrol',
     groups: [{ enemyId: 'basic', count: 6 }],
   },
+      // --- Run 2+ Splitter packs (harder formations) ---
+  {
+    name: 'SplitterTrickle',
+    minRun: 2,
+    groups: [{ enemyId: 'splitter', count: 1, minRun: 2 }],
+  },
 ];
 
 // ─── Tier 2 packs (Mid) ────────────────────────────────────────────────────────
@@ -68,6 +76,59 @@ export const TIER_2_PACKS: ReadonlyArray<IWavePack> = [
   {
     name: 'Swarm',
     groups: [{ enemyId: 'basic', count: 12 }],
+  },
+    // --- Run 2+ Splitter packs (harder formations) ---
+  {
+    name: 'SplitterTrickle',
+    minRun: 2,
+    groups: [{ enemyId: 'splitter', count: 4, minRun: 2 }],
+  },
+  {
+    name: 'SplitterScouts',
+    minRun: 2,
+    groups: [{ enemyId: 'splitter', count: 3, minRun: 2 }, { enemyId: 'fast', count: 2 }],
+  },
+  {
+    name: 'SplitterPatrol',
+    minRun: 2,
+    groups: [{ enemyId: 'splitter', count: 6, minRun: 2 }],
+  },
+  // --- Run 3+ Splitter packs (harder formations) ---
+  {
+    name: 'PhaseShifterAmbush',
+    minRun: 3,
+    groups: [{ enemyId: 'phaseShifter', count: 3 }, { enemyId: 'basic', count: 3 }],
+  },
+  {
+    name: 'PhaseShifterAmbush',
+    minRun: 3,
+    groups: [{ enemyId: 'phaseShifter', count: 5 }],
+  },
+  // --- Run 10+ Splitter packs (harder formations) ---
+  {
+    name: 'SplitterHorde',
+    minRun: 10,
+    groups: [{ enemyId: 'splitter', count: 10, minRun: 10 }],
+  },
+  {
+    name: 'SplitterElite',
+    minRun: 10,
+    groups: [{ enemyId: 'splitter', count: 6, minRun: 10 }, { enemyId: 'tank', count: 3, minRun: 10 }],
+  },
+  {
+    name: 'SplitterStorm',
+    minRun: 10,
+    groups: [{ enemyId: 'splitter', count: 8, minRun: 10 }, { enemyId: 'fast', count: 4, minRun: 10 }],
+  },
+  {
+    name: 'SplitterPhaseStorm',
+    minRun: 10,
+    groups: [{ enemyId: 'splitter', count: 6, minRun: 10 }, { enemyId: 'phaseShifter', count: 3, minRun: 10 }],
+  },
+  {
+    name: 'SplitterSiege',
+    minRun: 10,
+    groups: [{ enemyId: 'splitter', count: 12, minRun: 10 }],
   },
 ];
 
@@ -101,6 +162,33 @@ export const TIER_3_PACKS: ReadonlyArray<IWavePack> = [
   {
     name: 'ChargerAssault',
     groups: [{ enemyId: 'charger', count: 4 }, { enemyId: 'basic', count: 2 }],
+  },
+      // --- Run 2+ Splitter packs (harder formations) ---
+  {
+    name: 'FastAmbush',
+    minRun: 2,
+    groups: [{ enemyId: 'spliter', count: 5 }, { enemyId: 'shaman', count: 3 }],
+  },
+    // --- Run 3+ Splitter packs (harder formations) ---
+  {
+    name: 'FastAmbush',
+    minRun: 3,
+    groups: [{ enemyId: 'phaseShifter', count: 6 }, { enemyId: 'fast', count: 6 }],
+  },
+  {
+    name: 'ShamanShifterRaid',
+    minRun: 3,
+    groups: [{ enemyId: 'phaseShifter', count: 5 }, { enemyId: 'shaman', count: 5 }],
+  },
+  {
+    name: 'PhaseShifterSuperAmbush',
+    minRun: 3,
+    groups: [{ enemyId: 'phaseShifter', count: 9 }],
+  },
+    {
+    name: 'PhaseShifterSuperAmbush',
+    minRun: 3,
+    groups: [{ enemyId: 'phaseShifter', count: 1 }, { enemyId: 'charger', count: 1 }, { enemyId: 'tank', count: 1 }, { enemyId: 'fast', count: 1 }, { enemyId: 'splitter', count: 1 }],
   },
 ];
 
@@ -143,6 +231,21 @@ export const PROJECTILE_PACKS: ReadonlyArray<IWavePack> = [
   {
     name: 'FireballOnly',
     groups: [{ enemyId: 'fireball', count: 6 }],
+  },
+  {
+    name: 'FireballRush',
+    minRun: 2,
+    groups: [{ enemyId: 'fireball', count: 6 }, { enemyId: 'splitter', count: 2 }],
+  },
+  {
+    name: 'FireballRush',
+    minRun: 2,
+    groups: [{ enemyId: 'fireball', count: 6 }, { enemyId: 'shaman', count: 3 }],
+  },
+    {
+    name: 'FireballRush',
+    minRun: 2,
+    groups: [{ enemyId: 'fireball', count: 6 }, { enemyId: 'shaman', count: 2 }],
   },
 ];
 

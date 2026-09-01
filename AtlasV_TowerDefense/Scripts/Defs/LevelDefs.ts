@@ -51,7 +51,7 @@ export const WAVES_LEVEL_0: IWaveDef[] = [
   { groups: [{ enemyId: 'basic', count: 5 }, { enemyId: 'fast', count: 3 }] },
 
   // W4 — Introduction Tank : lent, regen 8/s. Le Frost seul le soigne — signal fort.
-  { groups: [{ enemyId: 'tank', count: 2 }, { enemyId: 'basic', count: 6 }] },
+  { groups: [{ enemyId: 'tank', count: 2 }, { enemyId: 'basic', count: 6 }, { enemyId: 'splitter', count: 2, minRun: 2 }] },
 
   // W5 — Mix Act 1 : pression douce sur tous les fronts. 1 seule tour commence à laisser passer.
   { groups: [{ enemyId: 'basic', count: 8 }, { enemyId: 'fast', count: 4 }, { enemyId: 'tank', count: 1 }] },
@@ -69,7 +69,7 @@ export const WAVES_LEVEL_0: IWaveDef[] = [
   { groups: [{ enemyId: 'fast', count: 14 }, { enemyId: 'basic', count: 6 }] },
 
   // W9 — Boss + Tank escort : immune slow + regen simultanément. Frost contre-productif sur les deux.
-  { groups: [{ enemyId: 'charger', count: 2 }, { enemyId: 'tank', count: 5 }, { enemyId: 'basic', count: 8 }] },
+  { groups: [{ enemyId: 'charger', count: 2 }, { enemyId: 'tank', count: 5 }, { enemyId: 'basic', count: 8 }, { enemyId: 'splitter', count: 3, minRun: 2 }] },
 
   // W10 — SKILL CHECK "Speed Run" : 25 Fast, dodge 15%. Pas de Boss ni Tank.
   //   Pression pure couverture + volume tirs. Cannon (0.6/s) souvent dodgé, laisse passer.
@@ -89,7 +89,7 @@ export const WAVES_LEVEL_0: IWaveDef[] = [
 
   // W14 — Tank tide : 10 Tanks simultanément, regen brutal sans DPS soutenu.
   //   Tours cheap non upgradées commencent à saturer.
-  { groups: [{ enemyId: 'tank', count: 10 }, { enemyId: 'basic', count: 10 }] },
+  { groups: [{ enemyId: 'tank', count: 10 }, { enemyId: 'basic', count: 10 }, { enemyId: 'splitter', count: 4, minRun: 2 }] },
 
   // W15 — SKILL CHECK "Double Menace" : Boss + Tank en grand nombre, pas de réponse unique.
   //   Laser pour les Tanks, DPS pur pour les Boss, Frost quasi inutile sur les deux.
@@ -105,7 +105,7 @@ export const WAVES_LEVEL_0: IWaveDef[] = [
   { groups: [{ enemyId: 'charger', count: 6 }, { enemyId: 'fast', count: 10 }] },
 
   // W18 — Récupération tendue : volume élevé sans Boss ni Tank. Tenir pour aborder W19–20 intact.
-  { groups: [{ enemyId: 'basic', count: 25 }, { enemyId: 'fast', count: 20 }] },
+  { groups: [{ enemyId: 'basic', count: 25 }, { enemyId: 'fast', count: 20 }, { enemyId: 'splitter', count: 5, minRun: 2 }] },
 
   // W19 — "Mur d'Acier" : Tank tide massive + Boss en soutien. Regen brutal à HP ×3.7.
   { groups: [{ enemyId: 'tank', count: 15 }, { enemyId: 'charger', count: 3 }, { enemyId: 'basic', count: 10 }] },

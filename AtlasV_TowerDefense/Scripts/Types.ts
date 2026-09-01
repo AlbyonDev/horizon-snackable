@@ -117,11 +117,21 @@ export interface IEnemyDef {
   followPath?: boolean;
   /** If true, this enemy is a boss and receives capped damage from pillar towers. */
   isBoss?: boolean;
+  /** If set, on death this enemy spawns smaller enemies. */
+  splitOnDeath?: { enemyId: string; count: number };
+  /** If set, enemy blinks forward along the path every N seconds. */
+  blinkIntervalSec?: number;
+  /** Min/max cells to blink forward [min, max]. */
+  blinkCells?: [number, number];
+  /** If set, overrides the global ENEMY_SPAWN_INTERVAL for the delay AFTER this enemy spawns (seconds before next spawn). */
+  spawnInterval?: number;
 }
 
 export interface IWaveGroup {
   enemyId: string;
   count: number;
+  /** Minimum run number required for this group to spawn. */
+  minRun?: number;
 }
 
 export interface IWaveDef {
@@ -158,7 +168,7 @@ export namespace Events {
   export const CountdownTick = new LocalEvent<CountdownTickPayload>('EvCountdownTick', CountdownTickPayload);
 
   // Enemy lifecycle
-  export class InitEnemyPayload { defId: string = ''; waveIndex: number = 0; }
+  export class InitEnemyPayload { defId: string = ''; waveIndex: number = 0; startWpIndex: number = 0; startSubT: number = 0; }
   export const InitEnemy = new LocalEvent<InitEnemyPayload>('EvInitEnemy', InitEnemyPayload);
 
   export class UpdateHealthBarPayload { worldX: number = 0; worldY: number = 0; worldZ: number = 0; hp: number = 0; maxHp: number = 1; }
@@ -167,7 +177,7 @@ export namespace Events {
   export class ParkHealthBarPayload {}
   export const ParkHealthBar = new LocalEvent<ParkHealthBarPayload>('EvParkHealthBar', ParkHealthBarPayload);
 
-  export class EnemyDiedPayload { enemyId: number = 0; reward: number = 0; worldX: number = 0; worldZ: number = 0; killerTowerDefId: string = ''; defId: string = ''; }
+  export class EnemyDiedPayload { enemyId: number = 0; reward: number = 0; worldX: number = 0; worldZ: number = 0; killerTowerDefId: string = ''; defId: string = ''; wpIndex: number = 0; subT: number = 0; }
   export const EnemyDied = new LocalEvent<EnemyDiedPayload>('EvEnemyDied', EnemyDiedPayload);
 
   export class ActivateCoinPayload { worldX: number = 0; worldZ: number = 0; amount: number = 0; }
@@ -349,6 +359,10 @@ export namespace Events {
   // Blizzard freeze (towers stop firing during intense blizzard burst)
   export class BlizzardFreezePayload { active: boolean = false; }
   export const BlizzardFreeze = new LocalEvent<BlizzardFreezePayload>('EvBlizzardFreeze', BlizzardFreezePayload);
+
+  // Enemy blink (Phase Shifter teleport VFX/SFX)
+  export class EnemyBlinkedPayload { oldWorldX: number = 0; oldWorldZ: number = 0; newWorldX: number = 0; newWorldZ: number = 0; }
+  export const EnemyBlinked = new LocalEvent<EnemyBlinkedPayload>('EvEnemyBlinked', EnemyBlinkedPayload);
 
   // Chain lightning arc spawned (used to trigger SFX per bounce)
   export class ChainArcSpawnedPayload {}

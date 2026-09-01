@@ -1,6 +1,18 @@
 tasks: []
 
 done:
+  - Skill Tree Nodes 32-34 -- poison +25%, lightning range +30%, sniper unlock 40sk
+
+done:
+  - Skill Tree Nodes 32-34 -- Poison Damage, Lightning Range, Unlock Sniper Tower
+
+done:
+  - Sniper Tower -- global range, 80 dmg, 0.3 fire rate, 180g, full upgrade tree
+
+done:
+  - Skill Tree Node 31 SkullGrant Removed -- renumbered Sniper to node 31 (was 34), edge 28→31, TOTAL_SKILLS=34, UI positions hardcoded, new node buttons for 31-33 added
+
+done:
   - Double Biome-Exclusive Relics -- Harvest (grass), Frostbite (snow), Eruption (volcano)
 
 done:

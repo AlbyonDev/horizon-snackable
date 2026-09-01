@@ -146,6 +146,49 @@ export class VfxService extends Service {
 
   // ── Death explosion ───────────────────────────────────────────────────────
 
+  @subscribe(Events.EnemyBlinked, { execution: ExecuteOn.Owner })
+  onEnemyBlinked(p: Events.EnemyBlinkedPayload): void {
+    this.spawnBlinkVfx(p.oldWorldX, p.oldWorldZ);
+    this.spawnBlinkVfx(p.newWorldX, p.newWorldZ);
+  }
+
+  spawnBlinkVfx(worldX: number, worldZ: number): void {
+    for (let i = 0; i < 5; i++) {
+      const entity = this._acquireParticle();
+      if (!entity) break;
+
+      const angle = (i / 5) * Math.PI * 2 + Math.random() * 0.4;
+      const speed = 1.5 + Math.random() * 1.0;
+
+      const tc = entity.getComponent(TransformComponent);
+      if (tc) {
+        tc.worldPosition = new Vec3(worldX, 0.25, worldZ);
+        tc.localScale = new Vec3(0.1, 0.1, 0.1);
+      }
+      // Purple/violet magical colors
+      const r = 0.5 + Math.random() * 0.2;
+      const g = 0.05 + Math.random() * 0.1;
+      const b = 0.8 + Math.random() * 0.2;
+      const cc = entity.getComponent(ColorComponent);
+      if (cc) cc.color = new Color(r, g, b, 1);
+      for (const child of entity.getChildrenWithComponent(ColorComponent)) {
+        const c = child.getComponent(ColorComponent);
+        if (c) c.color = new Color(r, g, b, 1);
+      }
+
+      this._particles.push({
+        entity,
+        vx: Math.cos(angle) * speed,
+        vy: 2.5 + Math.random() * 1.5,
+        vz: Math.sin(angle) * speed,
+        age: 0,
+        life: 0.25 + Math.random() * 0.1,
+        r, g, b,
+        baseScale: 0.1,
+      });
+    }
+  }
+
   @subscribe(Events.EnemyDied, { execution: ExecuteOn.Owner })
   onEnemyDied(p: Events.EnemyDiedPayload): void {
     this._spawnDeathParticles(p.worldX, p.worldZ);

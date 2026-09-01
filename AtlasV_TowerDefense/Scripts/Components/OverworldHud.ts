@@ -407,6 +407,16 @@ export class OverworldHud extends Component {
     this.viewModel.visible = shouldShow;
     if (this.uiComponent) this.uiComponent.isVisible = shouldShow;
 
+    // Dismiss all sub-popups when leaving Overworld to prevent stale overlay state
+    if (!shouldShow) {
+      this.viewModel.carouselVisible = false;
+      this.viewModel.bossPopupVisible = false;
+      this.viewModel.skullInfoPopupVisible = false;
+      this.viewModel.lockedBiomePopupVisible = false;
+      this.viewModel.relicInfoPopupVisible = false;
+      console.log('[OverworldHud] Dismissed all sub-popups on phase change');
+    }
+
     // Refresh node states when returning to overworld
     if (shouldShow) {
       // Check if all levels are beaten -> advance to next run

@@ -97,7 +97,7 @@ export class TitleScreenViewModel extends UiViewModel {
   buttonLabel: string = 'LOADING';
 
   /** Whether the reset button is visible (hidden after data is reset). */
-  resetButtonVisible: boolean = true;
+  resetButtonVisible: boolean = false;
 
   /** Whether the confirmation popup is visible. */
   resetPopupVisible: boolean = false;

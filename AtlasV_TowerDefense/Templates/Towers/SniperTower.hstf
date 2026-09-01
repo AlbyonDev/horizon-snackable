@@ -1,0 +1,344 @@
+{
+    "version": 6,
+    "entities": [
+        {
+            "id": "a1b2c3d4-e5f6-7890-abcd-1234567890ab",
+            "name": "SniperTower",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localRotation": {
+                                "x": -0.0,
+                                "y": -0.0,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 1.0,
+                                "y": 1.0,
+                                "z": 1.0
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "TowerController",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "15027774208938648437",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "barrel": "c3d4e5f6-a7b8-9012-cdef-3456789012cd",
+                            "spawnPoint": "e5f6a7b8-c9d0-1234-efab-5678901234ef",
+                            "shadow": "a7b8c9d0-e1f2-3456-abcd-7890123456ab",
+                            "modelTier1": "b8c9d0e1-f2a3-4567-bcde-8901234567bc/df2c9483-57a3-4f62-9b9b-4f9f19f0958f",
+                            "modelTier2": "b8c9d0e1-f2a3-4567-bcde-8901234567bc/36438361-f302-4e7a-abf1-b34ce45e71a2",
+                            "modelTier3": "b8c9d0e1-f2a3-4567-bcde-8901234567bc/96384f29-549f-4631-84f7-59bbe1c273f7",
+                            "barrelForwardOffsetDeg": 270.0
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "b2c3d4e5-f6a7-8901-bcde-2345678901bc",
+            "name": "Pivot",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": 0.35,
+                                "z": 0.0
+                            },
+                            "localRotation": {
+                                "x": -0.7853986620903015,
+                                "y": -1.570797085762024,
+                                "z": 2.1073435618745862e-7
+                            },
+                            "localScale": {
+                                "x": 1.500000238418579,
+                                "y": 1.5000001192092896,
+                                "z": 1.5000003576278687
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "c3d4e5f6-a7b8-9012-cdef-3456789012cd",
+            "name": "SniperBarrel",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localRotation": {
+                                "x": 0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 1.0,
+                                "y": 1.0,
+                                "z": 1.0
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "d4e5f6a7-b8c9-0123-defa-4567890123de",
+            "name": "SniperMesh",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localRotation": {
+                                "x": 0.0,
+                                "y": 1.5707963705062867,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 0.25,
+                                "y": 0.25,
+                                "z": 0.25
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MeshPlatformComponent",
+                        "version": 11,
+                        "data": {
+                            "mesh": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "14162780754545549202",
+                                "targetId": "481548839"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MaterialPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "materials": [
+                                {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "813895858975267942",
+                                    "targetId": "157013062"
+                                }
+                            ]
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::ColorPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "color": {
+                                "r": 1.0,
+                                "g": 1.0,
+                                "b": 1.0,
+                                "a": 1.0
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "e5f6a7b8-c9d0-1234-efab-5678901234ef",
+            "name": "ProjectileSpawn",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.28,
+                                "y": 0.85,
+                                "z": 0.0
+                            },
+                            "localRotation": {
+                                "x": 0.0,
+                                "y": 1.5707963705062867,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 0.6666667461395264,
+                                "y": 0.6666666269302368,
+                                "z": 0.6666667461395264
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "a7b8c9d0-e1f2-3456-abcd-7890123456ab",
+            "name": "Disc",
+            "components": [
+                {
+                    "data": {
+                        "class": "horizon::platform_api::TransformPlatformComponent",
+                        "version": 3,
+                        "data": {
+                            "localPosition": {
+                                "x": 0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localRotation": {
+                                "x": -0.0,
+                                "y": 0.0,
+                                "z": 0.0
+                            },
+                            "localScale": {
+                                "x": 1.0,
+                                "y": 1.0,
+                                "z": 1.2000000476837159
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MeshPlatformComponent",
+                        "version": 11,
+                        "data": {
+                            "mesh": {
+                                "packageOrRemoteId": "24407058055595655",
+                                "ingestionId": "4786304079839798385",
+                                "targetId": "2514290551"
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::ColorPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "color": {
+                                "r": 0.0,
+                                "g": 0.0,
+                                "b": 0.0,
+                                "a": 0.30000001192092898
+                            }
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "horizon::platform_api::MaterialPlatformComponent",
+                        "version": 2,
+                        "data": {
+                            "materials": [
+                                {
+                                    "packageOrRemoteId": "26631398616455768",
+                                    "ingestionId": "11414668843075302347",
+                                    "targetId": "157013062"
+                                }
+                            ]
+                        }
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                }
+            ],
+            "attributes": []
+        },
+        {
+            "id": "b8c9d0e1-f2a3-4567-bcde-8901234567bc",
+            "name": "Icons",
+            "type": {
+                "packageOrRemoteId": "26631398616455768",
+                "ingestionId": "15393429881198269662",
+                "targetId": "2719744159"
+            },
+            "deltas": [],
+            "attributes": []
+        }
+    ],
+    "relationships": [
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "b2c3d4e5-f6a7-8901-bcde-2345678901bc",
+            "destination": "a1b2c3d4-e5f6-7890-abcd-1234567890ab"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "c3d4e5f6-a7b8-9012-cdef-3456789012cd",
+            "destination": "b2c3d4e5-f6a7-8901-bcde-2345678901bc"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "d4e5f6a7-b8c9-0123-defa-4567890123de",
+            "destination": "c3d4e5f6-a7b8-9012-cdef-3456789012cd"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "e5f6a7b8-c9d0-1234-efab-5678901234ef",
+            "destination": "d4e5f6a7-b8c9-0123-defa-4567890123de"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "a7b8c9d0-e1f2-3456-abcd-7890123456ab",
+            "destination": "a1b2c3d4-e5f6-7890-abcd-1234567890ab"
+        },
+        {
+            "relationshipType": "RelationChildOf",
+            "source": "b8c9d0e1-f2a3-4567-bcde-8901234567bc",
+            "destination": "a1b2c3d4-e5f6-7890-abcd-1234567890ab"
+        }
+    ]
+}

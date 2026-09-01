@@ -37,7 +37,7 @@ const RANGE_COLOR_SELECT  = new Color(1.0, 0.85, 0.2, 0.6);
 const RANGE_PARK    = new Vec3(0, PROJECTILE_POOL_Y, 0);
 
 // Blue cell marker constants
-const CELL_MARKER_COLOR   = new Color(0.3, 0.6, 1.0, 0.55);
+const CELL_MARKER_COLOR   = new Color(0.3, 0.6, 1.0, 0.5);
 const CELL_MARKER_SCALE   = new Vec3(CELL_WIDTH * 0.85, 0.04, CELL_HEIGHT * 0.85);
 const CELL_MARKER_POOL_SIZE = 110; // max valid cells expected on grid (9×14 minus path)
 

@@ -132,7 +132,7 @@ Total duration: 0.22s. Feels snappy and physical.
 Every button tap plays a short UI click sound effect on `MouseLeftButtonUp` (same event as the command fire). Implementation:
 
 - Use a shared `AudioService.playUiClick()` call (or equivalent) from the ViewModel/controller
-- Sound file: `sfxlib_ui_WoodConfirm_01/sfxlib_ui_WoodConfirm_01.wav` (hollow wood knock, 0.44s)
+- Sound file: `sfxlib_ui_WoodConfirm_01/sfxlib_ui_WoodConfirm_01.ogg` (hollow wood knock, 0.44s)
 - Volume: 0.3 (subtle, never louder than gameplay SFX)
 - No pitch variation needed for UI clicks (keep consistent)
 

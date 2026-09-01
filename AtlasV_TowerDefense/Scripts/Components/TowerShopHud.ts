@@ -46,6 +46,7 @@ const TOWER_COLORS: Record<string, string> = {
   lightning: '#553d9bdb',
   poison: '#5527ae60',
   pillar: '#556b7040',
+  sniper: '#554a6a7a',
 };
 
 const TOWER_SECONDARY_COLORS: Record<string, string> = {
@@ -57,6 +58,7 @@ const TOWER_SECONDARY_COLORS: Record<string, string> = {
   lightning: '#2a6b9e',
   poison: '#1a7a3e',
   pillar: '#4a5a38',
+  sniper: '#2a4a5a',
 };
 
 const BIOME_ARROW_BUFF_ICON = new TextureAsset('@sprites/biome_arrow_buff.png');
@@ -85,6 +87,7 @@ const TOWER_ICON_MAP: Record<string, TextureAsset> = {
   lightning: TowerIcons.LightningTower,
   poison: TowerIcons.PoisonTower,
   pillar: TowerIcons.PillarTower,
+  sniper: TowerIcons.SniperTower,
 };
 
 @uiViewModel()
@@ -684,12 +687,25 @@ export class TowerShopHud extends Component {
     // Auto-switch to manage tab showing full upgrade tree directly
     this._switchToManageTab('tree');
 
+    // Clear placement state so panelIsDown doesn't keep it collapsed
+    this.viewModel.selectedTowerId = '';
+    this.viewModel.selectedCardIndex = -1;
+    this.viewModel.isPlacingTower = false;
+    this.viewModel.placingTowerName = '';
+    for (const item of this.itemVMs) {
+      if (item.selected) item.selected = false;
+    }
+
+    // Force panel open regardless of previous manual-hide or placement state
+    this.isManuallyHidden = false;
+    this._syncToggleArrow();
+
     // If panel is hidden, show it
     if (this.uiComponent && !this.uiComponent.isVisible) {
       this._slideShow();
     } else if (this.slideCurrent > 0) {
-      // Panel is sliding down, bring it back
-      this.slideTarget = this.isManuallyHidden ? MANUAL_HIDE_SLIDE_DISTANCE : 0;
+      // Panel is collapsed/partially hidden, bring it fully up
+      this.slideTarget = 0;
       this.isSlideAnimating = true;
       this.hideOnSlideComplete = false;
     }
@@ -1137,12 +1153,14 @@ export class TowerShopHud extends Component {
     const isPoisonUnlocked = SkillTreeService.get().isPoisonUnlocked();
     const isLightningUnlocked = SkillTreeService.get().isLightningUnlocked();
     const isPillarUnlocked = SkillTreeService.get().isPillarUnlocked();
+    const isSniperUnlocked = SkillTreeService.get().isSniperUnlocked();
     const activeBiome = SaveService.get().activeBiome;
     const defs = allDefs.filter(def => {
       if (def.id === 'laser' && !isLaserUnlocked) return false;
       if (def.id === 'poison' && !isPoisonUnlocked) return false;
       if (def.id === 'lightning' && !isLightningUnlocked) return false;
       if (def.id === 'pillar' && !isPillarUnlocked) return false;
+      if (def.id === 'sniper' && !isSniperUnlocked) return false;
       if (def.biomeExclusive && def.biomeExclusive !== activeBiome) {
         if (def.id === 'fire_cannon' && SkillTreeService.get().isFireCannonUnlocked()) {
           // unlocked

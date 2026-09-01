@@ -30,9 +30,10 @@
  *      - Grid size: 210x210 (vs regular 180x180)
  *      - Icon viewbox: 130x130 (vs regular 110x110)
  *      This visually distinguishes tower unlock nodes from stat-bonus nodes.
- *   3. DESCRIPTION: Must always reflect the current stats and properties of
- *      the tower as defined in TowerDefs.ts (damage, range, cost, fire rate,
- *      special effects like splash radius or slow duration).
+ *   3. DESCRIPTION: Must be short and user-friendly, describing what the tower
+ *      does in flavorful terms -- no numbers (no damage, range, cost, or fire
+ *      rate values). Keep it in sync with the tower's behavior in TowerDefs.ts,
+ *      not its stats.
  *
  * When adding a NEW tower unlock node:
  *   - Add the node here with appropriate description from TowerDefs.ts
@@ -41,8 +42,8 @@
  *
  * Additionally:
  *   - Fire Cannon (index 16) and Frost Tower (index 19) descriptions must always
- *     mention "Unlocked outside of [home biome] area" (they have biomeExclusive but are available
- *     via skill tree in all biomes).
+ *     mention that the tower is also available outside its home biome (they have
+ *     biomeExclusive but are unlocked in all biomes via the skill tree).
  * ────────────────────────────────────────────────────────────────────────────────
  */
 
@@ -69,6 +70,8 @@ export enum SkillIconType {
   TowerUnlock = 10,
   BiomeUnlockSnow = 11,
   BiomeUnlockVolcano = 12,
+  Thunder = 13,
+  Poison = 14,
 }
 
 /**
@@ -89,6 +92,9 @@ export enum SkillTag {
   SplashRadiusT1 = 'splash-radius-t1', SlowDurationT2 = 'slow-duration-t2', GoldPerEnemy = 'gold-per-enemy',
   DamageT3 = 'damage-t3', TowerHpT1 = 'tower-hp-t1', StartingGoldT3 = 'starting-gold-t3',
   FireRateT2 = 'fire-rate-t2', RangeT2 = 'range-t2', SkullRewardDouble = 'skull-reward-double',
+  LightningRangeT1 = 'lightning-range-t1',
+  PoisonDamageT1 = 'poison-damage-t1',
+  UnlockSniper = 'unlock-sniper',
 }
 
 export interface ISkillNodeDef {
@@ -143,27 +149,27 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
   // distinguish them from stat-bonus nodes. When adding new tower unlock nodes,
   // replicate the crimson style: outer ellipse Stroke="#C0392B", Fill="#FF2E0E0E",
   // 210x210 grid, 130x130 icon viewbox, and tower texture icon from Textures/.
-  { index: 7, tag: SkillTag.UnlockPoison, value: 0, label: 'Unlock Poison Tower', cost: 10, branch: 'war', description: 'Unlocks the Poison Tower for all biomes. DoT tower that lobs toxic globs stacking lingering poison. 90g cost.', iconType: SkillIconType.TowerUnlock },
-  { index: 8, tag: SkillTag.UnlockPillar, value: 0, label: 'Unlock Pillar',       cost: 10, branch: 'fortune', description: 'Unlocks the Pillar tower for all biomes. Single-use trap that tips over onto the first enemy in range, instant-killing it, then self-destructs. 30g cost.', iconType: SkillIconType.TowerUnlock },
-  { index: 9, tag: SkillTag.UnlockLaser, value: 0, label: 'Unlock Laser Canon',  cost: 20, branch: 'war', description: 'Highest DPS tower. Long range (3.6), rapid fire rate (5.0/s), 200g cost.', iconType: SkillIconType.TowerUnlock },
+  { index: 7, tag: SkillTag.UnlockPoison, value: 0, label: 'Unlock Poison Tower', cost: 10, branch: 'war', description: 'Unlocks the Poison Tower: lobs toxic globs that stack lingering poison damage.', iconType: SkillIconType.TowerUnlock },
+  { index: 8, tag: SkillTag.UnlockPillar, value: 0, label: 'Unlock Pillar',       cost: 10, branch: 'fortune', description: 'Unlocks the Pillar: a single-use trap that crushes the first enemy to come near, then crumbles.', iconType: SkillIconType.TowerUnlock },
+  { index: 9, tag: SkillTag.UnlockLaser, value: 0, label: 'Unlock Laser Canon',  cost: 20, branch: 'war', description: 'Unlocks the Laser Cannon: the hardest-hitting tower, with long range and blistering fire rate.', iconType: SkillIconType.TowerUnlock },
 
   // Tier 4 (indices 10, 11, 12)
-  { index: 10, tag: SkillTag.CritChanceT1, value: 0.25, label: '+25% Crit Chance',    cost: 15, branch: 'war', description: 'All towers gain 25% increased critical hit chance.', iconType: SkillIconType.Crosshair },
+  { index: 10, tag: SkillTag.CritChanceT1, value: 0.25, label: '+25% Crit Chance',    cost: 12, branch: 'war', description: 'All towers gain 25% increased critical hit chance.', iconType: SkillIconType.Crosshair },
   { index: 11, tag: SkillTag.UnlockSnowBiome, value: 0, label: 'Unlock Snow Biome',  cost: 25, branch: 'fortify', description: 'Unlock the Snow biome for new challenges.', iconType: SkillIconType.BiomeUnlockSnow },
-  { index: 12, tag: SkillTag.InterestRateT1, value: 0.20, label: '+20% Interest Rate', cost: 18, branch: 'fortune', description: 'Earn 20% more interest on banked gold.', iconType: SkillIconType.Treasure },
+  { index: 12, tag: SkillTag.InterestRateT1, value: 0.20, label: '+20% Interest Rate', cost: 15, branch: 'fortune', description: 'Earn 20% more interest on banked gold.', iconType: SkillIconType.Treasure },
 
   // Tier 5 (indices 13, 14, 15)
-  { index: 13, tag: SkillTag.DamageT2, value: 0.20, label: '+20% Damage',        cost: 20, branch: 'war', description: 'All towers deal 20% more damage.', iconType: SkillIconType.Sword },
+  { index: 13, tag: SkillTag.DamageT2, value: 0.20, label: '+20% Damage',        cost: 10, branch: 'war', description: 'All towers deal 20% more damage.', iconType: SkillIconType.Sword },
   { index: 14, tag: SkillTag.StartingGoldT2, value: 30, label: '+30 Starting Gold',  cost: 20, branch: 'fortune', description: 'Begin each run with 30 extra gold.', iconType: SkillIconType.Coin },
   { index: 15, tag: SkillTag.SlowDurationT1, value: 0.15, secondaryValue: 0.05, label: '+15% Slow Duration', cost: 3, branch: 'fortify', description: 'Slow effects last 15% longer.', iconType: SkillIconType.Snow },
 
   // Tier 6 (indices 16, 17, 18)
-  { index: 16, tag: SkillTag.UnlockFireCannon, value: 0, label: 'Unlock Fire Cannon', cost: 20, branch: 'war', description: 'AoE fire damage with arc projectiles. Splash radius 0.6, 120g cost. Unlocked outside of volcano area.', iconType: SkillIconType.TowerUnlock },
+  { index: 16, tag: SkillTag.UnlockFireCannon, value: 0, label: 'Unlock Fire Cannon', cost: 20, branch: 'war', description: 'Unlocks the Fire Cannon outside of volcano biome.', iconType: SkillIconType.TowerUnlock },
   { index: 17, tag: SkillTag.FireRateT1, value: 0.25, secondaryValue: 0.15, label: '+25% Fire Rate',     cost: 28, branch: 'fortify', description: 'All towers fire 25% faster.', iconType: SkillIconType.Lightning },
   { index: 18, tag: SkillTag.TowerHpT1, value: 0.40, secondaryValue: 2, label: '+40% Tower HP',      cost: 40, branch: 'fortify', description: 'All towers gain 40% more hit points.', iconType: SkillIconType.Heart },
 
   // Tier 7 (indices 19, 20, 21)
-  { index: 19, tag: SkillTag.UnlockFrost, value: 0, label: 'Unlock Frost Tower',     cost: 20, branch: 'war', description: 'Slows enemies by 50% for 1.5s. 80g cost. Unlocked outside of snow area.', iconType: SkillIconType.TowerUnlock },
+  { index: 19, tag: SkillTag.UnlockFrost, value: 0, label: 'Unlock Frost Tower',     cost: 20, branch: 'war', description: 'Unlocks the Frost Tower outside of snow biome.', iconType: SkillIconType.TowerUnlock },
   { index: 20, tag: SkillTag.UnlockVolcanoBiome, value: 0, label: 'Unlock Volcano Biome',   cost: 30, branch: 'fortify', description: 'Unlock the Volcano biome for fiery trials.', iconType: SkillIconType.BiomeUnlockVolcano },
   { index: 21, tag: SkillTag.SellRefundT2, value: 0.75, secondaryValue: 0.20, label: '+75% Sell Refund',       cost: 17, branch: 'fortune', description: 'Refund 75% more gold when selling towers.', iconType: SkillIconType.Refund },
 
@@ -174,13 +180,18 @@ export const SKILL_NODES: readonly ISkillNodeDef[] = [
 
   // Tier 9 (indices 25, 26, 27)
   { index: 25, tag: SkillTag.DamageT3, value: 0.05, label: '+5% Damage',        cost: 50, branch: 'war', description: 'All towers deal 5% more damage.', iconType: SkillIconType.Sword },
-  { index: 26, tag: SkillTag.UnlockLightning, value: 0, label: 'Unlock Lightning Tower', cost: 29, branch: 'fortune', description: 'Unlocks the Lightning Tower for all biomes. Chain lightning multi-target tower, bolts chain to nearby enemies. 300g cost.', iconType: SkillIconType.TowerUnlock },
+  { index: 26, tag: SkillTag.UnlockLightning, value: 0, label: 'Unlock Lightning Tower', cost: 29, branch: 'fortune', description: 'Unlocks the Lightning Tower: bolts arc between nearby enemies, striking several foes at once.', iconType: SkillIconType.TowerUnlock },
   { index: 27, tag: SkillTag.StartingGoldT3, value: 50, secondaryValue: 0.25, label: '+80 Starting Gold',  cost: 40, branch: 'fortune', description: 'Begin each run with 50 extra gold.', iconType: SkillIconType.Coin },
 
   // Tier 10 (indices 28, 29, 30)
   { index: 28, tag: SkillTag.FireRateT2, value: 0.35, secondaryValue: 0.05, label: '+5% Fire Rate',     cost: 50, branch: 'war', description: 'All towers fire 5% faster.', iconType: SkillIconType.Lightning },
   { index: 29, tag: SkillTag.RangeT2, value: 0.40, label: '+40% Tower Range',   cost: 45, branch: 'fortify', description: 'All towers gain 40% increased range.', iconType: SkillIconType.Range },
   { index: 30, tag: SkillTag.SkullRewardDouble, value: 1.00, label: 'Double skull reward', cost: 100, branch: 'fortune', description: 'Beating a run gives twice as many skulls.', iconType: SkillIconType.Treasure },
+
+  // Tier 11 (indices 31, 32, 33)
+  { index: 31, tag: SkillTag.LightningRangeT1, value: 0.30, label: '+30% Lightning Range', cost: 20, branch: 'fortify', description: 'Lightning towers gain 30% increased range.', iconType: SkillIconType.Thunder },
+  { index: 32, tag: SkillTag.PoisonDamageT1, value: 0.25, label: '+25% Poison Damage', cost: 20, branch: 'fortune', description: 'Poison towers deal 25% more tick damage.', iconType: SkillIconType.Poison },
+  { index: 33, tag: SkillTag.UnlockSniper, value: 0, label: 'Unlock Sniper Tower', cost: 40, branch: 'war', description: 'Unlocks the Sniper Tower: fires with pinpoint precision from anywhere on the map.', iconType: SkillIconType.TowerUnlock },
 ];
 
 // --- Explicit Graph Connections ----------------------------------------------
@@ -198,8 +209,8 @@ export const SKILL_CONNECTIONS: readonly SkillConnection[] = [
   [4, 1], /*[7, 4],*/ [10, 7], [13, 10], /*[16, 13],*/ [19, 16], [22, 19], [25, 22], /*[28, 25],*/
 
   // Fortify branch vertical: T1→T2→...→T10
-  [2, 5], [5, 8], [8, 11], [11, 14], [14, 17],/* [17, 20],*/ [20, 23], [23, 26], [26, 29],
-  [5, 2], [8, 5], [11, 8], [14, 11], [17, 14],/* [20, 17],*/ [23, 20], [26, 23], [29, 26],
+  [2, 5], [5, 8], [8, 11], [11, 14], [14, 17],/* [17, 20],*/ [20, 23], [23, 26], [26, 29], [29, 32],
+  [5, 2], [8, 5], [11, 8], [14, 11], [17, 14],/* [20, 17],*/ [23, 20], [26, 23], [29, 26], [32, 29],
 
   // Fortune branch vertical: T1→T2→...→T10
   [3, 6], /*[6, 9],*/ [9, 12], [12, 15], [15, 18], [18, 21], /*[21, 24],*/ [24, 27], [27, 30],
@@ -219,6 +230,8 @@ export const SKILL_CONNECTIONS: readonly SkillConnection[] = [
   /*[25, 26], [26, 25], [26, 27], [27, 26],*/
   // Cross-branch lateral connections (tier 10)
   [28, 29], [29, 28], [29, 30], [30, 29],
+  // Cross-branch lateral connections (tier 11)
+  [31, 32], [32, 31], [32, 33], [33, 32],
 
     // Cross-tier
   [4, 8], [8, 4],
@@ -241,7 +254,7 @@ export const INFINITE_SKILL_NODES: ReadonlySet<number> = new Set([24, 25, 28]);
 export const ROOT_SKILL_INDEX = 0;
 
 /** Total number of skills across all branches + root. */
-export const TOTAL_SKILLS = 31;
+export const TOTAL_SKILLS = 34;
 
 /** Get the node def for a given index. */
 export function getNodeDef(index: number): ISkillNodeDef | undefined {

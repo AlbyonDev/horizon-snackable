@@ -23,7 +23,7 @@ import {
 } from 'meta/worlds';
 import type { Maybe } from 'meta/worlds';
 
-import { UiEvents, Events } from '../Types';
+import { UiEvents, Events, GamePhase } from '../Types';
 import { ACHIEVEMENT_GROUPS, TIER_REWARDS } from '../Defs/AchievementDefs';
 import { SaveService } from '../Services/SaveService';
 
@@ -131,6 +131,18 @@ export class AchievementHudController extends Component {
     this.viewModel.rewardPopup = new AchievementRewardPopupViewModel();
     this.viewModel.rewardPopup.visible = false;
     this.uiComponent.dataContext = this.viewModel;
+  }
+
+  @subscribe(Events.GamePhaseChanged, { execution: ExecuteOn.Owner })
+  onPhaseChanged(payload: Events.GamePhaseChangedPayload): void {
+    if (NetworkingService.get().isServerContext()) return;
+    if (!this.viewModel || !this.uiComponent) return;
+    if (payload.phase !== GamePhase.Overworld) {
+      this.viewModel.visible = false;
+      this.viewModel.rewardPopup.visible = false;
+      this.uiComponent.isVisible = false;
+      console.log('[AchievementHudController] Force-closed on phase change to ' + payload.phase);
+    }
   }
 
   @subscribe(OpenAchievementsEvent, { execution: ExecuteOn.Owner })

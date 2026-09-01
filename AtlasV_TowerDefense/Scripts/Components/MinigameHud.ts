@@ -27,6 +27,19 @@ import type { OnWorldUpdateEventPayload, Maybe } from 'meta/worlds';
 
 import { Events, UiEvents } from '../Types';
 import { ResourceService } from '../Services/ResourceService';
+import { SaveService } from '../Services/SaveService';
+
+/** Deterministic PRNG (mulberry32). Returns a function producing [0, 1). */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 // --- Constants ---
 const REVEAL_DURATION = 2.5;       // seconds cards stay face up
@@ -164,6 +177,9 @@ export class MinigameHud extends Component {
     { active: false, progress: 0, direction: FlipDirection.ToFaceDown, faceSwapped: false },
     { active: false, progress: 0, direction: FlipDirection.ToFaceDown, faceSwapped: false },
   ];
+
+  // Seeded RNG for deterministic card layout per run+level
+  private _rng: () => number = mulberry32(1);
 
   // Result
   private chosenResult: string = CARD_NEUTRAL;
@@ -405,6 +421,14 @@ export class MinigameHud extends Component {
     if (!this.viewModel) return;
     console.log('[MinigameHud] Starting minigame');
 
+    // Seed the RNG deterministically from the run seed + level index so the
+    // same run always produces the same card layout for each minigame node.
+    const runSeed = SaveService.get().getSeed() || 1;
+    // Hash-mix with a large odd constant so adjacent levelIndex values produce
+    // distinct, uncorrelated RNG streams from the same run seed.
+    this._rng = mulberry32((runSeed ^ (this.levelIndex * 2654435761)) >>> 0);
+    console.log(`[MinigameHud] Seeded RNG with runSeed=${runSeed}, levelIndex=${this.levelIndex}`);
+
     // Pick 3 distinct card types from the pool (no duplicates)
     // Validation: re-draw if no bonus card (gold_bonus or heart_bonus) is present
     let drawn: string[];
@@ -463,7 +487,7 @@ export class MinigameHud extends Component {
     console.log('[MinigameHud] Starting shuffle');
     this.viewModel!.titleText = 'Watch closely';
     this.viewModel!.titleVisible = true;
-    this.swapCount = SWAP_COUNT_MIN + Math.floor(Math.random() * (SWAP_COUNT_MAX - SWAP_COUNT_MIN + 1));
+    this.swapCount = SWAP_COUNT_MIN + Math.floor(this._rng() * (SWAP_COUNT_MAX - SWAP_COUNT_MIN + 1));
     this.currentSwap = 0;
     this._startNextSwap();
 
@@ -473,8 +497,8 @@ export class MinigameHud extends Component {
 
   private _startNextSwap(): void {
     // Pick random pair
-    const a = Math.floor(Math.random() * 3);
-    let b = Math.floor(Math.random() * 2);
+    const a = Math.floor(this._rng() * 3);
+    let b = Math.floor(this._rng() * 2);
     if (b >= a) b++;
     this.swapA = a;
     this.swapB = b;
@@ -697,7 +721,7 @@ export class MinigameHud extends Component {
 
   private _shuffleArray(arr: string[]): void {
     for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(this._rng() * (i + 1));
       const tmp = arr[i];
       arr[i] = arr[j];
       arr[j] = tmp;

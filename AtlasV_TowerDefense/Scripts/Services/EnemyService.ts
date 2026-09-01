@@ -85,6 +85,12 @@ export class EnemyService extends Service {
   getAll(): ReadonlyMap<number, IEnemyRecord> { return this._enemies; }
   get count(): number { return this._enemies.size; }
 
+  // -- Pending spawns (split enemies about to appear) --
+  private _pendingSpawns: number = 0;
+  get pendingSpawns(): number { return this._pendingSpawns; }
+  addPending(n: number): void { this._pendingSpawns += n; }
+  removePending(): void { this._pendingSpawns = Math.max(0, this._pendingSpawns - 1); }
+
   @subscribe(Events.LevelSelected)
   onLevelSelected(_p: Events.LevelSelectedPayload): void {
     // Destroy any leftover enemies from previous level
@@ -102,6 +108,7 @@ export class EnemyService extends Service {
   clear(): void {
     this._enemies.clear();
     this._nextId = 0;
+    this._pendingSpawns = 0;
   }
 
   // ── Spawn ─────────────────────────────────────────────────────────────────────

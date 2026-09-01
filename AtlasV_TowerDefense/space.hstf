@@ -331,7 +331,7 @@
                             "targetId": "4237980480"
                         },
                         "data": {
-                            "isDebug": true
+                            "isDebug": false
                         }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
@@ -1152,7 +1152,7 @@
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "8646230121210241242",
+                                "ingestionId": "13751048531766119631",
                                 "targetId": "1366267635"
                             }
                         }
@@ -1168,6 +1168,29 @@
                             "targetId": "4237980480"
                         },
                         "data": {}
+                    },
+                    "dataType": "horizon::DataDefinitionAsset"
+                },
+                {
+                    "data": {
+                        "class": "BlinkSfxService",
+                        "definitionAsset": {
+                            "packageOrRemoteId": "26631398616455768",
+                            "ingestionId": "14022205889368741378",
+                            "targetId": "4237980480"
+                        },
+                        "data": {
+                            "blinkDisappearSound": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "6467860237446812767",
+                                "targetId": "1366267635"
+                            },
+                            "blinkAppearSound": {
+                                "packageOrRemoteId": "26631398616455768",
+                                "ingestionId": "7297066214245999444",
+                                "targetId": "1366267635"
+                            }
+                        }
                     },
                     "dataType": "horizon::DataDefinitionAsset"
                 }
@@ -1288,7 +1311,7 @@
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "10591590792516683445",
+                                "ingestionId": "886857847674321393",
                                 "targetId": "1366267635"
                             },
                             "playVolume": 0.25
@@ -1331,7 +1354,7 @@
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "10655843997009205346",
+                                "ingestionId": "15662378943711935291",
                                 "targetId": "1366267635"
                             }
                         }
@@ -1373,7 +1396,7 @@
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "4984302483509700018",
+                                "ingestionId": "14350705478630456767",
                                 "targetId": "1366267635"
                             }
                         }
@@ -1415,7 +1438,7 @@
                             "soundEmitterType": "NonSpatial",
                             "soundAsset": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "2818243035822377680",
+                                "ingestionId": "1848929774763344662",
                                 "targetId": "1366267635"
                             }
                         }
@@ -1482,7 +1505,7 @@
                         "data": {
                             "lossSfx": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "9178760663125433198",
+                                "ingestionId": "7697799657769800422",
                                 "targetId": "1366267635"
                             },
                             "volume": 0.55
@@ -1550,19 +1573,19 @@
                         "data": {
                             "grassAmbientSound": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "6658604516767176551",
+                                "ingestionId": "17997161178465453767",
                                 "targetId": "1366267635"
                             },
                             "grassVolume": 1.0,
                             "snowAmbientSound": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "13396332945063131916",
+                                "ingestionId": "9499945865523836021",
                                 "targetId": "1366267635"
                             },
                             "snowVolume": 3.0,
                             "volcanoAmbientSound": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "14694117741434827731",
+                                "ingestionId": "11012398022151613274",
                                 "targetId": "1366267635"
                             },
                             "volcanoVolume": 1.0
@@ -1596,12 +1619,12 @@
                         "data": {
                             "victorySfx": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "369972582743863594",
+                                "ingestionId": "6686820161520780373",
                                 "targetId": "1366267635"
                             },
                             "defeatSfx": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "11603164902004910817",
+                                "ingestionId": "3339106476268232440",
                                 "targetId": "1366267635"
                             }
                         }
@@ -2005,17 +2028,17 @@
                         "data": {
                             "towerPlacedSound": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "10655843997009205346",
+                                "ingestionId": "15662378943711935291",
                                 "targetId": "1366267635"
                             },
                             "towerUpgradedSound": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "4771268713077660171",
+                                "ingestionId": "1206375531506561449",
                                 "targetId": "1366267635"
                             },
                             "towerSoldSound": {
                                 "packageOrRemoteId": "26631398616455768",
-                                "ingestionId": "12600411927475145396",
+                                "ingestionId": "18240221109912414214",
                                 "targetId": "1366267635"
                             }
                         }

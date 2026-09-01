@@ -16,6 +16,7 @@ import type { OnWorldUpdateEventPayload } from 'meta/worlds';
 import { Events } from '../Types';
 import { EnemyService } from './EnemyService';
 import { EnemyController } from '../Components/EnemyController';
+import { SkillTreeService } from './SkillTreeService';
 
 const TINT_POISON = new Color(0.3, 0.9, 0.2, 1.0); // toxic green
 
@@ -38,7 +39,7 @@ export class PoisonDotService extends Service {
     if (!dotDamage || !dotDuration || !dotTickRate) return;
 
     const stack: IDotStack = {
-      damage: dotDamage,
+      damage: dotDamage * SkillTreeService.get().getPoisonDamageMultiplier(),
       tickRate: dotTickRate,
       remainingDuration: dotDuration,
       timeSinceLastTick: 0,

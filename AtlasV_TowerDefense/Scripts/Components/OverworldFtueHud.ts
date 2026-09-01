@@ -30,7 +30,7 @@ import { SaveService } from '../Services/SaveService';
 
 // Step definitions
 const FTUE_STEPS: string[] = [
-  'Welcome to this world... invaded by gobelins!',
+  'Welcome to this world... invaded by goblins!',
   'Tap the first node to start a level. Good luck !'
 ];
 

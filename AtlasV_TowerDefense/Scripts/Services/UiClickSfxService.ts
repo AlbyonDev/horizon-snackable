@@ -6,7 +6,7 @@
  * Component Ownership: Not Networked — runs on client
  *
  * Subscribes to Events.UiButtonClick (fired by all HUD controllers on button tap)
- * and plays the SoundComponent on its entity (sfxlib_ui_WoodConfirm_01.wav).
+ * and plays the SoundComponent on its entity (sfxlib_ui_WoodConfirm_01.ogg).
  * Volume is set to 0.3 per art direction specs.
  */
 import {

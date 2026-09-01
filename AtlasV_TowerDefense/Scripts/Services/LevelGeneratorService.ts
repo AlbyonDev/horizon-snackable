@@ -257,7 +257,10 @@ export class LevelGeneratorService extends Service {
 
     for (let w = 0; w < tierPattern.length; w++) {
       const tier = tierPattern[w];
-      const pool = getPackPoolForTierAndBiome(tier, activeBiome);
+      const fullPool = getPackPoolForTierAndBiome(tier, activeBiome);
+      // Filter out packs gated behind a higher run number
+      const filtered = fullPool.filter(p => !p.minRun || p.minRun <= this._runCount);
+      const pool = filtered.length > 0 ? filtered : fullPool;
 
       // Pick a random pack from this tier's pool, avoiding back-to-back repeats
       let pack: IWavePack;
@@ -275,7 +278,12 @@ export class LevelGeneratorService extends Service {
       lastPackName = pack.name;
 
       // Convert readonly groups to mutable IWaveGroup[] for IWaveDef compatibility
-      const groups: IWaveGroup[] = pack.groups.map(g => ({ enemyId: g.enemyId, count: g.count }));
+      // Propagate minRun so WaveService can filter splitter groups on early runs
+      const groups: IWaveGroup[] = pack.groups.map(g => ({
+        enemyId: g.enemyId,
+        count: g.count,
+        ...(g.minRun !== undefined ? { minRun: g.minRun } : {}),
+      }));
       waves.push({ groups });
     }
 

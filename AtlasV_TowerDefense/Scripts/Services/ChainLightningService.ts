@@ -14,6 +14,7 @@ import { Events } from '../Types';
 import { EnemyService } from './EnemyService';
 import { TargetingService } from './TargetingService';
 import { VfxService } from './VfxService';
+import { SkillTreeService } from './SkillTreeService';
 
 @service()
 export class ChainLightningService extends Service {
@@ -21,9 +22,12 @@ export class ChainLightningService extends Service {
   @subscribe(Events.TakeDamage)
   onTakeDamage(p: Events.TakeDamagePayload): void {
     const chainCount = p.props['chainCount'] as number | undefined;
-    const chainRange = p.props['chainRange'] as number | undefined;
+    const rawChainRange = p.props['chainRange'] as number | undefined;
     const chainDamageFalloff = p.props['chainDamageFalloff'] as number | undefined;
-    if (!chainCount || !chainRange || !chainDamageFalloff) return;
+    if (!chainCount || !rawChainRange || !chainDamageFalloff) return;
+
+    // Apply skill tree lightning range multiplier
+    const chainRange = rawChainRange * SkillTreeService.get().getLightningRangeMultiplier();
 
     const enemyService = EnemyService.get();
     const targetingService = TargetingService.get();

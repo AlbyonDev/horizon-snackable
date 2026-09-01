@@ -1,7 +1,7 @@
 /**
  * EnemyHitSfxService — Plays a one-shot sound effect when an enemy takes damage.
  *
- * Component Attachment: Scene Entity with a Sound component (sfx_hit_hammer_3.mp3 assigned)
+ * Component Attachment: Scene Entity with a Sound component (sf_hit_hammer_3.ogg assigned)
  * Component Networking: Local (audio is client-side only)
  * Component Ownership: Not Networked — runs on client
  *

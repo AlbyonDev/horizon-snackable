@@ -35,28 +35,28 @@ import { playLoopingSound, stopLoopingSound } from '../Audio/AudioManager';
 
 // Grass overworld: abstract textural forest atmosphere (wind through foliage, rustling branches, no birds/instruments)
 const GRASS_OVERWORLD_MUSIC: SoundAsset = new SoundAsset(
-  '@SFX/VEGETree_Branches_Movement_Foliage_Rustling.wav:sound',
+  '@SFX/VEGETree_Branches_Movement_Foliage_Rustling.ogg:sound',
 );
 
 // Grass biome wave music: Phantoms & Fantasies (dark/mysterious/psychedelic, ~108 BPM)
 const GRASS_WAVE_MUSIC: SoundAsset = new SoundAsset(
-  '@Music/phantoms_fantasies.wav:sound',
+  '@Music/phantoms_fantasies.ogg:sound',
 );
 
 // Volcano biome wave music: One Groove (energetic house, A minor, ~110 BPM, punchy bass)
 const VOLCANO_WAVE_MUSIC: SoundAsset = new SoundAsset(
-  '@Music/one_groove.wav:sound',
+  '@Music/one_groove.ogg:sound',
 );
 
 // Snow biome wave music: Mister Mystery (dark/mysterious electronic, ~105 BPM)
 const SNOW_WAVE_MUSIC: SoundAsset = new SoundAsset(
-  '@Music/mister_mystery.wav:sound',
+  '@Music/mister_mystery.ogg:sound',
 );
 
 // Boss level music: Sewers Loop Epic 1 (dark aggressive orchestral, heavy percussion + brass, full energy from first beat)
 // Overrides normal wave music on boss levels across all biomes
 const BOSS_WAVE_MUSIC: SoundAsset = new SoundAsset(
-  '@Music/Sewers_Loop_EPIC_1.wav:sound',
+  '@Music/Sewers_Loop_EPIC_1.ogg:sound',
 );
 
 // --- Per-biome music configuration ---

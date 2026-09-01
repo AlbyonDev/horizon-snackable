@@ -147,6 +147,11 @@ export class SkillTreeService extends Service {
     return this._hasTag(SkillTag.UnlockPillar);
   }
 
+  /** Check if the Sniper tower has been unlocked via the skill tree. */
+  isSniperUnlocked(): boolean {
+    return this._hasTag(SkillTag.UnlockSniper);
+  }
+
   /**
    * Attempt to purchase a skill node. Returns true if successful.
    */
@@ -178,6 +183,9 @@ export class SkillTreeService extends Service {
     }
 
     save.spendSkulls(cost);
+
+
+
     this._unlocked.add(skillIndex);
 
     if (isInfinite) {
@@ -334,6 +342,16 @@ export class SkillTreeService extends Service {
   /** Fortune branch: flat gold per kill bonus (infinite: stacks per purchase). */
   getGoldPerKillBonus(): number {
     return this._tagBonus(SkillTag.GoldPerEnemy);
+  }
+
+  /** Poison damage multiplier (applied to poison tower DoT ticks). */
+  getPoisonDamageMultiplier(): number {
+    return 1.0 + this._tagBonus(SkillTag.PoisonDamageT1);
+  }
+
+  /** Lightning-specific range multiplier (applied on top of global range). */
+  getLightningRangeMultiplier(): number {
+    return 1.0 + this._tagBonus(SkillTag.LightningRangeT1);
   }
 
   /** Fortune branch: income rate multiplier — passive gold per wave multiplier (secondary on sell refund T2 and starting gold T3). */

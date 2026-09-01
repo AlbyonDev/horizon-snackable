@@ -6,7 +6,7 @@
  * Component Ownership: Not Networked — runs on client
  *
  * Subscribes to Events.SkillTreeNodePurchased (fired by SkillTreeHudController on successful buy)
- * and plays the SoundComponent on its entity (sfxlib_ui_MagicalConfirm_01.wav).
+ * and plays the SoundComponent on its entity (sfxlib_ui_MagicalConfirm_01.ogg).
  * Volume is 0.3, pitch varies 0.9–1.1 so rapid purchases don't sound repetitive.
  */
 import {

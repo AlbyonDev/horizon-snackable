@@ -19,6 +19,7 @@ export namespace Assets {
   export const Lightning = new TemplateAsset('@Templates/Towers/LightningTower.hstf');
   export const Poison = new TemplateAsset('@Templates/Towers/PoisonTower.hstf');
   export const Pillar = new TemplateAsset('@Templates/Towers/MenhirTower.hstf');
+  export const Sniper = new TemplateAsset('@Templates/Towers/SniperTower.hstf');
 
   // ── Enemies ───────────────────────────────────────────────────────────────
   export const EnemyBasic = new TemplateAsset('@Templates/Enemies/Enemy.hstf');
@@ -32,6 +33,9 @@ export namespace Assets {
   export const EnemyFireGolem = new TemplateAsset('@Templates/Enemies/EnemyFireGolem.hstf');
   export const EnemyGiantGoblin = new TemplateAsset('@Templates/Enemies/EnemyGiantGoblin.hstf');
   export const EnemyFireball = new TemplateAsset('@Templates/Enemies/EnemyFireball.hstf');
+  export const EnemySplitter = new TemplateAsset('@Templates/Enemies/EnemySplitter.hstf');
+  export const EnemyMiniSplitter = new TemplateAsset('@Templates/Enemies/EnemyMiniSplitter.hstf');
+  export const EnemyPhaseShifter = new TemplateAsset('@Templates/Enemies/EnemyPhaseShifter.hstf');
 
   // ── Effects ──────────────────────────────────────────────────────────────
   export const ShieldSphere = new TemplateAsset('@Templates/ShieldSphere.hstf');
@@ -69,4 +73,5 @@ export namespace TowerIcons {
   export const LightningTower = new TextureAsset("@Textures/lightning_tower.png");
   export const PoisonTower = new TextureAsset("@Textures/poison_tower.png");
   export const PillarTower = new TextureAsset("@Textures/pillar_tower.png");
+  export const SniperTower = new TextureAsset("@Textures/sniper_tower.png");
 }
